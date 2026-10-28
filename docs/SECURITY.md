@@ -149,7 +149,9 @@ On 2026-10-28, against Python 3.13:
 - `npm run css:build` — succeeded.
 
 The gitleaks job is configured in CI but was not run locally because Docker is
-not installed on the development host.
+not installed on the development host. It passed on GitHub for commit
+`577b434`, along with the test, migration, deploy-check, and dependency-audit
+jobs.
 
 
 ## Known gaps and follow-ups
