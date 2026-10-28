@@ -1,4 +1,4 @@
 -r base.txt
-gunicorn==23.0.0
+gunicorn==26.2.0
 psycopg[binary]==3.3.6
 redis==6.4.0
