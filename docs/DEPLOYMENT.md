@@ -55,6 +55,16 @@ user, and drops privileges after fixing the persistent-disk ownership.
    start. Uploads attempted before clamd is ready are marked failed, not clean.
 5. Confirm the web deploy became live. `preDeployCommand` runs
    `python manage.py migrate --noinput` before the new instance starts.
+6. In a Render shell on the web service, load the synthetic catalogue and
+   create a break-glass staff account:
+
+   ```bash
+   python manage.py bootstrap_catalogue docs/catalogue.example.json
+   python manage.py create_staff ops@example.test --role admin --admin
+   ```
+
+   The catalogue file is synthetic. Replace it with a founder-approved
+   manifest before using staging for realistic service scenarios.
 
 `RENDER_EXTERNAL_HOSTNAME` is adopted automatically by
 `config.settings.staging`, so a service-name suffix does not break host or CSRF
