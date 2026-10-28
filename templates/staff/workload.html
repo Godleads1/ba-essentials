@@ -1,0 +1,85 @@
+{% extends "app/base.html" %}
+{% load ui %}
+{% block title %}Assignments · B &amp; A Essentials{% endblock %}
+{% block page_title %}Assignments &amp; workload{% endblock %}
+{% block mobile_title %}Assignments{% endblock %}
+{% block content %}
+  <section class="card">
+    <div class="border-b border-slate-100 px-5 py-4">
+      <h2 class="text-sm font-semibold text-navy-900">Specialist workload</h2>
+      <p class="mt-1 text-xs text-slate-500">Open cases per active specialist, with minutes logged against active assignments.</p>
+    </div>
+    {% if roster %}
+      <ul class="divide-y divide-slate-100">
+        {% for row in roster %}
+          <li class="px-5 py-4">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p class="text-sm font-semibold text-navy-900">{{ row.specialist.full_name|default:row.specialist.email }}</p>
+                <p class="text-xs text-slate-400">{{ row.specialist.email }}</p>
+              </div>
+              <div class="flex items-center gap-4 text-right">
+                <div>
+                  <p class="text-xs uppercase tracking-wide text-slate-400">Open cases</p>
+                  <p class="text-lg font-semibold text-navy-900">{{ row.specialist.active_cases }}</p>
+                </div>
+                <div>
+                  <p class="text-xs uppercase tracking-wide text-slate-400">Minutes</p>
+                  <p class="text-lg font-semibold text-navy-900">{{ row.specialist.logged_minutes|default:0 }}</p>
+                </div>
+              </div>
+            </div>
+            {% if row.cases %}
+              <ul class="mt-3 flex flex-wrap gap-2">
+                {% for task in row.cases %}
+                  <li>
+                    <a class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs text-slate-700 hover:border-brand-300" href="{% url 'staff-task-detail' task_id=task.pk %}">
+                      <span class="font-mono text-[10px] text-slate-400">{{ task.reference }}</span>
+                      <span class="font-medium">{{ task.title|truncatechars:40 }}</span>
+                      <span class="text-slate-400">{% if task.due_date %}due {{ task.due_date|date:"j M" }}{% endif %}</span>
+                    </a>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="mt-2 text-xs text-slate-400">No open cases.</p>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="px-5 py-10 text-sm text-slate-500">No active specialists.</p>
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <div class="border-b border-slate-100 px-5 py-4">
+      <h2 class="text-sm font-semibold text-navy-900">Ready for assignment</h2>
+      <p class="mt-1 text-xs text-slate-500">Approved and paid requests that still need a specialist.</p>
+    </div>
+    {% if ready %}
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Reference</th><th>Request</th><th>Client</th><th>Priority</th><th>Due</th><th></th></tr></thead>
+          <tbody>
+            {% for task in ready %}
+              <tr>
+                <td class="whitespace-nowrap font-mono text-xs text-slate-500">{{ task.reference }}</td>
+                <td>
+                  <a class="font-medium text-navy-900 hover:text-brand-700" href="{% url 'staff-task-detail' task_id=task.pk %}">{{ task.title }}</a>
+                  <p class="text-xs text-slate-400">{{ task.service_version.definition.name }}</p>
+                </td>
+                <td class="text-slate-600">{{ task.organization.name }}</td>
+                <td class="text-slate-600">{{ task.get_priority_display }}</td>
+                <td class="whitespace-nowrap text-slate-500">{{ task.due_date|date:"j M Y"|default:"—" }}</td>
+                <td class="text-right"><a class="btn-primary btn-sm" href="{% url 'staff-task-detail' task_id=task.pk %}">Assign</a></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="px-5 py-10 text-sm text-slate-500">Nothing is waiting for an assignment.</p>
+    {% endif %}
+  </section>
+{% endblock %}

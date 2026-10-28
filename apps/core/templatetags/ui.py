@@ -43,6 +43,10 @@ STATUS_LABELS = {
     "pending": "Awaiting client",
     "resolved": "Resolved",
     "closed": "Closed",
+    # Audit result vocabulary.
+    "success": "Success",
+    "denied": "Denied",
+    "error": "Error",
 }
 
 STATUS_TONES = {
@@ -77,6 +81,9 @@ STATUS_TONES = {
     "pending": "bg-amber-50 text-amber-700 ring-amber-200",
     "resolved": "bg-brand-50 text-brand-700 ring-brand-200",
     "closed": "bg-slate-100 text-slate-500 ring-slate-300",
+    "success": "bg-brand-50 text-brand-700 ring-brand-200",
+    "denied": "bg-rose-50 text-rose-700 ring-rose-200",
+    "error": "bg-amber-50 text-amber-700 ring-amber-200",
 }
 
 ACTION_LABELS = {

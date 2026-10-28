@@ -1,0 +1,39 @@
+{% extends "app/base.html" %}
+{% block title %}Needs information · B &amp; A Essentials{% endblock %}
+{% block page_title %}Needs information{% endblock %}
+{% block mobile_title %}Needs information{% endblock %}
+{% block content %}
+  <section class="card">
+    <div class="border-b border-slate-100 px-5 py-4">
+      <h2 class="text-sm font-semibold text-navy-900">Waiting on the client</h2>
+      <p class="mt-1 text-xs text-slate-500">These requests are paused until the client answers the question recorded at triage.</p>
+    </div>
+    {% if tasks %}
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Reference</th><th>Request</th><th>Client</th><th>Question</th><th>Waiting</th><th></th></tr></thead>
+          <tbody>
+            {% for task in tasks %}
+              <tr>
+                <td class="whitespace-nowrap font-mono text-xs text-slate-500">{{ task.reference }}</td>
+                <td>
+                  <a class="font-medium text-navy-900 hover:text-brand-700" href="{% url 'staff-task-detail' task_id=task.pk %}">{{ task.title }}</a>
+                  <p class="text-xs text-slate-400">{{ task.service_version.definition.name }}</p>
+                </td>
+                <td class="text-slate-600">{{ task.organization.name }}</td>
+                <td class="max-w-md text-sm text-slate-600">{{ task.needs_info_question|truncatechars:140|default:"—" }}</td>
+                <td class="whitespace-nowrap text-slate-500">{{ task.updated_at|timesince }} ago</td>
+                <td class="text-right"><a class="btn-secondary btn-sm" href="{% url 'staff-task-detail' task_id=task.pk %}">Open</a></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="px-6 py-16 text-center">
+        <p class="text-sm font-medium text-navy-900">Nothing is waiting on a client.</p>
+        <p class="mt-1 text-sm text-slate-500">Requests appear here after they are sent back for more information.</p>
+      </div>
+    {% endif %}
+  </section>
+{% endblock %}

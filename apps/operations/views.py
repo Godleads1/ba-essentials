@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from django.contrib import messages
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Sum
 from django.http import Http404
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_GET, require_POST
@@ -9,21 +9,28 @@ from django.views.decorators.http import require_GET, require_POST
 from apps.accounts.decorators import staff_permission_required, staff_required
 from apps.accounts.models import StaffRole, User
 from apps.accounts.permissions import (
+    AUDIT_VIEW,
     CLIENT_VIEW,
+    FILES_VIEW_ALL,
     QUOTE_SEND,
     REVIEW_DECIDE,
+    TASK_ASSIGN,
+    TASK_SCOPE,
+    TASK_TRIAGE,
     has_perm,
 )
+from apps.audit.models import AuditEvent
 from apps.billing.models import Invoice
 from apps.communications import services as communications
 from apps.core.exceptions import DomainError
 from apps.core.views import handle_domain_error
 from apps.organizations.models import Organization
 from apps.quotes.forms import QuoteForm
-from apps.reviews.models import DeliverableVersionStatus
+from apps.reviews.models import DeliverableVersion, DeliverableVersionStatus
 from apps.tasks import services
 from apps.tasks.access import can_view_task, tasks_for
 from apps.tasks.models import (
+    Assignment,
     AssignmentStatus,
     OPEN_STATUSES,
     Task,
@@ -351,3 +358,190 @@ def clients(request):
         .order_by("name")[:200]
     )
     return render(request, "staff/clients.html", {"organizations": organizations})
+
+
+@staff_permission_required(TASK_TRIAGE)
+@require_GET
+def needs_information(request):
+    tasks = (
+        tasks_for(request.user)
+        .filter(status=TaskStatus.NEEDS_INFORMATION)
+        .select_related("organization", "service_version__definition")
+        .order_by("updated_at")[:200]
+    )
+    return render(request, "staff/needs_information.html", {"tasks": tasks})
+
+
+@staff_permission_required(TASK_SCOPE)
+@require_GET
+def scoping_queue(request):
+    tasks = (
+        tasks_for(request.user)
+        .filter(
+            status__in=[
+                TaskStatus.SCOPING,
+                TaskStatus.AWAITING_CLIENT_APPROVAL,
+                TaskStatus.AWAITING_PAYMENT,
+            ]
+        )
+        .select_related("organization", "service_version__definition")
+        .prefetch_related("quote__versions")
+        .order_by("updated_at")[:200]
+    )
+    rows = []
+    for task in tasks:
+        quote = getattr(task, "quote", None)
+        rows.append(
+            {
+                "task": task,
+                "version": quote.versions.first() if quote is not None else None,
+            }
+        )
+    return render(request, "staff/scoping.html", {"rows": rows})
+
+
+@staff_permission_required(TASK_ASSIGN)
+@require_GET
+def workload(request):
+    visible = tasks_for(request.user)
+    specialists = (
+        User.objects.filter(staff_role=StaffRole.SPECIALIST, is_active=True)
+        .annotate(
+            active_cases=Count(
+                "assignments",
+                filter=Q(
+                    assignments__status=AssignmentStatus.ACTIVE,
+                    assignments__task__status__in=OPEN_STATUSES,
+                ),
+                distinct=True,
+            ),
+            logged_minutes=Sum(
+                "assignments__work_logs__minutes",
+                filter=Q(assignments__status=AssignmentStatus.ACTIVE),
+            ),
+        )
+        .order_by("full_name", "email")
+    )
+    assignments = (
+        Assignment.objects.filter(
+            status=AssignmentStatus.ACTIVE,
+            task__in=visible,
+            task__status__in=OPEN_STATUSES,
+        )
+        .select_related("specialist", "task", "task__organization")
+        .order_by("specialist_id", "task__due_date")
+    )
+    cases_by_specialist: dict = {}
+    for assignment in assignments:
+        cases_by_specialist.setdefault(assignment.specialist_id, []).append(assignment.task)
+    roster = [
+        {"specialist": specialist, "cases": cases_by_specialist.get(specialist.pk, [])}
+        for specialist in specialists
+    ]
+    ready = (
+        visible.filter(status=TaskStatus.READY_FOR_ASSIGNMENT)
+        .select_related("organization", "service_version__definition")
+        .order_by("due_date")[:50]
+    )
+    return render(
+        request,
+        "staff/workload.html",
+        {"roster": roster, "ready": ready},
+    )
+
+
+@staff_permission_required(FILES_VIEW_ALL)
+@require_GET
+def deliverables_queue(request):
+    tasks = list(
+        tasks_for(request.user)
+        .filter(
+            status__in=[
+                TaskStatus.INTERNAL_REVIEW,
+                TaskStatus.REWORK_REQUIRED,
+                TaskStatus.APPROVED_FOR_RELEASE,
+            ]
+        )
+        .select_related("organization", "service_version__definition", "deliverable")
+        .order_by("-updated_at")[:200]
+    )
+    latest: dict = {}
+    counts: dict = {}
+    versions = (
+        DeliverableVersion.objects.filter(deliverable__task__in=tasks)
+        .select_related("file", "submitted_by")
+        .order_by("deliverable_id", "-version_number")
+    )
+    for version in versions:
+        counts[version.deliverable_id] = counts.get(version.deliverable_id, 0) + 1
+        latest.setdefault(version.deliverable_id, version)
+    rows = []
+    for task in tasks:
+        deliverable = getattr(task, "deliverable", None)
+        deliverable_id = deliverable.pk if deliverable is not None else None
+        rows.append(
+            {
+                "task": task,
+                "version": latest.get(deliverable_id),
+                "version_count": counts.get(deliverable_id, 0),
+            }
+        )
+    return render(request, "staff/deliverables.html", {"rows": rows})
+
+
+@staff_required
+@require_GET
+def my_cases(request):
+    assignments = (
+        Assignment.objects.filter(specialist=request.user, status=AssignmentStatus.ACTIVE)
+        .select_related("task", "task__organization", "task__service_version__definition")
+        .annotate(logged_minutes=Sum("work_logs__minutes"))
+        .order_by("task__due_date")
+    )
+    completed = (
+        Assignment.objects.filter(specialist=request.user, status=AssignmentStatus.COMPLETED)
+        .select_related("task", "task__organization")
+        .order_by("-completed_at")[:20]
+    )
+    return render(
+        request,
+        "staff/my_cases.html",
+        {"assignments": assignments, "completed": completed},
+    )
+
+
+@staff_permission_required(AUDIT_VIEW)
+@require_GET
+def audit_log(request):
+    events = AuditEvent.objects.select_related("actor", "organization")
+    action = (request.GET.get("action") or "").strip()
+    result = (request.GET.get("result") or "").strip()
+    query = (request.GET.get("q") or "").strip()
+    if action:
+        events = events.filter(action=action)
+    if result in AuditEvent.Result.values:
+        events = events.filter(result=result)
+    else:
+        result = ""
+    if query:
+        events = events.filter(
+            Q(resource_id__icontains=query)
+            | Q(reason__icontains=query)
+            | Q(actor__email__icontains=query)
+            | Q(organization__name__icontains=query)
+        )
+    actions = (
+        AuditEvent.objects.values_list("action", flat=True).distinct().order_by("action")
+    )
+    return render(
+        request,
+        "staff/audit.html",
+        {
+            "events": events[:200],
+            "actions": actions,
+            "result_choices": AuditEvent.Result.choices,
+            "selected_action": action,
+            "selected_result": result,
+            "query": query,
+        },
+    )

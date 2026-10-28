@@ -1,0 +1,58 @@
+{% extends "app/base.html" %}
+{% load ui %}
+{% block title %}My cases · B &amp; A Essentials{% endblock %}
+{% block page_title %}My cases{% endblock %}
+{% block mobile_title %}My cases{% endblock %}
+{% block content %}
+  <section class="card">
+    <div class="border-b border-slate-100 px-5 py-4">
+      <h2 class="text-sm font-semibold text-navy-900">Active assignments</h2>
+      <p class="mt-1 text-xs text-slate-500">Only cases actively assigned to you. Log progress and submit drafts from the case page.</p>
+    </div>
+    {% if assignments %}
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Reference</th><th>Request</th><th>Client</th><th>Status</th><th>Due</th><th>Minutes</th><th></th></tr></thead>
+          <tbody>
+            {% for assignment in assignments %}
+              <tr>
+                <td class="whitespace-nowrap font-mono text-xs text-slate-500">{{ assignment.task.reference }}</td>
+                <td>
+                  <a class="font-medium text-navy-900 hover:text-brand-700" href="{% url 'staff-task-detail' task_id=assignment.task.pk %}">{{ assignment.task.title }}</a>
+                  <p class="text-xs text-slate-400">{{ assignment.task.service_version.definition.name }}</p>
+                </td>
+                <td class="text-slate-600">{{ assignment.task.organization.name }}</td>
+                <td>{% include "partials/status_badge.html" with status=assignment.task.status %}</td>
+                <td class="whitespace-nowrap text-slate-500">{{ assignment.task.due_date|date:"j M Y"|default:"—" }}</td>
+                <td class="text-slate-600">{{ assignment.logged_minutes|default:0 }}</td>
+                <td class="text-right"><a class="btn-secondary btn-sm" href="{% url 'staff-task-detail' task_id=assignment.task.pk %}">Open</a></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="px-6 py-16 text-center">
+        <p class="text-sm font-medium text-navy-900">No active assignments.</p>
+        <p class="mt-1 text-sm text-slate-500">Cases assigned to you by operations appear here.</p>
+      </div>
+    {% endif %}
+  </section>
+
+  {% if completed %}
+    <section class="card">
+      <div class="border-b border-slate-100 px-5 py-4"><h2 class="text-sm font-semibold text-navy-900">Recently completed</h2></div>
+      <ul class="divide-y divide-slate-100">
+        {% for assignment in completed %}
+          <li class="flex flex-wrap items-center justify-between gap-2 px-5 py-3">
+            <div>
+              <a class="text-sm font-medium text-navy-900 hover:text-brand-700" href="{% url 'staff-task-detail' task_id=assignment.task.pk %}">{{ assignment.task.reference }} · {{ assignment.task.title }}</a>
+              <p class="text-xs text-slate-400">{{ assignment.task.organization.name }}</p>
+            </div>
+            <span class="text-xs text-slate-400">Completed {{ assignment.completed_at|date:"j M Y" }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endif %}
+{% endblock %}
