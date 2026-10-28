@@ -109,6 +109,29 @@ without authorization and a rollback procedure.
   Quarantined or unscanned files are refused.
 - Production refuses the noop scanner. `scan_files` also refuses it.
 
+## Messaging, support and public website
+
+- Task threads are tenant-scoped through the task access layer. Internal notes
+  are removed at queryset level for client callers, and clients cannot create
+  them; posting attempts are rate-limited.
+- Notifications are database rows naming a task reference or ticket subject,
+  never message content. Recipients are derived server-side: the client
+  organization, the assigned specialist, or the operations/support roles.
+- Staff replies and ticket assignment require `support.handle`. Clients can
+  only add public replies; closed tickets refuse client replies and new public
+  staff replies.
+- The public contact form is rate-limited per source address, includes a
+  honeypot, and stores only a keyed HMAC of the address using
+  `django.utils.crypto.salted_hmac`. Message content is never written to audit
+  metadata.
+- Website pages keep immutable revisions. Editors with `website.edit` save
+  drafts and preview them through an authenticated, permission-gated view;
+  `website.publish` controls what the public renderer serves. Publishing,
+  unpublishing and restores are audited.
+- Revision bodies render as escaped plain text with preserved line breaks; raw
+  HTML in a revision is never trusted. Reserved slugs cannot shadow the auth,
+  staff, admin, health or contact routes.
+
 ## Logging and audit
 
 - Request IDs are accepted only in a constrained format and echoed back.
@@ -145,10 +168,12 @@ The staging Blueprint and its verification steps are in
 
 On 2026-10-28, against Python 3.13:
 
-- `python -m pytest` — 101 passed, 5 PostgreSQL-only tests skipped.
-- `python -m pytest --ds=config.settings.test_postgres` in CI — 106 passed,
-  including concurrent transitions, quote acceptance, idempotent replay,
-  allowance limits, and payment verification.
+- `python -m pytest` — 131 passed, 5 PostgreSQL-only tests skipped.
+- `python -m pytest --ds=config.settings.test_postgres` in CI — 106 passed at
+  commit `671b5e6`, including concurrent transitions, quote acceptance,
+  idempotent replay, allowance limits, and payment verification. The
+  communications, staff-queue and website suites run on PostgreSQL on the next
+  push.
 - The CI container job builds the production image and runs
   `check --deploy` with `config.settings.staging` inside it.
 - `python manage.py makemigrations --check --dry-run --settings=config.settings.test`
@@ -173,7 +198,10 @@ migration check, deploy check, and dependency audit.
   manual-reconciliation only.
 - No object-storage adapter; local storage must be backed up and is not suitable
   for multi-instance deployments without shared storage.
-- In-app notifications and the messaging/CMS surfaces are not implemented.
+- In-app messaging, support tickets, staff queues and the text CMS are
+  implemented. Outbound message email, a CMS media library, and
+  object-storage-backed uploads are not; public contact enquiries live in-app
+  only until an email provider is wired.
 - Concurrency guarantees rely on PostgreSQL row locks and conditional writes;
   SQLite remains development-only, while CI runs the full suite on PostgreSQL.
 - HSTS preload is intentionally not enabled. It is a long-lived commitment and

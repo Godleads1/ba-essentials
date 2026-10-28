@@ -140,7 +140,9 @@ PostgreSQL snapshot before a destructive change.
 - **Payments are disabled.** Paystack checkout initialization is not
   implemented; enabling payments requires the Paystack secrets and a finance
   review.
-- **No in-app messaging or CMS.** Those surfaces are Phase 5+.
+- **Integrations are in-app only.** Messaging, notifications, support and the
+  text CMS run against the database. Outbound message email, SMS (Termii),
+  Paystack checkout and object storage are not wired yet.
 - **HSTS preload is off** (`security.W021`). It is a long-lived commitment and
   needs an explicit decision.
 - **Synthetic data only.** Staging is not a production environment and its
