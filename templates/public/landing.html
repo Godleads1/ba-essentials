@@ -10,7 +10,7 @@
       <nav class="hidden items-center gap-7 text-sm font-medium text-slate-600 md:flex" aria-label="Primary">
         <a class="hover:text-brand-700" href="#services">Services</a>
         <a class="hover:text-brand-700" href="#how">How it works</a>
-        <a class="hover:text-brand-700" href="mailto:hello@baessentials.example">Contact</a>
+        <a class="hover:text-brand-700" href="{% url 'contact' %}">Contact</a>
       </nav>
       <div class="flex items-center gap-2">
         <a class="btn-ghost btn-sm" href="{% url 'login' %}">Log in</a>
@@ -107,6 +107,12 @@
         <span class="grid h-9 w-9 place-items-center rounded-lg bg-brand-500 text-lg font-bold text-white">B</span>
         <div class="text-sm font-semibold leading-tight text-white">B &amp; A<br><span class="text-slate-400">Essentials</span></div>
       </div>
+      <nav class="flex flex-wrap gap-x-5 gap-y-2 text-xs text-slate-400" aria-label="Footer">
+        {% for page in site_pages %}
+          <a class="hover:text-white" href="{% url 'website-page' slug=page.slug %}">{{ page.published_revision.title }}</a>
+        {% endfor %}
+        <a class="hover:text-white" href="{% url 'contact' %}">Contact</a>
+      </nav>
       <p class="text-xs text-slate-500">&copy; {% now "Y" %} B &amp; A Essentials. Business support, simplified.</p>
     </div>
   </footer>

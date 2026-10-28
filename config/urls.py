@@ -4,6 +4,7 @@ from django.contrib import admin
 from django.urls import include, path
 
 from apps.core import views as core_views
+from apps.website import views_public as website_views
 
 urlpatterns = [
     path("", core_views.landing, name="landing"),
@@ -11,6 +12,7 @@ urlpatterns = [
     path("", include("apps.accounts.urls")),
     path("", include("apps.organizations.urls_public")),
     path("", include("apps.billing.urls_webhook")),
+    path("", include("apps.website.urls_public")),
     path("app/", include("apps.tasks.urls_client")),
     path("app/", include("apps.quotes.urls")),
     path("app/", include("apps.reviews.urls")),
@@ -26,7 +28,9 @@ urlpatterns = [
     path("staff/", include("apps.reviews.urls_staff")),
     path("staff/", include("apps.billing.urls_staff")),
     path("staff/", include("apps.catalogue.urls")),
+    path("staff/", include("apps.website.urls_staff")),
     path("admin/", admin.site.urls),
+    path("<slug:slug>/", website_views.page, name="website-page"),
 ]
 
 handler403 = "apps.core.views.permission_denied_view"

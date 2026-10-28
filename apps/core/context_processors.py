@@ -13,6 +13,8 @@ STAFF_NAV = (
     ("staff-clients", "Clients", "M16 11a4 4 0 10-8 0 4 4 0 008 0zM3 21a9 9 0 0118 0"),
     ("staff-finance", "Finance", "M12 3v18M7 7h7a3 3 0 010 6H7h8a3 3 0 010 6H7"),
     ("staff-catalogue", "Service Catalogue", "M4 5h16v4H4zM4 15h16v4H4z"),
+    ("staff-website-pages", "Website", "M12 3a9 9 0 100 18 9 9 0 000-18zM3 12h18M12 3c2.5 2.6 3.8 5.7 3.8 9S14.5 18.4 12 21c-2.5-2.6-3.8-5.7-3.8-9S9.5 5.6 12 3z"),
+    ("staff-leads", "Contact Inbox", "M3 6h18v12H3zM3 8l9 6 9-6"),
     ("staff-audit", "Audit Log", "M4 5h16v14H4zM8 9h8M8 13h5"),
 )
 
@@ -27,6 +29,8 @@ STAFF_NAV_PERMISSIONS = {
     "staff-clients": "client.view",
     "staff-finance": "finance.view",
     "staff-catalogue": "catalogue.manage",
+    "staff-website-pages": "website.edit",
+    "staff-leads": "leads.view",
     "staff-audit": "audit.view",
 }
 

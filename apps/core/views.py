@@ -17,9 +17,14 @@ def landing(request):
     if request.user.is_authenticated:
         return redirect("staff-dashboard" if _is_staff(request.user) else "client-overview")
     from apps.catalogue.models import ServiceCategory
+    from apps.website.services import published_pages
 
     categories = ServiceCategory.objects.filter(is_active=True).order_by("sort_order", "name")
-    return render(request, "public/landing.html", {"categories": categories})
+    return render(
+        request,
+        "public/landing.html",
+        {"categories": categories, "site_pages": published_pages()},
+    )
 
 
 def _is_staff(user) -> bool:

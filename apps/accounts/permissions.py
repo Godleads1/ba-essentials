@@ -21,6 +21,9 @@ SUPPORT_HANDLE = "support.handle"
 CATALOGUE_MANAGE = "catalogue.manage"
 AUDIT_VIEW = "audit.view"
 FILES_VIEW_ALL = "files.view_all"
+WEBSITE_EDIT = "website.edit"
+WEBSITE_PUBLISH = "website.publish"
+LEADS_VIEW = "leads.view"
 
 ALL_PERMISSIONS = frozenset(
     {
@@ -40,6 +43,9 @@ ALL_PERMISSIONS = frozenset(
         CATALOGUE_MANAGE,
         AUDIT_VIEW,
         FILES_VIEW_ALL,
+        WEBSITE_EDIT,
+        WEBSITE_PUBLISH,
+        LEADS_VIEW,
     }
 )
 
@@ -56,6 +62,7 @@ ROLE_PERMISSIONS: dict[str, frozenset[str]] = {
             CLIENT_VIEW,
             SUPPORT_HANDLE,
             FILES_VIEW_ALL,
+            LEADS_VIEW,
         }
     ),
     StaffRole.QUOTE_APPROVER: frozenset(
@@ -70,8 +77,8 @@ ROLE_PERMISSIONS: dict[str, frozenset[str]] = {
         {FINANCE_VIEW, FINANCE_VERIFY_PAYMENT, CLIENT_VIEW, TASK_VIEW_ALL}
     ),
     StaffRole.ADMIN: ALL_PERMISSIONS,
-    StaffRole.WEBSITE_EDITOR: frozenset(),
-    StaffRole.WEBSITE_PUBLISHER: frozenset(),
+    StaffRole.WEBSITE_EDITOR: frozenset({WEBSITE_EDIT}),
+    StaffRole.WEBSITE_PUBLISHER: frozenset({WEBSITE_EDIT, WEBSITE_PUBLISH}),
 }
 
 

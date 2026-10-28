@@ -47,6 +47,8 @@ STATUS_LABELS = {
     "success": "Success",
     "denied": "Denied",
     "error": "Error",
+    # Website publishing vocabulary.
+    "published": "Published",
 }
 
 STATUS_TONES = {
@@ -84,6 +86,7 @@ STATUS_TONES = {
     "success": "bg-brand-50 text-brand-700 ring-brand-200",
     "denied": "bg-rose-50 text-rose-700 ring-rose-200",
     "error": "bg-amber-50 text-amber-700 ring-amber-200",
+    "published": "bg-brand-50 text-brand-700 ring-brand-200",
 }
 
 ACTION_LABELS = {
