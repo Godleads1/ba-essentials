@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import subprocess
+
 import pytest
 from django.test import override_settings
 from django.urls import reverse
@@ -48,6 +50,30 @@ def test_store_upload_uses_opaque_key_and_records_hash(organization, owner):
     assert private.scan_status == ScanStatus.CLEAN
     assert len(private.sha256) == 64
     assert services.get_storage().exists(private.storage_key)
+
+
+def test_remote_clamd_streams_with_the_configured_tcp_config(
+    organization, owner, monkeypatch
+):
+    calls = []
+
+    def fake_run(command, **kwargs):
+        calls.append(command)
+        return subprocess.CompletedProcess(command, 0, b"", b"")
+
+    monkeypatch.setattr(services.subprocess, "run", fake_run)
+    with override_settings(
+        FILE_SCAN_BACKEND="clamdscan",
+        CLAMD_CONFIG_FILE="/tmp/clamd.conf",
+    ):
+        private = services.store_upload(
+            organization=organization, user=owner, uploaded_file=pdf_upload()
+        )
+
+    assert private.scan_status == ScanStatus.CLEAN
+    assert calls[0][:3] == ["clamdscan", "--no-summary", "--stdout"]
+    assert "--stream" in calls[0]
+    assert "--config-file=/tmp/clamd.conf" in calls[0]
 
 
 def test_download_token_is_bound_to_user_and_expires(organization, owner, other_owner):

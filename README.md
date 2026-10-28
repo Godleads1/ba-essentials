@@ -105,6 +105,13 @@ verification. The production deploy check needs the PostgreSQL driver from
 `requirements/prod.txt` plus the production environment variables; the workflow
 supplies inert values for the check.
 
+## Deployment
+
+A Render Blueprint with PostgreSQL, Render Key Value (Redis), Resend SMTP, and
+a private ClamAV service is documented in
+[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). It is a staging runbook: paid
+resources, synthetic data, and payments disabled.
+
 ## Security posture
 
 Implemented controls and deployment requirements are documented in

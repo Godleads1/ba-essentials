@@ -170,6 +170,9 @@ PRIVATE_STORAGE_ROOT = env("PRIVATE_STORAGE_ROOT", str(BASE_DIR / "var" / "priva
 PRIVATE_STORAGE_BACKEND = env("PRIVATE_STORAGE_BACKEND", "local")
 FILE_MAX_BYTES = env_int("FILE_MAX_BYTES", 10 * 1024 * 1024)
 FILE_SCAN_BACKEND = env("FILE_SCAN_BACKEND", "noop")
+# Optional clamd client configuration for a scanner on another host. The
+# container entrypoint writes this file from CLAMD_HOST/CLAMD_PORT.
+CLAMD_CONFIG_FILE = env("CLAMD_CONFIG_FILE", "")
 FILE_DOWNLOAD_TOKEN_TTL = env_int("FILE_DOWNLOAD_TOKEN_TTL", 300)
 
 # --- Payments -------------------------------------------------------------

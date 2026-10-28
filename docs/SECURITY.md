@@ -131,9 +131,15 @@ without authorization and a rollback procedure.
 6. Store secrets in the platform secret manager; never in the repository.
 7. Run `python manage.py check --deploy --settings=config.settings.production`.
 8. Run `python manage.py migrate` with a reviewed migration plan and rollback.
-9. Set up `process_outbox` and `scan_files` as scheduled jobs.
+9. Set up `process_outbox` and `scan_files` as scheduled jobs. The Render
+   staging Blueprint schedules outbox delivery; `scan_files` needs shared
+   storage before it can run in a separate container (see
+   [DEPLOYMENT.md](DEPLOYMENT.md)).
 10. Forward audit and application logs to a retention-controlled store.
 11. Restrict Django admin by network policy and strong admin accounts.
+
+The staging Blueprint and its verification steps are in
+[DEPLOYMENT.md](DEPLOYMENT.md). It is not a production approval.
 
 ## Verification performed
 

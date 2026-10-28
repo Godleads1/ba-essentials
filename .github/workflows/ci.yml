@@ -112,6 +112,38 @@ jobs:
       - name: Django tests on PostgreSQL
         run: python -m pytest --ds=config.settings.test_postgres
 
+  container:
+    name: Container build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build runtime image
+        run: docker build --tag ba-essentials:ci .
+
+      - name: Check runtime image with staging settings
+        run: >-
+          docker run --rm
+          -e DJANGO_SETTINGS_MODULE=config.settings.staging
+          -e DJANGO_SECRET_KEY=ci-only-secret-key-0000000000000000000000000000000000000000000000000000
+          -e DJANGO_ALLOWED_HOSTS=app.example.test
+          -e APP_BASE_URL=https://app.example.test
+          -e DATABASE_URL=postgres://ci:ci@db.example.test:5432/ci
+          -e SECURE_SSL_REDIRECT=true
+          -e SECURE_COOKIE=true
+          -e SECURE_HSTS_SECONDS=31536000
+          -e EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+          -e EMAIL_HOST=smtp.example.test
+          -e EMAIL_HOST_USER=resend
+          -e EMAIL_HOST_PASSWORD=ci-only-placeholder
+          -e FILE_SCAN_BACKEND=clamdscan
+          -e CACHE_BACKEND=django.core.cache.backends.redis.RedisCache
+          -e CACHE_LOCATION=redis://cache.example.test:6379/1
+          -e PAYMENTS_ENABLED=false
+          ba-essentials:ci python manage.py check --deploy --fail-level ERROR
+
   secrets:
     name: Secret scan
     runs-on: ubuntu-latest

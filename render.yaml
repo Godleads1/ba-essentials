@@ -1,0 +1,142 @@
+version: "1"
+
+envVarGroups:
+  - name: ba-essentials-staging
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.staging
+      - key: DJANGO_DEBUG
+        value: "false"
+      # Enter a value of at least 50 characters in the Render dashboard.
+      - key: DJANGO_SECRET_KEY
+        sync: false
+      - key: DJANGO_ALLOWED_HOSTS
+        value: ba-essentials-staging.onrender.com
+      - key: CSRF_TRUSTED_ORIGINS
+        value: https://ba-essentials-staging.onrender.com
+      - key: APP_BASE_URL
+        value: https://ba-essentials-staging.onrender.com
+      - key: SECURE_SSL_REDIRECT
+        value: "true"
+      - key: SECURE_COOKIE
+        value: "true"
+      - key: SECURE_HSTS_SECONDS
+        value: "31536000"
+      - key: SECURE_HSTS_INCLUDE_SUBDOMAINS
+        value: "true"
+      - key: EMAIL_BACKEND
+        value: django.core.mail.backends.smtp.EmailBackend
+      - key: EMAIL_HOST
+        value: smtp.resend.com
+      - key: EMAIL_PORT
+        value: "587"
+      - key: EMAIL_USE_TLS
+        value: "true"
+      - key: EMAIL_HOST_USER
+        value: resend
+      # Resend API key. Enter it in the Render dashboard, never in chat or git.
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+      # Must be an address on a domain verified in Resend.
+      - key: DEFAULT_FROM_EMAIL
+        sync: false
+      - key: CACHE_BACKEND
+        value: django.core.cache.backends.redis.RedisCache
+      - key: FILE_SCAN_BACKEND
+        value: clamdscan
+      - key: PRIVATE_STORAGE_BACKEND
+        value: local
+      - key: PRIVATE_STORAGE_ROOT
+        value: /var/data/private
+      - key: PAYMENTS_ENABLED
+        value: "false"
+      - key: WEB_CONCURRENCY
+        value: "2"
+
+databases:
+  - name: ba-essentials-staging-db
+    databaseName: ba_essentials
+    user: ba_essentials
+    region: frankfurt
+    plan: basic-256mb
+    postgresMajorVersion: "17"
+
+services:
+  - type: keyvalue
+    name: ba-essentials-staging-cache
+    region: frankfurt
+    plan: free
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: []
+
+  - type: pserv
+    name: ba-essentials-staging-clamav
+    region: frankfurt
+    runtime: image
+    plan: standard
+    image:
+      url: docker.io/clamav/clamav:1.4
+    disk:
+      name: ba-essentials-staging-clamav-db
+      mountPath: /var/lib/clamav
+      sizeGB: 1
+    envVars:
+      - key: CLAMAV_NO_MILTERD
+        value: "true"
+      - key: CLAMD_CONF_TCPAddr
+        value: 0.0.0.0
+
+  - type: web
+    name: ba-essentials-staging
+    region: frankfurt
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health/
+    preDeployCommand: python manage.py migrate --noinput
+    autoDeployTrigger: checksPass
+    disk:
+      name: ba-essentials-staging-files
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - fromGroup: ba-essentials-staging
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ba-essentials-staging-db
+          property: connectionString
+      - key: CACHE_LOCATION
+        fromService:
+          name: ba-essentials-staging-cache
+          type: keyvalue
+          property: connectionString
+      - key: CLAMD_HOST
+        fromService:
+          name: ba-essentials-staging-clamav
+          type: pserv
+          property: host
+      - key: CLAMD_PORT
+        value: "3310"
+
+  - type: cron
+    name: ba-essentials-staging-outbox
+    region: frankfurt
+    runtime: docker
+    plan: starter
+    schedule: "*/5 * * * *"
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    dockerCommand: python manage.py process_outbox --limit 100
+    autoDeployTrigger: checksPass
+    envVars:
+      - fromGroup: ba-essentials-staging
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ba-essentials-staging-db
+          property: connectionString
+      - key: CACHE_LOCATION
+        fromService:
+          name: ba-essentials-staging-cache
+          type: keyvalue
+          property: connectionString
