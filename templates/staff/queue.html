@@ -1,0 +1,53 @@
+{% extends "app/base.html" %}
+{% load ui %}
+{% block title %}Operations queue · B &amp; A Essentials{% endblock %}
+{% block page_title %}Operations queue{% endblock %}
+{% block mobile_title %}Operations queue{% endblock %}
+{% block content %}
+  <form method="get" class="flex flex-wrap items-center gap-2">
+    <input type="search" name="q" value="{{ query }}" placeholder="Search reference, title or client" class="w-64 rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-600 focus:ring-2 focus:ring-brand-100">
+    <select name="status" class="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm">
+      <option value="">All open</option>
+      {% for value, label in statuses %}
+        <option value="{{ value }}" {% if value == selected_status %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <label class="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs font-medium text-slate-600">
+      <input type="checkbox" name="mine" value="1" {% if mine %}checked{% endif %} class="h-4 w-4 rounded border-slate-300 text-brand-600">
+      Only mine
+    </label>
+    <button class="btn-secondary btn-sm" type="submit">Filter</button>
+    {% if query or selected_status %}<a class="btn-ghost btn-sm" href="{% url 'staff-queue' %}">Clear</a>{% endif %}
+  </form>
+
+  <div class="card">
+    {% if tasks %}
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Reference</th><th>Request</th><th>Client</th><th>Status</th><th>Specialist</th><th>Updated</th><th></th></tr></thead>
+          <tbody>
+            {% for task in tasks %}
+              <tr>
+                <td class="whitespace-nowrap font-mono text-xs text-slate-500">{{ task.reference }}</td>
+                <td>
+                  <a class="font-medium text-navy-900 hover:text-brand-700" href="{% url 'staff-task-detail' task_id=task.pk %}">{{ task.title }}</a>
+                  <p class="text-xs text-slate-400">{{ task.service_version.definition.name }}</p>
+                </td>
+                <td class="text-slate-600">{{ task.organization.name }}</td>
+                <td>{% include "partials/status_badge.html" with status=task.status %}</td>
+                <td class="text-slate-600">{{ task.active_assignment.specialist.full_name|default:"—" }}</td>
+                <td class="whitespace-nowrap text-slate-500">{{ task.updated_at|date:"j M, H:i" }}</td>
+                <td class="text-right"><a class="btn-secondary btn-sm" href="{% url 'staff-task-detail' task_id=task.pk %}">Open</a></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="px-6 py-16 text-center">
+        <p class="text-sm font-medium text-navy-900">Nothing in this view.</p>
+        <p class="mt-1 text-sm text-slate-500">Adjust the filters to see more requests.</p>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

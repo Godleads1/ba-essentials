@@ -1,0 +1,35 @@
+# Secrets and local state
+.env
+.env.*
+!.env.example
+var/
+*.sqlite3
+*.sqlite3-journal
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+
+# Virtual environments
+.venv/
+venv/
+
+# Node tooling (vendored assets in static/ are committed)
+node_modules/
+npm-debug.log*
+
+# Editors and OS files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Local logs
+*.log

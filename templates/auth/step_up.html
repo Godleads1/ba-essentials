@@ -1,0 +1,15 @@
+{% extends "auth/base.html" %}
+{% block title %}Confirm your identity · B &amp; A Essentials{% endblock %}
+{% block auth_content %}
+  <h1 class="text-2xl font-semibold text-navy-900">Confirm your identity</h1>
+  <p class="mt-2 text-sm text-slate-500">This action needs a fresh confirmation. Enter your password{% if user.mfa_enabled %} and authenticator code{% endif %}.</p>
+
+  <form method="post" class="mt-8 space-y-5" novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+    {{ form.non_field_errors }}
+    {% include "partials/field.html" with field=form.password %}
+    {% include "partials/field.html" with field=form.code %}
+    <button type="submit" class="btn-primary w-full">Confirm</button>
+  </form>
+{% endblock %}

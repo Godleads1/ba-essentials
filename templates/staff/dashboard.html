@@ -1,0 +1,72 @@
+{% extends "app/base.html" %}
+{% load ui %}
+{% block title %}Staff dashboard · B &amp; A Essentials{% endblock %}
+{% block page_title %}Operations dashboard{% endblock %}
+{% block mobile_title %}Operations dashboard{% endblock %}
+{% block content %}
+  <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+    <a class="card card-pad hover:border-brand-300" href="{% url 'staff-queue' %}?status=submitted">
+      <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">New</p>
+      <p class="mt-2 text-3xl font-semibold text-navy-900">{{ counts.new }}</p>
+      <p class="mt-2 text-xs text-slate-500">Submitted, awaiting triage</p>
+    </a>
+    <a class="card card-pad hover:border-brand-300" href="{% url 'staff-queue' %}?status=triage">
+      <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Triage</p>
+      <p class="mt-2 text-3xl font-semibold text-navy-900">{{ counts.triage }}</p>
+      <p class="mt-2 text-xs text-slate-500">Triage or waiting on client</p>
+    </a>
+    <a class="card card-pad hover:border-brand-300" href="{% url 'staff-queue' %}?status=scoping">
+      <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Scoping</p>
+      <p class="mt-2 text-3xl font-semibold text-navy-900">{{ counts.scoping }}</p>
+      <p class="mt-2 text-xs text-slate-500">Quotes and payment eligibility</p>
+    </a>
+    <a class="card card-pad hover:border-brand-300" href="{% url 'staff-queue' %}?status=in_progress">
+      <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Delivery</p>
+      <p class="mt-2 text-3xl font-semibold text-navy-900">{{ counts.delivery }}</p>
+      <p class="mt-2 text-xs text-slate-500">Assigned, in progress or review</p>
+    </a>
+    <a class="card card-pad hover:border-brand-300" href="{% url 'staff-queue' %}?status=delivered">
+      <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">With client</p>
+      <p class="mt-2 text-3xl font-semibold text-navy-900">{{ counts.awaiting_client }}</p>
+      <p class="mt-2 text-xs text-slate-500">Delivered or revision requested</p>
+    </a>
+  </section>
+
+  <section class="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
+    <div class="card">
+      <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+        <h2 class="text-sm font-semibold text-navy-900">Recent status activity</h2>
+        <a class="text-xs font-semibold text-brand-700" href="{% url 'staff-queue' %}">Open queue</a>
+      </div>
+      <ul class="divide-y divide-slate-100">
+        {% for event in events %}
+          <li class="flex items-start justify-between gap-3 px-5 py-3">
+            <div>
+              <a class="text-sm font-medium text-navy-900 hover:text-brand-700" href="{% url 'staff-task-detail' task_id=event.task_id %}">{{ event.task.reference }} · {{ event.task.title }}</a>
+              <p class="text-xs text-slate-500">{{ event.from_status|status_label }} &rarr; {{ event.to_status|status_label }}{% if event.actor %} · {{ event.actor.full_name|default:event.actor.email }}{% endif %}</p>
+            </div>
+            <span class="whitespace-nowrap text-xs text-slate-400">{{ event.created_at|date:"j M, H:i" }}</span>
+          </li>
+        {% empty %}
+          <li class="px-5 py-8 text-sm text-slate-500">No activity yet.</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="space-y-6">
+      <div class="card card-pad">
+        <h2 class="text-sm font-semibold text-navy-900">Queue shortcuts</h2>
+        <div class="mt-4 grid gap-2">
+          <a class="btn-secondary btn-sm justify-between" href="{% url 'staff-queue' %}?status=submitted">Submitted <span>&rarr;</span></a>
+          <a class="btn-secondary btn-sm justify-between" href="{% url 'staff-queue' %}?status=internal_review">Awaiting review <span>&rarr;</span></a>
+          <a class="btn-secondary btn-sm justify-between" href="{% url 'staff-queue' %}?status=approved_for_release">Approved for release <span>&rarr;</span></a>
+          <a class="btn-secondary btn-sm justify-between" href="{% url 'staff-queue' %}?status=awaiting_payment">Awaiting payment <span>&rarr;</span></a>
+        </div>
+      </div>
+      <div class="rounded-2xl bg-navy-900 p-5">
+        <p class="text-sm font-semibold text-white">Independent QA is mandatory</p>
+        <p class="mt-1 text-xs leading-relaxed text-slate-400">The specialist who submitted a deliverable cannot approve it. Release is blocked until billing eligibility is satisfied.</p>
+      </div>
+    </div>
+  </section>
+{% endblock %}

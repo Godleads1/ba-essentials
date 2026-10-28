@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Tests and checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      # Values used only for the production deploy check. They are inert here:
+      # no database, cache, mail server or scanner is contacted.
+      DJANGO_SECRET_KEY: ci-only-secret-key-0000000000000000000000000000000000000000000000000000
+      DJANGO_ALLOWED_HOSTS: app.example.test
+      APP_BASE_URL: https://app.example.test
+      DATABASE_URL: postgres://ci:ci@db.example.test:5432/ci
+      SECURE_SSL_REDIRECT: "true"
+      SECURE_COOKIE: "true"
+      SECURE_HSTS_SECONDS: "31536000"
+      EMAIL_BACKEND: django.core.mail.backends.smtp.EmailBackend
+      FILE_SCAN_BACKEND: clamdscan
+      CACHE_BACKEND: django.core.cache.backends.redis.RedisCache
+      CACHE_LOCATION: redis://cache.example.test:6379/1
+      PAYMENTS_ENABLED: "false"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements/dev.txt
+
+      - name: Install Python dependencies
+        run: pip install -r requirements/dev.txt -r requirements/prod.txt
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build CSS
+        run: npm run css:build
+
+      - name: Verify compiled CSS is committed
+        run: git diff --exit-code -- static/css/app.css
+
+      - name: Django tests
+        run: python -m pytest
+
+      - name: Migrations are current
+        run: python manage.py makemigrations --check --dry-run --settings=config.settings.test
+
+      - name: Production deploy check
+        run: >-
+          python manage.py check --deploy
+          --settings=config.settings.production
+          --fail-level ERROR
+
+      - name: Dependency audit
+        run: pip-audit -r requirements/base.txt -r requirements/prod.txt
+
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Scan history for committed secrets
+        run: >-
+          docker run --rm -v "$PWD:/repo"
+          ghcr.io/gitleaks/gitleaks:v8.24.2
+          detect --source=/repo --redact --verbose

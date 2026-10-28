@@ -1,0 +1,26 @@
+{% extends "app/base.html" %}
+{% block title %}Clients · B &amp; A Essentials{% endblock %}
+{% block page_title %}Clients{% endblock %}
+{% block mobile_title %}Clients{% endblock %}
+{% block content %}
+  <div class="card">
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Organization</th><th>Status</th><th>Total requests</th><th>Open</th><th>Joined</th></tr></thead>
+        <tbody>
+          {% for organization in organizations %}
+            <tr>
+              <td class="font-medium text-navy-900">{{ organization.name }}</td>
+              <td>{% include "partials/status_badge.html" with status=organization.status %}</td>
+              <td class="text-slate-600">{{ organization.task_total }}</td>
+              <td class="text-slate-600">{{ organization.open_total }}</td>
+              <td class="whitespace-nowrap text-slate-500">{{ organization.created_at|date:"j M Y" }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5" class="px-5 py-10 text-center text-sm text-slate-500">No client organizations yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock %}

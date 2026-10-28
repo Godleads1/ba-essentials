@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Invitation · B &amp; A Essentials{% endblock %}
+{% block body %}
+  <div class="mx-auto flex min-h-screen max-w-lg flex-col justify-center px-5 py-12">
+    <div class="card card-pad">
+      {% include "partials/messages.html" %}
+      {% if valid and invitation %}
+        <p class="eyebrow">Invitation</p>
+        <h1 class="mt-2 text-xl font-semibold text-navy-900">Join {{ invitation.organization.name }}</h1>
+        <p class="mt-2 text-sm text-slate-500">You have been invited as {{ invitation.get_role_display }} on B &amp; A Essentials.</p>
+        <form method="post" class="mt-6">
+          {% csrf_token %}
+          <button type="submit" class="btn-primary w-full">Accept invitation</button>
+        </form>
+      {% else %}
+        <h1 class="text-xl font-semibold text-navy-900">This invitation is no longer valid</h1>
+        <p class="mt-2 text-sm text-slate-500">It may have expired, been revoked or already accepted. Ask the organization owner for a new invitation.</p>
+        <a class="btn-secondary mt-6" href="{% url 'login' %}">Back to sign in</a>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

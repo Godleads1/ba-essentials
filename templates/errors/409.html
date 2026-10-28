@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Not available yet · B &amp; A Essentials{% endblock %}
+{% block body %}
+  <div class="mx-auto flex min-h-screen max-w-md flex-col justify-center px-5 text-center">
+    <p class="eyebrow">409</p>
+    <h1 class="mt-2 text-2xl font-semibold text-navy-900">Not available yet</h1>
+    <p class="mt-2 text-sm text-slate-500">{{ reason|default:"This item is not ready." }}</p>
+    {% if detail %}<p class="mt-2 text-xs text-slate-400">{{ detail }}</p>{% endif %}
+    <div class="mt-6 flex justify-center"><a class="btn-secondary" href="/app/">Back to workspace</a></div>
+  </div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "auth/base.html" %}
+{% block title %}Sign in · B &amp; A Essentials{% endblock %}
+{% block auth_content %}
+  <h1 class="text-2xl font-semibold text-navy-900">Welcome back</h1>
+  <p class="mt-2 text-sm text-slate-500">Sign in to manage your requests and deliverables.</p>
+
+  <form method="post" class="mt-8 space-y-5" novalidate>
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {% include "partials/field.html" with field=form.email %}
+    {% include "partials/field.html" with field=form.password %}
+    <div class="flex items-center justify-between">
+      <a class="text-sm font-medium text-brand-700 hover:text-brand-800" href="{% url 'password-reset' %}">Forgot your password?</a>
+    </div>
+    <button type="submit" class="btn-primary w-full">Sign in</button>
+  </form>
+
+  <p class="mt-6 text-center text-sm text-slate-500">New here? <a class="font-semibold text-brand-700 hover:text-brand-800" href="{% url 'signup' %}">Create an account</a></p>
+{% endblock %}

@@ -1,0 +1,218 @@
+{% extends "app/base.html" %}
+{% load ui %}
+{% block title %}{{ task.reference }} · B &amp; A Essentials{% endblock %}
+{% block page_title %}Request {{ task.reference }}{% endblock %}
+{% block mobile_title %}{{ task.reference }}{% endblock %}
+{% block content %}
+  <section class="card card-pad">
+    <div class="flex flex-wrap items-start justify-between gap-4">
+      <div>
+        <div class="flex flex-wrap items-center gap-2">
+          {% include "partials/status_badge.html" with status=task.status %}
+          <span class="text-xs font-medium uppercase tracking-wide text-slate-400">{{ task.service_version.definition.category.name }}</span>
+        </div>
+        <h2 class="mt-2 text-xl font-semibold text-navy-900">{{ task.title }}</h2>
+        <p class="mt-1 text-sm text-slate-500">{{ task.service_version.definition.name }} &middot; submitted {{ task.created_at|date:"j M Y, H:i" }}</p>
+      </div>
+      <div class="text-right text-xs text-slate-500">
+        <p>Priority: <span class="font-semibold text-navy-900">{{ task.get_priority_display }}</span></p>
+        {% if task.due_date %}<p>Preferred due: <span class="font-semibold text-navy-900">{{ task.due_date|date:"j M Y" }}</span></p>{% endif %}
+      </div>
+    </div>
+  </section>
+
+  {% if can_provide_information %}
+    <section class="alert-warning items-start">
+      <div class="flex-1">
+        <p class="font-semibold">The team needs more information</p>
+        {% if task.needs_info_question %}<p class="mt-1">{{ task.needs_info_question }}</p>{% endif %}
+        <form method="post" action="{% url 'task-provide-information' task_id=task.pk %}" class="mt-4 space-y-3">
+          {% csrf_token %}
+          <textarea name="information" rows="4" required class="w-full rounded-xl border border-amber-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:border-amber-500 focus:ring-2 focus:ring-amber-100" placeholder="Add the details we asked for"></textarea>
+          <button type="submit" class="btn-primary btn-sm">Send information</button>
+        </form>
+      </div>
+    </section>
+  {% endif %}
+
+  <div class="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
+    <div class="space-y-6">
+      <section class="card card-pad">
+        <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-400">Brief</h3>
+        <p class="mt-3 whitespace-pre-line text-sm leading-relaxed text-slate-700">{{ task.brief }}</p>
+        {% if task.desired_outcome %}
+          <h3 class="mt-6 text-sm font-semibold uppercase tracking-wide text-slate-400">Desired outcome</h3>
+          <p class="mt-3 whitespace-pre-line text-sm leading-relaxed text-slate-700">{{ task.desired_outcome }}</p>
+        {% endif %}
+        {% if task.client_information %}
+          <h3 class="mt-6 text-sm font-semibold uppercase tracking-wide text-slate-400">Your additional information</h3>
+          <p class="mt-3 whitespace-pre-line text-sm leading-relaxed text-slate-700">{{ task.client_information }}</p>
+        {% endif %}
+      </section>
+
+      {% if sent_quote %}
+        <section class="card card-pad ring-1 ring-brand-200">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p class="eyebrow">Quote v{{ sent_quote.version_number }}</p>
+              <h3 class="mt-1 text-lg font-semibold text-navy-900">{{ sent_quote.amount_minor|money_minor:sent_quote.currency }}</h3>
+            </div>
+            <p class="text-xs text-slate-500">{% if sent_quote.expires_at %}Valid until {{ sent_quote.expires_at|date:"j M Y" }}{% endif %}</p>
+          </div>
+          <dl class="mt-4 space-y-3 text-sm">
+            <div><dt class="text-xs font-semibold uppercase tracking-wide text-slate-400">Scope</dt><dd class="mt-1 whitespace-pre-line text-slate-700">{{ sent_quote.scope_summary }}</dd></div>
+            {% if sent_quote.exclusions %}<div><dt class="text-xs font-semibold uppercase tracking-wide text-slate-400">Not included</dt><dd class="mt-1 whitespace-pre-line text-slate-600">{{ sent_quote.exclusions }}</dd></div>{% endif %}
+            <div class="grid gap-3 sm:grid-cols-3">
+              <div><dt class="text-xs font-semibold uppercase tracking-wide text-slate-400">Turnaround</dt><dd class="mt-1 text-slate-700">{{ sent_quote.turnaround_days }} days</dd></div>
+              <div><dt class="text-xs font-semibold uppercase tracking-wide text-slate-400">Revisions</dt><dd class="mt-1 text-slate-700">{{ sent_quote.revision_allowance }} included</dd></div>
+              <div><dt class="text-xs font-semibold uppercase tracking-wide text-slate-400">Payment</dt><dd class="mt-1 text-slate-700">{{ sent_quote.payment_terms|default:"Per invoice" }}</dd></div>
+            </div>
+          </dl>
+          <div class="mt-5 flex flex-wrap items-start gap-3 border-t border-slate-100 pt-5">
+            <form method="post" action="{% url 'quote-accept' version_id=sent_quote.pk %}">
+              {% csrf_token %}
+              <input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">
+              <button type="submit" class="btn-primary">Accept quote</button>
+            </form>
+            <details class="w-full sm:w-auto">
+              <summary class="btn-secondary cursor-pointer list-none">Decline quote</summary>
+              <form method="post" action="{% url 'quote-reject' version_id=sent_quote.pk %}" class="mt-3 space-y-2">
+                {% csrf_token %}
+                <textarea name="reason" rows="2" required class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Tell us why the quote does not work"></textarea>
+                <button type="submit" class="btn-danger btn-sm">Confirm decline</button>
+              </form>
+            </details>
+          </div>
+        </section>
+      {% endif %}
+
+      {% if released_version %}
+        <section class="card card-pad">
+          <p class="eyebrow">Delivered work</p>
+          <h3 class="mt-1 text-lg font-semibold text-navy-900">Version {{ released_version.version_number }}</h3>
+          {% if released_version.notes %}<p class="mt-2 text-sm text-slate-600">{{ released_version.notes }}</p>{% endif %}
+          <a class="btn-secondary btn-sm mt-4" href="{% url 'file-download' file_id=released_version.file.pk %}">Download deliverable</a>
+          {% if can_decide_deliverable %}
+            <div class="mt-5 border-t border-slate-100 pt-5">
+              <p class="text-sm font-medium text-navy-900">Your decision</p>
+              <p class="mt-1 text-xs text-slate-500">Accepting completes the request. Included revisions left: {{ task.revision_allowance_remaining }}.</p>
+              <div class="mt-3 flex flex-wrap items-start gap-3">
+                <form method="post" action="{% url 'deliverable-decide' task_id=task.pk %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="version_id" value="{{ released_version.pk }}">
+                  <input type="hidden" name="decision" value="accept">
+                  <button type="submit" class="btn-primary btn-sm">Accept deliverable</button>
+                </form>
+                <details class="w-full sm:w-auto">
+                  <summary class="btn-secondary btn-sm cursor-pointer list-none">Request a revision</summary>
+                  <form method="post" action="{% url 'deliverable-decide' task_id=task.pk %}" class="mt-3 w-full space-y-2 sm:w-80">
+                    {% csrf_token %}
+                    <input type="hidden" name="version_id" value="{{ released_version.pk }}">
+                    <input type="hidden" name="decision" value="revision">
+                    <textarea name="note" rows="3" required class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="What should change?"></textarea>
+                    <button type="submit" class="btn-danger btn-sm">Send revision request</button>
+                  </form>
+                </details>
+              </div>
+            </div>
+          {% endif %}
+        </section>
+      {% endif %}
+
+      {% if invoice %}
+        <section class="card card-pad">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p class="eyebrow">Invoice</p>
+              <h3 class="mt-1 text-lg font-semibold text-navy-900">{{ invoice.number }}</h3>
+              <p class="mt-1 text-sm text-slate-500">{{ invoice.amount_minor|money_minor:invoice.currency }} &middot; {% if invoice.due_at %}due {{ invoice.due_at|date:"j M Y" }}{% endif %}</p>
+            </div>
+            {% include "partials/status_badge.html" with status=invoice.status %}
+          </div>
+          {% if invoice.status == "issued" %}
+            <p class="mt-4 rounded-xl bg-slate-50 p-3 text-xs leading-relaxed text-slate-500">Pay by bank transfer using the invoice number as the reference. Finance reconciles payments manually; the browser never marks an invoice paid.</p>
+          {% endif %}
+        </section>
+      {% endif %}
+
+      <section class="card">
+        <div class="border-b border-slate-100 px-5 py-4"><h3 class="text-sm font-semibold text-navy-900">History</h3></div>
+        <ul class="divide-y divide-slate-100">
+          {% for event in events %}
+            <li class="flex items-start gap-3 px-5 py-3">
+              <span class="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-brand-400"></span>
+              <div class="flex-1">
+                <p class="text-sm text-slate-700">{{ event.from_status|status_label }} &rarr; <span class="font-medium text-navy-900">{{ event.to_status|status_label }}</span></p>
+                {% if event.reason %}<p class="mt-0.5 text-xs text-slate-500">{{ event.reason }}</p>{% endif %}
+              </div>
+              <span class="whitespace-nowrap text-xs text-slate-400">{{ event.created_at|date:"j M, H:i" }}</span>
+            </li>
+          {% empty %}
+            <li class="px-5 py-6 text-sm text-slate-500">No activity yet.</li>
+          {% endfor %}
+        </ul>
+      </section>
+    </div>
+
+    <aside class="space-y-6">
+      <section class="card card-pad">
+        <h3 class="text-sm font-semibold text-navy-900">Details</h3>
+        <dl class="mt-4 space-y-3 text-sm">
+          <div class="flex justify-between gap-3"><dt class="text-slate-500">Reference</dt><dd class="font-mono text-xs text-navy-900">{{ task.reference }}</dd></div>
+          <div class="flex justify-between gap-3"><dt class="text-slate-500">Service</dt><dd class="text-right text-navy-900">{{ task.service_version.definition.name }}</dd></div>
+          <div class="flex justify-between gap-3"><dt class="text-slate-500">Version</dt><dd class="text-navy-900">v{{ task.service_version.version_number }}</dd></div>
+          <div class="flex justify-between gap-3"><dt class="text-slate-500">Revisions left</dt><dd class="text-navy-900">{{ task.revision_allowance_remaining }}</dd></div>
+          <div class="flex justify-between gap-3"><dt class="text-slate-500">Submitted by</dt><dd class="text-right text-navy-900">{{ task.created_by.full_name|default:task.created_by.email|default:"—" }}</dd></div>
+        </dl>
+      </section>
+
+      <section class="card">
+        <div class="border-b border-slate-100 px-5 py-4"><h3 class="text-sm font-semibold text-navy-900">Files</h3></div>
+        {% if attachments %}
+          <ul class="divide-y divide-slate-100">
+            {% for attachment in attachments %}
+              <li class="flex items-center justify-between gap-3 px-5 py-3">
+                <div class="min-w-0">
+                  <p class="truncate text-sm font-medium text-navy-900">{{ attachment.file.original_name }}</p>
+                  <p class="text-xs text-slate-400">{{ attachment.file.size_bytes|filesizeformat }} &middot; {{ attachment.file.get_scan_status_display }}</p>
+                </div>
+                <a class="btn-ghost btn-sm shrink-0" href="{% url 'file-download' file_id=attachment.file.pk %}">Open</a>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="px-5 py-6 text-sm text-slate-500">No files attached.</p>
+        {% endif %}
+      </section>
+
+      {% if quote_versions %}
+        <section class="card">
+          <div class="border-b border-slate-100 px-5 py-4"><h3 class="text-sm font-semibold text-navy-900">Quote versions</h3></div>
+          <ul class="divide-y divide-slate-100">
+            {% for version in quote_versions %}
+              <li class="flex items-center justify-between px-5 py-3">
+                <div>
+                  <p class="text-sm font-medium text-navy-900">v{{ version.version_number }}</p>
+                  <p class="text-xs text-slate-400">{{ version.amount_minor|money_minor:version.currency }}</p>
+                </div>
+                {% include "partials/status_badge.html" with status=version.status %}
+              </li>
+            {% endfor %}
+          </ul>
+        </section>
+      {% endif %}
+
+      {% if can_cancel %}
+        <section class="card card-pad">
+          <h3 class="text-sm font-semibold text-navy-900">Cancel this request</h3>
+          <p class="mt-1 text-xs text-slate-500">This closes the request. Any reserved plan allowance is released.</p>
+          <form method="post" action="{% url 'task-cancel' task_id=task.pk %}" class="mt-3 space-y-2">
+            {% csrf_token %}
+            <textarea name="reason" rows="2" required class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Reason for cancelling"></textarea>
+            <button type="submit" class="btn-danger btn-sm">Cancel request</button>
+          </form>
+        </section>
+      {% endif %}
+    </aside>
+  </div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Set up your organization · B &amp; A Essentials{% endblock %}
+{% block body %}
+  <div class="mx-auto flex min-h-screen max-w-xl flex-col justify-center px-5 py-12">
+    <a href="{% url 'landing' %}" class="mb-8 flex items-center gap-2.5">
+      <span class="grid h-9 w-9 place-items-center rounded-lg bg-brand-600 text-sm font-bold text-white">B</span>
+      <span class="text-sm font-semibold text-navy-900">B &amp; A Essentials</span>
+    </a>
+    {% include "partials/messages.html" %}
+    <div class="card card-pad mt-4">
+      <h1 class="text-xl font-semibold text-navy-900">Set up your business workspace</h1>
+      <p class="mt-1 text-sm text-slate-500">This organization holds your requests, files and invoices. You can invite colleagues later.</p>
+      <form method="post" class="mt-6 space-y-5" novalidate>
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        {% include "partials/field.html" with field=form.name %}
+        <button type="submit" class="btn-primary w-full">Create workspace</button>
+      </form>
+    </div>
+    <form method="post" action="{% url 'logout' %}" class="mt-6 text-center">
+      {% csrf_token %}
+      <button type="submit" class="text-xs font-medium text-slate-500 hover:text-slate-700">Sign out</button>
+    </form>
+  </div>
+{% endblock %}

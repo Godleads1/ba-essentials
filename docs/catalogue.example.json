@@ -1,0 +1,79 @@
+{
+  "_comment": "Illustrative structure only. Replace scope, deliverables, turnaround and allowances with founder-approved values before loading into a real environment.",
+  "categories": [
+    {
+      "name": "Brand & Identity",
+      "slug": "brand-identity",
+      "summary": "Visual identity work for growing businesses.",
+      "sort_order": 10,
+      "services": [
+        {
+          "name": "Logo Refresh",
+          "slug": "logo-refresh",
+          "scope_summary": "Refresh an existing logo while keeping the business recognisable. Includes two concept directions and two revision rounds on the chosen direction.",
+          "deliverables_summary": "Primary logo, one stacked lockup, monochrome version, colour palette and a short usage note.",
+          "turnaround_days": 10,
+          "revision_allowance": 1,
+          "requires_quote": true,
+          "state": "available"
+        },
+        {
+          "name": "Brand Starter Pack",
+          "slug": "brand-starter-pack",
+          "scope_summary": "Scoping conversation to define a starter identity for a new business before a quote is issued.",
+          "deliverables_summary": "Written scope, mood direction and a fixed quote after the scoping call.",
+          "turnaround_days": 5,
+          "revision_allowance": 0,
+          "requires_quote": true,
+          "state": "scoping_only"
+        }
+      ]
+    },
+    {
+      "name": "Digital Presence",
+      "slug": "digital-presence",
+      "summary": "Web and profile foundations that customers can find and trust.",
+      "sort_order": 20,
+      "services": [
+        {
+          "name": "One-Page Website",
+          "slug": "one-page-website",
+          "scope_summary": "Single responsive landing page with up to five sections, using supplied copy and imagery.",
+          "deliverables_summary": "Published page, mobile layout, basic on-page SEO fields and a handover walkthrough.",
+          "turnaround_days": 14,
+          "revision_allowance": 1,
+          "requires_quote": true,
+          "state": "available"
+        },
+        {
+          "name": "Business Profile Cleanup",
+          "slug": "business-profile-cleanup",
+          "scope_summary": "Correct and align business details across a verified map listing and one social profile.",
+          "deliverables_summary": "Updated profiles, consistent contact details and a screenshot record of the changes.",
+          "turnaround_days": 5,
+          "revision_allowance": 0,
+          "requires_quote": true,
+          "state": "available"
+        }
+      ]
+    },
+    {
+      "name": "Content & Social",
+      "slug": "content-social",
+      "summary": "Repeatable content support for day-to-day marketing.",
+      "sort_order": 30,
+      "services": [
+        {
+          "name": "Social Media Starter Kit",
+          "slug": "social-media-starter-kit",
+          "scope_summary": "Two weeks of planned posts for one channel, written in the client's voice from an approved brief.",
+          "deliverables_summary": "Ten captions, ten matching graphics and a simple posting schedule.",
+          "turnaround_days": 7,
+          "revision_allowance": 1,
+          "requires_quote": true,
+          "state": "unavailable"
+        }
+      ]
+    }
+  ]
+}

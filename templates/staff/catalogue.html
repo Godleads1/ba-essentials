@@ -1,0 +1,52 @@
+{% extends "app/base.html" %}
+{% load ui %}
+{% block title %}Service catalogue · B &amp; A Essentials{% endblock %}
+{% block page_title %}Service catalogue{% endblock %}
+{% block mobile_title %}Service catalogue{% endblock %}
+{% block content %}
+  <div class="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-xs leading-relaxed text-sky-800">
+    Availability changes apply to the current version only. Existing requests keep the version they were submitted against.
+  </div>
+
+  <div class="space-y-4">
+    {% for definition in definitions %}
+      <section class="card">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-5 py-4">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">{{ definition.category.name }}</p>
+            <h2 class="mt-0.5 text-sm font-semibold text-navy-900">{{ definition.name }}</h2>
+          </div>
+          <span class="text-xs text-slate-400">{{ definition.versions.all|length }} version{{ definition.versions.all|length|pluralize }}</span>
+        </div>
+        <ul class="divide-y divide-slate-100">
+          {% for version in definition.versions.all %}
+            <li class="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+              <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="text-sm font-medium text-navy-900">v{{ version.version_number }}</span>
+                  {% include "partials/status_badge.html" with status=version.state %}
+                  {% if version.is_current %}<span class="badge bg-brand-50 text-brand-700 ring-brand-200">Current</span>{% endif %}
+                </div>
+                <p class="mt-1 line-clamp-2 max-w-2xl text-xs text-slate-500">{{ version.scope_summary }}</p>
+                <p class="mt-1 text-xs text-slate-400">{{ version.turnaround_days }} days · {{ version.revision_allowance }} revision{{ version.revision_allowance|pluralize }} · {{ version.deliverables_summary|truncatechars:70 }}</p>
+              </div>
+              {% if version.is_current %}
+                <form method="post" action="{% url 'staff-catalogue-state' version_id=version.pk %}" class="flex items-center gap-2">
+                  {% csrf_token %}
+                  <select name="state" class="rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs">
+                    {% for value, label in states %}
+                      <option value="{{ value }}" {% if value == version.state %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                  </select>
+                  <button type="submit" class="btn-secondary btn-sm">Update</button>
+                </form>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      </section>
+    {% empty %}
+      <div class="card card-pad text-sm text-slate-500">No services configured. Publish a version through the Django admin or a bootstrap script.</div>
+    {% endfor %}
+  </div>
+{% endblock %}

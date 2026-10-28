@@ -1,0 +1,49 @@
+{% extends "app/base.html" %}
+{% load ui %}
+{% block title %}Billing · B &amp; A Essentials{% endblock %}
+{% block page_title %}Billing{% endblock %}
+{% block mobile_title %}Billing{% endblock %}
+{% block content %}
+  <div class="grid gap-6 lg:grid-cols-[1fr_1.6fr]">
+    <section class="card card-pad">
+      <h2 class="text-sm font-semibold text-navy-900">Plan</h2>
+      {% if subscription %}
+        <p class="mt-3 text-lg font-semibold text-navy-900">{{ subscription.plan.name }}</p>
+        <p class="mt-1 text-sm text-slate-500">{{ subscription.plan.monthly_task_allowance }} tasks per period &middot; {{ allowance_remaining }} remaining.</p>
+        <p class="mt-3 text-xs text-slate-400">Period: {{ subscription.period_start|date:"j M Y" }} – {{ subscription.period_end|date:"j M Y" }}</p>
+      {% else %}
+        <p class="mt-3 text-sm text-slate-500">No active plan. Each request is quoted and invoiced individually.</p>
+      {% endif %}
+    </section>
+
+    <section class="card">
+      <div class="border-b border-slate-100 px-5 py-4">
+        <h2 class="text-sm font-semibold text-navy-900">Invoices</h2>
+      </div>
+      {% if invoices %}
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Invoice</th><th>Request</th><th>Amount</th><th>Status</th><th>Issued</th></tr></thead>
+            <tbody>
+              {% for invoice in invoices %}
+                <tr>
+                  <td class="font-mono text-xs text-navy-900">{{ invoice.number }}</td>
+                  <td>
+                    {% if invoice.task %}
+                      <a class="text-sm font-medium text-navy-900 hover:text-brand-700" href="{% url 'task-detail' task_id=invoice.task.pk %}">{{ invoice.task.reference }}</a>
+                    {% else %}<span class="text-slate-400">—</span>{% endif %}
+                  </td>
+                  <td class="whitespace-nowrap font-medium text-navy-900">{{ invoice.amount_minor|money_minor:invoice.currency }}</td>
+                  <td>{% include "partials/status_badge.html" with status=invoice.status %}</td>
+                  <td class="whitespace-nowrap text-slate-500">{{ invoice.issued_at|date:"j M Y" }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="px-5 py-10 text-sm text-slate-500">No invoices yet.</p>
+      {% endif %}
+    </section>
+  </div>
+{% endblock %}

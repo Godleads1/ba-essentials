@@ -1,0 +1,48 @@
+{% extends "app/base.html" %}
+{% load ui %}
+{% block title %}Review queue · B &amp; A Essentials{% endblock %}
+{% block page_title %}Review queue{% endblock %}
+{% block mobile_title %}Review queue{% endblock %}
+{% block content %}
+  {% if versions %}
+    <div class="space-y-4">
+      {% for version in versions %}
+        <section class="card card-pad">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">{{ version.deliverable.task.organization.name }} · {{ version.deliverable.task.reference }}</p>
+              <a class="mt-1 block text-lg font-semibold text-navy-900 hover:text-brand-700" href="{% url 'staff-task-detail' task_id=version.deliverable.task_id %}">{{ version.deliverable.task.title }}</a>
+              <p class="mt-1 text-sm text-slate-500">Deliverable v{{ version.version_number }} · submitted by {{ version.submitted_by.full_name|default:version.submitted_by.email }} · {{ version.created_at|date:"j M Y, H:i" }}</p>
+            </div>
+            <a class="btn-secondary btn-sm" href="{% url 'file-download' file_id=version.file.pk %}">Download draft</a>
+          </div>
+          {% if version.notes %}<p class="mt-3 rounded-xl bg-slate-50 p-3 text-sm text-slate-600">{{ version.notes }}</p>{% endif %}
+
+          <div class="mt-4 grid gap-3 sm:grid-cols-2">
+            <form method="post" action="{% url 'staff-review-decide' task_id=version.deliverable.task_id %}" class="rounded-xl border border-brand-200 bg-brand-50/50 p-3">
+              {% csrf_token %}
+              <input type="hidden" name="version_id" value="{{ version.pk }}">
+              <input type="hidden" name="decision" value="approve">
+              <p class="text-sm font-semibold text-brand-800">Approve for release</p>
+              <textarea name="findings" rows="2" class="mt-2 w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs" placeholder="Review notes (optional)"></textarea>
+              <button type="submit" class="btn-primary btn-sm mt-2 w-full">Approve</button>
+            </form>
+            <form method="post" action="{% url 'staff-review-decide' task_id=version.deliverable.task_id %}" class="rounded-xl border border-rose-200 bg-rose-50/50 p-3">
+              {% csrf_token %}
+              <input type="hidden" name="version_id" value="{{ version.pk }}">
+              <input type="hidden" name="decision" value="rework">
+              <p class="text-sm font-semibold text-rose-800">Request rework</p>
+              <textarea name="findings" rows="2" required class="mt-2 w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs" placeholder="What must change?"></textarea>
+              <button type="submit" class="btn-danger btn-sm mt-2 w-full">Send back</button>
+            </form>
+          </div>
+        </section>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card px-6 py-16 text-center">
+      <p class="text-sm font-medium text-navy-900">Nothing awaiting review.</p>
+      <p class="mt-1 text-sm text-slate-500">Deliverables submitted by specialists appear here.</p>
+    </div>
+  {% endif %}
+{% endblock %}

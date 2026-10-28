@@ -1,0 +1,71 @@
+{% extends "app/base.html" %}
+{% load ui %}
+{% block title %}Organization &amp; team · B &amp; A Essentials{% endblock %}
+{% block page_title %}Organization &amp; team{% endblock %}
+{% block mobile_title %}Organization &amp; team{% endblock %}
+{% block content %}
+  <div class="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
+    <section class="card">
+      <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+        <h2 class="text-sm font-semibold text-navy-900">Members</h2>
+        <span class="text-xs text-slate-400">{{ members|length }} total</span>
+      </div>
+      <ul class="divide-y divide-slate-100">
+        {% for member in members %}
+          <li class="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+            <div class="flex items-center gap-3">
+              <span class="grid h-9 w-9 place-items-center rounded-full bg-brand-100 text-xs font-bold text-brand-700">{{ member.user.full_name|default:member.user.email|initials }}</span>
+              <div>
+                <p class="text-sm font-medium text-navy-900">{{ member.user.full_name|default:member.user.email }}</p>
+                <p class="text-xs text-slate-400">{{ member.user.email }} &middot; {{ member.get_role_display }}</p>
+              </div>
+            </div>
+            {% if can_manage and member.role != "owner" %}
+              <form method="post" action="{% url 'team-member-remove' membership_id=member.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn-ghost btn-sm text-rose-600 hover:bg-rose-50">Remove</button>
+              </form>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    <aside class="space-y-6">
+      {% if can_manage %}
+        <section class="card card-pad">
+          <h2 class="text-sm font-semibold text-navy-900">Invite a colleague</h2>
+          <form method="post" action="{% url 'team-invite' %}" class="mt-4 space-y-3">
+            {% csrf_token %}
+            {% include "partials/field.html" with field=invite_form.email %}
+            <button type="submit" class="btn-primary btn-sm w-full">Send invitation</button>
+          </form>
+        </section>
+
+        <section class="card">
+          <div class="border-b border-slate-100 px-5 py-4"><h2 class="text-sm font-semibold text-navy-900">Pending invitations</h2></div>
+          {% if invitations %}
+            <ul class="divide-y divide-slate-100">
+              {% for invitation in invitations %}
+                <li class="flex items-center justify-between gap-3 px-5 py-3">
+                  <div class="min-w-0">
+                    <p class="truncate text-sm text-navy-900">{{ invitation.email }}</p>
+                    <p class="text-xs text-slate-400">Expires {{ invitation.expires_at|date:"j M Y" }}</p>
+                  </div>
+                  <form method="post" action="{% url 'team-invitation-revoke' invitation_id=invitation.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-ghost btn-sm">Revoke</button>
+                  </form>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="px-5 py-6 text-sm text-slate-500">No pending invitations.</p>
+          {% endif %}
+        </section>
+      {% else %}
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-500">Only the organization owner can invite or remove members.</div>
+      {% endif %}
+    </aside>
+  </div>
+{% endblock %}

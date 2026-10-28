@@ -1,0 +1,17 @@
+[project]
+name = "ba-essentials"
+version = "0.1.0"
+description = "B & A Essentials managed-service platform"
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+python_files = ["test_*.py"]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+filterwarnings = ["error::django.utils.deprecation.RemovedInDjango60Warning"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+exclude = ["migrations"]

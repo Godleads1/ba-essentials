@@ -1,0 +1,35 @@
+{% extends "app/base.html" %}
+{% block title %}Authenticator · B &amp; A Essentials{% endblock %}
+{% block page_title %}Two-factor authentication{% endblock %}
+{% block mobile_title %}Two-factor authentication{% endblock %}
+{% block content %}
+  <div class="mx-auto max-w-xl">
+    <div class="card card-pad">
+      {% if enabled %}
+        <h2 class="text-lg font-semibold text-navy-900">Authenticator is active</h2>
+        <p class="mt-2 text-sm text-slate-500">You will be asked for a code when signing in and before sensitive actions.</p>
+      {% else %}
+        <h2 class="text-lg font-semibold text-navy-900">Set up your authenticator</h2>
+        <ol class="mt-3 list-decimal space-y-2 pl-5 text-sm text-slate-600">
+          <li>Add a new account in your authenticator app.</li>
+          <li>Enter the setup key below if you cannot scan a code.</li>
+          <li>Enter the current six-digit code to confirm.</li>
+        </ol>
+        {% if secret %}
+          <div class="mt-4 rounded-xl bg-slate-50 p-4">
+            <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Setup key</p>
+            <p class="mt-1 break-all font-mono text-sm text-navy-900">{{ secret }}</p>
+            {% if uri %}<p class="mt-2 break-all text-xs text-slate-400">{{ uri }}</p>{% endif %}
+          </div>
+        {% endif %}
+        <form method="post" class="mt-5 space-y-4">
+          {% csrf_token %}
+          {{ form.non_field_errors }}
+          {% include "partials/field.html" with field=form.code %}
+          <button type="submit" class="btn-primary w-full">Confirm and enable</button>
+        </form>
+      {% endif %}
+      <a class="mt-5 inline-flex text-xs font-semibold text-brand-700" href="{% url 'security-home' %}">&larr; Back to security</a>
+    </div>
+  </div>
+{% endblock %}
