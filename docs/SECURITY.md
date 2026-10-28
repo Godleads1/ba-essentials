@@ -93,6 +93,8 @@ without authorization and a rollback procedure.
 - Events are stored once per `(provider, event_id)`. Duplicates are reported as
   replays without reapplying effects.
 - Amount and currency must match the stored payment attempt exactly.
+- Finance verification serialises on a conditional invoice update, so two
+  concurrent confirmations cannot both record a successful payment.
 - Redirect parameters from the browser are never treated as proof of payment.
 - Finance verification requires the exact invoice amount and a unique reference.
 
@@ -137,7 +139,10 @@ without authorization and a rollback procedure.
 
 On 2026-10-28, against Python 3.13:
 
-- `python -m pytest` — 95 passed.
+- `python -m pytest` — 95 passed, 5 PostgreSQL-only tests skipped.
+- `python -m pytest --ds=config.settings.test_postgres` in CI — 100 passed,
+  including concurrent transitions, quote acceptance, idempotent replay,
+  allowance limits, and payment verification.
 - `python manage.py makemigrations --check --dry-run --settings=config.settings.test`
   — no changes detected.
 - `python manage.py check --deploy --settings=config.settings.production` with
@@ -149,9 +154,9 @@ On 2026-10-28, against Python 3.13:
 - `npm run css:build` — succeeded.
 
 The gitleaks job is configured in CI but was not run locally because Docker is
-not installed on the development host. It passed on GitHub for commit
-`577b434`, along with the test, migration, deploy-check, and dependency-audit
-jobs.
+not installed on the development host. It passes on GitHub for each push,
+including commit `8361136`, along with the SQLite and PostgreSQL test jobs,
+migration check, deploy check, and dependency audit.
 
 
 ## Known gaps and follow-ups
@@ -161,8 +166,8 @@ jobs.
 - No object-storage adapter; local storage must be backed up and is not suitable
   for multi-instance deployments without shared storage.
 - In-app notifications and the messaging/CMS surfaces are not implemented.
-- Concurrency guarantees rely on PostgreSQL row locks; SQLite is development
-  and test only.
+- Concurrency guarantees rely on PostgreSQL row locks and conditional writes;
+  SQLite remains development-only, while CI runs the full suite on PostgreSQL.
 - HSTS preload is intentionally not enabled. It is a long-lived commitment and
   needs an explicit decision.
 - A production incident-response runbook, data-retention schedule, and
