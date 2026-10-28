@@ -18,22 +18,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
-    env:
-      # Values used only for the production deploy check. They are inert here:
-      # no database, cache, mail server or scanner is contacted.
-      DJANGO_SECRET_KEY: ci-only-secret-key-0000000000000000000000000000000000000000000000000000
-      DJANGO_ALLOWED_HOSTS: app.example.test
-      APP_BASE_URL: https://app.example.test
-      DATABASE_URL: postgres://ci:ci@db.example.test:5432/ci
-      SECURE_SSL_REDIRECT: "true"
-      SECURE_COOKIE: "true"
-      SECURE_HSTS_SECONDS: "31536000"
-      EMAIL_BACKEND: django.core.mail.backends.smtp.EmailBackend
-      FILE_SCAN_BACKEND: clamdscan
-      CACHE_BACKEND: django.core.cache.backends.redis.RedisCache
-      CACHE_LOCATION: redis://cache.example.test:6379/1
-      PAYMENTS_ENABLED: "false"
-
     steps:
       - uses: actions/checkout@v4
 
@@ -67,6 +51,21 @@ jobs:
         run: python manage.py makemigrations --check --dry-run --settings=config.settings.test
 
       - name: Production deploy check
+        # Scoped to this step so production transport settings cannot leak into
+        # the test run. The values are inert: no external service is contacted.
+        env:
+          DJANGO_SECRET_KEY: ci-only-secret-key-0000000000000000000000000000000000000000000000000000
+          DJANGO_ALLOWED_HOSTS: app.example.test
+          APP_BASE_URL: https://app.example.test
+          DATABASE_URL: postgres://ci:ci@db.example.test:5432/ci
+          SECURE_SSL_REDIRECT: "true"
+          SECURE_COOKIE: "true"
+          SECURE_HSTS_SECONDS: "31536000"
+          EMAIL_BACKEND: django.core.mail.backends.smtp.EmailBackend
+          FILE_SCAN_BACKEND: clamdscan
+          CACHE_BACKEND: django.core.cache.backends.redis.RedisCache
+          CACHE_LOCATION: redis://cache.example.test:6379/1
+          PAYMENTS_ENABLED: "false"
         run: >-
           python manage.py check --deploy
           --settings=config.settings.production

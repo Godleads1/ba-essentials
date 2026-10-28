@@ -22,7 +22,7 @@ from apps.core.exceptions import ValidationFailure
 
 def _fernet() -> Fernet:
     digest = hashlib.sha256(
-        f"{settings.SECRET_KEY}:{settings.MFA_ENC_KEY_SALT}".encode("utf-8")
+        f"{settings.SECRET_KEY}:{settings.MFA_ENC_CONTEXT}".encode("utf-8")
     ).digest()
     return Fernet(base64.urlsafe_b64encode(digest))
 

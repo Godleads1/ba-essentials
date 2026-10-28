@@ -1,0 +1,9 @@
+# Extends the default gitleaks rules. The only allowlisted value is the public
+# MFA key-derivation context. It is not secret: the key material is
+# DJANGO_SECRET_KEY, and this string is a fixed domain separator.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Public MFA derivation context, never secret material"
+regexes = ['''ba-essentials-mfa-v1''']

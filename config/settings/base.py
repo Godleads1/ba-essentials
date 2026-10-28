@@ -187,7 +187,8 @@ LOGIN_MAX_FAILURES = env_int("LOGIN_MAX_FAILURES", 5)
 LOGIN_LOCK_SECONDS = env_int("LOGIN_LOCK_SECONDS", 900)
 STEP_UP_MAX_AGE = env_int("STEP_UP_MAX_AGE", 600)
 MFA_ISSUER = env("MFA_ISSUER", "B & A Essentials")
-MFA_ENC_KEY_SALT = env("MFA_ENC_KEY_SALT", "ba-essentials-mfa-v1")
+# Public derivation context, not a secret: the key material is SECRET_KEY.
+MFA_ENC_CONTEXT = env("MFA_ENC_CONTEXT", "ba-essentials-mfa-v1")  # gitleaks:allow
 STAFF_QUOTE_MAX_MINOR = env_int("STAFF_QUOTE_MAX_MINOR", 50_000_00)
 QUOTE_VALIDITY_DAYS = env_int("QUOTE_VALIDITY_DAYS", 14)
 

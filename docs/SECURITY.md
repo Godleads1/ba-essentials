@@ -47,7 +47,7 @@ silently accepting localhost in production.
 - Sessions are bound to `User.credential_version`; a password change or reset
   invalidates other sessions. Idle expiry is enforced server-side.
 - Staff must enrol TOTP before using the staff app. Secrets are encrypted with
-  Fernet using a key derived from `DJANGO_SECRET_KEY` and `MFA_ENC_KEY_SALT`.
+  Fernet using a key derived from `DJANGO_SECRET_KEY` and `MFA_ENC_CONTEXT`.
   Accepted timesteps are stored to reject replay.
 - Sensitive staff actions require a fresh password (+ TOTP) step-up.
 - Registration and password reset respond identically whether or not an account
