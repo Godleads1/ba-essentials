@@ -1,0 +1,40 @@
+{% extends "app/base.html" %}
+{% block title %}Notifications · B &amp; A Essentials{% endblock %}
+{% block page_title %}Notifications{% endblock %}
+{% block mobile_title %}Notifications{% endblock %}
+{% block content %}
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <p class="text-sm text-slate-500">Updates about requests and support tickets.</p>
+    {% if unread_notifications %}
+      <form method="post" action="{% url 'notifications-read' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn-secondary btn-sm">Mark all as read</button>
+      </form>
+    {% endif %}
+  </div>
+
+  <section class="card">
+    <ul class="divide-y divide-slate-100">
+      {% for note in notifications %}
+        <li class="px-5 py-4 {% if not note.is_read %}bg-brand-50/40{% endif %}">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div class="min-w-0">
+              <p class="text-sm font-medium text-navy-900">{{ note.title }}</p>
+              <p class="mt-0.5 text-xs text-slate-400">
+                {{ note.created_at|date:"j M Y, H:i" }}
+                {% if not note.is_read %}<span class="ml-1 font-semibold text-brand-700">Unread</span>{% endif %}
+              </p>
+            </div>
+            {% if note.task_id %}
+              <a class="btn-ghost btn-sm shrink-0" href="{% if is_staff_member %}{% url 'staff-task-detail' task_id=note.task_id %}{% else %}{% url 'task-detail' task_id=note.task_id %}{% endif %}#messages">Open request</a>
+            {% elif note.ticket_id %}
+              <a class="btn-ghost btn-sm shrink-0" href="{% if is_staff_member %}{% url 'staff-support-detail' ticket_id=note.ticket_id %}{% else %}{% url 'support-detail' ticket_id=note.ticket_id %}{% endif %}">Open ticket</a>
+            {% endif %}
+          </div>
+        </li>
+      {% empty %}
+        <li class="px-5 py-8 text-sm text-slate-500">You have no notifications.</li>
+      {% endfor %}
+    </ul>
+  </section>
+{% endblock %}

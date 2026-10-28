@@ -8,6 +8,7 @@ from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.billing import services as billing
 from apps.billing.models import Invoice, InvoiceStatus
+from apps.communications import services as communications
 from apps.core import ratelimit
 from apps.core.exceptions import DomainError
 from apps.core.views import handle_domain_error
@@ -175,6 +176,7 @@ def task_detail(request, task_id):
             "released_version": released_version,
             "invoice": invoice,
             "actions": actions,
+            "thread": communications.task_thread(task, request.user),
             "can_provide_information": Action.PROVIDE_INFORMATION.value in actions,
             "can_cancel": Action.CANCEL_CLIENT.value in actions,
             "can_decide_deliverable": Action.CLIENT_ACCEPT.value in actions,

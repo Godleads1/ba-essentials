@@ -15,6 +15,7 @@ from apps.accounts.permissions import (
     has_perm,
 )
 from apps.billing.models import Invoice
+from apps.communications import services as communications
 from apps.core.exceptions import DomainError
 from apps.core.views import handle_domain_error
 from apps.organizations.models import Organization
@@ -168,6 +169,7 @@ def task_detail(request, task_id):
             "assign_form": AssignForm(),
             "work_form": WorkLogForm(),
             "invoice": invoice,
+            "thread": communications.task_thread(task, request.user),
             "specialists": User.objects.filter(
                 staff_role=StaffRole.SPECIALIST, is_active=True
             ).order_by("full_name"),

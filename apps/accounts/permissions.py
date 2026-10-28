@@ -17,6 +17,7 @@ REVIEW_DECIDE = "review.decide"
 FINANCE_VIEW = "finance.view"
 FINANCE_VERIFY_PAYMENT = "finance.verify_payment"
 CLIENT_VIEW = "client.view"
+SUPPORT_HANDLE = "support.handle"
 CATALOGUE_MANAGE = "catalogue.manage"
 AUDIT_VIEW = "audit.view"
 FILES_VIEW_ALL = "files.view_all"
@@ -35,6 +36,7 @@ ALL_PERMISSIONS = frozenset(
         FINANCE_VIEW,
         FINANCE_VERIFY_PAYMENT,
         CLIENT_VIEW,
+        SUPPORT_HANDLE,
         CATALOGUE_MANAGE,
         AUDIT_VIEW,
         FILES_VIEW_ALL,
@@ -52,6 +54,7 @@ ROLE_PERMISSIONS: dict[str, frozenset[str]] = {
             TASK_HOLD,
             TASK_CANCEL,
             CLIENT_VIEW,
+            SUPPORT_HANDLE,
             FILES_VIEW_ALL,
         }
     ),
@@ -62,7 +65,7 @@ ROLE_PERMISSIONS: dict[str, frozenset[str]] = {
     # assignment lookups, not by a broad "view all" permission.
     StaffRole.SPECIALIST: frozenset(),
     StaffRole.REVIEWER: frozenset({TASK_VIEW_ALL, REVIEW_DECIDE, FILES_VIEW_ALL}),
-    StaffRole.SUPPORT: frozenset({TASK_VIEW_ALL, CLIENT_VIEW}),
+    StaffRole.SUPPORT: frozenset({TASK_VIEW_ALL, CLIENT_VIEW, SUPPORT_HANDLE}),
     StaffRole.FINANCE: frozenset(
         {FINANCE_VIEW, FINANCE_VERIFY_PAYMENT, CLIENT_VIEW, TASK_VIEW_ALL}
     ),

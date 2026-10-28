@@ -39,6 +39,10 @@ STATUS_LABELS = {
     "available": "Available",
     "scoping_only": "Scoping only",
     "unavailable": "Unavailable",
+    "open": "Open",
+    "pending": "Awaiting client",
+    "resolved": "Resolved",
+    "closed": "Closed",
 }
 
 STATUS_TONES = {
@@ -69,6 +73,10 @@ STATUS_TONES = {
     "available": "bg-brand-50 text-brand-700 ring-brand-200",
     "scoping_only": "bg-amber-50 text-amber-700 ring-amber-200",
     "unavailable": "bg-slate-100 text-slate-500 ring-slate-300",
+    "open": "bg-sky-50 text-sky-700 ring-sky-200",
+    "pending": "bg-amber-50 text-amber-700 ring-amber-200",
+    "resolved": "bg-brand-50 text-brand-700 ring-brand-200",
+    "closed": "bg-slate-100 text-slate-500 ring-slate-300",
 }
 
 ACTION_LABELS = {

@@ -135,6 +135,15 @@
         </section>
       {% endif %}
 
+      {% url 'task-message-post' task_id=task.pk as task_message_url %}
+      <section class="card scroll-mt-24" id="messages">
+        <div class="border-b border-slate-100 px-5 py-4">
+          <h3 class="text-sm font-semibold text-navy-900">Messages</h3>
+          <p class="mt-1 text-xs text-slate-500">Ask the team a question or add detail to this request.</p>
+        </div>
+        {% include "partials/task_thread.html" with thread=thread post_url=task_message_url empty_text="No messages yet. Start the conversation." %}
+      </section>
+
       <section class="card">
         <div class="border-b border-slate-100 px-5 py-4"><h3 class="text-sm font-semibold text-navy-900">History</h3></div>
         <ul class="divide-y divide-slate-100">

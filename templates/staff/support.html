@@ -1,0 +1,57 @@
+{% extends "app/base.html" %}
+{% block title %}Support queue · B &amp; A Essentials{% endblock %}
+{% block page_title %}Support queue{% endblock %}
+{% block mobile_title %}Support{% endblock %}
+{% block content %}
+  <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <div class="card card-pad"><p class="eyebrow">Open</p><p class="mt-1 text-2xl font-semibold text-navy-900">{{ counts.open }}</p></div>
+    <div class="card card-pad"><p class="eyebrow">Awaiting client</p><p class="mt-1 text-2xl font-semibold text-navy-900">{{ counts.pending }}</p></div>
+    <div class="card card-pad"><p class="eyebrow">Resolved</p><p class="mt-1 text-2xl font-semibold text-navy-900">{{ counts.resolved }}</p></div>
+    <div class="card card-pad"><p class="eyebrow">Unassigned</p><p class="mt-1 text-2xl font-semibold text-amber-700">{{ counts.unassigned }}</p></div>
+  </div>
+
+  <form method="get" class="flex flex-wrap items-center gap-2">
+    <select name="status" class="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm">
+      <option value="">Open and awaiting client</option>
+      <option value="all" {% if selected_status == "all" %}selected{% endif %}>All tickets</option>
+      {% for value, label in statuses %}
+        <option value="{{ value }}" {% if value == selected_status %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <label class="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs font-medium text-slate-600">
+      <input type="checkbox" name="mine" value="1" {% if mine %}checked{% endif %} class="h-4 w-4 rounded border-slate-300 text-brand-600">
+      Only mine
+    </label>
+    <button class="btn-secondary btn-sm" type="submit">Filter</button>
+    {% if selected_status or mine %}<a class="btn-ghost btn-sm" href="{% url 'staff-support' %}">Clear</a>{% endif %}
+  </form>
+
+  <div class="card">
+    {% if tickets %}
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Reference</th><th>Subject</th><th>Client</th><th>Status</th><th>Priority</th><th>Owner</th><th>Updated</th><th></th></tr></thead>
+          <tbody>
+            {% for ticket in tickets %}
+              <tr>
+                <td class="whitespace-nowrap font-mono text-xs text-slate-500">{{ ticket.reference }}</td>
+                <td><a class="font-medium text-navy-900 hover:text-brand-700" href="{% url 'staff-support-detail' ticket_id=ticket.pk %}">{{ ticket.subject }}</a></td>
+                <td class="text-slate-600">{{ ticket.organization.name }}</td>
+                <td>{% include "partials/status_badge.html" with status=ticket.status %}</td>
+                <td class="capitalize text-slate-600">{{ ticket.priority }}</td>
+                <td class="text-slate-600">{% if ticket.assigned_to %}{{ ticket.assigned_to.full_name|default:ticket.assigned_to.email }}{% else %}—{% endif %}</td>
+                <td class="whitespace-nowrap text-slate-500">{{ ticket.last_message_at|date:"j M, H:i" }}</td>
+                <td class="text-right"><a class="btn-secondary btn-sm" href="{% url 'staff-support-detail' ticket_id=ticket.pk %}">Open</a></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="px-6 py-16 text-center">
+        <p class="text-sm font-medium text-navy-900">No tickets in this view.</p>
+        <p class="mt-1 text-sm text-slate-500">Adjust the filters to see more tickets.</p>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

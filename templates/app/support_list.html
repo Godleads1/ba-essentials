@@ -1,0 +1,26 @@
+{% extends "app/base.html" %}
+{% block title %}Help &amp; Support · B &amp; A Essentials{% endblock %}
+{% block page_title %}Help &amp; Support{% endblock %}
+{% block mobile_title %}Support{% endblock %}
+{% block content %}
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <p class="text-sm text-slate-500">Questions about an account, invoice or request outside a task thread.</p>
+    <a href="{% url 'support-new' %}" class="btn-primary btn-sm">Open a ticket</a>
+  </div>
+
+  <section class="card">
+    <ul class="divide-y divide-slate-100">
+      {% for ticket in tickets %}
+        <li class="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+          <div class="min-w-0">
+            <a href="{% url 'support-detail' ticket_id=ticket.pk %}" class="text-sm font-semibold text-navy-900 hover:text-brand-700">{{ ticket.subject }}</a>
+            <p class="mt-0.5 text-xs text-slate-400">{{ ticket.reference }} · {{ ticket.get_priority_display }} priority · updated {{ ticket.last_message_at|date:"j M Y, H:i" }}</p>
+          </div>
+          {% include "partials/status_badge.html" with status=ticket.status %}
+        </li>
+      {% empty %}
+        <li class="px-5 py-8 text-sm text-slate-500">No tickets yet. <a class="font-medium text-brand-700 hover:underline" href="{% url 'support-new' %}">Open your first ticket</a>.</li>
+      {% endfor %}
+    </ul>
+  </section>
+{% endblock %}
