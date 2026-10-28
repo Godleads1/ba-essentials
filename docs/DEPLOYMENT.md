@@ -31,11 +31,15 @@ user, and drops privileges after fixing the persistent-disk ownership.
 
 1. A Render account with access to the private GitHub repository
    `Godleads1/ba-essentials`, and the Render GitHub app installed for it.
-2. A Resend account and an API key with sending permission.
-3. A verified sending domain in Resend, or, for a first test, Resend's
+2. A payment method on the Render workspace. The Blueprint's paid plans are
+   rejected at validation with `need_payment_info` until billing is set up;
+   there is no free-tier variant that keeps the production fail-closed checks
+   (shared cache, real SMTP, real scanner, private service, cron) intact.
+3. A Resend account and an API key with sending permission.
+4. A verified sending domain in Resend, or, for a first test, Resend's
    `onboarding@resend.dev` sender (which can only deliver to the account
    owner's address).
-4. The Render CLI (`winget install --id Render.CLI -e`) for validation and
+5. The Render CLI (`winget install --id Render.CLI -e`) for validation and
    deploy inspection.
 
 ## First deployment
@@ -153,3 +157,9 @@ render blueprints validate ./render.yaml
 
 `--ignore "src/*"` keeps the Tailwind source file out of the hashed static
 build; the compiled `static/css/app.css` is still collected.
+
+Blueprint validation against the workspace (`render blueprints validate`) passed
+YAML, schema, plan, and region checks. The only reported errors were
+`need_payment_info` for the PostgreSQL instance, the web service, the private
+ClamAV service, and the cron job. Those clear once billing is configured; no
+Blueprint change is needed.
