@@ -7,10 +7,38 @@ from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_GET
 
 from apps.audit import services as audit_service
+from apps.organizations.access import client_required
 
 from .models import PrivateFile, ScanStatus
 from .policy import can_view_file, token_matches
 from .storage import get_storage
+
+
+@client_required
+@require_GET
+def files_home(request):
+    from apps.reviews.models import DeliverableVersion, DeliverableVersionStatus
+    from apps.tasks.models import TaskAttachment
+
+    organization = request.organization
+    attachments = (
+        TaskAttachment.objects.filter(task__organization=organization)
+        .select_related("file", "task")
+        .order_by("-created_at")
+    )
+    deliverables = (
+        DeliverableVersion.objects.filter(
+            deliverable__task__organization=organization,
+            status=DeliverableVersionStatus.RELEASED,
+        )
+        .select_related("file", "deliverable__task")
+        .order_by("-released_at")
+    )
+    return render(
+        request,
+        "app/files.html",
+        {"attachments": attachments, "deliverables": deliverables},
+    )
 
 
 @login_required

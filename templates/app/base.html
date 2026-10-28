@@ -15,7 +15,7 @@
           <span class="text-sm font-semibold leading-tight text-white">B &amp; A<br><span class="text-slate-400">Essentials</span></span>
         </a>
 
-        <nav class="flex-1 space-y-1" aria-label="Main">
+        <nav class="flex-1 space-y-1 overflow-y-auto pr-1" aria-label="Main">
           {% if is_staff_member %}
             {% for name, label, icon in staff_nav %}
               <a href="{% url name %}" class="nav-link {% if request.resolver_match.url_name == name %}nav-link-active{% endif %}">

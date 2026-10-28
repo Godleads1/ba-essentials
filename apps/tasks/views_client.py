@@ -108,7 +108,11 @@ def task_list(request):
 @client_required
 @require_http_methods(["GET", "POST"])
 def task_submit(request):
-    form = SubmitTaskForm(request.POST or None)
+    initial = {}
+    service_id = request.GET.get("service", "").strip()
+    if service_id:
+        initial["service_version"] = service_id
+    form = SubmitTaskForm(request.POST or None, initial=initial)
     if request.method == "POST":
         if not ratelimit.hit(
             "task-submit", str(request.organization.pk), limit=20, window_seconds=3600

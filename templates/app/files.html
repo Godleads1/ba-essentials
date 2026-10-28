@@ -1,0 +1,79 @@
+{% extends "app/base.html" %}
+{% block title %}Deliverables &amp; files · B &amp; A Essentials{% endblock %}
+{% block page_title %}Deliverables &amp; files{% endblock %}
+{% block mobile_title %}Files{% endblock %}
+{% block content %}
+  <div class="rounded-2xl border border-slate-200 bg-white p-4 text-xs leading-relaxed text-slate-500">
+    Files are private to your organization. Downloads pass an authorization check and only work once a file has been scanned. Released work is downloadable; in-progress drafts are not.
+  </div>
+
+  <section class="card">
+    <div class="border-b border-slate-100 px-5 py-4">
+      <h2 class="text-sm font-semibold text-navy-900">Released deliverables</h2>
+    </div>
+    {% if deliverables %}
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>File</th><th>Request</th><th>Version</th><th>Released</th><th></th></tr></thead>
+          <tbody>
+            {% for version in deliverables %}
+              <tr>
+                <td>
+                  <p class="font-medium text-navy-900">{{ version.file.original_name }}</p>
+                  <p class="text-xs text-slate-400">{{ version.file.size_bytes|filesizeformat }} &middot; {{ version.file.get_scan_status_display }}</p>
+                </td>
+                <td><a class="text-sm font-medium text-navy-900 hover:text-brand-700" href="{% url 'task-detail' task_id=version.deliverable.task.pk %}">{{ version.deliverable.task.reference }}</a></td>
+                <td class="text-slate-600">v{{ version.version_number }}</td>
+                <td class="whitespace-nowrap text-slate-500">{{ version.released_at|date:"j M Y"|default:"—" }}</td>
+                <td class="text-right">
+                  {% if version.file.is_downloadable %}
+                    <a class="btn-secondary btn-sm" href="{% url 'file-download' file_id=version.file.pk %}">Download</a>
+                  {% else %}
+                    <span class="text-xs text-slate-400">Not available</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="px-5 py-10 text-sm text-slate-500">No deliverables have been released yet.</p>
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <div class="border-b border-slate-100 px-5 py-4">
+      <h2 class="text-sm font-semibold text-navy-900">Files you uploaded</h2>
+    </div>
+    {% if attachments %}
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>File</th><th>Request</th><th>Uploaded</th><th>Security check</th><th></th></tr></thead>
+          <tbody>
+            {% for attachment in attachments %}
+              <tr>
+                <td>
+                  <p class="font-medium text-navy-900">{{ attachment.file.original_name }}</p>
+                  <p class="text-xs text-slate-400">{{ attachment.file.size_bytes|filesizeformat }}</p>
+                </td>
+                <td><a class="text-sm font-medium text-navy-900 hover:text-brand-700" href="{% url 'task-detail' task_id=attachment.task.pk %}">{{ attachment.task.reference }}</a></td>
+                <td class="whitespace-nowrap text-slate-500">{{ attachment.created_at|date:"j M Y" }}</td>
+                <td class="text-slate-600">{{ attachment.file.get_scan_status_display }}</td>
+                <td class="text-right">
+                  {% if attachment.file.is_downloadable %}
+                    <a class="btn-secondary btn-sm" href="{% url 'file-download' file_id=attachment.file.pk %}">Download</a>
+                  {% else %}
+                    <span class="text-xs text-slate-400">Unavailable</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="px-5 py-10 text-sm text-slate-500">You have not uploaded any files yet.</p>
+    {% endif %}
+  </section>
+{% endblock %}
