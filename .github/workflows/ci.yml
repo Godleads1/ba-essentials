@@ -46,7 +46,7 @@ jobs:
       - name: Install Python dependencies
         run: pip install -r requirements/dev.txt -r requirements/prod.txt
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "22"
           cache: npm
