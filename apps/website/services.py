@@ -3,13 +3,13 @@ from __future__ import annotations
 from django.db import IntegrityError, transaction
 from django.db.models import Max
 from django.utils import timezone
+from django.utils.crypto import salted_hmac
 from django.utils.text import slugify
 
 from apps.audit import services as audit
-from apps.core import ratelimit
 from apps.core.exceptions import ValidationFailure
 
-from .models import ContactMessage, Page, PageRevision
+from .models import ContactMessage, ContactStatus, Page, PageRevision
 
 RESERVED_SLUGS = frozenset(
     {
@@ -183,7 +183,9 @@ def submit_contact_message(
         phone=phone,
         company=company,
         message=message,
-        source_ip_hash=ratelimit.fingerprint(ip) if ip else "",
+        source_ip_hash=(
+            salted_hmac("website.contact_ip", ip).hexdigest() if ip else ""
+        ),
     )
     audit.record(
         action="website.contact_received",
@@ -195,8 +197,6 @@ def submit_contact_message(
 
 @transaction.atomic
 def update_lead(contact: ContactMessage, *, status: str, actor) -> ContactMessage:
-    from .models import ContactStatus
-
     if status not in ContactStatus.values:
         raise ValidationFailure("Choose a valid status.")
     contact.status = status
