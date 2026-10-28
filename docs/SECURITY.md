@@ -145,10 +145,12 @@ The staging Blueprint and its verification steps are in
 
 On 2026-10-28, against Python 3.13:
 
-- `python -m pytest` — 95 passed, 5 PostgreSQL-only tests skipped.
-- `python -m pytest --ds=config.settings.test_postgres` in CI — 100 passed,
+- `python -m pytest` — 101 passed, 5 PostgreSQL-only tests skipped.
+- `python -m pytest --ds=config.settings.test_postgres` in CI — 106 passed,
   including concurrent transitions, quote acceptance, idempotent replay,
   allowance limits, and payment verification.
+- The CI container job builds the production image and runs
+  `check --deploy` with `config.settings.staging` inside it.
 - `python manage.py makemigrations --check --dry-run --settings=config.settings.test`
   — no changes detected.
 - `python manage.py check --deploy --settings=config.settings.production` with
