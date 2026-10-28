@@ -214,20 +214,23 @@ def record_offline_payment(
     reference = (reference or "").strip()
     if len(reference) < 4:
         raise ValidationFailure("Enter the payment reference from the bank transfer.")
-    if invoice.status != InvoiceStatus.ISSUED:
-        raise ValidationFailure("Only unpaid invoices can be marked as paid.")
-    if amount_minor != invoice.amount_minor or currency != invoice.currency:
-        raise ValidationFailure(
-            "The amount or currency does not match the invoice exactly."
-        )
 
     with transaction.atomic():
+        current = Invoice.objects.get(pk=invoice.pk)
+        if current.status != InvoiceStatus.ISSUED:
+            raise ValidationFailure("Only unpaid invoices can be marked as paid.")
+        if amount_minor != current.amount_minor or currency != current.currency:
+            raise ValidationFailure(
+                "The amount or currency does not match the invoice exactly."
+            )
+
         attempt = PaymentAttempt.objects.filter(reference=reference).first()
-        if attempt is not None and attempt.invoice_id != invoice.pk:
+        if attempt is not None and attempt.invoice_id != current.pk:
             raise ValidationFailure("That reference is already used by another invoice.")
+        now = timezone.now()
         if attempt is None:
             attempt = PaymentAttempt.objects.create(
-                invoice=invoice,
+                invoice=current,
                 provider="manual",
                 reference=reference,
                 amount_minor=amount_minor,
@@ -235,25 +238,33 @@ def record_offline_payment(
                 status=PaymentStatus.SUCCEEDED,
                 provider_status="verified manually",
                 verified_by=actor,
-                verified_at=timezone.now(),
+                verified_at=now,
             )
         else:
             attempt.status = PaymentStatus.SUCCEEDED
             attempt.verified_by = actor
-            attempt.verified_at = timezone.now()
+            attempt.verified_at = now
             attempt.save(update_fields=["status", "verified_by", "verified_at", "updated_at"])
 
-        invoice.status = InvoiceStatus.PAID
-        invoice.paid_at = timezone.now()
-        invoice.verified_by = actor
-        invoice.save(update_fields=["status", "paid_at", "verified_by", "updated_at"])
+        # Conditional write is the serialisation point. If another verification
+        # paid this invoice first, this attempt (and its audit entry) rolls back.
+        paid = Invoice.objects.filter(
+            pk=current.pk, status=InvoiceStatus.ISSUED
+        ).update(
+            status=InvoiceStatus.PAID,
+            paid_at=now,
+            verified_by=actor,
+            updated_at=now,
+        )
+        if not paid:
+            raise ValidationFailure("Only unpaid invoices can be marked as paid.")
 
         audit_service.record(
             action="billing.payment_verified",
             actor=actor,
-            organization_id=invoice.organization_id,
+            organization_id=current.organization_id,
             resource_type="invoice",
-            resource_id=str(invoice.pk),
+            resource_id=str(current.pk),
             metadata={"reference": reference, "amount_minor": amount_minor},
         )
     return attempt
