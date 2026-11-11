@@ -13,6 +13,7 @@ urlpatterns = [
     path("", include("apps.organizations.urls_public")),
     path("", include("apps.billing.urls_webhook")),
     path("", include("apps.website.urls_public")),
+    path("", include("apps.catalogue.urls_public")),
     path("app/", include("apps.tasks.urls_client")),
     path("app/", include("apps.quotes.urls")),
     path("app/", include("apps.reviews.urls")),

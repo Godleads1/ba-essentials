@@ -1,0 +1,20 @@
+{% load site %}
+    <section class="bg-cream-light pb-16 pt-16 lg:pb-[72px] lg:pt-[72px]">
+      <div class="mx-auto max-w-site px-5 lg:px-0">
+        <div class="reveal relative flex flex-col gap-6 overflow-hidden rounded-2xl bg-cocoa px-6 py-8 sm:px-9 md:flex-row md:items-center md:justify-between">
+          <span aria-hidden="true" class="pointer-events-none absolute -right-16 -top-24 h-64 w-64 rounded-full border border-brand-lavender/15"></span>
+          <span aria-hidden="true" class="pointer-events-none absolute -right-4 -top-12 h-40 w-40 rounded-full border border-brand-lavender/15"></span>
+          <span aria-hidden="true" class="pointer-events-none absolute -bottom-20 left-1/3 h-48 w-48 rounded-full bg-brand-orange/10 blur-2xl"></span>
+          <div class="relative flex items-center gap-5">
+            <span class="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-brand-orange shadow-lg shadow-black/20">{% icon "rocket" "h-5 w-5 text-cocoa" %}</span>
+            <div>
+              <h2 class="font-display text-[22px] font-semibold text-white sm:text-[24px]">Ready to get started?</h2>
+              <p class="mt-1.5 text-[14px] text-white/80">Choose a service, create a task or contact our team. We&rsquo;re here to help.</p>
+            </div>
+          </div>
+          <a href="{% url 'signup' %}" class="group relative inline-flex shrink-0 items-center gap-2 self-start rounded-lg bg-brand-orange px-5 py-3.5 text-[14px] font-semibold text-white transition hover:-translate-y-px hover:bg-brand-orange-dark focus-visible:outline-white md:self-auto">
+            Get Started {% icon "arrow-right" "h-4 w-4 transition-transform group-hover:translate-x-0.5" %}
+          </a>
+        </div>
+      </div>
+    </section>

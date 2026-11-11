@@ -67,6 +67,42 @@ _LINE_ICONS = {
     "rocket": (
         '<path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09"/><path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05"/>'
     ),
+    "search": (
+        '<path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/>'
+    ),
+    "briefcase": (
+        '<path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect width="20" height="14" x="2" y="6" rx="2"/>'
+    ),
+    "settings": (
+        '<path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/>'
+    ),
+    "users": (
+        '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/>'
+    ),
+    "shield-check": (
+        '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>'
+    ),
+    "calendar-check": (
+        '<path d="M8 2v3"/><path d="M16 2v3"/><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="m9 15 2 2 4-4"/>'
+    ),
+    "wallet": (
+        '<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>'
+    ),
+    "clock": (
+        '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>'
+    ),
+    "refresh-ccw": (
+        '<path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/>'
+    ),
+    "message-circle": (
+        '<path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/>'
+    ),
+    "arrow-left": (
+        '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>'
+    ),
+    "package": (
+        '<path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><polyline points="3.29 7 12 12 20.71 7"/><path d="m7.5 4.27 9 5.15"/>'
+    ),
     "instagram": (
         '<rect x="2" y="2" width="20" height="20" rx="5"/>'
         '<path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>'
@@ -123,6 +159,29 @@ def icon(name: str, css_class: str = "h-4 w-4", solid: bool = False):
         css_class,
         mark_safe(_LINE_ICONS[name]),  # noqa: S308 - static, module-level markup
     )
+
+
+# Keyword -> icon for catalogue categories, checked in order against the slug.
+_CATEGORY_ICONS = (
+    (("document", "proposal", "report", "writing"), "file-text"),
+    (("design", "brand", "content", "social", "media", "creative"), "pen-line"),
+    (("finance", "account", "bookkeep", "tax", "invoice"), "file-spreadsheet"),
+    (("digital", "tech", "web", "software", "it-"), "monitor"),
+    (("admin", "calendar", "schedul", "assistant"), "calendar"),
+    (("support", "operations", "business"), "briefcase"),
+)
+
+
+@register.filter
+def category_icon(category) -> str:
+    """Pick an icon name for a service category from its slug."""
+    slug = (getattr(category, "slug", "") or "").lower()
+    if slug == "it":
+        return "monitor"
+    for keywords, name in _CATEGORY_ICONS:
+        if any(keyword in slug for keyword in keywords):
+            return name
+    return "settings"
 
 
 @register.simple_tag

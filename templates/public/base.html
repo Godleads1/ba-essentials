@@ -25,7 +25,7 @@
         <nav class="hidden md:block" aria-label="Primary">
           <ul class="flex items-center gap-6 text-[14px] text-ink-muted">
             <li><a href="{% url 'landing' %}#top" data-spy="top" class="site-nav-link">Home</a></li>
-            <li><a href="{% url 'landing' %}#services" data-spy="services" class="site-nav-link">Services</a></li>
+            <li><a href="{% url 'services' %}" class="site-nav-link{% if current == 'services' or current == 'service-detail' %} is-active{% endif %}"{% if current == 'services' %} aria-current="page"{% endif %}>Services</a></li>
             <li><a href="{% url 'landing' %}#how" data-spy="how" class="site-nav-link">How It Works</a></li>
             {% for item in site_pages %}
               <li><a href="{% url 'website-page' slug=item.slug %}" class="site-nav-link{% if page.slug == item.slug %} is-active{% endif %}"{% if page.slug == item.slug %} aria-current="page"{% endif %}>{{ item.published_revision.title }}</a></li>
@@ -49,7 +49,7 @@
       <div id="mobileMenu" hidden class="border-t border-cream-line bg-cream-light md:hidden">
         <ul class="space-y-1 px-5 py-4 text-[15px]">
           <li><a href="{% url 'landing' %}#top" class="block rounded-md px-2 py-2 font-medium text-brand-navy">Home</a></li>
-          <li><a href="{% url 'landing' %}#services" class="block rounded-md px-2 py-2 text-ink-muted">Services</a></li>
+          <li><a href="{% url 'services' %}" class="block rounded-md px-2 py-2 text-ink-muted">Services</a></li>
           <li><a href="{% url 'landing' %}#how" class="block rounded-md px-2 py-2 text-ink-muted">How It Works</a></li>
           {% for item in site_pages %}
             <li><a href="{% url 'website-page' slug=item.slug %}" class="block rounded-md px-2 py-2 text-ink-muted">{{ item.published_revision.title }}</a></li>
@@ -79,7 +79,7 @@
           <nav aria-label="Footer">
             <ul class="flex flex-wrap gap-x-6 gap-y-3 text-[14px] font-medium text-white/85">
               <li><a href="{% url 'landing' %}#top" class="transition-colors hover:text-brand-lavender">Home</a></li>
-              <li><a href="{% url 'landing' %}#services" class="transition-colors hover:text-brand-lavender">Services</a></li>
+              <li><a href="{% url 'services' %}" class="transition-colors hover:text-brand-lavender">Services</a></li>
               <li><a href="{% url 'landing' %}#how" class="transition-colors hover:text-brand-lavender">How It Works</a></li>
               {% for item in site_pages %}
                 <li><a href="{% url 'website-page' slug=item.slug %}" class="transition-colors hover:text-brand-lavender">{{ item.published_revision.title }}</a></li>

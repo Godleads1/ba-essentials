@@ -1,0 +1,231 @@
+{% extends "public/base.html" %}
+{% load site %}
+{% block title %}Services · B &amp; A Essentials{% endblock %}
+{% block meta_description %}Browse B &amp; A Essentials business support services for small businesses and SMEs in Nigeria.{% endblock %}
+{% block content %}
+  <main>
+    <!-- ===================== HERO ===================== -->
+    <section class="relative overflow-hidden bg-cream">
+      <div aria-hidden="true" class="pointer-events-none absolute -right-40 -top-48 h-[520px] w-[520px] rounded-full bg-brand-orange/[.13] blur-3xl"></div>
+      <div aria-hidden="true" class="dot-grid pointer-events-none absolute inset-y-0 right-0 w-3/5 [mask-image:radial-gradient(ellipse_at_70%_45%,black,transparent_70%)]"></div>
+
+      <div class="relative mx-auto grid max-w-site items-center gap-12 px-5 py-14 lg:grid-cols-[1.25fr_1fr] lg:px-0 lg:py-[72px]">
+        <div class="reveal">
+          <p class="flex items-center gap-3 text-[11.5px] font-bold tracking-[0.14em] text-brand-navy"><span class="h-[2px] w-5 rounded bg-brand-orange"></span>OUR SERVICES</p>
+          <h1 class="mt-5 font-display text-[33px] font-semibold leading-[1.12] tracking-[-0.025em] sm:text-[42px] lg:text-[44px]">
+            Professional Support Services for Your
+            <span class="relative inline-block whitespace-nowrap text-brand-navy">Business Success
+              <svg aria-hidden="true" class="hero-underline absolute -bottom-2 left-0 h-3 w-full" viewBox="0 0 300 12" fill="none" preserveAspectRatio="none"><path d="M3 8.5C52 3 120 2.5 168 5c44 2.2 88 1.5 129-1.5" stroke="#D9662E" stroke-width="4" stroke-linecap="round" pathLength="1"/></svg>
+            </span>
+          </h1>
+          <p class="mt-7 max-w-[480px] text-[16px] leading-relaxed text-ink-muted">Get the right support, at the right time. B &amp; A Essentials provides reliable, affordable and flexible managed services designed for small businesses and SMEs in Nigeria.</p>
+          <div class="mt-8 flex flex-wrap gap-3">
+            <a href="#catalogue" class="group inline-flex items-center gap-2 rounded-lg bg-brand-orange px-6 py-4 text-[14.5px] font-semibold text-white shadow-lg shadow-brand-orange/30 transition hover:-translate-y-0.5 hover:bg-brand-orange-dark focus-visible:outline-brand-orange">Explore Our Services {% icon "arrow-right" "h-4 w-4 transition-transform group-hover:translate-x-0.5" %}</a>
+            <a href="{% url 'contact' %}" class="inline-flex items-center gap-2 rounded-lg border-[1.5px] border-brand-navy bg-white/70 px-6 py-4 text-[14.5px] font-semibold text-brand-navy backdrop-blur transition hover:-translate-y-0.5 hover:bg-brand-navy hover:text-white focus-visible:outline-brand-navy">{% icon "message-circle" "h-4 w-4" %}Talk to Our Team</a>
+          </div>
+        </div>
+
+        <div class="reveal reveal-d2 relative mx-auto w-full max-w-[360px] lg:mr-0" aria-hidden="true">
+          <div class="absolute -right-3 bottom-2 left-8 top-8 rotate-[5deg] rounded-3xl bg-brand-navy"></div>
+          <div class="absolute -left-4 -top-5 h-20 w-20 rounded-2xl border-2 border-dashed border-brand-orange/40"></div>
+          <div class="relative rounded-2xl border border-cream-line bg-white p-6 shadow-[0_30px_70px_-30px_rgba(28,23,18,0.45)]">
+            <div class="flex items-center gap-3">
+              <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand-orange text-white">{% icon "check" "h-5 w-5" %}</span>
+              <p class="font-display text-[15.5px] font-semibold leading-snug text-ink">Get things done<br>with B &amp; A Essentials</p>
+            </div>
+            <ul class="mt-5 space-y-3.5 border-t border-cream-line pt-5 text-[14px] font-medium text-ink">
+              <li class="flex items-center gap-2.5">{% icon "circle-check" "h-[18px] w-[18px] text-brand-navy" %}Save time</li>
+              <li class="flex items-center gap-2.5">{% icon "circle-check" "h-[18px] w-[18px] text-brand-navy" %}Reduce stress</li>
+              <li class="flex items-center gap-2.5">{% icon "circle-check" "h-[18px] w-[18px] text-brand-navy" %}Focus on growth</li>
+            </ul>
+          </div>
+          <div class="float absolute -bottom-7 -left-3 flex items-center gap-2.5 rounded-xl bg-cocoa-deep py-2 pl-2 pr-3.5 text-white shadow-[0_14px_30px_-12px_rgba(28,23,18,.6)]">
+            <span class="grid h-8 w-8 place-items-center rounded-lg bg-brand-orange">{% icon "user-check" "h-4 w-4" %}</span>
+            <span class="leading-tight"><span class="block text-[12px] font-semibold">Reviewed by a person</span><span class="block text-[10.5px] text-brand-lavender">before it reaches you</span></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== CATEGORIES ===================== -->
+    <section class="bg-cream-light">
+      <div class="mx-auto max-w-site px-5 py-14 lg:px-0 lg:py-16">
+        <div class="reveal">
+          <p class="flex items-center gap-3 text-[11.5px] font-bold tracking-[0.14em] text-brand-navy"><span class="h-[2px] w-5 rounded bg-brand-orange"></span>SERVICE CATEGORIES</p>
+          <h2 class="mt-4 font-display text-[26px] font-semibold tracking-tight sm:text-[28px]">Explore Our Services</h2>
+          <p class="mt-3 text-[15px] leading-relaxed text-ink-muted">Flexible, scalable and tailored to your business needs.</p>
+        </div>
+        <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {% for category in categories %}
+            <a href="{% url 'services' %}?category={{ category.slug }}#catalogue" class="reveal group rounded-xl border border-cream-line bg-white transition duration-300 hover:-translate-y-1 hover:border-brand-lavender hover:shadow-[0_18px_40px_-24px_rgba(51,57,127,.45)] focus-visible:outline-brand-navy flex flex-col p-5">
+              <span class="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-cream text-brand-navy transition-colors duration-300 group-hover:bg-brand-navy group-hover:text-white">{% icon category|category_icon "h-[18px] w-[18px]" %}</span>
+              <h3 class="mt-5 flex items-start justify-between gap-2 font-display text-[15.5px] font-semibold leading-snug">{{ category.name }}{% icon "chevron-right" "mt-0.5 h-4 w-4 shrink-0 text-brand-navy transition-transform group-hover:translate-x-0.5" %}</h3>
+              {% if category.summary %}<p class="mt-3 text-[13px] leading-relaxed text-ink-muted">{{ category.summary }}</p>{% endif %}
+            </a>
+          {% empty %}
+            <a href="{% url 'contact' %}" class="reveal group rounded-xl border border-cream-line bg-white transition duration-300 hover:-translate-y-1 hover:border-brand-lavender hover:shadow-[0_18px_40px_-24px_rgba(51,57,127,.45)] focus-visible:outline-brand-navy flex flex-col p-5">
+              <span class="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-cream text-brand-navy transition-colors duration-300 group-hover:bg-brand-navy group-hover:text-white">{% icon "briefcase" "h-[18px] w-[18px]" %}</span>
+              <h3 class="mt-5 flex items-start justify-between gap-2 font-display text-[15.5px] font-semibold leading-snug">Business Support Services{% icon "chevron-right" "mt-0.5 h-4 w-4 shrink-0 text-brand-navy transition-transform group-hover:translate-x-0.5" %}</h3>
+              <p class="mt-3 text-[13px] leading-relaxed text-ink-muted">Admin, operations and day-to-day support.</p>
+            </a>
+            <a href="{% url 'contact' %}" class="reveal group rounded-xl border border-cream-line bg-white transition duration-300 hover:-translate-y-1 hover:border-brand-lavender hover:shadow-[0_18px_40px_-24px_rgba(51,57,127,.45)] focus-visible:outline-brand-navy flex flex-col p-5">
+              <span class="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-cream text-brand-navy transition-colors duration-300 group-hover:bg-brand-navy group-hover:text-white">{% icon "file-text" "h-[18px] w-[18px]" %}</span>
+              <h3 class="mt-5 flex items-start justify-between gap-2 font-display text-[15.5px] font-semibold leading-snug">Business Documents{% icon "chevron-right" "mt-0.5 h-4 w-4 shrink-0 text-brand-navy transition-transform group-hover:translate-x-0.5" %}</h3>
+              <p class="mt-3 text-[13px] leading-relaxed text-ink-muted">Proposals, reports, presentations and more.</p>
+            </a>
+            <a href="{% url 'contact' %}" class="reveal group rounded-xl border border-cream-line bg-white transition duration-300 hover:-translate-y-1 hover:border-brand-lavender hover:shadow-[0_18px_40px_-24px_rgba(51,57,127,.45)] focus-visible:outline-brand-navy flex flex-col p-5">
+              <span class="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-cream text-brand-navy transition-colors duration-300 group-hover:bg-brand-navy group-hover:text-white">{% icon "pen-line" "h-[18px] w-[18px]" %}</span>
+              <h3 class="mt-5 flex items-start justify-between gap-2 font-display text-[15.5px] font-semibold leading-snug">Content &amp; Design{% icon "chevron-right" "mt-0.5 h-4 w-4 shrink-0 text-brand-navy transition-transform group-hover:translate-x-0.5" %}</h3>
+              <p class="mt-3 text-[13px] leading-relaxed text-ink-muted">Social media, branding, graphic design and content creation.</p>
+            </a>
+            <a href="{% url 'contact' %}" class="reveal group rounded-xl border border-cream-line bg-white transition duration-300 hover:-translate-y-1 hover:border-brand-lavender hover:shadow-[0_18px_40px_-24px_rgba(51,57,127,.45)] focus-visible:outline-brand-navy flex flex-col p-5">
+              <span class="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-cream text-brand-navy transition-colors duration-300 group-hover:bg-brand-navy group-hover:text-white">{% icon "monitor" "h-[18px] w-[18px]" %}</span>
+              <h3 class="mt-5 flex items-start justify-between gap-2 font-display text-[15.5px] font-semibold leading-snug">IT &amp; Digital Support{% icon "chevron-right" "mt-0.5 h-4 w-4 shrink-0 text-brand-navy transition-transform group-hover:translate-x-0.5" %}</h3>
+              <p class="mt-3 text-[13px] leading-relaxed text-ink-muted">Setup, troubleshooting and tech assistance.</p>
+            </a>
+            <a href="{% url 'contact' %}" class="reveal group rounded-xl border border-cream-line bg-white transition duration-300 hover:-translate-y-1 hover:border-brand-lavender hover:shadow-[0_18px_40px_-24px_rgba(51,57,127,.45)] focus-visible:outline-brand-navy flex flex-col p-5">
+              <span class="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-cream text-brand-navy transition-colors duration-300 group-hover:bg-brand-navy group-hover:text-white">{% icon "file-spreadsheet" "h-[18px] w-[18px]" %}</span>
+              <h3 class="mt-5 flex items-start justify-between gap-2 font-display text-[15.5px] font-semibold leading-snug">Finance &amp; Accounting{% icon "chevron-right" "mt-0.5 h-4 w-4 shrink-0 text-brand-navy transition-transform group-hover:translate-x-0.5" %}</h3>
+              <p class="mt-3 text-[13px] leading-relaxed text-ink-muted">Invoicing, bookkeeping, financial reports and support.</p>
+            </a>
+            <a href="{% url 'contact' %}" class="reveal group rounded-xl border border-cream-line bg-white transition duration-300 hover:-translate-y-1 hover:border-brand-lavender hover:shadow-[0_18px_40px_-24px_rgba(51,57,127,.45)] focus-visible:outline-brand-navy flex flex-col p-5">
+              <span class="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-cream text-brand-navy transition-colors duration-300 group-hover:bg-brand-navy group-hover:text-white">{% icon "settings" "h-[18px] w-[18px]" %}</span>
+              <h3 class="mt-5 flex items-start justify-between gap-2 font-display text-[15.5px] font-semibold leading-snug">Other Services{% icon "chevron-right" "mt-0.5 h-4 w-4 shrink-0 text-brand-navy transition-transform group-hover:translate-x-0.5" %}</h3>
+              <p class="mt-3 text-[13px] leading-relaxed text-ink-muted">Custom solutions for your unique needs.</p>
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== CATALOGUE ===================== -->
+    <section id="catalogue" class="bg-cream">
+      <div class="mx-auto max-w-site px-5 py-14 lg:px-0 lg:py-16">
+        <div class="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p class="flex items-center gap-3 text-[11.5px] font-bold tracking-[0.14em] text-brand-navy"><span class="h-[2px] w-5 rounded bg-brand-orange"></span>SERVICE CATALOGUE</p>
+            <h2 class="mt-4 font-display text-[26px] font-semibold tracking-tight sm:text-[28px]">{% if selected_category %}{{ selected_category.name }}{% else %}All Services{% endif %}</h2>
+            <p class="mt-3 max-w-[420px] text-[15px] leading-relaxed text-ink-muted">Browse our full list of services and find what you need.</p>
+          </div>
+          {% if has_catalogue %}
+            <div class="flex items-center gap-2.5">
+              <label for="sort" class="text-[13px] font-semibold text-ink">Sort by:</label>
+              <select id="sort" name="sort" form="catalogueFilters" data-autosubmit class="rounded-lg border border-cream-line bg-white py-2.5 pl-3 pr-8 text-[13px] font-medium text-ink focus-visible:outline-brand-navy">
+                {% for value, label in sort_options %}<option value="{{ value }}"{% if value == sort %} selected{% endif %}>{{ label }}</option>{% endfor %}
+              </select>
+            </div>
+          {% endif %}
+        </div>
+
+        {% if has_catalogue %}
+          <div class="mt-8 grid gap-6 lg:grid-cols-[230px_1fr]">
+            <aside class="min-w-0">
+              <form id="catalogueFilters" method="get" action="{% url 'services' %}#catalogue" role="search" aria-label="Search services">
+                {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category.slug }}">{% endif %}
+                <label for="q" class="sr-only">Search services</label>
+                <div class="relative">
+                  {% icon "search" "pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-soft" %}
+                  <input id="q" type="search" name="q" value="{{ query }}" maxlength="80" placeholder="Search services..." class="w-full rounded-lg border border-cream-line bg-white py-3 pl-10 pr-3 text-[13.5px] text-ink placeholder:text-ink-soft focus-visible:outline-brand-navy">
+                </div>
+                <button type="submit" class="sr-only">Search</button>
+              </form>
+
+              <nav class="mt-3" aria-label="Service categories">
+                <ul class="no-scrollbar flex gap-1.5 overflow-x-auto lg:block lg:space-y-1">
+                  <li class="shrink-0"><a href="{% url 'services' %}{% if query %}?q={{ query|urlencode }}{% endif %}#catalogue" class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13.5px] font-medium transition {% if not selected_category %}bg-brand-navy text-white shadow-sm{% else %}text-ink-muted hover:bg-white hover:text-ink{% endif %}"{% if not selected_category %} aria-current="true"{% endif %}>{% icon "layout-list" "h-4 w-4 shrink-0" %}All Services</a></li>
+                  {% for category in categories %}
+                    <li class="shrink-0"><a href="{% url 'services' %}?category={{ category.slug }}{% if query %}&amp;q={{ query|urlencode }}{% endif %}#catalogue" class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13.5px] font-medium transition whitespace-nowrap lg:whitespace-normal {% if selected_category == category %}bg-brand-navy text-white shadow-sm{% else %}text-ink-muted hover:bg-white hover:text-ink{% endif %}"{% if selected_category == category %} aria-current="true"{% endif %}>{% icon category|category_icon "h-4 w-4 shrink-0" %}{{ category.name }}</a></li>
+                  {% endfor %}
+                </ul>
+              </nav>
+            </aside>
+
+            <div class="min-w-0">
+              {% if is_filtered %}
+                <p class="mb-4 text-[13px] text-ink-muted" role="status">
+                  {{ versions|length }} service{{ versions|length|pluralize }}{% if query %} matching &ldquo;{{ query }}&rdquo;{% endif %}{% if selected_category %} in {{ selected_category.name }}{% endif %}.
+                  <a href="{% url 'services' %}#catalogue" class="font-semibold text-brand-navy underline underline-offset-2">Clear filters</a>
+                </p>
+              {% endif %}
+              <div class="grid gap-4 sm:grid-cols-2">
+                {% for version in versions %}
+                  <article class="group rounded-xl border border-cream-line bg-white transition duration-300 hover:-translate-y-1 hover:border-brand-lavender hover:shadow-[0_18px_40px_-24px_rgba(51,57,127,.45)] focus-visible:outline-brand-navy relative flex flex-col p-5">
+                    <div class="flex items-start gap-4">
+                      <span class="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-cream text-brand-navy transition-colors duration-300 group-hover:bg-brand-navy group-hover:text-white">{% icon version.definition.category|category_icon "h-[18px] w-[18px]" %}</span>
+                      <div class="min-w-0">
+                        <h3 class="font-display text-[15px] font-semibold leading-snug"><a href="{% url 'service-detail' slug=version.definition.slug %}" class="after:absolute after:inset-0 after:rounded-xl focus-visible:outline-none">{{ version.definition.name }}</a></h3>
+                        <p class="mt-2 text-[13px] leading-relaxed text-ink-muted">{{ version.scope_summary|truncatechars:110 }}</p>
+                      </div>
+                    </div>
+                    <div class="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-cream-line pt-4">
+                      <div class="flex flex-wrap items-center gap-2">
+                        {% if version.state == "available" %}<span class="inline-flex items-center gap-1 rounded-full bg-pill-green-bg px-2.5 py-1 text-[11px] font-semibold text-pill-green-tx">{% icon "check" "h-3 w-3" %}Available</span>{% else %}<span class="inline-flex items-center gap-1.5 rounded-full bg-pill-navy-bg px-2.5 py-1 text-[11px] font-semibold text-brand-navy"><span class="h-1.5 w-1.5 rounded-full bg-brand-navy"></span>Scoping first</span>{% endif %}
+                        <span class="inline-flex items-center gap-1.5 text-[12px] font-medium text-ink-muted">{% icon "clock" "h-3.5 w-3.5" %}{{ version.turnaround_days }} day{{ version.turnaround_days|pluralize }}</span>
+                      </div>
+                      <span class="inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand-navy">View Details {% icon "arrow-right" "h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" %}</span>
+                    </div>
+                  </article>
+                {% empty %}
+                  <div class="rounded-xl border border-dashed border-brand-lavender bg-white p-8 text-center sm:col-span-2">
+                    <span class="mx-auto grid h-12 w-12 place-items-center rounded-full bg-pill-navy-bg text-brand-navy">{% icon "search" "h-5 w-5" %}</span>
+                    <h3 class="mt-4 font-display text-[16px] font-semibold">No services match your search</h3>
+                    <p class="mt-2 text-[13.5px] text-ink-muted">Try a different word, or <a href="{% url 'services' %}#catalogue" class="font-semibold text-brand-navy underline underline-offset-2">view all services</a>.</p>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        {% else %}
+          <div class="mt-8 rounded-xl border border-dashed border-brand-lavender bg-white p-8 text-center">
+            <span class="mx-auto grid h-12 w-12 place-items-center rounded-full bg-pill-navy-bg text-brand-navy">{% icon "package" "h-5 w-5" %}</span>
+            <h3 class="mt-4 font-display text-[17px] font-semibold">Our service list is being finalised</h3>
+            <p class="mx-auto mt-2 max-w-[440px] text-[14px] leading-relaxed text-ink-muted">We&rsquo;re confirming scope and pricing for each service. Tell us what your business needs and the team will follow up.</p>
+            <a href="{% url 'contact' %}" class="group mt-6 inline-flex items-center gap-2 rounded-lg bg-brand-orange px-5 py-3.5 text-[14px] font-semibold text-white transition hover:bg-brand-orange-dark focus-visible:outline-brand-orange">Talk to Our Team {% icon "arrow-right" "h-4 w-4 transition-transform group-hover:translate-x-0.5" %}</a>
+          </div>
+        {% endif %}
+      </div>
+    </section>
+
+    <!-- ===================== WHY US ===================== -->
+    <section class="bg-cream-light">
+      <div class="mx-auto grid max-w-site gap-10 px-5 pt-14 lg:grid-cols-[0.8fr_2fr] lg:px-0 lg:pt-16">
+        <div class="reveal">
+          <p class="flex items-center gap-3 text-[11.5px] font-bold tracking-[0.14em] text-brand-navy"><span class="h-[2px] w-5 rounded bg-brand-orange"></span>WHY CHOOSE B &amp; A ESSENTIALS</p>
+          <h2 class="mt-4 font-display text-[26px] font-semibold leading-tight tracking-tight sm:text-[28px]">Why Businesses Choose Us</h2>
+        </div>
+        <ul class="reveal reveal-d1 grid gap-x-8 gap-y-7 sm:grid-cols-2">
+          <li class="flex items-start gap-4">
+            <span class="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-pill-navy-bg text-brand-navy">{% icon "users" "h-5 w-5" %}</span>
+            <div>
+              <h3 class="font-display text-[15px] font-semibold">Experienced Team</h3>
+              <p class="mt-1.5 text-[13px] leading-relaxed text-ink-muted">Skilled professionals with real-world experience.</p>
+            </div>
+          </li>
+          <li class="flex items-start gap-4">
+            <span class="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-pill-navy-bg text-brand-navy">{% icon "wallet" "h-5 w-5" %}</span>
+            <div>
+              <h3 class="font-display text-[15px] font-semibold">Clear Pricing</h3>
+              <p class="mt-1.5 text-[13px] leading-relaxed text-ink-muted">You approve the scope and quote before any work starts.</p>
+            </div>
+          </li>
+          <li class="flex items-start gap-4">
+            <span class="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-pill-navy-bg text-brand-navy">{% icon "calendar-check" "h-5 w-5" %}</span>
+            <div>
+              <h3 class="font-display text-[15px] font-semibold">Flexible Engagement</h3>
+              <p class="mt-1.5 text-[13px] leading-relaxed text-ink-muted">Choose what you need, when you need it.</p>
+            </div>
+          </li>
+          <li class="flex items-start gap-4">
+            <span class="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-pill-navy-bg text-brand-navy">{% icon "shield-check" "h-5 w-5" %}</span>
+            <div>
+              <h3 class="font-display text-[15px] font-semibold">Private by Design</h3>
+              <p class="mt-1.5 text-[13px] leading-relaxed text-ink-muted">Files are scanned, access-controlled and never public.</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+{% include "public/_cta.html" %}
+  </main>
+{% endblock %}

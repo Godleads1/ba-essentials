@@ -40,6 +40,13 @@
     });
   }
 
+  // Filters that apply as soon as they change (for example the catalogue sort).
+  document.querySelectorAll("[data-autosubmit]").forEach(function (field) {
+    field.addEventListener("change", function () {
+      if (field.form) field.form.submit();
+    });
+  });
+
   if (!("IntersectionObserver" in window)) return;
 
   // Scroll-spy: the active nav item follows the section in view (landing only).
