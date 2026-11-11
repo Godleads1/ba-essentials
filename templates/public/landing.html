@@ -1,119 +1,276 @@
-{% extends "base.html" %}
-{% block title %}B &amp; A Essentials · Managed business support for Nigerian SMEs{% endblock %}
-{% block body %}
-  <header class="sticky top-0 z-30 border-b border-slate-200/70 bg-white/90 backdrop-blur">
-    <div class="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5">
-      <a href="{% url 'landing' %}" class="flex items-center gap-2.5">
-        <span class="grid h-9 w-9 place-items-center rounded-lg bg-brand-600 text-lg font-bold text-white">B</span>
-        <span class="text-sm font-semibold leading-tight text-navy-900">B &amp; A<br><span class="text-slate-400">Essentials</span></span>
-      </a>
-      <nav class="hidden items-center gap-7 text-sm font-medium text-slate-600 md:flex" aria-label="Primary">
-        <a class="hover:text-brand-700" href="#services">Services</a>
-        <a class="hover:text-brand-700" href="#how">How it works</a>
-        <a class="hover:text-brand-700" href="{% url 'contact' %}">Contact</a>
-      </nav>
-      <div class="flex items-center gap-2">
-        <a class="btn-ghost btn-sm" href="{% url 'login' %}">Log in</a>
-        <a class="btn-primary btn-sm" href="{% url 'signup' %}">Get started</a>
-      </div>
-    </div>
-  </header>
+{% extends "public/base.html" %}
+{% load site %}
+{% block title %}banda · B &amp; A Essentials | Business support for Nigerian SMEs{% endblock %}
+{% block content %}
+  <main>
+    <!-- ===================== HERO ===================== -->
+    <section id="top" class="relative overflow-hidden bg-cream">
+      <!-- decorative background -->
+      <div aria-hidden="true" class="pointer-events-none absolute -right-40 -top-48 h-[520px] w-[520px] rounded-full bg-brand-orange/[.13] blur-3xl"></div>
+      <div aria-hidden="true" class="pointer-events-none absolute -bottom-48 left-1/4 h-[420px] w-[420px] rounded-full bg-brand-navy/[.08] blur-3xl"></div>
+      <div aria-hidden="true" class="dot-grid pointer-events-none absolute inset-y-0 right-0 w-3/5 [mask-image:radial-gradient(ellipse_at_70%_45%,black,transparent_70%)]"></div>
 
-  <section class="relative overflow-hidden bg-gradient-to-b from-brand-50/80 to-white">
-    <div class="mx-auto grid max-w-6xl gap-10 px-5 py-16 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:py-24">
-      <div>
-        <p class="eyebrow">Your business. Our support.</p>
-        <h1 class="mt-3 max-w-2xl text-4xl font-semibold leading-tight sm:text-5xl">Get more done with <span class="text-brand-700">B &amp; A Essentials</span></h1>
-        <p class="mt-5 max-w-xl text-base leading-relaxed text-slate-600">Reliable, professional business support for small businesses and SMEs in Nigeria. Submit a request, approve the scope, and track delivery — all in one audited workspace.</p>
-        <div class="mt-8 flex flex-wrap gap-3">
-          <a class="btn-primary" href="{% url 'signup' %}">Start today</a>
-          <a class="btn-secondary" href="#services">Explore services</a>
+      <div class="relative mx-auto grid max-w-site items-center gap-14 px-5 pb-16 pt-12 lg:grid-cols-[1.1fr_1fr] lg:gap-10 lg:px-0 lg:pb-[88px] lg:pt-[76px]">
+        <div class="reveal">
+          <span class="inline-flex items-center gap-2 rounded-full border border-brand-orange/20 bg-pill-orange-bg px-4 py-2 text-[11px] font-bold tracking-[0.12em] text-ink">
+            <span class="relative flex h-1.5 w-1.5"><span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-orange opacity-60"></span><span class="relative h-1.5 w-1.5 rounded-full bg-brand-orange"></span></span>
+            YOUR BUSINESS. OUR SUPPORT.
+          </span>
+
+          <h1 class="mt-6 font-display text-[33px] font-semibold leading-[1.1] tracking-[-0.025em] text-ink min-[400px]:text-[36px] sm:text-[46px] lg:text-[49px]">
+            Get More Done with<br>
+            <span class="relative inline-block whitespace-nowrap text-brand-navy">B &amp; A Essentials
+              <svg aria-hidden="true" class="hero-underline absolute -bottom-2 left-0 h-3 w-full" viewBox="0 0 300 12" fill="none" preserveAspectRatio="none"><path d="M3 8.5C52 3 120 2.5 168 5c44 2.2 88 1.5 129-1.5" stroke="#D9662E" stroke-width="4" stroke-linecap="round" pathLength="1"/></svg>
+            </span>
+          </h1>
+
+          <p class="mt-7 max-w-[440px] text-[16.5px] leading-relaxed text-ink-muted">
+            Reliable, professional and affordable business support services for small businesses and SMEs in Nigeria.
+          </p>
+
+          <div class="mt-8 flex flex-wrap gap-3">
+            <a href="{% url 'signup' %}" class="group inline-flex items-center gap-2 rounded-lg bg-brand-orange px-6 py-4 text-[14.5px] font-semibold text-white shadow-lg shadow-brand-orange/30 transition hover:-translate-y-0.5 hover:bg-brand-orange-dark focus-visible:outline-brand-orange">
+              Start Today {% icon "arrow-right" "h-4 w-4 transition-transform group-hover:translate-x-0.5" %}
+            </a>
+            <a href="#services" class="inline-flex items-center rounded-lg border-[1.5px] border-brand-navy bg-white/70 px-6 py-4 text-[14.5px] font-semibold text-brand-navy backdrop-blur transition hover:-translate-y-0.5 hover:bg-brand-navy hover:text-white focus-visible:outline-brand-navy">
+              Explore Our Services
+            </a>
+          </div>
+
+          <ul class="mt-9 flex flex-wrap gap-x-6 gap-y-3 border-t border-ink/10 pt-6 text-[13.5px] font-medium text-ink">
+            <li class="flex items-center gap-2">{% icon "circle-check" "h-4 w-4 text-brand-navy" %}Save time</li>
+            <li class="flex items-center gap-2">{% icon "circle-check" "h-4 w-4 text-brand-navy" %}Get expert support</li>
+            <li class="flex items-center gap-2">{% icon "circle-check" "h-4 w-4 text-brand-navy" %}Focus on growth</li>
+          </ul>
         </div>
-        <ul class="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-600">
-          <li class="flex items-center gap-2"><span class="h-1.5 w-1.5 rounded-full bg-brand-500"></span>Save time</li>
-          <li class="flex items-center gap-2"><span class="h-1.5 w-1.5 rounded-full bg-brand-500"></span>Expert support</li>
-          <li class="flex items-center gap-2"><span class="h-1.5 w-1.5 rounded-full bg-brand-500"></span>Focus on growth</li>
-        </ul>
-      </div>
-      <div class="relative">
-        <div class="card card-pad rounded-3xl">
-          <p class="text-sm font-semibold text-navy-900">Your business, simplified</p>
-          <p class="mt-1 text-xs text-slate-500">Requests &middot; Support &middot; Results</p>
-          <div class="mt-5 grid grid-cols-2 gap-3">
-            <div class="rounded-xl bg-brand-50 p-4">
-              <p class="text-xs font-medium text-brand-700">Clear scope</p>
-              <p class="mt-1 text-sm text-navy-900">Quotes you approve before work starts.</p>
+
+        <!-- Requests preview (illustrative) -->
+        <div class="reveal reveal-d2 relative mt-4 min-w-0 lg:mt-0 lg:pl-6" role="img" aria-label="Example of the client dashboard: three requests with their statuses, and a note that deliverables are reviewed by a person before delivery">
+          <!-- tilted backing panel -->
+          <div aria-hidden="true" class="absolute -right-2 bottom-1 left-6 top-6 rotate-[4deg] rounded-3xl bg-brand-navy lg:-right-4 lg:left-14"></div>
+          <div aria-hidden="true" class="absolute -right-3 -top-4 h-20 w-20 rounded-2xl border-2 border-dashed border-brand-orange/40"></div>
+
+          <div class="relative rounded-2xl border border-cream-line bg-white p-5 shadow-[0_30px_70px_-30px_rgba(28,23,18,0.45)] sm:p-6">
+            <div class="mb-4 flex items-center justify-between">
+              <div class="flex items-center gap-2.5">
+                <span class="grid h-8 w-8 place-items-center rounded-lg bg-brand-navy text-white">{% icon "layout-list" "h-4 w-4" %}</span>
+                <h2 class="text-[14.5px] font-semibold">Your requests</h2>
+              </div>
+              <span class="rounded-md bg-cream px-2 py-1 text-[11.5px] font-medium text-ink-muted">This week</span>
             </div>
-            <div class="rounded-xl bg-slate-50 p-4">
-              <p class="text-xs font-medium text-slate-600">Private files</p>
-              <p class="mt-1 text-sm text-navy-900">Scanned, access-controlled storage.</p>
+
+            <div class="mb-4 grid grid-cols-3 gap-2 text-center">
+              <div class="rounded-lg bg-cream/70 py-2.5"><p class="font-display text-[18px] font-semibold leading-none text-ink">3</p><p class="mt-1.5 text-[10.5px] font-medium uppercase tracking-wider text-ink-soft">Requests</p></div>
+              <div class="rounded-lg bg-cream/70 py-2.5"><p class="font-display text-[18px] font-semibold leading-none text-brand-orange-dark">1</p><p class="mt-1.5 text-[10.5px] font-medium uppercase tracking-wider text-ink-soft">In progress</p></div>
+              <div class="rounded-lg bg-cream/70 py-2.5"><p class="font-display text-[18px] font-semibold leading-none text-pill-green-tx">1</p><p class="mt-1.5 text-[10.5px] font-medium uppercase tracking-wider text-ink-soft">Delivered</p></div>
             </div>
-            <div class="rounded-xl bg-slate-50 p-4">
-              <p class="text-xs font-medium text-slate-600">Independent QA</p>
-              <p class="mt-1 text-sm text-navy-900">A second reviewer checks every delivery.</p>
+
+            <div class="space-y-2.5">
+              <div class="flex items-center gap-3 rounded-xl border border-cream-line p-3 transition hover:border-brand-lavender sm:gap-4 sm:p-3.5">
+                <span class="hidden h-10 w-10 shrink-0 place-items-center rounded-lg bg-cream min-[400px]:grid">{% icon "file-spreadsheet" "h-4 w-4 text-ink-muted" %}</span>
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-[13.5px] font-semibold">Monthly invoices</p>
+                  <p class="text-[12px] text-ink-muted">Finance &amp; Accounting</p>
+                  <div class="mt-2.5 h-1 rounded-full bg-cream-line"><div class="bar h-1 rounded-full bg-brand-navy" style="--bar:70%"></div></div>
+                </div>
+                <span class="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-pill-orange-bg px-2.5 py-1 text-[11px] font-semibold text-brand-orange-dark"><span class="h-1.5 w-1.5 animate-pulse rounded-full bg-brand-orange"></span>In progress</span>
+              </div>
+
+              <div class="flex items-center gap-3 rounded-xl border border-cream-line p-3 transition hover:border-brand-lavender sm:gap-4 sm:p-3.5">
+                <span class="hidden h-10 w-10 shrink-0 place-items-center rounded-lg bg-cream min-[400px]:grid">{% icon "file-text" "h-4 w-4 text-ink-muted" %}</span>
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-[13.5px] font-semibold">Investor pitch deck</p>
+                  <p class="text-[12px] text-ink-muted">Business Documents</p>
+                  <div class="mt-2.5 h-1 rounded-full bg-cream-line"><div class="bar h-1 rounded-full bg-pill-green-tx" style="--bar:100%"></div></div>
+                </div>
+                <span class="inline-flex shrink-0 items-center gap-1 rounded-full bg-pill-green-bg px-2.5 py-1 text-[11px] font-semibold text-pill-green-tx">{% icon "check" "h-3 w-3" %}Delivered</span>
+              </div>
+
+              <div class="flex items-center gap-3 rounded-xl border border-cream-line p-3 transition hover:border-brand-lavender sm:gap-4 sm:p-3.5">
+                <span class="hidden h-10 w-10 shrink-0 place-items-center rounded-lg bg-cream min-[400px]:grid">{% icon "pen-line" "h-4 w-4 text-ink-muted" %}</span>
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-[13.5px] font-semibold">Social media calendar</p>
+                  <p class="text-[12px] text-ink-muted">Content &amp; Design</p>
+                  <div class="mt-2.5 h-1 rounded-full bg-cream-line"><div class="bar h-1 rounded-full bg-brand-navy" style="--bar:15%"></div></div>
+                </div>
+                <span class="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-pill-navy-bg px-2.5 py-1 text-[11px] font-semibold text-brand-navy"><span class="h-1.5 w-1.5 rounded-full bg-brand-navy"></span>Submitted</span>
+              </div>
             </div>
-            <div class="rounded-xl bg-brand-50 p-4">
-              <p class="text-xs font-medium text-brand-700">Real people</p>
-              <p class="mt-1 text-sm text-navy-900">Human specialists, beyond your AI.</p>
-            </div>
+
+            <p class="mt-5 flex items-center gap-3 text-[13.5px] font-semibold text-brand-navy">
+              <span class="h-[2px] w-6 rounded bg-brand-orange"></span>Grow Your Business with Confidence
+            </p>
+          </div>
+
+          <!-- floating chips -->
+          <div aria-hidden="true" class="float absolute -left-2 -top-9 flex items-center gap-2.5 rounded-xl border border-cream-line bg-white py-2 pl-2 pr-3.5 shadow-[0_14px_30px_-14px_rgba(28,23,18,.4)] lg:-left-4">
+            <span class="grid h-8 w-8 place-items-center rounded-lg bg-pill-green-bg text-pill-green-tx">{% icon "user-check" "h-4 w-4" %}</span>
+            <span class="leading-tight"><span class="block text-[12px] font-semibold text-ink">Reviewed by a person</span><span class="block text-[10.5px] text-ink-muted">before it reaches you</span></span>
+          </div>
+          <div aria-hidden="true" class="float absolute -bottom-9 right-3 flex items-center gap-2.5 rounded-xl bg-cocoa-deep py-2 pl-2 pr-3.5 text-white shadow-[0_14px_30px_-12px_rgba(28,23,18,.6)] [animation-delay:-3.5s] lg:-right-5">
+            <span class="grid h-8 w-8 place-items-center rounded-lg bg-brand-orange">{% icon "bell-ring" "h-4 w-4" %}</span>
+            <span class="leading-tight"><span class="block text-[12px] font-semibold">Deliverable ready</span><span class="block text-[10.5px] text-brand-lavender">Investor pitch deck</span></span>
           </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <section id="services" class="mx-auto max-w-6xl px-5 py-16">
-    <div class="flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <p class="eyebrow">Our services</p>
-        <h2 class="mt-2 text-2xl font-semibold sm:text-3xl">Everything your business needs</h2>
-        <p class="mt-2 max-w-xl text-sm text-slate-500">From documents to design and admin support, we handle the work so you can focus on what matters.</p>
-      </div>
-      <a class="text-sm font-semibold text-brand-700 hover:text-brand-800" href="{% url 'signup' %}">Start a request &rarr;</a>
-    </div>
-    <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {% for category in categories %}
-        <article class="card card-pad">
-          <span class="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand-700">
-            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 12h6M9 16h6M13 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M13 3v5h5"/></svg>
-          </span>
-          <h3 class="mt-4 text-base font-semibold text-navy-900">{{ category.name }}</h3>
-          {% if category.summary %}<p class="mt-1.5 text-sm leading-relaxed text-slate-500">{{ category.summary }}</p>{% endif %}
-        </article>
-      {% empty %}
-        <div class="card card-pad sm:col-span-2 lg:col-span-3">
-          <p class="text-sm text-slate-500">The service catalogue is being prepared. <a class="font-semibold text-brand-700" href="mailto:hello@baessentials.example">Talk to us</a> about what you need.</p>
+    <!-- ===================== SERVICES ===================== -->
+    {# Shows the live service catalogue when one is loaded; otherwise the five launch categories. #}
+    <section id="services" class="bg-cream-light">
+      <div class="mx-auto max-w-site px-5 py-16 lg:px-0 lg:py-[72px]">
+        <div class="reveal flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p class="flex items-center gap-3 text-[11.5px] font-bold tracking-[0.14em] text-brand-navy"><span class="h-[2px] w-5 rounded bg-brand-orange"></span>OUR SERVICES</p>
+            <h2 class="mt-4 font-display text-[30px] font-semibold tracking-tight sm:text-[32px]">Everything Your Business Needs</h2>
+            <p class="mt-4 max-w-[420px] text-[15px] leading-relaxed text-ink-muted">From admin support to specialised services, we handle the work so you can focus on what matters most.</p>
+          </div>
+          <a href="{% url 'signup' %}" class="group inline-flex items-center gap-2 self-start border-b-2 border-brand-orange pb-1 text-[14.5px] font-semibold text-brand-navy md:self-auto">
+            View All Services {% icon "arrow-right" "h-4 w-4 transition-transform group-hover:translate-x-1" %}
+          </a>
         </div>
-      {% endfor %}
-    </div>
-  </section>
 
-  <section id="how" class="bg-brand-50/60 py-16">
-    <div class="mx-auto max-w-6xl px-5">
-      <p class="eyebrow">How it works</p>
-      <h2 class="mt-2 text-2xl font-semibold sm:text-3xl">Simple steps to get started</h2>
-      <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div class="card card-pad"><p class="text-xs font-semibold text-brand-700">01</p><h3 class="mt-2 font-semibold">Sign up</h3><p class="mt-1 text-sm text-slate-500">Create your account and business workspace in minutes.</p></div>
-        <div class="card card-pad"><p class="text-xs font-semibold text-brand-700">02</p><h3 class="mt-2 font-semibold">Submit a task</h3><p class="mt-1 text-sm text-slate-500">Tell us what you need, with private supporting files.</p></div>
-        <div class="card card-pad"><p class="text-xs font-semibold text-brand-700">03</p><h3 class="mt-2 font-semibold">Approve the scope</h3><p class="mt-1 text-sm text-slate-500">Review the quote and plan eligibility before work begins.</p></div>
-        <div class="card card-pad"><p class="text-xs font-semibold text-brand-700">04</p><h3 class="mt-2 font-semibold">Receive results</h3><p class="mt-1 text-sm text-slate-500">Track progress, review delivery and request included revisions.</p></div>
+        <div class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {% for category in categories %}
+            {% cycle "file-text" "pen-line" "calendar" "file-spreadsheet" "monitor" as svc_icon silent %}
+            {% cycle "" "reveal-d1" "reveal-d2" "reveal-d3" "reveal-d4" as svc_delay silent %}
+            <a href="{% url 'signup' %}" class="svc reveal group rounded-xl border border-cream-line bg-white p-5 transition duration-300 hover:-translate-y-1 hover:border-brand-lavender hover:shadow-[0_18px_40px_-24px_rgba(51,57,127,.45)] focus-visible:outline-brand-navy {{ svc_delay }}">
+              <span class="grid h-11 w-11 place-items-center rounded-lg bg-cream text-brand-navy transition-colors duration-300 group-hover:bg-brand-navy group-hover:text-white">{% icon svc_icon "h-[18px] w-[18px]" %}</span>
+              <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug">{{ category.name }}</h3>
+              {% if category.summary %}<p class="mt-3 text-[13px] leading-relaxed text-ink-muted">{{ category.summary }}</p>{% endif %}
+            </a>
+          {% empty %}
+            <a href="{% url 'signup' %}" class="svc reveal group rounded-xl border border-cream-line bg-white p-5 transition duration-300 hover:-translate-y-1 hover:border-brand-lavender hover:shadow-[0_18px_40px_-24px_rgba(51,57,127,.45)] focus-visible:outline-brand-navy">
+              <span class="grid h-11 w-11 place-items-center rounded-lg bg-cream text-brand-navy transition-colors duration-300 group-hover:bg-brand-navy group-hover:text-white">{% icon "file-text" "h-[18px] w-[18px]" %}</span>
+              <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug">Business Documents</h3>
+              <p class="mt-3 text-[13px] leading-relaxed text-ink-muted">Proposals, reports, presentations and more.</p>
+            </a>
+            <a href="{% url 'signup' %}" class="svc reveal group rounded-xl border border-cream-line bg-white p-5 transition duration-300 hover:-translate-y-1 hover:border-brand-lavender hover:shadow-[0_18px_40px_-24px_rgba(51,57,127,.45)] focus-visible:outline-brand-navy reveal-d1">
+              <span class="grid h-11 w-11 place-items-center rounded-lg bg-cream text-brand-navy transition-colors duration-300 group-hover:bg-brand-navy group-hover:text-white">{% icon "pen-line" "h-[18px] w-[18px]" %}</span>
+              <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug">Content &amp; Design</h3>
+              <p class="mt-3 text-[13px] leading-relaxed text-ink-muted">Social media, branding, graphic design and content creation.</p>
+            </a>
+            <a href="{% url 'signup' %}" class="svc reveal group rounded-xl border border-cream-line bg-white p-5 transition duration-300 hover:-translate-y-1 hover:border-brand-lavender hover:shadow-[0_18px_40px_-24px_rgba(51,57,127,.45)] focus-visible:outline-brand-navy reveal-d2">
+              <span class="grid h-11 w-11 place-items-center rounded-lg bg-cream text-brand-navy transition-colors duration-300 group-hover:bg-brand-navy group-hover:text-white">{% icon "calendar" "h-[18px] w-[18px]" %}</span>
+              <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug">Administrative Support</h3>
+              <p class="mt-3 text-[13px] leading-relaxed text-ink-muted">Calendar management, data entry, research and more.</p>
+            </a>
+            <a href="{% url 'signup' %}" class="svc reveal group rounded-xl border border-cream-line bg-white p-5 transition duration-300 hover:-translate-y-1 hover:border-brand-lavender hover:shadow-[0_18px_40px_-24px_rgba(51,57,127,.45)] focus-visible:outline-brand-navy reveal-d3">
+              <span class="grid h-11 w-11 place-items-center rounded-lg bg-cream text-brand-navy transition-colors duration-300 group-hover:bg-brand-navy group-hover:text-white">{% icon "file-spreadsheet" "h-[18px] w-[18px]" %}</span>
+              <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug">Finance &amp; Accounting</h3>
+              <p class="mt-3 text-[13px] leading-relaxed text-ink-muted">Invoicing, bookkeeping, financial reports and support.</p>
+            </a>
+            <a href="{% url 'signup' %}" class="svc reveal group rounded-xl border border-cream-line bg-white p-5 transition duration-300 hover:-translate-y-1 hover:border-brand-lavender hover:shadow-[0_18px_40px_-24px_rgba(51,57,127,.45)] focus-visible:outline-brand-navy reveal-d4">
+              <span class="grid h-11 w-11 place-items-center rounded-lg bg-cream text-brand-navy transition-colors duration-300 group-hover:bg-brand-navy group-hover:text-white">{% icon "monitor" "h-[18px] w-[18px]" %}</span>
+              <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug">IT &amp; Digital Support</h3>
+              <p class="mt-3 text-[13px] leading-relaxed text-ink-muted">Setup, troubleshooting, and tech assistance.</p>
+            </a>
+          {% endfor %}
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <footer class="bg-navy-900 py-10">
-    <div class="mx-auto flex max-w-6xl flex-col gap-6 px-5 sm:flex-row sm:items-center sm:justify-between">
-      <div class="flex items-center gap-2.5">
-        <span class="grid h-9 w-9 place-items-center rounded-lg bg-brand-500 text-lg font-bold text-white">B</span>
-        <div class="text-sm font-semibold leading-tight text-white">B &amp; A<br><span class="text-slate-400">Essentials</span></div>
+    <!-- ===================== HOW IT WORKS ===================== -->
+    <section id="how" class="bg-cream">
+      <div class="mx-auto grid max-w-site gap-12 px-5 py-16 lg:grid-cols-[0.95fr_2fr] lg:px-0 lg:py-[72px]">
+        <div class="reveal">
+          <p class="flex items-center gap-3 text-[11.5px] font-bold tracking-[0.14em] text-brand-navy"><span class="h-[2px] w-5 rounded bg-brand-orange"></span>HOW IT WORKS</p>
+          <h2 class="mt-4 font-display text-[30px] font-semibold leading-[1.3] tracking-tight sm:text-[32px]">Simple Steps<br class="hidden lg:block"> to Get Started</h2>
+          <p class="mt-4 max-w-[320px] text-[15px] leading-relaxed text-ink-muted">Getting the support you need is easy. Follow these simple steps and let us handle the rest.</p>
+          <a href="{% url 'signup' %}" class="group mt-7 inline-flex items-center gap-2 rounded-lg bg-brand-orange px-5 py-3.5 text-[14px] font-semibold text-white shadow-md shadow-brand-orange/25 transition hover:-translate-y-px hover:bg-brand-orange-dark">
+            Get Started {% icon "arrow-right" "h-4 w-4 transition-transform group-hover:translate-x-0.5" %}
+          </a>
+        </div>
+
+        <ol class="relative grid gap-8 sm:grid-cols-2 lg:mt-7 lg:grid-cols-4 lg:gap-6">
+          <!-- connector line (desktop) -->
+          <span aria-hidden="true" class="absolute left-5 right-[calc((100%_-_72px)/4_-_20px)] top-5 hidden border-t-2 border-dashed border-brand-lavender lg:block"></span>
+          <li class="reveal relative">
+            <span class="relative grid h-10 w-10 place-items-center rounded-full bg-brand-navy font-display text-[15px] font-semibold text-white ring-4 ring-cream">1</span>
+            <h3 class="mt-4 font-display text-[15.5px] font-semibold">Sign Up</h3>
+            <p class="mt-2 text-[13px] leading-relaxed text-ink-muted">Create your account in minutes.</p>
+          </li>
+          <li class="reveal reveal-d1 relative">
+            <span class="relative grid h-10 w-10 place-items-center rounded-full bg-brand-navy font-display text-[15px] font-semibold text-white ring-4 ring-cream">2</span>
+            <h3 class="mt-4 font-display text-[15.5px] font-semibold">Submit a Task</h3>
+            <p class="mt-2 text-[13px] leading-relaxed text-ink-muted">Tell us what you need and set your preferences.</p>
+          </li>
+          <li class="reveal reveal-d2 relative">
+            <span class="relative grid h-10 w-10 place-items-center rounded-full bg-brand-navy font-display text-[15px] font-semibold text-white ring-4 ring-cream">3</span>
+            <h3 class="mt-4 font-display text-[15.5px] font-semibold">We Get to Work</h3>
+            <p class="mt-2 text-[13px] leading-relaxed text-ink-muted">Our team handles the task with care and expertise.</p>
+          </li>
+          <li class="reveal reveal-d4 relative">
+            <span class="relative grid h-10 w-10 place-items-center rounded-full bg-brand-orange font-display text-[15px] font-semibold text-white ring-4 ring-cream">4</span>
+            <h3 class="mt-4 font-display text-[15.5px] font-semibold">You Get Results</h3>
+            <p class="mt-2 text-[13px] leading-relaxed text-ink-muted">Receive reviewed deliverables and track every step.</p>
+          </li>
+        </ol>
       </div>
-      <nav class="flex flex-wrap gap-x-5 gap-y-2 text-xs text-slate-400" aria-label="Footer">
-        {% for page in site_pages %}
-          <a class="hover:text-white" href="{% url 'website-page' slug=page.slug %}">{{ page.published_revision.title }}</a>
-        {% endfor %}
-        <a class="hover:text-white" href="{% url 'contact' %}">Contact</a>
-      </nav>
-      <p class="text-xs text-slate-500">&copy; {% now "Y" %} B &amp; A Essentials. Business support, simplified.</p>
-    </div>
-  </footer>
+    </section>
+
+    <!-- ===================== TESTIMONIALS ===================== -->
+    {% comment %}
+      Rendered only when the view supplies testimonials. Production supplies none
+      until real, consented client quotes exist; DEBUG shows labelled samples.
+    {% endcomment %}
+    {% if testimonials %}
+    <section class="bg-cream-light" aria-labelledby="stories-title">
+      <div class="mx-auto max-w-site px-5 py-16 lg:px-0 lg:py-[72px]">
+        <div class="reveal flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p class="flex items-center gap-3 text-[11.5px] font-bold tracking-[0.14em] text-brand-navy"><span class="h-[2px] w-5 rounded bg-brand-orange"></span>REAL STORIES</p>
+            <h2 id="stories-title" class="mt-4 font-display text-[30px] font-semibold tracking-tight sm:text-[32px]">What Our Clients Say</h2>
+            <p class="mt-4 max-w-[460px] text-[15px] leading-relaxed text-ink-muted">Businesses across Nigeria trust B &amp; A Essentials to help them work smarter and grow faster.</p>
+            {% if testimonials_are_samples %}
+              <p class="mt-4 inline-flex rounded-md border border-amber-300 bg-amber-50 px-3 py-1.5 text-[12px] font-semibold text-amber-900">Sample content, shown in development only. This section is hidden on the live site.</p>
+            {% endif %}
+          </div>
+          <div class="flex gap-3">
+            <button id="prevBtn" type="button" class="grid h-11 w-11 place-items-center rounded-full border-[1.5px] border-brand-navy text-brand-navy transition hover:bg-brand-navy hover:text-white" aria-label="Previous testimonials">{% icon "chevron-left" "h-4 w-4" %}</button>
+            <button id="nextBtn" type="button" class="grid h-11 w-11 place-items-center rounded-full border-[1.5px] border-brand-navy text-brand-navy transition hover:bg-brand-navy hover:text-white" aria-label="Next testimonials">{% icon "chevron-right" "h-4 w-4" %}</button>
+          </div>
+        </div>
+
+        <div id="track" class="no-scrollbar mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2" tabindex="0" role="group" aria-label="Testimonials">
+          {% for item in testimonials %}
+            {% cycle "bg-brand-navy" "bg-brand-orange" "bg-cocoa" as avatar_tone silent %}
+            <figure class="relative w-[85%] shrink-0 snap-start rounded-xl border border-cream-line bg-white p-6 transition hover:shadow-[0_18px_40px_-26px_rgba(28,23,18,.35)] sm:w-[calc(50%-8px)] lg:w-[calc(33.333%-11px)]">
+              {% icon "quote" "absolute right-5 top-5 h-7 w-7 text-brand-navy-soft" %}
+              <div class="flex gap-1 text-brand-orange" role="img" aria-label="5 out of 5 stars">{% icon "star" "h-3 w-3" %}{% icon "star" "h-3 w-3" %}{% icon "star" "h-3 w-3" %}{% icon "star" "h-3 w-3" %}{% icon "star" "h-3 w-3" %}</div>
+              <blockquote class="mt-5 text-[14px] leading-relaxed text-ink">&ldquo;{{ item.quote }}&rdquo;</blockquote>
+              <figcaption class="mt-6 flex items-center gap-3">
+                <span class="grid h-10 w-10 place-items-center rounded-full {{ avatar_tone }} text-[12px] font-bold text-white" aria-hidden="true">{{ item.initials }}</span>
+                <span><span class="block text-[13.5px] font-semibold">{{ item.name }}</span><span class="block text-[12px] text-ink-muted">{{ item.role }}</span></span>
+              </figcaption>
+            </figure>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- ===================== CTA ===================== -->
+    <section class="bg-cream-light pb-16 {% if not testimonials %}pt-16 lg:pt-[72px] {% endif %}lg:pb-[72px]">
+      <div class="mx-auto max-w-site px-5 lg:px-0">
+        <div class="reveal relative flex flex-col gap-6 overflow-hidden rounded-2xl bg-cocoa px-6 py-8 sm:px-9 md:flex-row md:items-center md:justify-between">
+          <!-- decorative rings -->
+          <span aria-hidden="true" class="pointer-events-none absolute -right-16 -top-24 h-64 w-64 rounded-full border border-brand-lavender/15"></span>
+          <span aria-hidden="true" class="pointer-events-none absolute -right-4 -top-12 h-40 w-40 rounded-full border border-brand-lavender/15"></span>
+          <span aria-hidden="true" class="pointer-events-none absolute -bottom-20 left-1/3 h-48 w-48 rounded-full bg-brand-orange/10 blur-2xl"></span>
+
+          <div class="relative flex items-center gap-5">
+            <span class="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-brand-orange shadow-lg shadow-black/20">{% icon "rocket" "h-5 w-5 text-cocoa" %}</span>
+            <div>
+              <h2 class="font-display text-[22px] font-semibold text-white sm:text-[24px]">Ready to grow your business?</h2>
+              <p class="mt-1.5 text-[14px] text-white/80">Join B &amp; A Essentials today and experience professional support, built for your success.</p>
+            </div>
+          </div>
+          <a href="{% url 'signup' %}" class="group relative inline-flex shrink-0 items-center gap-2 self-start rounded-lg bg-brand-orange px-5 py-3.5 text-[14px] font-semibold text-white transition hover:-translate-y-px hover:bg-brand-orange-dark focus-visible:outline-white md:self-auto">
+            Get Started {% icon "arrow-right" "h-4 w-4 transition-transform group-hover:translate-x-0.5" %}
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
 {% endblock %}

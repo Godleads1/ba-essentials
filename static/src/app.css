@@ -1,4 +1,5 @@
 @import "tailwindcss" source(none);
+@import "./site.css";
 
 @source "../../templates";
 @source "../../apps";
@@ -19,6 +20,27 @@
   --color-brand-800: #065f46;
   --color-brand-900: #064e3b;
   --font-sans: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+
+  /* banda public-site palette (taken from the logo) */
+  --color-brand-orange: #d9662e;
+  --color-brand-orange-dark: #bf5420;
+  --color-brand-navy: #33397f;
+  --color-brand-navy-soft: #e7e8f3;
+  --color-brand-lavender: #b8bbe6;
+  --color-ink: #241a15;
+  --color-ink-muted: #5c534d;
+  --color-ink-soft: #8a817a;
+  --color-cream: #f5f0e8;
+  --color-cream-light: #fbf9f5;
+  --color-cream-line: #ece5da;
+  --color-cocoa: #3b251c;
+  --color-cocoa-deep: #1c1712;
+  --color-pill-orange-bg: #fbe6da;
+  --color-pill-green-bg: #ddf1ec;
+  --color-pill-green-tx: #1f7a63;
+  --color-pill-navy-bg: #ecedf8;
+  --font-display: "Lexend", "Inter", "Segoe UI", Arial, sans-serif;
+  --container-site: 1000px;
 }
 
 @layer base {

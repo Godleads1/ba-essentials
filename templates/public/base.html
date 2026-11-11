@@ -1,53 +1,105 @@
-{% load static %}
+{% load static site %}
 <!doctype html>
 <html lang="en-GB">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light">
+    <meta name="theme-color" content="#1C1712">
     <title>{% block title %}B &amp; A Essentials{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Reliable, professional and affordable business support services for small businesses and SMEs in Nigeria.{% endblock %}">
+    <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
+    <link rel="preload" href="{% static 'fonts/inter-latin-wght-normal.woff2' %}" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <script src="{% static 'js/site.js' %}" defer></script>
     {% block head %}{% endblock %}
   </head>
-  <body class="min-h-screen bg-white">
-    <header class="sticky top-0 z-30 border-b border-slate-200/70 bg-white/90 backdrop-blur">
-      <div class="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5">
-        <a href="{% url 'landing' %}" class="flex items-center gap-2.5">
-          <span class="grid h-9 w-9 place-items-center rounded-lg bg-brand-600 text-lg font-bold text-white">B</span>
-          <span class="text-sm font-semibold leading-tight text-navy-900">B &amp; A<br><span class="text-slate-400">Essentials</span></span>
-        </a>
-        <nav class="hidden items-center gap-7 text-sm font-medium text-slate-600 md:flex" aria-label="Primary">
-          <a class="hover:text-brand-700" href="{% url 'landing' %}#services">Services</a>
-          <a class="hover:text-brand-700" href="{% url 'landing' %}#how">How it works</a>
-          <a class="hover:text-brand-700" href="{% url 'contact' %}">Contact</a>
-          {% for item in site_pages %}
-            <a class="hover:text-brand-700" href="{% url 'website-page' slug=item.slug %}">{{ item.published_revision.title }}</a>
-          {% endfor %}
+  <body class="site-public min-h-screen bg-cream-light text-ink antialiased">
+    <a href="#content" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-white focus:px-4 focus:py-2">Skip to content</a>
+
+    {% with current=request.resolver_match.url_name %}
+    <header id="siteHeader" class="site-header sticky top-0 z-40 bg-cream-light/90 backdrop-blur-md">
+      <div class="mx-auto flex h-[72px] max-w-site items-center justify-between px-5 lg:px-0">
+        {% include "public/_logo.html" with variant="" %}
+
+        <nav class="hidden md:block" aria-label="Primary">
+          <ul class="flex items-center gap-6 text-[14px] text-ink-muted">
+            <li><a href="{% url 'landing' %}#top" data-spy="top" class="site-nav-link">Home</a></li>
+            <li><a href="{% url 'landing' %}#services" data-spy="services" class="site-nav-link">Services</a></li>
+            <li><a href="{% url 'landing' %}#how" data-spy="how" class="site-nav-link">How It Works</a></li>
+            {% for item in site_pages %}
+              <li><a href="{% url 'website-page' slug=item.slug %}" class="site-nav-link{% if page.slug == item.slug %} is-active{% endif %}"{% if page.slug == item.slug %} aria-current="page"{% endif %}>{{ item.published_revision.title }}</a></li>
+            {% endfor %}
+            <li><a href="{% url 'contact' %}" class="site-nav-link{% if current == 'contact' %} is-active{% endif %}"{% if current == 'contact' %} aria-current="page"{% endif %}>Contact</a></li>
+          </ul>
         </nav>
-        <div class="flex items-center gap-2">
-          <a class="btn-ghost btn-sm" href="{% url 'login' %}">Log in</a>
-          <a class="btn-primary btn-sm" href="{% url 'signup' %}">Get started</a>
+
+        <div class="hidden items-center gap-4 md:flex">
+          <a href="{% url 'login' %}" class="text-[14px] font-semibold text-ink transition-colors hover:text-brand-navy">Log In</a>
+          <a href="{% url 'signup' %}" class="group inline-flex items-center gap-2 rounded-lg bg-brand-orange px-4 py-2.5 text-[14px] font-semibold text-white shadow-sm shadow-brand-orange/30 transition hover:bg-brand-orange-dark focus-visible:outline-brand-orange">
+            Get Started {% icon "arrow-right" "h-4 w-4 transition-transform group-hover:translate-x-0.5" %}
+          </a>
         </div>
+
+        <button id="menuBtn" type="button" class="menu-btn rounded-md p-2 md:hidden" aria-expanded="false" aria-controls="mobileMenu" aria-label="Open menu">
+          {% icon "menu" "icon-open h-6 w-6" %}{% icon "close" "icon-close h-6 w-6" %}
+        </button>
+      </div>
+
+      <div id="mobileMenu" hidden class="border-t border-cream-line bg-cream-light md:hidden">
+        <ul class="space-y-1 px-5 py-4 text-[15px]">
+          <li><a href="{% url 'landing' %}#top" class="block rounded-md px-2 py-2 font-medium text-brand-navy">Home</a></li>
+          <li><a href="{% url 'landing' %}#services" class="block rounded-md px-2 py-2 text-ink-muted">Services</a></li>
+          <li><a href="{% url 'landing' %}#how" class="block rounded-md px-2 py-2 text-ink-muted">How It Works</a></li>
+          {% for item in site_pages %}
+            <li><a href="{% url 'website-page' slug=item.slug %}" class="block rounded-md px-2 py-2 text-ink-muted">{{ item.published_revision.title }}</a></li>
+          {% endfor %}
+          <li><a href="{% url 'contact' %}" class="block rounded-md px-2 py-2 text-ink-muted">Contact</a></li>
+          <li class="flex gap-3 pt-3">
+            <a href="{% url 'login' %}" class="flex-1 rounded-lg border border-cream-line py-2.5 text-center font-semibold">Log In</a>
+            <a href="{% url 'signup' %}" class="flex-1 rounded-lg bg-brand-orange py-2.5 text-center font-semibold text-white">Get Started</a>
+          </li>
+        </ul>
       </div>
     </header>
+    {% endwith %}
 
-    {% include "partials/messages.html" %}
+    {% if messages %}
+      <div class="mx-auto max-w-site px-5 pt-4 lg:px-0">{% include "partials/messages.html" %}</div>
+    {% endif %}
 
-    {% block content %}{% endblock %}
+    <div id="content">
+      {% block content %}{% endblock %}
+    </div>
 
-    <footer class="bg-navy-900 py-10">
-      <div class="mx-auto flex max-w-6xl flex-col gap-6 px-5 sm:flex-row sm:items-center sm:justify-between">
-        <div class="flex items-center gap-2.5">
-          <span class="grid h-9 w-9 place-items-center rounded-lg bg-brand-500 text-lg font-bold text-white">B</span>
-          <div class="text-sm font-semibold leading-tight text-white">B &amp; A<br><span class="text-slate-400">Essentials</span></div>
+    <footer class="bg-cocoa-deep text-white">
+      <div class="mx-auto max-w-site px-5 lg:px-0">
+        <div class="flex flex-col gap-8 py-10 lg:flex-row lg:items-center lg:justify-between">
+          {% include "public/_logo.html" with variant="logo--light" %}
+          <nav aria-label="Footer">
+            <ul class="flex flex-wrap gap-x-6 gap-y-3 text-[14px] font-medium text-white/85">
+              <li><a href="{% url 'landing' %}#top" class="transition-colors hover:text-brand-lavender">Home</a></li>
+              <li><a href="{% url 'landing' %}#services" class="transition-colors hover:text-brand-lavender">Services</a></li>
+              <li><a href="{% url 'landing' %}#how" class="transition-colors hover:text-brand-lavender">How It Works</a></li>
+              {% for item in site_pages %}
+                <li><a href="{% url 'website-page' slug=item.slug %}" class="transition-colors hover:text-brand-lavender">{{ item.published_revision.title }}</a></li>
+              {% endfor %}
+              <li><a href="{% url 'contact' %}" class="transition-colors hover:text-brand-lavender">Contact</a></li>
+            </ul>
+          </nav>
+          {% social_links as socials %}
+          {% if socials %}
+            <ul class="flex gap-2.5">
+              {% for key, label, url in socials %}
+                <li><a href="{{ url }}" rel="noopener noreferrer" aria-label="{{ label }}" class="grid h-11 w-11 place-items-center rounded-full border border-white/20 transition hover:-translate-y-0.5 hover:border-brand-orange hover:bg-brand-orange">{% icon key "h-[15px] w-[15px]" %}</a></li>
+              {% endfor %}
+            </ul>
+          {% endif %}
         </div>
-        <nav class="flex flex-wrap gap-x-5 gap-y-2 text-xs text-slate-400" aria-label="Footer">
-          {% for item in site_pages %}
-            <a class="hover:text-white" href="{% url 'website-page' slug=item.slug %}">{{ item.published_revision.title }}</a>
-          {% endfor %}
-          <a class="hover:text-white" href="{% url 'contact' %}">Contact</a>
-        </nav>
-        <p class="text-xs text-slate-500">&copy; {% now "Y" %} B &amp; A Essentials. Business support, simplified.</p>
+        <div class="flex flex-col gap-2 border-t border-white/10 py-6 text-[13px] text-white/70 sm:flex-row sm:justify-between">
+          <p>&copy; {% now "Y" %} B &amp; A Essentials. All rights reserved.</p>
+          <p class="text-brand-lavender">Your Success, Our Mission.</p>
+        </div>
       </div>
     </footer>
   </body>

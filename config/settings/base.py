@@ -144,6 +144,16 @@ CONTENT_SECURITY_POLICY = env(
     "base-uri 'self'; form-action 'self'",
 )
 
+# --- Public site ----------------------------------------------------------
+# Footer social icons render only for profiles that have a URL configured.
+SOCIAL_LINKS = {
+    "linkedin": env("SOCIAL_LINKEDIN_URL", ""),
+    "x": env("SOCIAL_X_URL", ""),
+    "instagram": env("SOCIAL_INSTAGRAM_URL", ""),
+    "facebook": env("SOCIAL_FACEBOOK_URL", ""),
+    "youtube": env("SOCIAL_YOUTUBE_URL", ""),
+}
+
 # --- Email ----------------------------------------------------------------
 EMAIL_BACKEND = env(
     "EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"

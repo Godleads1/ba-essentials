@@ -76,6 +76,20 @@ python manage.py bootstrap_catalogue docs/catalogue.example.json
 Re-running is safe; changed scope or deliverables publishes a new version and
 keeps the old one for existing requests.
 
+### Public site
+
+The public pages (`templates/public/`) use the banda brand: palette tokens and
+the text-based logo live in `static/src/app.css` and `static/src/site.css`,
+behaviour in `static/js/site.js`, icons in the `site` template tag library.
+Fonts are self-hosted in `static/fonts/`, so the pages load nothing from
+third-party origins and stay inside the Content-Security-Policy.
+
+- Service cards come from the active catalogue categories, falling back to
+  five default cards while no catalogue is loaded.
+- The testimonial section is hidden unless `DEBUG` is on, where it shows
+  labelled sample content. Add real, consented quotes before enabling it live.
+- Footer social icons appear only for the `SOCIAL_*_URL` values that are set.
+
 ## Tests
 
 ```bash

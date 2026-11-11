@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 
+from django.conf import settings
 from django.contrib import messages
 from django.db import connection
 from django.http import HttpResponse, JsonResponse
@@ -10,6 +11,34 @@ from django.views.decorators.http import require_GET
 
 from .exceptions import DomainError
 from .middleware import _safe_next
+
+
+# Design placeholders for the testimonial section. They are not real clients, so
+# they are only ever rendered with DEBUG on, under a visible "sample" notice.
+# Replace this with real, consented quotes before enabling the section live.
+SAMPLE_TESTIMONIALS = (
+    {
+        "quote": "B & A Essentials has been a game-changer for my business. "
+        "Their team is professional, responsive and always delivers on time.",
+        "name": "Ada Okafor",
+        "role": "CEO, Bloom & Co.",
+        "initials": "AO",
+    },
+    {
+        "quote": "I love how easy it is to request services and track progress. "
+        "It saves me hours each week.",
+        "name": "Tunde Adebayo",
+        "role": "Founder, Tunde's Foods",
+        "initials": "TA",
+    },
+    {
+        "quote": "The quality of work is excellent, and their support team is "
+        "always available. Highly recommended!",
+        "name": "Ngozi Eze",
+        "role": "Owner, Eze Retail",
+        "initials": "NE",
+    },
+)
 
 
 @require_GET
@@ -23,7 +52,12 @@ def landing(request):
     return render(
         request,
         "public/landing.html",
-        {"categories": categories, "site_pages": published_pages()},
+        {
+            "categories": categories,
+            "site_pages": published_pages(),
+            "testimonials": SAMPLE_TESTIMONIALS if settings.DEBUG else (),
+            "testimonials_are_samples": settings.DEBUG,
+        },
     )
 
 
