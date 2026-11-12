@@ -244,6 +244,8 @@
     .qa-s { font-size: 11.5px; color: #736C66; }
     .menu-i { display: flex; align-items: center; gap: 10px; padding: 9px 14px; text-align: left; }
     .menu-i:hover, .menu-i:focus-visible { background: #F5F0E8; outline: none; }
+    .toast { position: fixed; left: 50%; bottom: 20px; z-index: 70; max-width: min(92vw, 460px); transform: translateX(-50%); border-radius: 14px; background: #1C1712; color: #fff; padding: 12px 16px; font-size: 13.5px; box-shadow: 0 18px 40px -18px rgba(0,0,0,.5); animation: toastIn .3s cubic-bezier(.22,1,.36,1); }
+    @keyframes toastIn { from { opacity: 0; transform: translate(-50%, 10px); } }
     dialog[open] { animation: dlgIn .25s cubic-bezier(.22,1,.36,1); }
     @keyframes dlgIn { from { opacity: 0; transform: translateY(8px) scale(.98); } }
     @media (prefers-reduced-motion: reduce) { dialog[open], .stat-f { animation: none; transition: none; } }
@@ -274,7 +276,7 @@
           <li><a href="submit-task.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-plus"><circle cx="12" cy="12" r="10"></circle><path d="M8 12h8"></path><path d="M12 8v8"></path></svg>Submit a Task</a></li>
           <li><a href="my-tasks.html" class="side-link" aria-current="page"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-square-check"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="m16 9-5.5 5.5L8 12"></path></svg>My Tasks<span class="side-badge">5</span></a></li>
           <li><a href="catalogue.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-layout-grid"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>Service Catalogue</a></li>
-          <li><a href="#" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-folder"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path></svg>Deliverables</a></li>
+          <li><a href="deliverables.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-folder"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path></svg>Deliverables</a></li>
           <li><a href="#" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-message-square"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"></path></svg>Messages<span class="side-badge bg-brand-orange">3</span></a></li>
         </ul>
       </div>
@@ -414,7 +416,7 @@
               <ol id="timeline" class="mt-4"></ol>
             </section>
             <section class="panel p-5" aria-labelledby="dvT">
-              <h2 id="dvT" class="font-display text-[17px] font-semibold">Deliverables</h2>
+              <div class="flex items-center justify-between gap-3"><h2 id="dvT" class="font-display text-[17px] font-semibold">Deliverables</h2><a href="deliverables.html" class="text-[13px] font-semibold text-brand-navy hover:underline">All files</a></div>
               <ul id="deliv" class="mt-3 space-y-2"></ul>
               <div id="noDeliv" class="mt-3 flex flex-col items-center gap-1.5 rounded-2xl bg-cream-light px-4 py-6 text-center">
                 <span class="grid h-10 w-10 place-items-center rounded-full bg-white text-ink-soft"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-file-check h-5 w-5"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path><path d="M14 2v5a1 1 0 0 0 1 1h5"></path><path d="m9 15 2 2 4-4"></path></svg></span>
@@ -435,6 +437,8 @@
     </main>
   </div>
 
+  <div id="toast" role="status" hidden class="toast"></div>
+
   <dialog id="cancelDlg" class="w-[min(92vw,420px)] rounded-2xl p-0 text-ink backdrop:bg-cocoa-deep/50" aria-labelledby="cdTitle">
     <form method="dialog" class="p-6">
       <span class="grid h-11 w-11 place-items-center rounded-full bg-[#FDECEC] text-[#B42318]"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-x h-5 w-5"><circle cx="12" cy="12" r="10"></circle><path d="m15 9-6 6"></path><path d="m9 9 6 6"></path></svg></span>
@@ -450,7 +454,7 @@
   <script src="https://unpkg.com/lucide@1.60.0/dist/umd/lucide.min.js"></script>
   <script src="tasks-data.js"></script>
   <script>
-    const { CATS, STATUS, CANCELLABLE, PRIORITY, find: findTask, update, esc, toDate, fmtDate, fmtDateTime, fmtSize, naira, chip } = window.BANDA;
+    const { CATS, STATUS, CANCELLABLE, PRIORITY, find: findTask, update, esc, toDate, fmtDate, fmtDateTime, fmtSize, naira, chip, DSTATUS, DOWNLOADABLE, deliverablesFor, setDeliverable, fileType, nowLocal, toast } = window.BANDA;
     const $ = id => document.getElementById(id);
     const icons = () => { if (window.lucide) lucide.createIcons(); };
     const id = new URLSearchParams(location.search).get('id') || '';
@@ -527,8 +531,22 @@
           ${st.date ? `<span class="block text-[12px] text-ink-soft">${fmtDateTime(st.date)}</span>` : ''}</span>
         </li>`).join('');
 
-      const deliv = task.deliverables || [];
-      $('deliv').innerHTML = deliv.map(f => fileRow(f, 'Download')).join('');
+      const deliv = deliverablesFor(task.id);
+      $('deliv').innerHTML = deliv.map(d => {
+        const ft = fileType(d.name);
+        const actions = DOWNLOADABLE.includes(d.status)
+          ? `<button type="button" class="text-[12.5px] font-semibold text-brand-navy hover:underline" data-dl="${d.id}">Download<span class="sr-only"> ${esc(d.name)}</span></button>`
+          : d.status === 'approval'
+            ? `<button type="button" class="text-[12.5px] font-semibold text-brand-navy hover:underline" data-approve="${d.id}">Approve<span class="sr-only"> ${esc(d.name)}</span></button><a href="#reply" class="text-[12.5px] font-semibold text-ink-muted hover:underline" data-jump-reply>Ask for changes</a>`
+            : '';
+        return `<li class="rounded-xl border border-cream-line bg-white px-3 py-2.5 text-[13px]">
+          <div class="flex items-center gap-3">
+            <span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg ${ft.tone}"><i data-lucide="${ft.icon}" class="h-4 w-4"></i></span>
+            <span class="min-w-0 flex-1"><span class="block truncate font-medium">${esc(d.name)}</span><span class="block text-[11.5px] text-ink-soft">${fmtSize(d.size)} · ${fmtDate(d.at)}</span></span>
+          </div>
+          <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5">${chip(DSTATUS[d.status].chip, DSTATUS[d.status].label)}<span class="ml-auto flex gap-3">${actions}</span></div>
+        </li>`;
+      }).join('');
       $('noDeliv').hidden = deliv.length > 0;
       icons();
     }
@@ -539,18 +557,32 @@
       const text = $('msg').value.trim();
       if (!text) { $('msgErr').hidden = false; $('msg').setAttribute('aria-invalid', 'true'); $('msg').focus(); return; }
       $('msgErr').hidden = true; $('msg').removeAttribute('aria-invalid');
-      const n = new Date(), pad = v => String(v).padStart(2, '0');
-      update(task.id, { message: ['You', `${n.getFullYear()}-${pad(n.getMonth() + 1)}-${pad(n.getDate())}T${pad(n.getHours())}:${pad(n.getMinutes())}`, text] });
+      update(task.id, { message: ['You', nowLocal(), text] });
       task = findTask(id); $('msg').value = ''; render();
       $('msg').focus();
     });
     $('msg').addEventListener('input', () => { if ($('msg').value.trim()) { $('msgErr').hidden = true; $('msg').removeAttribute('aria-invalid'); } });
     function jumpToReply() { $('messages').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); $('msg').focus({ preventScroll: true }); }
-    document.querySelector('[data-jump-reply]').addEventListener('click', e => { e.preventDefault(); jumpToReply(); });
+    document.addEventListener('click', e => { if (e.target.closest('[data-jump-reply]')) { e.preventDefault(); jumpToReply(); } });
 
     // ---------- quote, files (preview only) ----------
     $('payQuote').addEventListener('click', () => { $('payNote').hidden = false; });
-    document.addEventListener('click', e => { if (e.target.closest('[data-preview-file]')) e.preventDefault(); });
+    document.addEventListener('click', e => {
+      if (e.target.closest('[data-preview-file]')) { e.preventDefault(); toast('Preview only: files download here once storage is connected.'); }
+      const dl = e.target.closest('[data-dl]');
+      if (dl) {
+        const d = deliverablesFor(task.id).find(x => x.id === dl.dataset.dl);
+        if (d && d.status === 'ready') setDeliverable(d.id, 'downloaded');
+        render(); toast('Preview only: no file is downloaded yet. It’s now marked as downloaded.');
+      }
+      const ap = e.target.closest('[data-approve]');
+      if (ap) {
+        const d = deliverablesFor(task.id).find(x => x.id === ap.dataset.approve);
+        setDeliverable(d.id, 'ready');
+        update(task.id, { message: ['You', nowLocal(), `Approved ${d.name}.`] });
+        task = findTask(id); render(); toast(`${d.name} approved. It’s ready to download.`);
+      }
+    });
 
     // ---------- cancel ----------
     const dlg = $('cancelDlg');
