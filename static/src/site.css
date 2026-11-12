@@ -218,3 +218,118 @@
     display: block;
   }
 }
+
+/* ---------- "How it works" job ticket ---------- */
+@layer components {
+  .ticket-mono {
+    font-family: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, monospace;
+  }
+  .ticket {
+    --paper: #fdfbf6;
+    display: grid;
+    background: var(--paper);
+    border-radius: 14px;
+    box-shadow: 0 30px 60px -30px rgb(0 0 0 / 0.7), 10px 10px 0 0 rgb(184 187 230 / 0.16);
+    color: var(--color-ink);
+  }
+  .ticket-stub {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.1rem 1.25rem;
+    border-bottom: 2px dashed rgb(36 26 21 / 0.22);
+  }
+  .ticket-stub-note {
+    display: none;
+  }
+  .ticket-barcode {
+    width: 76px;
+    height: 30px;
+    flex: none;
+    background: repeating-linear-gradient(
+      90deg,
+      var(--color-ink) 0 2px, transparent 2px 4px,
+      var(--color-ink) 4px 5px, transparent 5px 9px,
+      var(--color-ink) 9px 12px, transparent 12px 14px,
+      var(--color-ink) 14px 15px, transparent 15px 19px
+    );
+    opacity: 0.8;
+  }
+  .ticket-body {
+    position: relative;
+    min-width: 0;
+  }
+  /* Punched notches where the stub tears off; coloured to match the section. */
+  .ticket-notch {
+    position: absolute;
+    top: -11px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--color-cocoa-deep);
+  }
+  .ticket-notch--a { left: -10px; }
+  .ticket-notch--b { right: -10px; }
+
+  @media (min-width: 40rem) {
+    .ticket {
+      grid-template-columns: 136px 1fr;
+      transform: rotate(-1.1deg);
+    }
+    .ticket-stub {
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 1.6rem 1.1rem 1.4rem 1.4rem;
+      border-bottom: 0;
+      border-right: 2px dashed rgb(36 26 21 / 0.22);
+    }
+    .ticket-stub-note {
+      display: block;
+    }
+    .ticket-barcode {
+      width: 100%;
+      height: 38px;
+    }
+    .ticket-notch { left: -11px; right: auto; }
+    .ticket-notch--a { top: -10px; }
+    .ticket-notch--b { top: auto; bottom: -10px; }
+  }
+
+  /* Rubber stamps. */
+  .stamp {
+    display: inline-block;
+    padding: 0.32rem 0.6rem 0.28rem;
+    border: 2px solid currentColor;
+    border-radius: 5px;
+    outline: 1px solid currentColor;
+    outline-offset: 2px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    line-height: 1;
+    text-transform: uppercase;
+    white-space: nowrap;
+    opacity: 0.88;
+    transform: rotate(var(--r, 0deg));
+  }
+  .stamp--navy { color: var(--color-brand-navy); }
+  .stamp--orange { color: var(--color-brand-orange-dark); }
+  .stamp--green { color: var(--color-pill-green-tx); }
+
+  /* Stamps land one after another once the ticket scrolls into view. */
+  .js-reveal .ticket .stamp {
+    opacity: 0;
+    transform: rotate(var(--r, 0deg)) scale(1.7);
+  }
+  .js-reveal .ticket.in .stamp {
+    opacity: 0.88;
+    transform: rotate(var(--r, 0deg));
+    transition: opacity 0.12s ease-out var(--d, 0s), transform 0.22s cubic-bezier(0.3, 1.4, 0.5, 1) var(--d, 0s);
+  }
+  /* The ticket keeps its tilt while revealing. */
+  @media (min-width: 40rem) {
+    .js-reveal .ticket.reveal { transform: rotate(-1.1deg) translateY(14px); }
+    .js-reveal .ticket.reveal.in { transform: rotate(-1.1deg); }
+  }
+}
