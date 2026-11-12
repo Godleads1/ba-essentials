@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Log in · banda — B &amp; A Essentials</title>
+  <meta name="description" content="Log in to your B &amp; A Essentials account." />
+  <meta name="theme-color" content="#1C1712" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231C1712'/%3E%3Cpath d='M17 9h9v17a13 13 0 1 1-9 12z' fill='%23FDFBF6'/%3E%3Ccircle cx='39' cy='39' r='7' fill='%231C1712'/%3E%3Ccircle cx='31' cy='40' r='5' fill='%23D9662E'/%3E%3C/svg%3E" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@500;600;700&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+  <!-- Tailwind Play CDN for preview only. In Django, build with the Tailwind CLI using the same config. -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { orange: '#D9662E', orangeDark: '#BF5420', navy: '#33397F', navySoft: '#E7E8F3', lavender: '#B8BBE6' },
+            ink: { DEFAULT: '#241A15', muted: '#5C534D', soft: '#8A817A' },
+            cream: { DEFAULT: '#F5F0E8', light: '#FBF9F5', line: '#ECE5DA' },
+            cocoa: { DEFAULT: '#3B251C', deep: '#1C1712' },
+            pill: { orangeBg: '#FBE6DA', greenBg: '#DDF1EC', greenTx: '#1F7A63', navyBg: '#ECEDF8' }
+          },
+          fontFamily: {
+            display: ['Lexend', 'system-ui', 'sans-serif'],
+            sans: ['Inter', 'system-ui', 'sans-serif']
+          },
+          maxWidth: { site: '1000px' }
+        }
+      }
+    }
+  </script>
+  <style>
+    html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { scrollbar-width: none; }
+
+    /* ---------- banda logo (HTML/CSS, crisp at any size) ---------- */
+    .logo { display: inline-flex; flex-direction: column; align-items: flex-start; font-size: 36px; line-height: 1; text-decoration: none; }
+    .logo-word { font-family: Inter, system-ui, sans-serif; font-weight: 800; line-height: .82; letter-spacing: -.035em; color: var(--logo-word, #1C1712); }
+    .logo-b { position: relative; display: inline-block; }
+    .logo-dot { position: absolute; left: .215em; top: .43em; width: .18em; height: .18em; border-radius: 50%; background: #D9662E; transition: transform .35s cubic-bezier(.34,1.56,.64,1); }
+    .logo:hover .logo-dot { transform: scale(1.18); }
+    .logo-tag { font-family: Inter, system-ui, sans-serif; font-weight: 600; font-size: .2em; letter-spacing: .5em; margin-top: .55em; white-space: nowrap; color: var(--logo-tag, #33397F); }
+    .logo-tag .amp { color: #D9662E; letter-spacing: .3em; }
+    .logo--light { --logo-word: #FDFBF6; --logo-tag: #B8BBE6; }
+    /* large lockup (hero/brand use) keeps the original airy tagline */
+    .logo--lg .logo-tag { font-weight: 500; font-size: .172em; letter-spacing: .66em; margin-top: .62em; }
+
+    /* ---------- motion ---------- */
+    .reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s ease, transform .6s ease; }
+    .reveal.in { opacity: 1; transform: none; }
+    .bar { width: 0; transition: width 1.2s cubic-bezier(.22,1,.36,1) .3s; }
+    .float { animation: float 7s ease-in-out infinite; }
+    @keyframes float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-6px) } }
+    .hero-underline path { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .9s cubic-bezier(.22,1,.36,1) .5s; }
+    .reveal.in .hero-underline path { stroke-dashoffset: 0; }
+    /* Log in: on laptop and desktop screens the whole page, quote card included,
+       fits in the window with no scrolling. Every size scales with the window
+       height, so it holds from short laptop windows (about 540px tall) upwards. */
+    @media (min-width: 1024px) {
+      .fit { height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; }
+      .fit > * { min-height: 0; padding-block: clamp(18px, 4.2vh, 48px); }
+      .fit .logo { font-size: clamp(28px, 4.6vh, 44px) !important; }
+      .fit h1 { font-size: clamp(24px, 5vh, 46px); margin-top: clamp(12px, 3.4vh, 40px); }
+      .fit .lede { font-size: clamp(13.5px, 2vh, 18px); margin-top: clamp(6px, 1.6vh, 20px); line-height: 1.45; }
+      .fit .feats { margin-top: clamp(12px, 3vh, 34px); }
+      .fit .feats > li + li { margin-top: clamp(6px, 1.7vh, 20px); }
+      .fit .feats .ico { width: clamp(32px, 5vh, 48px); height: clamp(32px, 5vh, 48px); }
+      .fit .feats .ico svg { width: clamp(15px, 2.1vh, 20px); height: clamp(15px, 2.1vh, 20px); }
+      .fit .feats .t { font-size: clamp(13.5px, 1.95vh, 17px); line-height: 1.25; }
+      .fit .feats .d { font-size: clamp(12px, 1.6vh, 14px); line-height: 1.35; }
+      .fit .quote { padding: clamp(12px, 2.4vh, 24px) clamp(16px, 2.4vh, 24px); margin-top: auto; }
+      .fit .feats { margin-bottom: clamp(12px, 3vh, 40px); }
+      .fit .quote .qi { width: clamp(20px, 3vh, 28px); height: clamp(20px, 3vh, 28px); }
+      .fit .quote blockquote { font-size: clamp(12.5px, 1.75vh, 15px); line-height: 1.5; }
+      .fit .quote figcaption { margin-top: clamp(8px, 1.8vh, 20px); }
+      .fit .quote .av { width: clamp(30px, 4.4vh, 40px); height: clamp(30px, 4.4vh, 40px); font-size: clamp(9.5px, 1.3vh, 11px); }
+      .fit .quote .qn { font-size: clamp(12.5px, 1.7vh, 14px); }
+      .fit .quote .qr { font-size: clamp(11.5px, 1.5vh, 12.5px); }
+      .fit .tagline { margin-bottom: 0; }
+      .fit .formwrap { padding-block: 0; }
+      .fit .formwrap h2 { font-size: clamp(25px, 4.3vh, 38px); }
+      .fit .formwrap .sub { font-size: clamp(13.5px, 1.9vh, 16.5px); }
+      .fit form { margin-top: clamp(14px, 3.4vh, 36px); }
+      .fit form label { font-size: clamp(13px, 1.75vh, 14px); }
+      .fit form input:not([type=checkbox]) { padding-block: clamp(8px, 1.5vh, 14px); font-size: clamp(14px, 1.8vh, 15px); }
+      .fit form .gap { margin-top: clamp(9px, 2vh, 20px); }
+      .fit form .submit { margin-top: clamp(12px, 2.7vh, 28px); padding-block: clamp(10px, 1.8vh, 16px); }
+      .fit .or { margin-block: clamp(10px, 2.4vh, 28px); }
+      .fit .social button { padding-block: clamp(8px, 1.5vh, 14px); }
+      .fit .signup { margin-top: clamp(10px, 2.6vh, 32px); }
+    }
+    /* Square grid: thin lines forming squares, faded out towards the edges. */
+    .grid-lines {
+      --gl: rgba(51,57,127,.12);
+      --cell: 64px;
+      background-image:
+        linear-gradient(to right, var(--gl) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--gl) 1px, transparent 1px);
+      background-size: var(--cell) var(--cell);
+      background-position: center top;
+    }
+    .grid-lines--light { --gl: rgba(255,255,255,.085); }
+    .grid-fade {
+      -webkit-mask-image: radial-gradient(ellipse 72% 68% at 50% 42%, #000 35%, transparent 78%);
+              mask-image: radial-gradient(ellipse 72% 68% at 50% 42%, #000 35%, transparent 78%);
+    }
+    /* a few squares filled in, like the reference */
+    .grid-cell { position: absolute; width: var(--cell, 64px); height: var(--cell, 64px); background: rgba(51,57,127,.035); }
+    .dot-grid { background-image: radial-gradient(rgba(51,57,127,.13) 1px, transparent 1px); background-size: 18px 18px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .reveal { opacity: 1; transform: none; }
+      .hero-underline path { stroke-dashoffset: 0; }
+    }
+  </style>
+</head>
+
+<body class="bg-cream-light font-sans text-ink antialiased">
+  <div class="fit grid min-h-screen lg:grid-cols-[1.22fr_1fr]">
+
+    <!-- ===================== BRAND PANEL ===================== -->
+    <aside class="relative overflow-hidden bg-cocoa-deep px-6 py-8 text-white sm:px-10 lg:px-14 lg:py-12">
+      <div aria-hidden="true" class="grid-lines grid-lines--light pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_80%_75%_at_30%_40%,black,transparent_80%)]"></div>
+      <!-- rings and sun, cut off by the panel edge -->
+      <div aria-hidden="true" class="pointer-events-none absolute right-0 top-[38%] hidden translate-x-1/2 -translate-y-1/2 lg:block">
+        <span class="absolute left-1/2 top-1/2 h-[480px] w-[480px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-brand-orange/50"></span>
+        <span class="absolute left-1/2 top-1/2 h-[330px] w-[330px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-brand-orange/50"></span>
+        <span class="absolute left-1/2 top-1/2 h-[112px] w-[112px] -translate-x-[62%] -translate-y-1/2 rounded-full bg-brand-orange"></span>
+      </div>
+
+      <div class="relative flex h-full flex-col">
+        <a href="index.html" class="logo logo--light" style="font-size:44px" aria-label="banda, B and A Essentials, home">
+          <span class="logo-word" aria-hidden="true"><span class="logo-b">b<i class="logo-dot"></i></span>anda</span>
+          <span class="logo-tag" aria-hidden="true">B<span class="amp">&amp;</span>A ESSENTIALS</span>
+        </a>
+
+        <h1 class="mt-8 max-w-[12.6em] font-display text-[30px] font-semibold leading-[1.1] tracking-[-0.02em] sm:text-[40px]">
+          Get your business tasks done &mdash; <span class="whitespace-nowrap text-[#F0A77C]">the easy way.</span>
+        </h1>
+        <p class="lede mt-5 max-w-[340px] text-[16px] leading-relaxed text-white/75">Professional support, real people. Reliable results.</p>
+
+        <ul class="feats hidden lg:block">
+          <li class="flex items-center gap-4">
+            <span class="ico grid h-12 w-12 shrink-0 place-items-center rounded-full bg-brand-navy text-white"><i data-lucide="file-text" class="h-5 w-5"></i></span>
+            <span><span class="t block font-display text-[17px] font-semibold text-white">Vetted Specialists</span><span class="d mt-0.5 block text-[14px] text-white/70">Skilled professionals, carefully selected.</span></span>
+          </li>
+          <li class="flex items-center gap-4">
+            <span class="ico grid h-12 w-12 shrink-0 place-items-center rounded-full bg-brand-navy text-white"><i data-lucide="shield" class="h-5 w-5"></i></span>
+            <span><span class="t block font-display text-[17px] font-semibold text-white">Secure &amp; Confidential</span><span class="d mt-0.5 block text-[14px] text-white/70">Your data is always protected.</span></span>
+          </li>
+          <li class="flex items-center gap-4">
+            <span class="ico grid h-12 w-12 shrink-0 place-items-center rounded-full bg-brand-navy text-white"><i data-lucide="clock" class="h-5 w-5"></i></span>
+            <span><span class="t block font-display text-[17px] font-semibold text-white">On-Time Delivery</span><span class="d mt-0.5 block text-[14px] text-white/70">We keep your business moving.</span></span>
+          </li>
+          <li class="flex items-center gap-4">
+            <span class="ico grid h-12 w-12 shrink-0 place-items-center rounded-full bg-brand-navy text-white"><i data-lucide="badge-check" class="h-5 w-5"></i></span>
+            <span><span class="t block font-display text-[17px] font-semibold text-white">Quality Guaranteed</span><span class="d mt-0.5 block text-[14px] text-white/70">We review before you receive.</span></span>
+          </li>
+        </ul>
+
+        <!-- Message from the team. Swap for a real, consented client quote when you have one. -->
+        <figure class="quote hidden max-w-[470px] rounded-2xl border border-white/15 bg-white/[.06] p-6 lg:mt-auto lg:block">
+          <div class="flex gap-4">
+            <i data-lucide="quote" aria-hidden="true" class="qi h-7 w-7 shrink-0 text-[#F0A77C]"></i>
+            <blockquote class="text-[15px] leading-relaxed text-white/90">Tell us what you need. A real person does the work, and a second person checks it before it reaches you.</blockquote>
+          </div>
+          <figcaption class="mt-5 flex items-center gap-3">
+            <span class="av grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand-navy text-[11px] font-bold text-white">B&amp;A</span>
+            <span><span class="qn block text-[14px] font-semibold text-white">The B &amp; A Essentials team</span><span class="qr block text-[12.5px] text-white/60">How we work</span></span>
+          </figcaption>
+        </figure>
+      </div>
+    </aside>
+
+    <!-- ===================== LOG IN ===================== -->
+    <main class="flex flex-col px-6 py-8 sm:px-10 lg:px-14 lg:py-12">
+      <p class="tagline hidden items-center gap-3 self-end text-[14px] text-ink-muted lg:flex"><span class="h-4 w-[3px] rounded bg-brand-orange"></span>Your business. Our priority.</p>
+
+      <div class="formwrap mx-auto my-auto w-full max-w-[440px] py-6">
+        <h2 class="font-display text-[34px] font-semibold leading-tight tracking-[-0.02em] sm:text-[38px]">Welcome back</h2>
+        <p class="sub mt-1.5 text-[16.5px] text-ink-muted">Log in to your B &amp; A Essentials account</p>
+
+        <form id="loginForm" class="mt-9" novalidate>
+          <label for="email" class="block text-[14px] font-semibold">Email address</label>
+          <div class="relative mt-2">
+            <i data-lucide="mail" class="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-ink-muted"></i>
+            <input id="email" name="email" type="email" autocomplete="email" required placeholder="you@company.com" class="w-full rounded-xl border border-cream-line bg-white py-3.5 pl-12 pr-4 text-[15px] text-ink placeholder:text-ink-soft transition focus:border-brand-navy focus:outline-none focus:ring-2 focus:ring-brand-navy/25" />
+          </div>
+          <p id="emailError" class="mt-1.5 hidden text-[13px] font-medium text-red-700">Enter your email address, like you@company.com.</p>
+
+          <label for="password" class="gap mt-5 block text-[14px] font-semibold">Password</label>
+          <div class="relative mt-2">
+            <i data-lucide="lock" class="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-ink-muted"></i>
+            <input id="password" name="password" type="password" autocomplete="current-password" required placeholder="Your password" class="w-full rounded-xl border border-cream-line bg-white py-3.5 pl-12 pr-12 text-[15px] text-ink placeholder:text-ink-soft transition focus:border-brand-navy focus:outline-none focus:ring-2 focus:ring-brand-navy/25" />
+            <button type="button" id="togglePw" aria-label="Show password" aria-pressed="false" class="absolute right-2 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-lg text-ink-muted transition hover:bg-cream hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy">
+              <span id="pwOff"><i data-lucide="eye-off" class="h-[18px] w-[18px]"></i></span>
+              <span id="pwOn" class="hidden"><i data-lucide="eye" class="h-[18px] w-[18px]"></i></span>
+            </button>
+          </div>
+          <p id="pwError" class="mt-1.5 hidden text-[13px] font-medium text-red-700">Enter your password.</p>
+
+          <div class="gap mt-5 flex items-center justify-between gap-4">
+            <label class="flex cursor-pointer items-center gap-2.5 text-[14px] text-ink">
+              <input type="checkbox" name="remember" checked class="h-[18px] w-[18px] rounded border-cream-line accent-[#33397F]" />
+              Remember me
+            </label>
+            <a href="#" class="text-[14px] font-semibold text-ink underline-offset-4 hover:text-brand-navy hover:underline">Forgot password?</a>
+          </div>
+
+          <button type="submit" class="submit group mt-7 flex w-full items-center justify-center gap-2.5 rounded-xl bg-brand-orange py-4 text-[15.5px] font-semibold text-white shadow-lg shadow-brand-orange/25 transition hover:bg-brand-orangeDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">
+            Log in <i data-lucide="arrow-right" class="h-4 w-4 transition-transform group-hover:translate-x-0.5"></i>
+          </button>
+          <p id="formNote" class="mt-3 hidden rounded-lg bg-pill-navyBg px-4 py-3 text-[13.5px] text-brand-navy" role="status">This is a design preview, so nothing was sent. Logging in will work once the page is connected to the app.</p>
+        </form>
+
+        <div class="or my-7 flex items-center gap-4 text-[13.5px] text-ink-muted"><span class="h-px flex-1 bg-cream-line"></span>or continue with<span class="h-px flex-1 bg-cream-line"></span></div>
+
+        <div class="social grid grid-cols-2 gap-3">
+          <button type="button" class="flex items-center justify-center gap-2.5 rounded-xl border border-cream-line bg-white py-3.5 text-[15px] font-semibold text-ink transition hover:border-brand-lavender hover:bg-cream-light focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy"><i class="fa-brands fa-google text-[16px]"></i>Google</button>
+          <button type="button" class="flex items-center justify-center gap-2.5 rounded-xl border border-cream-line bg-white py-3.5 text-[15px] font-semibold text-ink transition hover:border-brand-lavender hover:bg-cream-light focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy"><i class="fa-brands fa-apple text-[18px]"></i>Apple</button>
+        </div>
+
+        <p class="signup mt-8 text-center text-[14.5px] text-ink-muted">Don't have an account? <a href="onboarding.html" class="font-semibold text-brand-navy underline-offset-4 hover:underline">Sign up</a></p>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script>
+    lucide.createIcons();
+
+    // Show / hide password
+    const pw = document.getElementById('password');
+    const toggle = document.getElementById('togglePw');
+    toggle.addEventListener('click', () => {
+      const show = pw.type === 'password';
+      pw.type = show ? 'text' : 'password';
+      toggle.setAttribute('aria-pressed', String(show));
+      toggle.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+      document.getElementById('pwOn').classList.toggle('hidden', !show);
+      document.getElementById('pwOff').classList.toggle('hidden', show);
+    });
+
+    // Preview-only form handling: validate, but send nothing.
+    const form = document.getElementById('loginForm');
+    const email = document.getElementById('email');
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const emailOk = email.validity.valid && email.value.trim() !== '';
+      const pwOk = pw.value !== '';
+      document.getElementById('emailError').classList.toggle('hidden', emailOk);
+      document.getElementById('pwError').classList.toggle('hidden', pwOk);
+      email.setAttribute('aria-invalid', String(!emailOk));
+      pw.setAttribute('aria-invalid', String(!pwOk));
+      document.getElementById('formNote').classList.toggle('hidden', !(emailOk && pwOk));
+      if (!emailOk) email.focus(); else if (!pwOk) pw.focus();
+    });
+  </script>
+</body>
+</html>

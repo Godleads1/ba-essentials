@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Get started · banda — B &amp; A Essentials</title>
+  <meta name="description" content="Set up your B &amp; A Essentials account in a few quick steps." />
+  <meta name="theme-color" content="#1C1712" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231C1712'/%3E%3Cpath d='M17 9h9v17a13 13 0 1 1-9 12z' fill='%23FDFBF6'/%3E%3Ccircle cx='39' cy='39' r='7' fill='%231C1712'/%3E%3Ccircle cx='31' cy='40' r='5' fill='%23D9662E'/%3E%3C/svg%3E" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@500;600;700&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+  <!-- Tailwind Play CDN for preview only. In Django, build with the Tailwind CLI using the same config. -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { orange: '#D9662E', orangeDark: '#BF5420', navy: '#33397F', navySoft: '#E7E8F3', lavender: '#B8BBE6' },
+            ink: { DEFAULT: '#241A15', muted: '#5C534D', soft: '#8A817A' },
+            cream: { DEFAULT: '#F5F0E8', light: '#FBF9F5', line: '#ECE5DA' },
+            cocoa: { DEFAULT: '#3B251C', deep: '#1C1712' },
+            pill: { orangeBg: '#FBE6DA', greenBg: '#DDF1EC', greenTx: '#1F7A63', navyBg: '#ECEDF8' }
+          },
+          fontFamily: {
+            display: ['Lexend', 'system-ui', 'sans-serif'],
+            sans: ['Inter', 'system-ui', 'sans-serif']
+          },
+          maxWidth: { site: '1000px' }
+        }
+      }
+    }
+  </script>
+  <style>
+    html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { scrollbar-width: none; }
+
+    /* ---------- banda logo (HTML/CSS, crisp at any size) ---------- */
+    .logo { display: inline-flex; flex-direction: column; align-items: flex-start; font-size: 36px; line-height: 1; text-decoration: none; }
+    .logo-word { font-family: Inter, system-ui, sans-serif; font-weight: 800; line-height: .82; letter-spacing: -.035em; color: var(--logo-word, #1C1712); }
+    .logo-b { position: relative; display: inline-block; }
+    .logo-dot { position: absolute; left: .215em; top: .43em; width: .18em; height: .18em; border-radius: 50%; background: #D9662E; transition: transform .35s cubic-bezier(.34,1.56,.64,1); }
+    .logo:hover .logo-dot { transform: scale(1.18); }
+    .logo-tag { font-family: Inter, system-ui, sans-serif; font-weight: 600; font-size: .2em; letter-spacing: .5em; margin-top: .55em; white-space: nowrap; color: var(--logo-tag, #33397F); }
+    .logo-tag .amp { color: #D9662E; letter-spacing: .3em; }
+    .logo--light { --logo-word: #FDFBF6; --logo-tag: #B8BBE6; }
+    /* large lockup (hero/brand use) keeps the original airy tagline */
+    .logo--lg .logo-tag { font-weight: 500; font-size: .172em; letter-spacing: .66em; margin-top: .62em; }
+
+    /* ---------- motion ---------- */
+    .reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s ease, transform .6s ease; }
+    .reveal.in { opacity: 1; transform: none; }
+    .bar { width: 0; transition: width 1.2s cubic-bezier(.22,1,.36,1) .3s; }
+    .float { animation: float 7s ease-in-out infinite; }
+    @keyframes float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-6px) } }
+    .hero-underline path { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .9s cubic-bezier(.22,1,.36,1) .5s; }
+    .reveal.in .hero-underline path { stroke-dashoffset: 0; }
+    /* Square grid: thin lines forming squares, faded out towards the edges. */
+    .grid-lines {
+      --gl: rgba(51,57,127,.12);
+      --cell: 64px;
+      background-image:
+        linear-gradient(to right, var(--gl) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--gl) 1px, transparent 1px);
+      background-size: var(--cell) var(--cell);
+      background-position: center top;
+    }
+    .grid-lines--light { --gl: rgba(255,255,255,.085); }
+    .grid-fade {
+      -webkit-mask-image: radial-gradient(ellipse 72% 68% at 50% 42%, #000 35%, transparent 78%);
+              mask-image: radial-gradient(ellipse 72% 68% at 50% 42%, #000 35%, transparent 78%);
+    }
+    /* a few squares filled in, like the reference */
+    .grid-cell { position: absolute; width: var(--cell, 64px); height: var(--cell, 64px); background: rgba(51,57,127,.035); }
+    .dot-grid { background-image: radial-gradient(rgba(51,57,127,.13) 1px, transparent 1px); background-size: 18px 18px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .reveal { opacity: 1; transform: none; }
+      .hero-underline path { stroke-dashoffset: 0; }
+    }
+
+    /* ---------- onboarding ---------- */
+    [hidden] { display: none !important; }
+    .field { width: 100%; border-radius: 12px; border: 1px solid #ECE5DA; background: #fff; padding: 12px 14px; font-size: 15px; color: #241A15; transition: border-color .15s, box-shadow .15s; }
+    .field::placeholder { color: #8A817A; }
+    .field:focus { outline: none; border-color: #33397F; box-shadow: 0 0 0 3px rgba(51,57,127,.18); }
+    .field[aria-invalid="true"] { border-color: #b42318; box-shadow: 0 0 0 3px rgba(180,35,24,.12); }
+    select.field { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235C534D' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px; }
+    .plan:has(input:checked) .radio { border-color: #33397F; }
+    .plan:has(input:checked) .radio > span { opacity: 1; }
+    .err { margin-top: 6px; font-size: 13px; font-weight: 500; color: #b42318; }
+    .code { width: 100%; aspect-ratio: 1 / 1.12; max-width: 58px; text-align: center; font-family: Lexend, sans-serif; font-size: 24px; font-weight: 600; }
+    .step-panel { animation: stepIn .35s ease both; }
+    @keyframes stepIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    /* stepper */
+    .stepper li { position: relative; }
+    .stepper li:not(:last-child)::after { content: ""; position: absolute; left: 17px; top: 40px; bottom: -6px; width: 2px; border-radius: 2px; background: rgba(255,255,255,.12); }
+    .stepper li.is-done:not(:last-child)::after { background: #D9662E; }
+    .stepper .dot { border: 2px solid rgba(255,255,255,.22); color: rgba(255,255,255,.7); }
+    .stepper li.is-current .dot { border-color: #D9662E; background: #D9662E; color: #fff; box-shadow: 0 0 0 5px rgba(217,102,46,.18); }
+    .stepper li.is-done .dot { border-color: #D9662E; background: transparent; color: #F0A77C; }
+    .stepper li.is-current .st { color: #fff; }
+    .stepper li:not(.is-current):not(.is-done) .st { color: rgba(255,255,255,.6); }
+    .stepper .num-done { display: none; }
+    .stepper li.is-done .num-done { display: block; }
+    .stepper li.is-done .num { display: none; }
+
+    /* Laptop and desktop: everything fits in the window; sizes follow its height. */
+    @media (min-width: 1024px) {
+      .fit { height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; }
+      .fit > aside { padding-block: clamp(18px, 4.2vh, 48px); }
+      .fit > main { min-height: 0; overflow-y: auto; padding-block: clamp(16px, 3.4vh, 40px); }
+      .fit .logo { font-size: clamp(28px, 4.6vh, 44px) !important; }
+      .fit aside h1 { font-size: clamp(23px, 4.3vh, 40px); margin-top: clamp(12px, 3.4vh, 40px); }
+      .fit .lede { font-size: clamp(13.5px, 1.9vh, 17px); margin-top: clamp(6px, 1.4vh, 16px); }
+      .fit .stepper { margin-top: clamp(14px, 3.6vh, 40px); }
+      .fit .stepper > li + li { margin-top: clamp(4px, 1.3vh, 16px); }
+      .fit .stepper li:not(:last-child)::after { top: clamp(38px, 5.4vh, 42px); }
+      .fit .stepper .st { font-size: clamp(13.5px, 1.9vh, 16px); }
+      .fit .stepper .sd { font-size: clamp(11.5px, 1.55vh, 13px); }
+      .fit .panel-title { font-size: clamp(24px, 4vh, 34px); }
+      .fit .panel-sub { font-size: clamp(13.5px, 1.85vh, 16px); }
+      .fit .panel-body { margin-top: clamp(14px, 3vh, 30px); }
+      .fit .field { padding-block: clamp(8px, 1.45vh, 12px); font-size: clamp(14px, 1.8vh, 15px); }
+      .fit .gap-y { row-gap: clamp(10px, 2vh, 18px); }
+      .fit .actions { margin-top: clamp(16px, 3.2vh, 32px); }
+      .fit .actions .btn { padding-block: clamp(10px, 1.75vh, 15px); }
+      .fit .plan { padding: clamp(12px, 2vh, 18px) 18px; }
+      .fit .review > div { padding-block: clamp(6px, 1.15vh, 12px); }
+      .fit .review-note { margin-top: clamp(10px, 1.8vh, 16px); padding-block: clamp(8px, 1.3vh, 12px); }
+      .fit .agree { margin-top: clamp(10px, 1.8vh, 16px); }
+      .fit .agree + .err + .agree, .fit .agree + .agree { margin-top: clamp(6px, 1.2vh, 12px); }
+      .fit .chip { padding: clamp(6px, 1.05vh, 8px) clamp(11px, 1.6vh, 14px); font-size: clamp(12.5px, 1.75vh, 13.5px); }
+      .fit .done-icon { width: clamp(56px, 9vh, 80px); height: clamp(56px, 9vh, 80px); }
+      .fit #done h2 { font-size: clamp(24px, 4vh, 32px); margin-top: clamp(12px, 2.4vh, 24px); }
+      .fit .done-list { margin-top: clamp(14px, 2.8vh, 28px); }
+      .fit .done-list > li { padding-block: clamp(7px, 1.3vh, 12px); }
+      .fit .done-list > li + li { margin-top: clamp(7px, 1.3vh, 12px); }
+      .fit .done-cta { margin-top: clamp(16px, 3vh, 32px); padding-block: clamp(10px, 1.75vh, 14px); }
+      .fit .done-note { margin-top: clamp(10px, 2vh, 24px); }
+    }
+  </style>
+</head>
+
+<body class="bg-cream-light font-sans text-ink antialiased">
+  <div class="fit grid min-h-screen lg:grid-cols-[0.82fr_1fr]">
+
+    <!-- ===================== PROGRESS PANEL ===================== -->
+    <aside class="relative hidden overflow-hidden bg-cocoa-deep px-10 py-12 text-white lg:block lg:px-14">
+      <div aria-hidden="true" class="grid-lines grid-lines--light pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_80%_75%_at_30%_40%,black,transparent_80%)]"></div>
+      <div aria-hidden="true" class="pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full border border-brand-orange/40"></div>
+      <div aria-hidden="true" class="pointer-events-none absolute -bottom-10 -right-10 h-44 w-44 rounded-full border border-brand-orange/40"></div>
+
+      <div class="relative flex h-full flex-col">
+        <a href="index.html" class="logo logo--light" style="font-size:44px" aria-label="banda, B and A Essentials, home">
+          <span class="logo-word" aria-hidden="true"><span class="logo-b">b<i class="logo-dot"></i></span>anda</span>
+          <span class="logo-tag" aria-hidden="true">B<span class="amp">&amp;</span>A ESSENTIALS</span>
+        </a>
+
+        <h1 class="mt-10 max-w-[13em] font-display text-[38px] font-semibold leading-[1.12] tracking-[-0.02em]">Let&rsquo;s get your business <span class="whitespace-nowrap text-[#F0A77C]">set up.</span></h1>
+        <p class="lede mt-4 max-w-[340px] text-[16px] leading-relaxed text-white/70">Five quick steps. It takes about three minutes.</p>
+
+        <ol class="stepper mt-10" aria-label="Sign-up steps">
+          <li data-step-item="1" class="flex items-start gap-4">
+            <button type="button" data-goto="1" class="dot grid h-9 w-9 shrink-0 place-items-center rounded-full font-display text-[14px] font-semibold transition disabled:cursor-default" disabled aria-label="Go to step 1: Create your account">
+              <span class="num">1</span><span class="num-done"><i data-lucide="check" class="h-4 w-4"></i></span>
+            </button>
+            <span class="pt-1"><span class="st block font-display font-semibold">Create your account</span><span class="sd mt-0.5 block text-white/55">Your name and login details</span></span>
+          </li>
+          <li data-step-item="2" class="flex items-start gap-4">
+            <button type="button" data-goto="2" class="dot grid h-9 w-9 shrink-0 place-items-center rounded-full font-display text-[14px] font-semibold transition disabled:cursor-default" disabled aria-label="Go to step 2: Verify your email">
+              <span class="num">2</span><span class="num-done"><i data-lucide="check" class="h-4 w-4"></i></span>
+            </button>
+            <span class="pt-1"><span class="st block font-display font-semibold">Verify your email</span><span class="sd mt-0.5 block text-white/55">Confirm it&rsquo;s really you</span></span>
+          </li>
+          <li data-step-item="3" class="flex items-start gap-4">
+            <button type="button" data-goto="3" class="dot grid h-9 w-9 shrink-0 place-items-center rounded-full font-display text-[14px] font-semibold transition disabled:cursor-default" disabled aria-label="Go to step 3: Business details">
+              <span class="num">3</span><span class="num-done"><i data-lucide="check" class="h-4 w-4"></i></span>
+            </button>
+            <span class="pt-1"><span class="st block font-display font-semibold">Business details</span><span class="sd mt-0.5 block text-white/55">Tell us about your business</span></span>
+          </li>
+          <li data-step-item="4" class="flex items-start gap-4">
+            <button type="button" data-goto="4" class="dot grid h-9 w-9 shrink-0 place-items-center rounded-full font-display text-[14px] font-semibold transition disabled:cursor-default" disabled aria-label="Go to step 4: Choose a plan">
+              <span class="num">4</span><span class="num-done"><i data-lucide="check" class="h-4 w-4"></i></span>
+            </button>
+            <span class="pt-1"><span class="st block font-display font-semibold">Choose a plan</span><span class="sd mt-0.5 block text-white/55">Pick what fits you best</span></span>
+          </li>
+          <li data-step-item="5" class="flex items-start gap-4">
+            <button type="button" data-goto="5" class="dot grid h-9 w-9 shrink-0 place-items-center rounded-full font-display text-[14px] font-semibold transition disabled:cursor-default" disabled aria-label="Go to step 5: Review and finish">
+              <span class="num">5</span><span class="num-done"><i data-lucide="check" class="h-4 w-4"></i></span>
+            </button>
+            <span class="pt-1"><span class="st block font-display font-semibold">Review &amp; finish</span><span class="sd mt-0.5 block text-white/55">Agree to the terms and go</span></span>
+          </li>
+        </ol>
+
+        <div class="mt-auto pt-8">
+          <p class="flex items-center gap-2.5 text-[13px] text-white/60"><i data-lucide="lock" class="h-4 w-4 text-[#F0A77C]"></i>Your details are private and only used to set up your account.</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ===================== STEPS ===================== -->
+    <main class="flex flex-col px-5 py-6 sm:px-10 lg:px-14">
+      <!-- top bar -->
+      <div class="flex items-center justify-between gap-4">
+        <a href="index.html" class="logo lg:hidden" style="font-size:30px" aria-label="banda, B and A Essentials, home">
+          <span class="logo-word" aria-hidden="true"><span class="logo-b">b<i class="logo-dot"></i></span>anda</span>
+          <span class="logo-tag" aria-hidden="true">B<span class="amp">&amp;</span>A ESSENTIALS</span>
+        </a>
+        <p class="ml-auto text-[13.5px] text-ink-muted">Already have an account? <a href="login.html" class="font-semibold text-brand-navy underline-offset-4 hover:underline">Log in</a></p>
+      </div>
+
+      <div class="mx-auto my-auto w-full max-w-[520px] py-6">
+        <!-- progress -->
+        <div id="progressWrap">
+          <div class="flex items-center justify-between text-[12.5px] font-semibold">
+            <span id="stepLabel" class="tracking-[0.08em] text-brand-navy" aria-live="polite">STEP 1 OF 5</span>
+            <span id="stepName" class="text-ink-muted lg:hidden">Create your account</span>
+          </div>
+          <div class="mt-2.5 h-1.5 rounded-full bg-cream-line" role="progressbar" aria-label="Sign-up progress" aria-valuemin="1" aria-valuemax="5" aria-valuenow="1">
+            <div id="progressBar" class="h-1.5 rounded-full bg-brand-orange transition-[width] duration-500" style="width:20%"></div>
+          </div>
+        </div>
+
+        <!-- STEP 1: account -->
+        <form class="step-panel mt-7" data-step="1" novalidate>
+          <h2 class="panel-title font-display text-[32px] font-semibold leading-tight tracking-[-0.02em]" tabindex="-1">Create your account</h2>
+          <p class="panel-sub mt-1.5 text-[15.5px] text-ink-muted">You&rsquo;ll use these details to log in.</p>
+          <div class="panel-body gap-y mt-7 grid gap-x-4 gap-y-4 sm:grid-cols-2">
+            <div class="sm:col-span-2">
+              <label for="name" class="block text-[14px] font-semibold">Full name</label>
+              <input id="name" name="name" autocomplete="name" required class="field mt-2" placeholder="e.g. Chioma Okeke" />
+              <p class="err" hidden>Enter your full name.</p>
+            </div>
+            <div class="sm:col-span-2">
+              <label for="email" class="block text-[14px] font-semibold">Work email</label>
+              <input id="email" name="email" type="email" autocomplete="email" required class="field mt-2" placeholder="you@company.com" />
+              <p class="err" hidden>Enter an email address, like you@company.com.</p>
+            </div>
+            <div>
+              <label for="phone" class="block text-[14px] font-semibold">Phone number</label>
+              <div class="relative mt-2">
+                <span class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[14.5px] font-medium text-ink-muted">+234</span>
+                <input id="phone" name="phone" type="tel" inputmode="numeric" autocomplete="tel-national" required class="field pl-[58px]" placeholder="801 234 5678" />
+              </div>
+              <p class="err" hidden>Enter a Nigerian number, like 801 234 5678.</p>
+            </div>
+            <div>
+              <label for="password" class="block text-[14px] font-semibold">Password</label>
+              <div class="relative mt-2">
+                <input id="password" name="password" type="password" autocomplete="new-password" required minlength="8" class="field pr-11" placeholder="At least 8 characters" />
+                <button type="button" id="togglePw" aria-label="Show password" aria-pressed="false" class="absolute right-1.5 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-lg text-ink-muted transition hover:bg-cream hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy">
+                  <span id="pwOff"><i data-lucide="eye-off" class="h-[18px] w-[18px]"></i></span><span id="pwOn" hidden><i data-lucide="eye" class="h-[18px] w-[18px]"></i></span>
+                </button>
+              </div>
+              <p class="err" hidden>Use at least 8 characters.</p>
+            </div>
+          </div>
+          <div class="actions mt-8 flex items-center justify-between gap-3"><span></span><button type="submit" class="btn group inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand-orange px-6 py-3.5 text-[15px] font-semibold text-white shadow-lg shadow-brand-orange/25 transition hover:bg-brand-orangeDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2 sm:flex-none sm:min-w-[200px]">Continue <i data-lucide="arrow-right" class="h-4 w-4 transition-transform group-hover:translate-x-0.5"></i></button></div>
+        </form>
+
+        <!-- STEP 2: verify -->
+        <form class="step-panel mt-7" data-step="2" novalidate hidden>
+          <span class="grid h-12 w-12 place-items-center rounded-full bg-pill-navyBg text-brand-navy"><i data-lucide="mail-check" class="h-5 w-5"></i></span>
+          <h2 class="panel-title mt-5 font-display text-[32px] font-semibold leading-tight tracking-[-0.02em]" tabindex="-1">Check your email</h2>
+          <p class="panel-sub mt-1.5 text-[15.5px] text-ink-muted">We sent a 6-digit code to <strong id="sentTo" class="font-semibold text-ink">your email</strong>. Enter it below to confirm it&rsquo;s you.</p>
+          <div class="panel-body mt-7">
+            <fieldset>
+              <legend class="sr-only">Verification code</legend>
+              <div id="codeBoxes" class="flex justify-between gap-2 sm:gap-3">
+                <input class="field code" inputmode="numeric" autocomplete="one-time-code" maxlength="1" aria-label="Digit 1" />
+                <input class="field code" inputmode="numeric" maxlength="1" aria-label="Digit 2" />
+                <input class="field code" inputmode="numeric" maxlength="1" aria-label="Digit 3" />
+                <input class="field code" inputmode="numeric" maxlength="1" aria-label="Digit 4" />
+                <input class="field code" inputmode="numeric" maxlength="1" aria-label="Digit 5" />
+                <input class="field code" inputmode="numeric" maxlength="1" aria-label="Digit 6" />
+              </div>
+            </fieldset>
+            <p id="codeErr" class="err" hidden>Enter all 6 digits of the code.</p>
+            <p class="mt-5 text-[14px] text-ink-muted">Didn&rsquo;t get it? <button type="button" id="resend" class="font-semibold text-brand-navy underline-offset-4 hover:underline disabled:cursor-default disabled:text-ink-soft disabled:no-underline">Resend code</button>
+              <span class="mx-1.5 text-cream-line">|</span><button type="button" data-goto-step="1" class="font-semibold text-brand-navy underline-offset-4 hover:underline">Change email</button></p>
+          </div>
+          <div class="actions mt-8 flex items-center justify-between gap-3"><button type="button" data-back class="btn inline-flex items-center gap-2 rounded-xl px-4 py-3.5 text-[14.5px] font-semibold text-ink-muted transition hover:bg-cream hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy"><i data-lucide="arrow-left" class="h-4 w-4"></i>Back</button><button type="submit" class="btn group inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand-orange px-6 py-3.5 text-[15px] font-semibold text-white shadow-lg shadow-brand-orange/25 transition hover:bg-brand-orangeDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2 sm:flex-none sm:min-w-[200px]">Verify email <i data-lucide="arrow-right" class="h-4 w-4 transition-transform group-hover:translate-x-0.5"></i></button></div>
+        </form>
+
+        <!-- STEP 3: business -->
+        <form class="step-panel mt-7" data-step="3" novalidate hidden>
+          <h2 class="panel-title font-display text-[32px] font-semibold leading-tight tracking-[-0.02em]" tabindex="-1">About your business</h2>
+          <p class="panel-sub mt-1.5 text-[15.5px] text-ink-muted">This helps us match you with the right people.</p>
+          <div class="panel-body gap-y mt-7 grid gap-x-4 gap-y-4 sm:grid-cols-2">
+            <div>
+              <label for="biz" class="block text-[14px] font-semibold">Business name</label>
+              <input id="biz" name="business" autocomplete="organization" required class="field mt-2" placeholder="e.g. Okeke Foods Ltd" />
+              <p class="err" hidden>Enter your business name.</p>
+            </div>
+            <div>
+              <label for="industry" class="block text-[14px] font-semibold">Industry</label>
+              <select id="industry" name="industry" required class="field mt-2"><option value="">Select one</option><option>Retail &amp; e-commerce</option><option>Food &amp; hospitality</option><option>Professional services</option><option>Tech &amp; startups</option><option>Health &amp; wellness</option><option>Education &amp; training</option><option>Real estate &amp; construction</option><option>Logistics &amp; transport</option><option>Non-profit &amp; faith-based</option><option>Other</option></select>
+              <p class="err" hidden>Choose your industry.</p>
+            </div>
+            <div>
+              <label for="state" class="block text-[14px] font-semibold">Location</label>
+              <select id="state" name="state" required class="field mt-2"><option value="">Select state</option><option>Lagos</option><option>Abuja (FCT)</option><option>Rivers</option><option>Oyo</option><option>Ogun</option><option>Kano</option><option>Enugu</option><option>Delta</option><option>Edo</option><option>Anambra</option><option>Kaduna</option><option>Another state</option><option>Outside Nigeria</option></select>
+              <p class="err" hidden>Choose where you&rsquo;re based.</p>
+            </div>
+            <fieldset>
+              <legend class="block text-[14px] font-semibold">Team size</legend>
+              <div class="mt-2 flex flex-wrap gap-1.5"><label class="chip inline-flex cursor-pointer items-center gap-2 rounded-full border border-cream-line bg-white px-3.5 py-2 text-[13.5px] font-medium text-ink transition hover:border-brand-lavender has-[:checked]:border-brand-navy has-[:checked]:bg-brand-navy has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-navy has-[:focus-visible]:ring-offset-2"><input type="radio" name="size" value="Just me" class="sr-only" />Just me</label><label class="chip inline-flex cursor-pointer items-center gap-2 rounded-full border border-cream-line bg-white px-3.5 py-2 text-[13.5px] font-medium text-ink transition hover:border-brand-lavender has-[:checked]:border-brand-navy has-[:checked]:bg-brand-navy has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-navy has-[:focus-visible]:ring-offset-2"><input type="radio" name="size" value="2–10" class="sr-only" />2–10</label><label class="chip inline-flex cursor-pointer items-center gap-2 rounded-full border border-cream-line bg-white px-3.5 py-2 text-[13.5px] font-medium text-ink transition hover:border-brand-lavender has-[:checked]:border-brand-navy has-[:checked]:bg-brand-navy has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-navy has-[:focus-visible]:ring-offset-2"><input type="radio" name="size" value="11–50" class="sr-only" />11–50</label><label class="chip inline-flex cursor-pointer items-center gap-2 rounded-full border border-cream-line bg-white px-3.5 py-2 text-[13.5px] font-medium text-ink transition hover:border-brand-lavender has-[:checked]:border-brand-navy has-[:checked]:bg-brand-navy has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-navy has-[:focus-visible]:ring-offset-2"><input type="radio" name="size" value="51+" class="sr-only" />51+</label></div>
+              <p class="err" hidden>Choose your team size.</p>
+            </fieldset>
+            <fieldset class="sm:col-span-2">
+              <legend class="block text-[14px] font-semibold">What do you need help with? <span class="font-normal text-ink-muted">Choose any</span></legend>
+              <div class="mt-2 flex flex-wrap gap-1.5"><label class="chip inline-flex cursor-pointer items-center gap-2 rounded-full border border-cream-line bg-white px-3.5 py-2 text-[13.5px] font-medium text-ink transition hover:border-brand-lavender has-[:checked]:border-brand-navy has-[:checked]:bg-brand-navy has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-navy has-[:focus-visible]:ring-offset-2"><input type="checkbox" name="needs" value="Business Documents" class="sr-only" /><i data-lucide="file-text" class="h-3.5 w-3.5"></i>Business Documents</label><label class="chip inline-flex cursor-pointer items-center gap-2 rounded-full border border-cream-line bg-white px-3.5 py-2 text-[13.5px] font-medium text-ink transition hover:border-brand-lavender has-[:checked]:border-brand-navy has-[:checked]:bg-brand-navy has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-navy has-[:focus-visible]:ring-offset-2"><input type="checkbox" name="needs" value="Content &amp; Design" class="sr-only" /><i data-lucide="pen-line" class="h-3.5 w-3.5"></i>Content &amp; Design</label><label class="chip inline-flex cursor-pointer items-center gap-2 rounded-full border border-cream-line bg-white px-3.5 py-2 text-[13.5px] font-medium text-ink transition hover:border-brand-lavender has-[:checked]:border-brand-navy has-[:checked]:bg-brand-navy has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-navy has-[:focus-visible]:ring-offset-2"><input type="checkbox" name="needs" value="Administrative Support" class="sr-only" /><i data-lucide="calendar" class="h-3.5 w-3.5"></i>Administrative Support</label><label class="chip inline-flex cursor-pointer items-center gap-2 rounded-full border border-cream-line bg-white px-3.5 py-2 text-[13.5px] font-medium text-ink transition hover:border-brand-lavender has-[:checked]:border-brand-navy has-[:checked]:bg-brand-navy has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-navy has-[:focus-visible]:ring-offset-2"><input type="checkbox" name="needs" value="Finance &amp; Accounting" class="sr-only" /><i data-lucide="file-spreadsheet" class="h-3.5 w-3.5"></i>Finance &amp; Accounting</label><label class="chip inline-flex cursor-pointer items-center gap-2 rounded-full border border-cream-line bg-white px-3.5 py-2 text-[13.5px] font-medium text-ink transition hover:border-brand-lavender has-[:checked]:border-brand-navy has-[:checked]:bg-brand-navy has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-navy has-[:focus-visible]:ring-offset-2"><input type="checkbox" name="needs" value="IT &amp; Digital Support" class="sr-only" /><i data-lucide="monitor" class="h-3.5 w-3.5"></i>IT &amp; Digital Support</label></div>
+            </fieldset>
+          </div>
+          <div class="actions mt-8 flex items-center justify-between gap-3"><button type="button" data-back class="btn inline-flex items-center gap-2 rounded-xl px-4 py-3.5 text-[14.5px] font-semibold text-ink-muted transition hover:bg-cream hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy"><i data-lucide="arrow-left" class="h-4 w-4"></i>Back</button><button type="submit" class="btn group inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand-orange px-6 py-3.5 text-[15px] font-semibold text-white shadow-lg shadow-brand-orange/25 transition hover:bg-brand-orangeDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2 sm:flex-none sm:min-w-[200px]">Continue <i data-lucide="arrow-right" class="h-4 w-4 transition-transform group-hover:translate-x-0.5"></i></button></div>
+        </form>
+
+        <!-- STEP 4: plan -->
+        <form class="step-panel mt-7" data-step="4" novalidate hidden>
+          <h2 class="panel-title font-display text-[32px] font-semibold leading-tight tracking-[-0.02em]" tabindex="-1">Choose your plan</h2>
+          <p class="panel-sub mt-1.5 text-[15.5px] text-ink-muted">You can change it any time.</p>
+          <fieldset class="panel-body mt-7">
+            <legend class="sr-only">Plan</legend>
+            <div class="space-y-3.5">
+              <label class="plan relative flex cursor-pointer items-center gap-4 rounded-2xl border-2 border-cream-line bg-white px-[18px] py-4 transition hover:border-brand-lavender has-[:checked]:border-brand-navy has-[:checked]:shadow-[0_18px_40px_-26px_rgba(51,57,127,.6)] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-navy has-[:focus-visible]:ring-offset-2">
+                <input type="radio" name="plan" value="starter" class="sr-only" />
+                <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-pill-navyBg text-brand-navy"><i data-lucide="send" class="h-5 w-5"></i></span>
+                <span class="min-w-0 flex-1"><span class="block font-display text-[16px] font-semibold">Starter</span><span class="block text-[13px] text-ink-muted">Up to 5 tasks a month</span></span>
+                <span class="text-right"><span class="block font-display text-[19px] font-semibold leading-tight">₦25,000</span><span class="block text-[12px] text-ink-muted">/ month</span></span>
+                <span class="radio grid h-5 w-5 shrink-0 place-items-center rounded-full border-2 border-cream-line"><span class="h-2.5 w-2.5 rounded-full bg-brand-navy opacity-0"></span></span>
+              </label>
+              <label class="plan relative flex cursor-pointer items-center gap-4 rounded-2xl border-2 border-cream-line bg-white px-[18px] py-4 transition hover:border-brand-lavender has-[:checked]:border-brand-navy has-[:checked]:shadow-[0_18px_40px_-26px_rgba(51,57,127,.6)] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-navy has-[:focus-visible]:ring-offset-2">
+                <span class="absolute -top-2.5 left-5 rounded-full bg-brand-orange px-2.5 py-0.5 text-[10.5px] font-bold tracking-[0.12em] text-white">MOST POPULAR</span><input type="radio" name="plan" value="growth" class="sr-only" />
+                <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-pill-orangeBg text-brand-orange"><i data-lucide="trending-up" class="h-5 w-5"></i></span>
+                <span class="min-w-0 flex-1"><span class="block font-display text-[16px] font-semibold">Growth</span><span class="block text-[13px] text-ink-muted">Up to 15 tasks a month</span></span>
+                <span class="text-right"><span class="block font-display text-[19px] font-semibold leading-tight">₦45,000</span><span class="block text-[12px] text-ink-muted">/ month</span></span>
+                <span class="radio grid h-5 w-5 shrink-0 place-items-center rounded-full border-2 border-cream-line"><span class="h-2.5 w-2.5 rounded-full bg-brand-navy opacity-0"></span></span>
+              </label>
+              <label class="plan relative flex cursor-pointer items-center gap-4 rounded-2xl border-2 border-cream-line bg-white px-[18px] py-4 transition hover:border-brand-lavender has-[:checked]:border-brand-navy has-[:checked]:shadow-[0_18px_40px_-26px_rgba(51,57,127,.6)] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-navy has-[:focus-visible]:ring-offset-2">
+                <input type="radio" name="plan" value="enterprise" class="sr-only" />
+                <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-pill-navyBg text-brand-navy"><i data-lucide="building-2" class="h-5 w-5"></i></span>
+                <span class="min-w-0 flex-1"><span class="block font-display text-[16px] font-semibold">Enterprise</span><span class="block text-[13px] text-ink-muted">Unlimited tasks, tailored to you</span></span>
+                <span class="text-right"><span class="block font-display text-[19px] font-semibold leading-tight">Custom</span><span class="block text-[12px] text-ink-muted">we&rsquo;ll call you</span></span>
+                <span class="radio grid h-5 w-5 shrink-0 place-items-center rounded-full border-2 border-cream-line"><span class="h-2.5 w-2.5 rounded-full bg-brand-navy opacity-0"></span></span>
+              </label>
+            </div>
+          </fieldset>
+          <p id="planErr" class="err" hidden>Choose a plan to continue.</p>
+          <p class="mt-4 flex items-start gap-2 text-[13px] text-ink-muted"><i data-lucide="info" class="mt-0.5 h-4 w-4 shrink-0 text-brand-navy"></i>You&rsquo;ll set up payment after your account is ready.</p>
+          <div class="actions mt-8 flex items-center justify-between gap-3"><button type="button" data-back class="btn inline-flex items-center gap-2 rounded-xl px-4 py-3.5 text-[14.5px] font-semibold text-ink-muted transition hover:bg-cream hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy"><i data-lucide="arrow-left" class="h-4 w-4"></i>Back</button><button type="submit" class="btn group inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand-orange px-6 py-3.5 text-[15px] font-semibold text-white shadow-lg shadow-brand-orange/25 transition hover:bg-brand-orangeDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2 sm:flex-none sm:min-w-[200px]">Continue <i data-lucide="arrow-right" class="h-4 w-4 transition-transform group-hover:translate-x-0.5"></i></button></div>
+        </form>
+
+        <!-- STEP 5: review -->
+        <form class="step-panel mt-7" data-step="5" novalidate hidden>
+          <h2 class="panel-title font-display text-[32px] font-semibold leading-tight tracking-[-0.02em]" tabindex="-1">Review and finish</h2>
+          <p class="panel-sub mt-1.5 text-[15.5px] text-ink-muted">Check your details, then create your account.</p>
+          <div class="panel-body mt-7">
+            <dl class="review divide-y divide-cream-line rounded-2xl border border-cream-line bg-white text-[14px]">
+              <div class="flex items-center gap-4 px-5 py-3"><dt class="w-24 shrink-0 text-ink-muted">Name</dt><dd id="rvName" class="min-w-0 flex-1 truncate font-semibold"></dd><button type="button" data-goto-step="1" class="text-[13px] font-semibold text-brand-navy hover:underline">Edit</button></div>
+              <div class="flex items-center gap-4 px-5 py-3"><dt class="w-24 shrink-0 text-ink-muted">Email</dt><dd id="rvEmail" class="min-w-0 flex-1 truncate font-semibold"></dd><button type="button" data-goto-step="1" class="text-[13px] font-semibold text-brand-navy hover:underline">Edit</button></div>
+              <div class="flex items-center gap-4 px-5 py-3"><dt class="w-24 shrink-0 text-ink-muted">Business</dt><dd id="rvBiz" class="min-w-0 flex-1 truncate font-semibold"></dd><button type="button" data-goto-step="3" class="text-[13px] font-semibold text-brand-navy hover:underline">Edit</button></div>
+              <div class="flex items-center gap-4 px-5 py-3"><dt class="w-24 shrink-0 text-ink-muted">Plan</dt><dd id="rvPlan" class="min-w-0 flex-1 truncate font-semibold"></dd><button type="button" data-goto-step="4" class="text-[13px] font-semibold text-brand-navy hover:underline">Edit</button></div>
+            </dl>
+
+            <p class="review-note mt-4 flex items-start gap-2.5 rounded-xl bg-pill-navyBg px-4 py-3 text-[13px] leading-relaxed text-brand-navy"><i data-lucide="shield-check" class="mt-0.5 h-4 w-4 shrink-0"></i>Files you share are stored privately and opened only by the people working on your request.</p>
+
+            <label class="agree mt-4 flex cursor-pointer items-start gap-3 text-[14px] leading-snug">
+              <input id="terms" type="checkbox" required class="mt-0.5 h-[18px] w-[18px] shrink-0 accent-[#33397F]" />
+              <span>I agree to the <a href="#" class="font-semibold text-brand-navy underline underline-offset-2">Terms of Service</a> and <a href="#" class="font-semibold text-brand-navy underline underline-offset-2">Privacy Policy</a>.</span>
+            </label>
+            <p id="termsErr" class="err" hidden>Please agree to the Terms of Service and Privacy Policy to continue.</p>
+            <label class="agree mt-3 flex cursor-pointer items-start gap-3 text-[14px] leading-snug text-ink-muted">
+              <input type="checkbox" class="mt-0.5 h-[18px] w-[18px] shrink-0 accent-[#33397F]" />
+              <span>Send me occasional tips and updates by email. <span class="text-ink-soft">(Optional)</span></span>
+            </label>
+          </div>
+          <div class="actions mt-8 flex items-center justify-between gap-3"><button type="button" data-back class="btn inline-flex items-center gap-2 rounded-xl px-4 py-3.5 text-[14.5px] font-semibold text-ink-muted transition hover:bg-cream hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy"><i data-lucide="arrow-left" class="h-4 w-4"></i>Back</button><button type="submit" class="btn group inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand-orange px-6 py-3.5 text-[15px] font-semibold text-white shadow-lg shadow-brand-orange/25 transition hover:bg-brand-orangeDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2 sm:flex-none sm:min-w-[200px]">Create my account <i data-lucide="arrow-right" class="h-4 w-4 transition-transform group-hover:translate-x-0.5"></i></button></div>
+        </form>
+
+        <!-- DONE -->
+        <section id="done" class="step-panel mt-2 text-center" hidden aria-labelledby="doneTitle">
+          <span class="done-icon relative mx-auto grid h-20 w-20 place-items-center rounded-full bg-pill-greenBg text-pill-greenTx">
+            <span class="absolute inset-0 animate-ping rounded-full bg-pill-greenBg opacity-60 [animation-iteration-count:2]"></span>
+            <i data-lucide="check" class="relative h-9 w-9"></i>
+          </span>
+          <h2 id="doneTitle" class="mt-6 font-display text-[32px] font-semibold leading-tight tracking-[-0.02em]" tabindex="-1">You&rsquo;re all set, <span id="firstName">there</span>!</h2>
+          <p class="mx-auto mt-2 max-w-[380px] text-[15.5px] leading-relaxed text-ink-muted">Your account is ready. Send us your first task and the team will take it from there.</p>
+          <ol class="done-list mx-auto mt-7 max-w-[400px] space-y-3 text-left text-[14px]">
+            <li class="flex items-center gap-3 rounded-xl border border-cream-line bg-white px-4 py-3"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-brand-navy text-[12px] font-semibold text-white">1</span>Submit your first task with any files</li>
+            <li class="flex items-center gap-3 rounded-xl border border-cream-line bg-white px-4 py-3"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-brand-navy text-[12px] font-semibold text-white">2</span>We confirm the scope with you</li>
+            <li class="flex items-center gap-3 rounded-xl border border-cream-line bg-white px-4 py-3"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-brand-orange text-[12px] font-semibold text-white">3</span>Your work is done, checked and delivered</li>
+          </ol>
+          <a href="login.html" class="done-cta group mt-8 inline-flex items-center justify-center gap-2 rounded-xl bg-brand-orange px-7 py-3.5 text-[15px] font-semibold text-white shadow-lg shadow-brand-orange/25 transition hover:bg-brand-orangeDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">Go to my dashboard <i data-lucide="arrow-right" class="h-4 w-4 transition-transform group-hover:translate-x-0.5"></i></a>
+          <p class="done-note mx-auto mt-6 max-w-[380px] rounded-lg bg-cream px-4 py-2.5 text-[12.5px] text-ink-muted">This is a design preview, so no account was created.</p>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script>
+    lucide.createIcons();
+
+    const TOTAL = 5;
+    const NAMES = ['Create your account', 'Verify your email', 'Business details', 'Choose a plan', 'Review and finish'];
+    const PLAN_LABEL = { starter: 'Starter · ₦25,000 / month', growth: 'Growth · ₦45,000 / month', enterprise: 'Enterprise · Custom' };
+    const panels = [...document.querySelectorAll('[data-step]')];
+    const items = [...document.querySelectorAll('[data-step-item]')];
+    let current = 1, reached = 1;
+
+    // Pre-select the plan chosen on the pricing section (?plan=growth).
+    const wanted = new URLSearchParams(location.search).get('plan');
+    if (wanted) { const r = document.querySelector(`input[name="plan"][value="${wanted}"]`); if (r) r.checked = true; }
+
+    function show(n, focus = true) {
+      current = n; reached = Math.max(reached, n);
+      panels.forEach(p => p.hidden = Number(p.dataset.step) !== n);
+      document.getElementById('done').hidden = true;
+      document.getElementById('progressWrap').hidden = false;
+      items.forEach((li, i) => {
+        const s = i + 1, btn = li.querySelector('button');
+        li.classList.toggle('is-current', s === n);
+        li.classList.toggle('is-done', s < reached && s !== n || s < n);
+        btn.disabled = !(s <= reached && s !== n);
+        s === n ? li.setAttribute('aria-current', 'step') : li.removeAttribute('aria-current');
+      });
+      document.getElementById('stepLabel').textContent = `STEP ${n} OF ${TOTAL}`;
+      document.getElementById('stepName').textContent = NAMES[n - 1];
+      document.getElementById('progressBar').style.width = (n / TOTAL * 100) + '%';
+      document.querySelector('[role="progressbar"]').setAttribute('aria-valuenow', n);
+      if (n === 5) fillReview();
+      if (focus) {
+        const panel = panels[n - 1];
+        const first = panel.querySelector('input:not([type=hidden]):not(.sr-only), select');
+        (n === 2 ? panel.querySelector('.code') : panel.querySelector('h2')).focus({ preventScroll: true });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    // ---------- validation helpers ----------
+    function flag(input, ok) {
+      const err = input.closest('div, fieldset')?.querySelector('.err') || input.parentElement.parentElement.querySelector('.err');
+      input.setAttribute('aria-invalid', String(!ok));
+      if (err) err.hidden = ok;
+      return ok;
+    }
+    const checks = {
+      1: () => {
+        const name = document.getElementById('name'), email = document.getElementById('email');
+        const phone = document.getElementById('phone'), pw = document.getElementById('password');
+        const digits = phone.value.replace(/\D/g, '').replace(/^0/, '');
+        const r = [
+          flag(name, name.value.trim().split(/\s+/).length >= 1 && name.value.trim().length > 1),
+          flag(email, /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())),
+          flag(phone, /^[789]\d{9}$/.test(digits)),
+          flag(pw, pw.value.length >= 8),
+        ];
+        return r.every(Boolean);
+      },
+      2: () => {
+        const ok = [...document.querySelectorAll('.code')].every(i => /^\d$/.test(i.value));
+        document.getElementById('codeErr').hidden = ok;
+        document.querySelectorAll('.code').forEach(i => i.setAttribute('aria-invalid', String(!ok && !/^\d$/.test(i.value))));
+        return ok;
+      },
+      3: () => {
+        const biz = document.getElementById('biz'), ind = document.getElementById('industry'), st = document.getElementById('state');
+        const sizeOk = !!document.querySelector('input[name="size"]:checked');
+        const sizeSet = document.querySelector('input[name="size"]').closest('fieldset');
+        sizeSet.querySelector('.err').hidden = sizeOk;
+        return [flag(biz, biz.value.trim().length > 1), flag(ind, !!ind.value), flag(st, !!st.value), sizeOk].every(Boolean);
+      },
+      4: () => {
+        const ok = !!document.querySelector('input[name="plan"]:checked');
+        document.getElementById('planErr').hidden = ok; return ok;
+      },
+      5: () => {
+        const ok = document.getElementById('terms').checked;
+        document.getElementById('termsErr').hidden = ok; return ok;
+      },
+    };
+
+    panels.forEach(form => form.addEventListener('submit', e => {
+      e.preventDefault();
+      const n = Number(form.dataset.step);
+      if (!checks[n]()) {
+        const bad = form.querySelector('[aria-invalid="true"]');
+        if (bad) bad.focus();
+        return;
+      }
+      if (n === 1) document.getElementById('sentTo').textContent = document.getElementById('email').value.trim();
+      if (n < TOTAL) show(n + 1); else finish();
+    }));
+    // Clear an error as soon as the field is fixed.
+    document.addEventListener('input', e => {
+      const t = e.target;
+      if (t.getAttribute && t.getAttribute('aria-invalid') === 'true' && !t.classList.contains('code')) {
+        const panel = t.closest('[data-step]'); checks[panel.dataset.step] && checks[panel.dataset.step]();
+      }
+    });
+    document.addEventListener('change', e => {
+      if (e.target.name === 'size') document.querySelector('input[name="size"]').closest('fieldset').querySelector('.err').hidden = true;
+      if (e.target.name === 'plan') document.getElementById('planErr').hidden = true;
+      if (e.target.id === 'terms' && e.target.checked) document.getElementById('termsErr').hidden = true;
+    });
+
+    document.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', () => show(current - 1)));
+    document.querySelectorAll('[data-goto]').forEach(b => b.addEventListener('click', () => show(Number(b.dataset.goto))));
+    document.querySelectorAll('[data-goto-step]').forEach(b => b.addEventListener('click', () => show(Number(b.dataset.gotoStep))));
+
+    // ---------- password show / hide ----------
+    const pw = document.getElementById('password'), toggle = document.getElementById('togglePw');
+    toggle.addEventListener('click', () => {
+      const showIt = pw.type === 'password';
+      pw.type = showIt ? 'text' : 'password';
+      toggle.setAttribute('aria-pressed', String(showIt));
+      toggle.setAttribute('aria-label', showIt ? 'Hide password' : 'Show password');
+      document.getElementById('pwOn').hidden = !showIt; document.getElementById('pwOff').hidden = showIt;
+    });
+
+    // ---------- 6-digit code boxes ----------
+    const boxes = [...document.querySelectorAll('.code')];
+    boxes.forEach((box, i) => {
+      box.addEventListener('input', () => {
+        box.value = box.value.replace(/\D/g, '').slice(-1);
+        if (box.value && i < boxes.length - 1) boxes[i + 1].focus();
+        document.getElementById('codeErr').hidden = true; box.removeAttribute('aria-invalid');
+      });
+      box.addEventListener('keydown', e => {
+        if (e.key === 'Backspace' && !box.value && i > 0) boxes[i - 1].focus();
+        if (e.key === 'ArrowLeft' && i > 0) boxes[i - 1].focus();
+        if (e.key === 'ArrowRight' && i < boxes.length - 1) boxes[i + 1].focus();
+      });
+      box.addEventListener('paste', e => {
+        const digits = (e.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 6);
+        if (!digits) return; e.preventDefault();
+        digits.split('').forEach((d, k) => { if (boxes[k]) boxes[k].value = d; });
+        boxes[Math.min(digits.length, 6) - 1].focus();
+      });
+    });
+    const resend = document.getElementById('resend');
+    resend.addEventListener('click', () => {
+      let left = 30; resend.disabled = true;
+      resend.textContent = `Code sent. Resend in ${left}s`;
+      const t = setInterval(() => {
+        left -= 1; resend.textContent = `Code sent. Resend in ${left}s`;
+        if (left <= 0) { clearInterval(t); resend.disabled = false; resend.textContent = 'Resend code'; }
+      }, 1000);
+    });
+
+    // ---------- review ----------
+    function fillReview() {
+      const plan = document.querySelector('input[name="plan"]:checked');
+      document.getElementById('rvName').textContent = document.getElementById('name').value.trim();
+      document.getElementById('rvEmail').textContent = document.getElementById('email').value.trim();
+      document.getElementById('rvBiz').textContent = document.getElementById('biz').value.trim();
+      document.getElementById('rvPlan').textContent = plan ? PLAN_LABEL[plan.value] : '';
+    }
+
+    function finish() {
+      panels.forEach(p => p.hidden = true);
+      document.getElementById('progressWrap').hidden = true;
+      items.forEach(li => { li.classList.remove('is-current'); li.classList.add('is-done'); li.querySelector('button').disabled = true; li.removeAttribute('aria-current'); });
+      document.getElementById('firstName').textContent = document.getElementById('name').value.trim().split(/\s+/)[0] || 'there';
+      const done = document.getElementById('done'); done.hidden = false;
+      document.getElementById('doneTitle').focus({ preventScroll: true });
+    }
+
+    show(1, false);
+  </script>
+</body>
+</html>
