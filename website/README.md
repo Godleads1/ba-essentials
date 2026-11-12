@@ -36,8 +36,21 @@ Every change to these pages is checked with:
 - Chromium, Firefox and WebKit (Safari's engine): no script errors, no sideways scrolling, and the
   full sign-up → payment → dashboard flow completes, at laptop and phone sizes
 
-Third-party scripts are pinned to exact versions (Tailwind 3.4.17, Lucide 1.60.0) so an upstream
-release can't change the pages. If the icon library fails to load, the pages still work without icons.
+Styles are compiled ahead of time into `app.css` (no Tailwind script runs in the browser), and icons
+in the page markup are built in as SVG, so pages appear complete on first paint with no flicker.
+The icon script (Lucide 1.60.0, pinned) only draws the few icons created by JavaScript; if it fails
+to load, the pages still work.
+
+## Building
+
+After editing any page, rebuild from `website/build/`:
+
+```bash
+npm install
+npm run build   # bakes icons into the pages, then compiles app.css
+```
+
+The colours and fonts live in `build/tailwind.config.js`.
 
 ## Payments (Paystack)
 
