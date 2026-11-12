@@ -261,7 +261,8 @@
       document.getElementById('pwError').classList.toggle('hidden', pwOk);
       email.setAttribute('aria-invalid', String(!emailOk));
       pw.setAttribute('aria-invalid', String(!pwOk));
-      document.getElementById('formNote').classList.toggle('hidden', !(emailOk && pwOk));
+      // Preview: any valid email and password opens the sample dashboard.
+      if (emailOk && pwOk) { window.location.href = 'dashboard.html'; return; }
       if (!emailOk) email.focus(); else if (!pwOk) pw.focus();
     });
   </script>
