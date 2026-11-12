@@ -97,7 +97,7 @@
     .ring-focus:focus-visible, .btn:focus-visible { outline: 2px solid #33397F; outline-offset: 2px; }
 
     /* sidebar: a light card that always fits the screen height */
-    #sidebar { height: calc(100dvh - 24px); background: linear-gradient(140deg, #3A41935e 0%, transparent 60%), linear-gradient(160deg, #33397F, #22265A); color: #fff; }
+    #sidebar { top: 12px; bottom: 12px; background: linear-gradient(140deg, #3A41935e 0%, transparent 60%), linear-gradient(160deg, #33397F, #22265A); color: #fff; }
     .side-label { font-size: 11.5px; font-weight: 600; letter-spacing: .14em; color: rgba(184,187,230,.75); padding: 0 22px; margin-bottom: clamp(2px, .6vh, 6px); }
     .side-link { position: relative; display: flex; align-items: center; gap: 13px; height: clamp(34px, 4.7vh, 44px); padding: 0 22px; font-size: 15px; font-weight: 500; color: rgba(255,255,255,.68); transition: color .15s, background .15s; }
     .side-link svg { width: 20px; height: 20px; flex-shrink: 0; }
@@ -108,7 +108,9 @@
     .side-badge { margin-left: auto; border-radius: 6px; background: rgba(255,255,255,.16); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; }
     .side-group + .side-group { margin-top: clamp(12px, 3vh, 34px); }
     /* the help card steps aside on short screens so the menu never scrolls */
-    @media (max-height: 720px) { .side-help { display: none; } }
+    .side-help.is-compact .help-extra { display: none; }
+    .side-help.is-compact { padding: 12px 14px; }
+    .side-help.is-compact .help-title { margin-top: 0; }
 
     /* stat cards */
     .stat { position: relative; display: block; border-radius: 20px; background: #fff; padding: 18px 20px; transition: transform .2s, box-shadow .2s; }
@@ -143,7 +145,7 @@
   <div id="scrim" class="fixed inset-0 z-40 bg-cocoa-deep/50 lg:hidden" hidden></div>
 
   <!-- ===================== SIDEBAR ===================== -->
-  <aside id="sidebar" class="panel fixed left-3 top-3 z-50 flex w-[256px] flex-col overflow-hidden pb-4" style="padding-top:clamp(18px,3.4vh,30px)" aria-label="Main menu">
+  <aside id="sidebar" class="panel fixed left-3 z-50 flex w-[256px] flex-col overflow-hidden pb-4" style="padding-top:clamp(18px,3.4vh,30px)" aria-label="Main menu">
     <div class="flex items-center justify-between px-[22px]">
       <a href="index.html" class="logo logo--light ring-focus rounded" style="font-size:34px" aria-label="banda, B and A Essentials, home">
         <span class="logo-word" aria-hidden="true"><span class="logo-b">b<i class="logo-dot"></i></span>anda</span>
@@ -152,7 +154,7 @@
       <button type="button" id="closeMenu" class="grid h-9 w-9 place-items-center rounded-lg text-white/80 hover:bg-white/10 lg:hidden" aria-label="Close menu"><i data-lucide="x" class="h-5 w-5"></i></button>
     </div>
 
-    <nav class="flex-1" style="margin-top:clamp(16px,4vh,40px)" aria-label="Client">
+    <nav class="no-scrollbar min-h-0 flex-1 overflow-y-auto" style="margin-top:clamp(16px,4vh,40px)" aria-label="Client">
       <div class="side-group">
         <p class="side-label">MENU</p>
         <ul>
@@ -176,11 +178,11 @@
       </div>
     </nav>
 
-    <div class="side-help relative mx-3 mt-4 overflow-hidden rounded-[18px] border border-white/15 bg-white/[.07] p-4 text-white">
+    <div class="side-help relative mx-3 mt-4 shrink-0 overflow-hidden rounded-[18px] border border-white/15 bg-white/[.07] p-4 text-white">
       <span aria-hidden="true" class="rings pointer-events-none absolute inset-0"></span>
-      <span class="relative grid h-8 w-8 place-items-center rounded-full bg-white text-brand-navy"><i data-lucide="headset" class="h-4 w-4"></i></span>
-      <p class="relative mt-3 font-display text-[16px] font-semibold leading-snug">Need a hand?</p>
-      <p class="relative mt-0.5 text-[12.5px] leading-snug text-white/75">Message the team about a request or a payment.</p>
+      <span class="help-extra relative grid h-8 w-8 place-items-center rounded-full bg-white text-brand-navy"><i data-lucide="headset" class="h-4 w-4"></i></span>
+      <p class="help-title relative mt-3 font-display text-[16px] font-semibold leading-snug">Need a hand?</p>
+      <p class="help-extra relative mt-0.5 text-[12.5px] leading-snug text-white/75">Message the team about a request or a payment.</p>
       <a href="#" class="btn relative mt-3 w-full bg-brand-orange py-2 text-[13px] hover:bg-brand-orangeDark">Contact support</a>
     </div>
   </aside>
@@ -382,6 +384,18 @@
     document.getElementById('gProg').setAttribute('stroke-dasharray', `${pP} 100`);
     document.getElementById('gProg').setAttribute('stroke-dashoffset', -pD);
     document.getElementById('gaugePct').textContent = Math.round(used / plan[2] * 100) + '%';
+
+    // Sidebar: if the window is too short for the whole menu, the help card steps aside.
+    const helpCard = document.querySelector('.side-help'), sideNav = document.querySelector('#sidebar nav');
+    const overflows = () => sideNav.scrollHeight > sideNav.clientHeight + 1;
+    function fitSidebar() {
+      helpCard.style.display = ''; helpCard.classList.remove('is-compact');
+      if (overflows()) helpCard.classList.add('is-compact');
+      if (overflows()) helpCard.style.display = 'none';
+    }
+    fitSidebar();
+    addEventListener('resize', fitSidebar);
+    document.fonts && document.fonts.ready.then(fitSidebar);
 
     // Mobile menu
     const sidebar = document.getElementById('sidebar'), scrim = document.getElementById('scrim'), openBtn = document.getElementById('openMenu');
