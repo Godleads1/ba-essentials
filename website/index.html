@@ -9,7 +9,7 @@
   <meta property="og:title" content="banda — B & A Essentials" />
   <meta property="og:description" content="Reliable, professional and affordable business support for small businesses and SMEs in Nigeria." />
   <meta property="og:type" content="website" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231C1712'/%3E%3Cpath d='M17 9h9v17a13 13 0 1 1-9 12z' fill='%23FDFBF6'/%3E%3Ccircle cx='39' cy='39' r='7' fill='%231C1712'/%3E%3Ccircle cx='31' cy='40' r='5' fill='%23D9662E'/%3E%3C/svg%3E" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='14'%20fill='%231C1712'/%3E%3Cpath%20d='M17%209h9v17a13%2013%200%201%201-9%2012z'%20fill='%23FDFBF6'/%3E%3Ccircle%20cx='39'%20cy='39'%20r='7'%20fill='%231C1712'/%3E%3Ccircle%20cx='31'%20cy='40'%20r='5'%20fill='%23D9662E'/%3E%3C/svg%3E" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -17,17 +17,17 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 
   <!-- Tailwind Play CDN for preview only. In Django, build with the Tailwind CLI using the same config. -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            brand: { orange: '#D9662E', orangeDark: '#BF5420', navy: '#33397F', navySoft: '#E7E8F3', lavender: '#B8BBE6' },
-            ink: { DEFAULT: '#241A15', muted: '#5C534D', soft: '#8A817A' },
+            brand: { orange: '#D9662E', orangeDark: '#AD4C1D', cta: '#BE5928', ctaDark: '#A34A1F', navy: '#33397F', navySoft: '#E7E8F3', lavender: '#B8BBE6' },
+            ink: { DEFAULT: '#241A15', muted: '#5C534D', soft: '#736C66' },
             cream: { DEFAULT: '#F5F0E8', light: '#FBF9F5', line: '#ECE5DA' },
             cocoa: { DEFAULT: '#3B251C', deep: '#1C1712' },
-            pill: { orangeBg: '#FBE6DA', greenBg: '#DDF1EC', greenTx: '#1F7A63', navyBg: '#ECEDF8' }
+            pill: { orangeBg: '#FBE6DA', greenBg: '#DDF1EC', greenTx: '#1E7761', navyBg: '#ECEDF8' }
           },
           fontFamily: {
             display: ['Lexend', 'system-ui', 'sans-serif'],
@@ -118,7 +118,7 @@
 
       <div class="hidden items-center gap-4 md:flex">
         <a href="login.html" class="text-[14px] font-semibold text-ink transition-colors hover:text-brand-navy">Log In</a>
-        <a href="onboarding.html" class="group inline-flex items-center gap-2 rounded-lg bg-brand-orange px-4 py-2.5 text-[14px] font-semibold text-white shadow-sm shadow-brand-orange/30 transition hover:bg-brand-orangeDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">
+        <a href="onboarding.html" class="group inline-flex items-center gap-2 rounded-lg bg-brand-cta px-4 py-2.5 text-[14px] font-semibold text-white shadow-sm shadow-brand-orange/30 transition hover:bg-brand-ctaDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">
           Get Started <i data-lucide="arrow-right" class="h-4 w-4 transition-transform group-hover:translate-x-0.5"></i>
         </a>
       </div>
@@ -138,7 +138,7 @@
         <li><a href="#faqs" class="block rounded-md px-2 py-2 text-ink-muted">FAQs</a></li>
         <li class="flex gap-3 pt-3">
           <a href="login.html" class="flex-1 rounded-lg border border-cream-line py-2.5 text-center font-semibold">Log In</a>
-          <a href="onboarding.html" class="flex-1 rounded-lg bg-brand-orange py-2.5 text-center font-semibold text-white">Get Started</a>
+          <a href="onboarding.html" class="flex-1 rounded-lg bg-brand-cta py-2.5 text-center font-semibold text-white">Get Started</a>
         </li>
       </ul>
     </div>
@@ -171,7 +171,7 @@
           </p>
 
           <div class="mt-8 flex flex-wrap gap-3">
-            <a href="login.html" class="group inline-flex items-center gap-2 rounded-lg bg-brand-orange px-6 py-4 text-[14.5px] font-semibold text-white shadow-lg shadow-brand-orange/30 transition hover:-translate-y-0.5 hover:bg-brand-orangeDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">
+            <a href="login.html" class="group inline-flex items-center gap-2 rounded-lg bg-brand-cta px-6 py-4 text-[14.5px] font-semibold text-white shadow-lg shadow-brand-orange/30 transition hover:-translate-y-0.5 hover:bg-brand-ctaDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">
               Start Today <i data-lucide="arrow-right" class="h-4 w-4 transition-transform group-hover:translate-x-0.5"></i>
             </a>
             <a href="#services" class="inline-flex items-center rounded-lg border-[1.5px] border-brand-navy bg-white/70 px-6 py-4 text-[14.5px] font-semibold text-brand-navy backdrop-blur transition hover:-translate-y-0.5 hover:bg-brand-navy hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy focus-visible:ring-offset-2">
@@ -187,7 +187,7 @@
         </div>
 
         <!-- Requests preview (illustrative) -->
-        <div class="reveal relative mt-4 min-w-0 lg:mt-0 lg:pl-6" style="transition-delay:.12s" role="img" aria-label="Example of the client dashboard: three requests with their statuses, and a note that deliverables are reviewed by a person before delivery">
+        <div class="reveal relative mt-4 min-w-0 lg:mt-0 lg:pl-6" style="transition-delay:.12s" role="group" aria-label="Example of the client dashboard: three requests with their statuses, and a note that deliverables are reviewed by a person before delivery">
           <!-- tilted backing panel -->
           <div aria-hidden="true" class="absolute -right-2 bottom-1 left-6 top-6 rotate-[4deg] rounded-3xl bg-brand-navy lg:-right-4 lg:left-14"></div>
           <div aria-hidden="true" class="absolute -right-3 -top-4 h-20 w-20 rounded-2xl border-2 border-dashed border-brand-orange/40"></div>
@@ -321,7 +321,7 @@
             <p class="inline-flex items-center gap-3 rounded-full bg-white px-4 py-2.5 text-[12px] font-bold tracking-[0.06em] text-brand-navy shadow-[0_8px_20px_-12px_rgba(36,26,21,.3)]"><span class="h-[3px] w-6 rounded bg-brand-orange"></span>HOW IT WORKS</p>
             <h2 class="mt-5 font-display text-[34px] font-semibold leading-[1.12] tracking-tight sm:text-[38px] lg:text-[36px]">Simple Steps<br /> to <span class="text-brand-orange">Get Started</span></h2>
             <p class="mt-5 max-w-[340px] text-[15px] leading-relaxed text-ink-muted">Getting the support you need is easy. Follow these simple steps and let us handle the rest.</p>
-            <a href="onboarding.html" class="group mt-7 inline-flex items-center gap-2.5 rounded-full bg-brand-orange px-7 py-3.5 text-[14.5px] font-semibold text-white shadow-lg shadow-brand-orange/30 transition hover:-translate-y-px hover:bg-brand-orangeDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">
+            <a href="onboarding.html" class="group mt-7 inline-flex items-center gap-2.5 rounded-full bg-brand-cta px-7 py-3.5 text-[14.5px] font-semibold text-white shadow-lg shadow-brand-orange/30 transition hover:-translate-y-px hover:bg-brand-ctaDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">
               Get Started <i data-lucide="arrow-right" class="h-4 w-4 transition-transform group-hover:translate-x-0.5"></i>
             </a>
           </div>
@@ -329,14 +329,14 @@
           <ol class="grid grid-cols-1 gap-x-5 gap-y-10 min-[480px]:grid-cols-2 lg:flex lg:items-stretch lg:gap-0">
             <li class="reveal relative flex-1 rounded-2xl border-b-4 border-brand-navy bg-white px-4 pb-7 pt-11 text-center shadow-[0_18px_40px_-26px_rgba(36,26,21,.35)] lg:px-3.5">
               <span class="absolute -top-5 left-1/2 grid h-10 w-10 -translate-x-1/2 place-items-center rounded-full bg-brand-navy font-display text-[17px] font-semibold text-white ring-4 ring-cream">1</span>
-              <span class="relative mx-auto grid h-[68px] w-[68px] place-items-center rounded-full bg-brand-navySoft text-brand-navy"><i data-lucide="user-round" class="h-7 w-7"></i><span class="absolute -bottom-0.5 -right-1 grid h-[18px] w-[18px] place-items-center rounded-full bg-brand-orange text-white ring-2 ring-brand-navySoft"><i data-lucide="plus" class="h-3 w-3"></i></span></span>
+              <span class="relative mx-auto grid h-[68px] w-[68px] place-items-center rounded-full bg-brand-navySoft text-brand-navy"><i data-lucide="user-round" class="h-7 w-7"></i><span class="absolute -bottom-0.5 -right-1 grid h-[18px] w-[18px] place-items-center rounded-full bg-brand-cta text-white ring-2 ring-brand-navySoft"><i data-lucide="plus" class="h-3 w-3"></i></span></span>
               <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug text-brand-navy">Sign Up</h3>
               <p class="mx-auto mt-2.5 max-w-[220px] text-[13px] leading-relaxed text-ink-muted">Create your account in minutes.</p>
             </li>
             <li aria-hidden="true" class="hidden shrink-0 items-center lg:flex"><span class="relative z-10 -mx-3 grid h-9 w-9 place-items-center rounded-full bg-brand-navySoft text-brand-navy ring-4 ring-cream"><i data-lucide="arrow-right" class="h-4 w-4"></i></span></li>
             <li class="reveal relative flex-1 rounded-2xl border-b-4 border-brand-orange bg-white px-4 pb-7 pt-11 text-center shadow-[0_18px_40px_-26px_rgba(36,26,21,.35)] lg:px-3.5" style="transition-delay:.06s">
               <span class="absolute -top-5 left-1/2 grid h-10 w-10 -translate-x-1/2 place-items-center rounded-full bg-brand-navy font-display text-[17px] font-semibold text-white ring-4 ring-cream">2</span>
-              <span class="relative mx-auto grid h-[68px] w-[68px] place-items-center rounded-full bg-brand-navySoft text-brand-navy"><i data-lucide="clipboard-list" class="h-7 w-7"></i><span class="absolute -bottom-0.5 -right-1 grid h-[18px] w-[18px] place-items-center rounded-full bg-brand-orange text-white ring-2 ring-brand-navySoft"><i data-lucide="check" class="h-3 w-3"></i></span></span>
+              <span class="relative mx-auto grid h-[68px] w-[68px] place-items-center rounded-full bg-brand-navySoft text-brand-navy"><i data-lucide="clipboard-list" class="h-7 w-7"></i><span class="absolute -bottom-0.5 -right-1 grid h-[18px] w-[18px] place-items-center rounded-full bg-brand-cta text-white ring-2 ring-brand-navySoft"><i data-lucide="check" class="h-3 w-3"></i></span></span>
               <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug text-brand-navy">Submit a Task</h3>
               <p class="mx-auto mt-2.5 max-w-[220px] text-[13px] leading-relaxed text-ink-muted">Tell us what you need and set your preferences.</p>
             </li>
@@ -349,7 +349,7 @@
             </li>
             <li aria-hidden="true" class="hidden shrink-0 items-center lg:flex"><span class="relative z-10 -mx-3 grid h-9 w-9 place-items-center rounded-full bg-brand-navySoft text-brand-navy ring-4 ring-cream"><i data-lucide="arrow-right" class="h-4 w-4"></i></span></li>
             <li class="reveal relative flex-1 rounded-2xl border-b-4 border-brand-orange bg-white px-4 pb-7 pt-11 text-center shadow-[0_18px_40px_-26px_rgba(36,26,21,.35)] lg:px-3.5" style="transition-delay:.18s">
-              <span class="absolute -top-5 left-1/2 grid h-10 w-10 -translate-x-1/2 place-items-center rounded-full bg-brand-orange font-display text-[17px] font-semibold text-white ring-4 ring-cream">4</span>
+              <span class="absolute -top-5 left-1/2 grid h-10 w-10 -translate-x-1/2 place-items-center rounded-full bg-brand-cta font-display text-[17px] font-semibold text-white ring-4 ring-cream">4</span>
               <span class="relative mx-auto grid h-[68px] w-[68px] place-items-center rounded-full bg-pill-orangeBg text-brand-orange"><i data-lucide="circle-check" class="h-8 w-8"></i></span>
               <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug text-brand-navy">You Get Results</h3>
               <p class="mx-auto mt-2.5 max-w-[220px] text-[13px] leading-relaxed text-ink-muted">Receive updates and track every step.</p>
@@ -400,7 +400,7 @@
             <p class="mt-6 flex items-baseline gap-2"><span class="font-display text-[34px] font-semibold tracking-tight text-ink">₦97,500</span><span class="text-[13.5px] text-ink-muted">/ month</span></p>
             <p class="mt-3 inline-flex self-start rounded-full bg-pill-orangeBg px-3.5 py-1.5 text-[12.5px] font-semibold text-brand-orangeDark">20 docs or tasks a month</p>
             <ul class="mb-8 mt-6 space-y-3.5 text-[14px] text-ink"><li class="flex items-start gap-2.5"><i data-lucide="circle-check" class="mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-orange"></i>1 legal review per month</li><li class="flex items-start gap-2.5"><i data-lucide="circle-check" class="mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-orange"></i>Everything in Starter</li><li class="flex items-start gap-2.5"><i data-lucide="circle-check" class="mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-orange"></i>Priority support</li><li class="flex items-start gap-2.5"><i data-lucide="circle-check" class="mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-orange"></i>Faster turnaround time</li><li class="flex items-start gap-2.5"><i data-lucide="circle-check" class="mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-orange"></i>Access to more service categories</li><li class="flex items-start gap-2.5"><i data-lucide="circle-check" class="mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-orange"></i>Monthly performance summary</li></ul>
-            <a href="onboarding.html?plan=growth" class="group mt-auto flex items-center justify-center gap-2 rounded-lg bg-brand-orange py-3.5 text-[14px] font-semibold text-white shadow-lg shadow-brand-orange/30 transition hover:bg-brand-orangeDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">Get Started <i data-lucide="arrow-right" class="h-4 w-4 transition-transform group-hover:translate-x-0.5"></i></a>
+            <a href="onboarding.html?plan=growth" class="group mt-auto flex items-center justify-center gap-2 rounded-lg bg-brand-cta py-3.5 text-[14px] font-semibold text-white shadow-lg shadow-brand-orange/30 transition hover:bg-brand-ctaDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">Get Started <i data-lucide="arrow-right" class="h-4 w-4 transition-transform group-hover:translate-x-0.5"></i></a>
           </article>
 
           <!-- Dedicated -->
@@ -487,7 +487,7 @@
           </div>
         </div>
 
-        <div id="track" class="no-scrollbar mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2" tabindex="0" aria-label="Testimonials">
+        <div id="track" class="no-scrollbar mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2" tabindex="0" role="region" aria-label="Testimonials">
           <figure class="relative w-[85%] shrink-0 snap-start rounded-xl border border-cream-line bg-white p-6 transition hover:shadow-[0_18px_40px_-26px_rgba(28,23,18,.35)] sm:w-[calc(50%-8px)] lg:w-[calc(33.333%-11px)]" data-placeholder="testimonial">
             <i data-lucide="quote" aria-hidden="true" class="absolute right-5 top-5 h-7 w-7 text-brand-navySoft"></i>
             <div class="flex gap-1 text-brand-orange" role="img" aria-label="5 out of 5 stars"><i class="fa-solid fa-star text-[12px]"></i><i class="fa-solid fa-star text-[12px]"></i><i class="fa-solid fa-star text-[12px]"></i><i class="fa-solid fa-star text-[12px]"></i><i class="fa-solid fa-star text-[12px]"></i></div>
@@ -503,7 +503,7 @@
             <div class="flex gap-1 text-brand-orange" role="img" aria-label="5 out of 5 stars"><i class="fa-solid fa-star text-[12px]"></i><i class="fa-solid fa-star text-[12px]"></i><i class="fa-solid fa-star text-[12px]"></i><i class="fa-solid fa-star text-[12px]"></i><i class="fa-solid fa-star text-[12px]"></i></div>
             <blockquote class="mt-5 text-[14px] leading-relaxed text-ink">“I love how easy it is to request services and track progress. It saves me hours each week.”</blockquote>
             <figcaption class="mt-6 flex items-center gap-3">
-              <span class="grid h-10 w-10 place-items-center rounded-full bg-brand-orange text-[12px] font-bold text-white">TA</span>
+              <span class="grid h-10 w-10 place-items-center rounded-full bg-brand-cta text-[12px] font-bold text-white">TA</span>
               <span><span class="block text-[13.5px] font-semibold">Tunde Adebayo</span><span class="block text-[12px] text-ink-muted">Founder, Tunde's Foods</span></span>
             </figcaption>
           </figure>
@@ -580,7 +580,7 @@
               <p class="mt-1.5 text-[14px] text-white/80">Join B &amp; A Essentials today and experience professional support, built for your success.</p>
             </div>
           </div>
-          <a href="onboarding.html" class="group relative inline-flex shrink-0 items-center gap-2 self-start rounded-lg bg-brand-orange px-5 py-3.5 text-[14px] font-semibold text-white transition hover:-translate-y-px hover:bg-brand-orangeDark focus:outline-none focus-visible:ring-2 focus-visible:ring-white md:self-auto">
+          <a href="onboarding.html" class="group relative inline-flex shrink-0 items-center gap-2 self-start rounded-lg bg-brand-cta px-5 py-3.5 text-[14px] font-semibold text-white transition hover:-translate-y-px hover:bg-brand-ctaDark focus:outline-none focus-visible:ring-2 focus-visible:ring-white md:self-auto">
             Get Started <i data-lucide="arrow-right" class="h-4 w-4 transition-transform group-hover:translate-x-0.5"></i>
           </a>
         </div>
@@ -621,9 +621,10 @@
     </div>
   </footer>
 
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://unpkg.com/lucide@1.60.0/dist/umd/lucide.min.js"></script>
   <script>
-    lucide.createIcons();
+    // Icons are decoration: if the icon library fails to load, everything else still works.
+    if (window.lucide) lucide.createIcons();
     document.getElementById('year').textContent = new Date().getFullYear();
 
     // Header shadow on scroll

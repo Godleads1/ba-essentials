@@ -6,7 +6,7 @@
   <title>Log in · banda — B &amp; A Essentials</title>
   <meta name="description" content="Log in to your B &amp; A Essentials account." />
   <meta name="theme-color" content="#1C1712" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231C1712'/%3E%3Cpath d='M17 9h9v17a13 13 0 1 1-9 12z' fill='%23FDFBF6'/%3E%3Ccircle cx='39' cy='39' r='7' fill='%231C1712'/%3E%3Ccircle cx='31' cy='40' r='5' fill='%23D9662E'/%3E%3C/svg%3E" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='14'%20fill='%231C1712'/%3E%3Cpath%20d='M17%209h9v17a13%2013%200%201%201-9%2012z'%20fill='%23FDFBF6'/%3E%3Ccircle%20cx='39'%20cy='39'%20r='7'%20fill='%231C1712'/%3E%3Ccircle%20cx='31'%20cy='40'%20r='5'%20fill='%23D9662E'/%3E%3C/svg%3E" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -14,17 +14,17 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 
   <!-- Tailwind Play CDN for preview only. In Django, build with the Tailwind CLI using the same config. -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            brand: { orange: '#D9662E', orangeDark: '#BF5420', navy: '#33397F', navySoft: '#E7E8F3', lavender: '#B8BBE6' },
-            ink: { DEFAULT: '#241A15', muted: '#5C534D', soft: '#8A817A' },
+            brand: { orange: '#D9662E', orangeDark: '#AD4C1D', cta: '#BE5928', ctaDark: '#A34A1F', navy: '#33397F', navySoft: '#E7E8F3', lavender: '#B8BBE6' },
+            ink: { DEFAULT: '#241A15', muted: '#5C534D', soft: '#736C66' },
             cream: { DEFAULT: '#F5F0E8', light: '#FBF9F5', line: '#ECE5DA' },
             cocoa: { DEFAULT: '#3B251C', deep: '#1C1712' },
-            pill: { orangeBg: '#FBE6DA', greenBg: '#DDF1EC', greenTx: '#1F7A63', navyBg: '#ECEDF8' }
+            pill: { orangeBg: '#FBE6DA', greenBg: '#DDF1EC', greenTx: '#1E7761', navyBg: '#ECEDF8' }
           },
           fontFamily: {
             display: ['Lexend', 'system-ui', 'sans-serif'],
@@ -216,7 +216,7 @@
             <a href="#" class="text-[14px] font-semibold text-ink underline-offset-4 hover:text-brand-navy hover:underline">Forgot password?</a>
           </div>
 
-          <button type="submit" class="submit group mt-7 flex w-full items-center justify-center gap-2.5 rounded-xl bg-brand-orange py-4 text-[15.5px] font-semibold text-white shadow-lg shadow-brand-orange/25 transition hover:bg-brand-orangeDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">
+          <button type="submit" class="submit group mt-7 flex w-full items-center justify-center gap-2.5 rounded-xl bg-brand-cta py-4 text-[15.5px] font-semibold text-white shadow-lg shadow-brand-orange/25 transition hover:bg-brand-ctaDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">
             Log in <i data-lucide="arrow-right" class="h-4 w-4 transition-transform group-hover:translate-x-0.5"></i>
           </button>
           <p id="formNote" class="mt-3 hidden rounded-lg bg-pill-navyBg px-4 py-3 text-[13.5px] text-brand-navy" role="status">This is a design preview, so nothing was sent. Logging in will work once the page is connected to the app.</p>
@@ -234,9 +234,10 @@
     </main>
   </div>
 
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://unpkg.com/lucide@1.60.0/dist/umd/lucide.min.js"></script>
   <script>
-    lucide.createIcons();
+    // Icons are decoration: if the icon library fails to load, everything else still works.
+    if (window.lucide) lucide.createIcons();
 
     // Show / hide password
     const pw = document.getElementById('password');

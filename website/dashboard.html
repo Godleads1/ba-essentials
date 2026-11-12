@@ -6,25 +6,24 @@
   <title>Dashboard · banda — B &amp; A Essentials</title>
   <meta name="description" content="Your B &amp; A Essentials client dashboard." />
   <meta name="theme-color" content="#1C1712" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231C1712'/%3E%3Cpath d='M17 9h9v17a13 13 0 1 1-9 12z' fill='%23FDFBF6'/%3E%3Ccircle cx='39' cy='39' r='7' fill='%231C1712'/%3E%3Ccircle cx='31' cy='40' r='5' fill='%23D9662E'/%3E%3C/svg%3E" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='14'%20fill='%231C1712'/%3E%3Cpath%20d='M17%209h9v17a13%2013%200%201%201-9%2012z'%20fill='%23FDFBF6'/%3E%3Ccircle%20cx='39'%20cy='39'%20r='7'%20fill='%231C1712'/%3E%3Ccircle%20cx='31'%20cy='40'%20r='5'%20fill='%23D9662E'/%3E%3C/svg%3E" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@500;600;700&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 
   <!-- Tailwind Play CDN for preview only. In Django, build with the Tailwind CLI using the same config. -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            brand: { orange: '#D9662E', orangeDark: '#BF5420', navy: '#33397F', navySoft: '#E7E8F3', lavender: '#B8BBE6' },
-            ink: { DEFAULT: '#241A15', muted: '#5C534D', soft: '#8A817A' },
+            brand: { orange: '#D9662E', orangeDark: '#AD4C1D', cta: '#BE5928', ctaDark: '#A34A1F', navy: '#33397F', navySoft: '#E7E8F3', lavender: '#B8BBE6' },
+            ink: { DEFAULT: '#241A15', muted: '#5C534D', soft: '#736C66' },
             cream: { DEFAULT: '#F5F0E8', light: '#FBF9F5', line: '#ECE5DA' },
             cocoa: { DEFAULT: '#3B251C', deep: '#1C1712' },
-            pill: { orangeBg: '#FBE6DA', greenBg: '#DDF1EC', greenTx: '#1F7A63', navyBg: '#ECEDF8' }
+            pill: { orangeBg: '#FBE6DA', greenBg: '#DDF1EC', greenTx: '#1E7761', navyBg: '#ECEDF8' }
           },
           fontFamily: {
             display: ['Lexend', 'system-ui', 'sans-serif'],
@@ -234,7 +233,7 @@
       <span class="help-extra relative grid h-8 w-8 place-items-center rounded-full bg-white text-brand-navy"><i data-lucide="headset" class="h-4 w-4"></i></span>
       <p class="help-title relative mt-3 font-display text-[16px] font-semibold leading-snug">Need a hand?</p>
       <p class="help-extra relative mt-0.5 text-[12.5px] leading-snug text-white/75">Message the team about a request or a payment.</p>
-      <a href="#" class="btn relative mt-3 w-full bg-brand-orange py-2 text-[13px] hover:bg-brand-orangeDark">Contact support</a>
+      <a href="#" class="btn relative mt-3 w-full bg-brand-cta py-2 text-[13px] hover:bg-brand-ctaDark">Contact support</a>
     </div>
   </aside>
 
@@ -253,7 +252,7 @@
         <a href="#" class="relative grid h-10 w-10 place-items-center rounded-full bg-cream-light text-ink ring-1 ring-cream-line hover:bg-cream" aria-label="Notifications, 3 unread"><i data-lucide="bell" class="h-[18px] w-[18px]"></i><span class="ping absolute right-2 top-2 h-2 w-2 rounded-full bg-brand-orange ring-2 ring-white"></span></a>
         <div class="relative ml-1">
           <button type="button" id="userBtn" class="flex items-center gap-2.5 rounded-full py-1 pl-1 pr-1 hover:bg-cream sm:pr-3" aria-haspopup="menu" aria-expanded="false" aria-controls="userMenu">
-            <span class="grid h-10 w-10 place-items-center rounded-full bg-brand-orange text-[13.5px] font-bold text-white" data-initials>CE</span>
+            <span class="grid h-10 w-10 place-items-center rounded-full bg-brand-cta text-[13.5px] font-bold text-white" data-initials>CE</span>
             <span class="hidden text-left md:block"><span class="block max-w-[180px] truncate text-[14px] font-semibold leading-tight" data-fullname>Chinedu Egbuchulam</span><span class="block text-[12px] text-ink-muted">Business owner</span></span>
             <i data-lucide="chevron-down" class="hidden h-4 w-4 text-ink-muted md:block"></i>
           </button>
@@ -388,7 +387,7 @@
     </main>
   </div>
 
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://unpkg.com/lucide@1.60.0/dist/umd/lucide.min.js"></script>
   <script>
     // Tasks this week (sample): Monday first; today is highlighted, days ahead are striped.
     const SENT = [2, 3, 1, 4, 2, 0, 0];
@@ -404,7 +403,8 @@
       return `<div class="flex h-full flex-col items-center justify-end gap-2"><div class="relative w-full max-w-[46px] flex-1"><div class="day-bar absolute inset-x-0 bottom-0 rounded-full ${cls}" style="height:${h}%;--d:${i * 80}ms" title="${n} task${n === 1 ? '' : 's'}">${tip}</div></div><span class="text-[12px] ${i === today ? 'font-semibold text-ink' : 'text-ink-muted'}">${d}</span></div>`;
     }).join('');
     const weekTotal = total;
-    lucide.createIcons();
+    // Icons are decoration: if the icon library fails to load, everything else still works.
+    if (window.lucide) lucide.createIcons();
 
     // Greeting by time of day
     const hr = new Date().getHours();
@@ -414,11 +414,12 @@
 
     // Name and plan carried over from onboarding (?name=...&plan=...)
     const params = new URLSearchParams(location.search);
-    const name = (params.get('name') || '').trim().slice(0, 60);
-    if (name) {
-      const parts = name.split(/\s+/);
-      const initials = (parts[0][0] + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
-      document.querySelectorAll('[data-fullname]').forEach(el => el.textContent = name);
+    const userName = (params.get('name') || '').replace(/\s+/g, ' ').slice(0, 60).trim();
+    if (userName) {
+      const parts = userName.split(' ');
+      const firstChar = word => Array.from(word)[0] || '';
+      const initials = (firstChar(parts[0]) + (parts.length > 1 ? firstChar(parts[parts.length - 1]) : '')).toUpperCase();
+      document.querySelectorAll('[data-fullname]').forEach(el => el.textContent = userName);
       document.querySelectorAll('[data-firstname]').forEach(el => el.textContent = parts[0]);
       document.querySelectorAll('[data-initials]').forEach(el => el.textContent = initials);
     }
@@ -468,7 +469,7 @@
       [...document.querySelectorAll('main > div.grid > section')],
     ];
     let order = 0;
-    groups.forEach(list => list.forEach((el, i) => { el.classList.add('anim'); el.style.setProperty('--d', (order++ * 70) + 'ms'); }));
+    groups.forEach(list => list.forEach(el => { el.classList.add('anim'); el.style.setProperty('--d', (order++ * 70) + 'ms'); }));
     document.querySelectorAll('#sidebar .side-link, #sidebar .side-label').forEach((el, i) => { el.classList.add('anim-x'); el.style.setProperty('--d', (80 + i * 35) + 'ms'); });
     document.querySelectorAll('#sidebar .anim-x').forEach(el => el.classList.add('in'));
 

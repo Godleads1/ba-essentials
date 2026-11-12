@@ -25,6 +25,19 @@ Before launch:
 - Link the Terms of Service and Privacy Policy, and connect login and sign-up to the app.
 - Replace the sample data in `dashboard.html` with the client's real tasks and usage.
 
+## Quality checks
+
+Every change to these pages is checked with:
+
+- the W3C HTML validator (Nu Html Checker): no errors
+- axe-core accessibility rules (WCAG 2.2 AA and best practice): no violations, on laptop and phone widths
+- ESLint on each page's script: no errors or warnings
+- Chromium, Firefox and WebKit (Safari's engine): no script errors, no sideways scrolling, and the
+  full sign-up → payment → dashboard flow completes, at laptop and phone sizes
+
+Third-party scripts are pinned to exact versions (Tailwind 3.4.17, Lucide 1.60.0) so an upstream
+release can't change the pages. If the icon library fails to load, the pages still work without icons.
+
 ## Payments (Paystack)
 
 Step 6 of `onboarding.html` takes payment with Paystack's popup (Inline JS v2), by card,
