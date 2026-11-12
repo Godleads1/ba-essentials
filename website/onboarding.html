@@ -137,6 +137,9 @@
       .fit .review-note { margin-top: clamp(10px, 1.8vh, 16px); padding-block: clamp(8px, 1.3vh, 12px); }
       .fit .agree { margin-top: clamp(10px, 1.8vh, 16px); }
       .fit .agree + .err + .agree, .fit .agree + .agree { margin-top: clamp(6px, 1.2vh, 12px); }
+      .fit .pay-rows { padding-block: clamp(8px, 1.6vh, 16px); margin-top: clamp(10px, 1.8vh, 16px); }
+      .fit .pay-rows > div + div { margin-top: clamp(4px, 0.9vh, 8px); }
+      .fit .pay-note { margin-top: clamp(10px, 1.8vh, 16px); }
       .fit .chip { padding: clamp(6px, 1.05vh, 8px) clamp(11px, 1.6vh, 14px); font-size: clamp(12.5px, 1.75vh, 13.5px); }
       .fit .done-icon { width: clamp(56px, 9vh, 80px); height: clamp(56px, 9vh, 80px); }
       .fit #done h2 { font-size: clamp(24px, 4vh, 32px); margin-top: clamp(12px, 2.4vh, 24px); }
@@ -165,7 +168,7 @@
         </a>
 
         <h1 class="mt-10 max-w-[13em] font-display text-[38px] font-semibold leading-[1.12] tracking-[-0.02em]">Let&rsquo;s get your business <span class="whitespace-nowrap text-[#F0A77C]">set up.</span></h1>
-        <p class="lede mt-4 max-w-[340px] text-[16px] leading-relaxed text-white/70">Five quick steps. It takes about three minutes.</p>
+        <p class="lede mt-4 max-w-[340px] text-[16px] leading-relaxed text-white/70">Six quick steps. It takes about four minutes.</p>
 
         <ol class="stepper mt-10" aria-label="Sign-up steps">
           <li data-step-item="1" class="flex items-start gap-4">
@@ -198,6 +201,12 @@
             </button>
             <span class="pt-1"><span class="st block font-display font-semibold">Review &amp; finish</span><span class="sd mt-0.5 block text-white/55">Agree to the terms and go</span></span>
           </li>
+          <li data-step-item="6" class="flex items-start gap-4">
+            <button type="button" data-goto="6" class="dot grid h-9 w-9 shrink-0 place-items-center rounded-full font-display text-[14px] font-semibold transition disabled:cursor-default" disabled aria-label="Go to step 6: Payment">
+              <span class="num">6</span><span class="num-done"><i data-lucide="check" class="h-4 w-4"></i></span>
+            </button>
+            <span class="pt-1"><span class="st block font-display font-semibold">Payment</span><span class="sd mt-0.5 block text-white/55">Pay securely with Paystack</span></span>
+          </li>
         </ol>
 
         <div class="mt-auto pt-8">
@@ -221,11 +230,11 @@
         <!-- progress -->
         <div id="progressWrap">
           <div class="flex items-center justify-between text-[12.5px] font-semibold">
-            <span id="stepLabel" class="tracking-[0.08em] text-brand-navy" aria-live="polite">STEP 1 OF 5</span>
+            <span id="stepLabel" class="tracking-[0.08em] text-brand-navy" aria-live="polite">STEP 1 OF 6</span>
             <span id="stepName" class="text-ink-muted lg:hidden">Create your account</span>
           </div>
-          <div class="mt-2.5 h-1.5 rounded-full bg-cream-line" role="progressbar" aria-label="Sign-up progress" aria-valuemin="1" aria-valuemax="5" aria-valuenow="1">
-            <div id="progressBar" class="h-1.5 rounded-full bg-brand-orange transition-[width] duration-500" style="width:20%"></div>
+          <div class="mt-2.5 h-1.5 rounded-full bg-cream-line" role="progressbar" aria-label="Sign-up progress" aria-valuemin="1" aria-valuemax="6" aria-valuenow="1">
+            <div id="progressBar" class="h-1.5 rounded-full bg-brand-orange transition-[width] duration-500" style="width:16.7%"></div>
           </div>
         </div>
 
@@ -361,7 +370,7 @@
         <!-- STEP 5: review -->
         <form class="step-panel mt-7" data-step="5" novalidate hidden>
           <h2 class="panel-title font-display text-[32px] font-semibold leading-tight tracking-[-0.02em]" tabindex="-1">Review and finish</h2>
-          <p class="panel-sub mt-1.5 text-[15.5px] text-ink-muted">Check your details, then create your account.</p>
+          <p class="panel-sub mt-1.5 text-[15.5px] text-ink-muted">Check your details and agree to the terms. Payment is next.</p>
           <div class="panel-body mt-7">
             <dl class="review divide-y divide-cream-line rounded-2xl border border-cream-line bg-white text-[14px]">
               <div class="flex items-center gap-4 px-5 py-3"><dt class="w-24 shrink-0 text-ink-muted">Name</dt><dd id="rvName" class="min-w-0 flex-1 truncate font-semibold"></dd><button type="button" data-goto-step="1" class="text-[13px] font-semibold text-brand-navy hover:underline">Edit</button></div>
@@ -382,7 +391,37 @@
               <span>Send me occasional tips and updates by email. <span class="text-ink-soft">(Optional)</span></span>
             </label>
           </div>
-          <div class="actions mt-8 flex items-center justify-between gap-3"><button type="button" data-back class="btn inline-flex items-center gap-2 rounded-xl px-4 py-3.5 text-[14.5px] font-semibold text-ink-muted transition hover:bg-cream hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy"><i data-lucide="arrow-left" class="h-4 w-4"></i>Back</button><button type="submit" class="btn group inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand-orange px-6 py-3.5 text-[15px] font-semibold text-white shadow-lg shadow-brand-orange/25 transition hover:bg-brand-orangeDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2 sm:flex-none sm:min-w-[200px]">Create my account <i data-lucide="arrow-right" class="h-4 w-4 transition-transform group-hover:translate-x-0.5"></i></button></div>
+          <div class="actions mt-8 flex items-center justify-between gap-3"><button type="button" data-back class="btn inline-flex items-center gap-2 rounded-xl px-4 py-3.5 text-[14.5px] font-semibold text-ink-muted transition hover:bg-cream hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy"><i data-lucide="arrow-left" class="h-4 w-4"></i>Back</button><button type="submit" class="btn group inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand-orange px-6 py-3.5 text-[15px] font-semibold text-white shadow-lg shadow-brand-orange/25 transition hover:bg-brand-orangeDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2 sm:flex-none sm:min-w-[200px]">Continue to payment <i data-lucide="arrow-right" class="h-4 w-4 transition-transform group-hover:translate-x-0.5"></i></button></div>
+        </form>
+
+        <!-- STEP 6: payment (Paystack) -->
+        <form class="step-panel mt-7" data-step="6" novalidate hidden>
+          <h2 class="panel-title font-display text-[32px] font-semibold leading-tight tracking-[-0.02em]" tabindex="-1">Pay for your plan</h2>
+          <p class="panel-sub mt-1.5 text-[15.5px] text-ink-muted">Your plan starts as soon as your payment is confirmed.</p>
+          <div class="panel-body mt-7">
+            <div class="rounded-2xl border border-cream-line bg-white">
+              <div class="flex items-start justify-between gap-4 px-5 pt-5">
+                <div class="flex items-center gap-3.5">
+                  <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-pill-orangeBg text-brand-orange"><i data-lucide="receipt-text" class="h-5 w-5"></i></span>
+                  <div><p id="payPlan" class="font-display text-[17px] font-semibold leading-tight">Growth plan</p><p id="payAllow" class="mt-0.5 text-[13px] text-ink-muted">20 docs or tasks a month · 1 legal review a month</p></div>
+                </div>
+                <button type="button" data-goto-step="4" class="shrink-0 text-[13px] font-semibold text-brand-navy hover:underline">Change</button>
+              </div>
+              <dl class="pay-rows mt-4 space-y-2 border-t border-dashed border-cream-line px-5 py-4 text-[14px]">
+                <div class="flex justify-between gap-4"><dt class="text-ink-muted">Billed monthly. Next payment</dt><dd id="payNext" class="font-medium"></dd></div>
+              </dl>
+              <div class="flex items-center justify-between rounded-b-2xl bg-cream/70 px-5 py-4">
+                <span class="font-semibold">Due today</span><span id="payTotal" class="font-display text-[24px] font-semibold">₦97,500</span>
+              </div>
+            </div>
+            <p class="pay-note mt-4 flex [&[hidden]]:hidden items-start gap-2 text-[13px] leading-relaxed text-ink-muted"><i data-lucide="lock" class="mt-0.5 h-4 w-4 shrink-0 text-brand-navy"></i>You&rsquo;ll pay in a secure Paystack window by card, bank transfer or USSD. We never see or store your card details.</p>
+            <p id="payMsg" role="status" hidden class="mt-4 rounded-xl px-4 py-3 text-[13.5px] font-medium"></p>
+            <div id="payPreview" hidden class="mt-4 rounded-xl border border-brand-lavender bg-pill-navyBg px-4 py-3.5 text-[13.5px] leading-relaxed text-brand-navy">
+              <p><span class="font-semibold">Paystack isn&rsquo;t connected in this preview,</span> so no payment window opens and no money is taken.</p>
+              <button type="button" id="skipPay" class="mt-1.5 font-semibold underline underline-offset-2">Finish without paying</button>
+            </div>
+          </div>
+          <div class="actions mt-8 flex items-center justify-between gap-3"><button type="button" data-back class="btn inline-flex items-center gap-2 rounded-xl px-4 py-3.5 text-[14.5px] font-semibold text-ink-muted transition hover:bg-cream hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy"><i data-lucide="arrow-left" class="h-4 w-4"></i>Back</button><button type="submit" id="payBtn" class="btn group inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand-orange px-6 py-3.5 text-[15px] font-semibold text-white shadow-lg shadow-brand-orange/25 transition hover:bg-brand-orangeDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2 sm:flex-none sm:min-w-[200px] disabled:cursor-wait disabled:opacity-70"><span id="payBtnText">Pay ₦97,500</span> <i data-lucide="arrow-right" class="h-4 w-4 transition-transform group-hover:translate-x-0.5"></i></button></div>
         </form>
 
         <!-- DONE -->
@@ -392,14 +431,14 @@
             <i data-lucide="check" class="relative h-9 w-9"></i>
           </span>
           <h2 id="doneTitle" class="mt-6 font-display text-[32px] font-semibold leading-tight tracking-[-0.02em]" tabindex="-1">You&rsquo;re all set, <span id="firstName">there</span>!</h2>
-          <p class="mx-auto mt-2 max-w-[380px] text-[15.5px] leading-relaxed text-ink-muted">Your account is ready. Send us your first task and the team will take it from there.</p>
+          <p id="doneMsg" class="mx-auto mt-2 max-w-[400px] text-[15.5px] leading-relaxed text-ink-muted">Your account is ready. Send us your first task and the team will take it from there.</p>
           <ol class="done-list mx-auto mt-7 max-w-[400px] space-y-3 text-left text-[14px]">
             <li class="flex items-center gap-3 rounded-xl border border-cream-line bg-white px-4 py-3"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-brand-navy text-[12px] font-semibold text-white">1</span>Submit your first task with any files</li>
             <li class="flex items-center gap-3 rounded-xl border border-cream-line bg-white px-4 py-3"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-brand-navy text-[12px] font-semibold text-white">2</span>We confirm the scope with you</li>
             <li class="flex items-center gap-3 rounded-xl border border-cream-line bg-white px-4 py-3"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-brand-orange text-[12px] font-semibold text-white">3</span>Your work is done, checked and delivered</li>
           </ol>
-          <a href="login.html" class="done-cta group mt-8 inline-flex items-center justify-center gap-2 rounded-xl bg-brand-orange px-7 py-3.5 text-[15px] font-semibold text-white shadow-lg shadow-brand-orange/25 transition hover:bg-brand-orangeDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">Go to my dashboard <i data-lucide="arrow-right" class="h-4 w-4 transition-transform group-hover:translate-x-0.5"></i></a>
-          <p class="done-note mx-auto mt-6 max-w-[380px] rounded-lg bg-cream px-4 py-2.5 text-[12.5px] text-ink-muted">This is a design preview, so no account was created.</p>
+          <a id="toDashboard" href="dashboard.html" class="done-cta group mt-8 inline-flex items-center justify-center gap-2 rounded-xl bg-brand-orange px-7 py-3.5 text-[15px] font-semibold text-white shadow-lg shadow-brand-orange/25 transition hover:bg-brand-orangeDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">Go to my dashboard <i data-lucide="arrow-right" class="h-4 w-4 transition-transform group-hover:translate-x-0.5"></i></a>
+          <p class="done-note mx-auto mt-6 max-w-[380px] rounded-lg bg-cream px-4 py-2.5 text-[12.5px] text-ink-muted"><span id="doneNote">This is a design preview, so no account was created.</span></p>
         </section>
       </div>
     </main>
@@ -409,8 +448,8 @@
   <script>
     lucide.createIcons();
 
-    const TOTAL = 5;
-    const NAMES = ['Create your account', 'Verify your email', 'Business details', 'Choose a plan', 'Review and finish'];
+    const TOTAL = 6;
+    const NAMES = ['Create your account', 'Verify your email', 'Business details', 'Choose a plan', 'Review and finish', 'Payment'];
     const PLAN_LABEL = { starter: 'Starter · ₦65,000 / month', growth: 'Growth · ₦97,500 / month', dedicated: 'Dedicated · ₦260,000 / month' };
     const panels = [...document.querySelectorAll('[data-step]')];
     const items = [...document.querySelectorAll('[data-step-item]')];
@@ -437,6 +476,7 @@
       document.getElementById('progressBar').style.width = (n / TOTAL * 100) + '%';
       document.querySelector('[role="progressbar"]').setAttribute('aria-valuenow', n);
       if (n === 5) fillReview();
+      if (n === 6) fillPayment();
       if (focus) {
         const panel = panels[n - 1];
         const first = panel.querySelector('input:not([type=hidden]):not(.sr-only), select');
@@ -482,6 +522,7 @@
         const ok = !!document.querySelector('input[name="plan"]:checked');
         document.getElementById('planErr').hidden = ok; return ok;
       },
+      6: () => true,
       5: () => {
         const ok = document.getElementById('terms').checked;
         document.getElementById('termsErr').hidden = ok; return ok;
@@ -497,7 +538,8 @@
         return;
       }
       if (n === 1) document.getElementById('sentTo').textContent = document.getElementById('email').value.trim();
-      if (n < TOTAL) show(n + 1); else finish();
+      if (n === TOTAL) { startPayment(); return; }
+      show(n + 1);
     }));
     // Clear an error as soon as the field is fixed.
     document.addEventListener('input', e => {
@@ -565,11 +607,106 @@
       document.getElementById('rvPlan').textContent = plan ? PLAN_LABEL[plan.value] : '';
     }
 
-    function finish() {
+    // ---------- payment (Paystack) ----------
+    // Paste your Paystack PUBLIC key here (pk_test_... while testing, pk_live_... when live).
+    // Never put the secret key (sk_...) in this file. For recurring monthly billing, create
+    // the three plans in the Paystack dashboard and paste their plan codes (PLN_...) below.
+    const PAYSTACK = { publicKey: '', planCodes: { starter: '', growth: '', dedicated: '' } };
+    const PRICE = { starter: 65000, growth: 97500, dedicated: 260000 };
+    const PLAN_INFO = {
+      starter: ['Starter plan', '7 docs or tasks a month · 1 legal review a quarter'],
+      growth: ['Growth plan', '20 docs or tasks a month · 1 legal review a month'],
+      dedicated: ['Dedicated plan', '30 docs or tasks a month · up to 4 legal reviews a month'],
+    };
+    const naira = n => '₦' + n.toLocaleString('en-NG');
+    const selectedPlan = () => (document.querySelector('input[name="plan"]:checked') || {}).value || 'growth';
+    const payBtn = document.getElementById('payBtn'), payMsg = document.getElementById('payMsg');
+
+    function fillPayment() {
+      const plan = selectedPlan();
+      document.getElementById('payPlan').textContent = PLAN_INFO[plan][0];
+      document.getElementById('payAllow').textContent = PLAN_INFO[plan][1];
+      document.getElementById('payTotal').textContent = naira(PRICE[plan]);
+      document.getElementById('payBtnText').textContent = 'Pay ' + naira(PRICE[plan]);
+      const next = new Date(); next.setMonth(next.getMonth() + 1);
+      document.getElementById('payNext').textContent = next.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+      payMsg.hidden = true;
+      document.getElementById('payPreview').hidden = true;
+      document.querySelector('.pay-note').hidden = false;
+    }
+    function payNotice(text, tone) {
+      payMsg.textContent = text;
+      payMsg.className = 'mt-4 rounded-xl px-4 py-3 text-[13.5px] font-medium ' +
+        (tone === 'error' ? 'bg-red-50 text-red-800' : 'bg-pill-orangeBg text-brand-orangeDark');
+      payMsg.hidden = false;
+    }
+    function busy(on) {
+      payBtn.disabled = on;
+      document.getElementById('payBtnText').textContent = on ? 'Opening Paystack…' : 'Pay ' + naira(PRICE[selectedPlan()]);
+    }
+    let paystackScript;
+    function loadPaystack() {
+      return paystackScript ||= new Promise((resolve, reject) => {
+        const tag = document.createElement('script');
+        tag.src = 'https://js.paystack.co/v2/inline.js';
+        tag.onload = resolve;
+        tag.onerror = () => { paystackScript = null; reject(new Error('Paystack did not load')); };
+        document.head.appendChild(tag);
+      });
+    }
+    function startPayment() {
+      payMsg.hidden = true;
+      if (!PAYSTACK.publicKey) {
+        document.getElementById('payPreview').hidden = false;
+        document.querySelector('.pay-note').hidden = true;
+        document.getElementById('skipPay').focus();
+        return;
+      }
+      const plan = selectedPlan();
+      const email = document.getElementById('email').value.trim();
+      const business = document.getElementById('biz').value.trim();
+      busy(true);
+      loadPaystack().then(() => {
+        const options = {
+          key: PAYSTACK.publicKey,
+          email,
+          amount: PRICE[plan] * 100, // Paystack takes the amount in kobo
+          currency: 'NGN',
+          reference: 'BA-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).slice(2, 6).toUpperCase(),
+          metadata: {
+            plan,
+            custom_fields: [
+              { display_name: 'Business', variable_name: 'business', value: business },
+              { display_name: 'Plan', variable_name: 'plan', value: PLAN_INFO[plan][0] },
+            ],
+          },
+          onSuccess: tx => { busy(false); finish({ paid: true, reference: tx.reference }); },
+          onCancel: () => { busy(false); payNotice('Payment cancelled. You have not been charged. Try again when you are ready.', 'warn'); },
+          onError: () => { busy(false); payNotice('Paystack could not start the payment. Check your connection and try again.', 'error'); },
+        };
+        if (PAYSTACK.planCodes[plan]) options.planCode = PAYSTACK.planCodes[plan];
+        new PaystackPop().newTransaction(options);
+        busy(false);
+      }).catch(() => { busy(false); payNotice('We could not reach Paystack. Check your connection and try again.', 'error'); });
+    }
+    document.getElementById('skipPay').addEventListener('click', () => finish({ paid: false }));
+    document.querySelectorAll('[data-goto-step]').forEach(b => b.addEventListener('click', () => show(+b.dataset.gotoStep, true)));
+
+    function finish(result = { paid: false }) {
       panels.forEach(p => p.hidden = true);
       document.getElementById('progressWrap').hidden = true;
       items.forEach(li => { li.classList.remove('is-current'); li.classList.add('is-done'); li.querySelector('button').disabled = true; li.removeAttribute('aria-current'); });
-      document.getElementById('firstName').textContent = document.getElementById('name').value.trim().split(/\s+/)[0] || 'there';
+      const fullName = document.getElementById('name').value.trim();
+      document.getElementById('firstName').textContent = fullName.split(/\s+/)[0] || 'there';
+      document.getElementById('toDashboard').href = 'dashboard.html?' + new URLSearchParams({ name: fullName, plan: selectedPlan() });
+      if (result.paid) {
+        // The browser callback is not proof of payment. The server must confirm it with
+        // Paystack (webhook or the verify endpoint) before the plan is switched on.
+        document.getElementById('doneMsg').textContent = 'We have received your payment. Your plan starts as soon as Paystack confirms it, usually within a minute.';
+        document.getElementById('doneNote').textContent = 'Paystack reference: ' + result.reference + '. Design preview: no account was created.';
+      } else {
+        document.getElementById('doneNote').textContent = 'This is a design preview, so no account was created and no payment was taken.';
+      }
       const done = document.getElementById('done'); done.hidden = false;
       document.getElementById('doneTitle').focus({ preventScroll: true });
     }
