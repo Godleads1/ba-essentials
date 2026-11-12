@@ -8,6 +8,7 @@ The public marketing site for B & A Essentials, built as three standalone HTML p
 | `login.html` | Log in |
 | `onboarding.html` | Six-step sign-up: account, email code, business details, plan, review, payment |
 | `dashboard.html` | Client dashboard (sample data) |
+| `submit-task.html` | Submit a Task: service, details and files, review, confirmation |
 
 It is published with GitHub Pages from the `gh-pages` branch, which holds a copy of this folder.
 
@@ -64,7 +65,7 @@ Edit the files here, then copy them to the `gh-pages` branch:
 
 ```bash
 git checkout gh-pages
-git checkout main -- website/index.html website/login.html website/onboarding.html website/dashboard.html
+git checkout main -- website/index.html website/login.html website/onboarding.html website/dashboard.html website/submit-task.html
 mv website/*.html . && rmdir website
 git commit -am "Update website" && git push origin gh-pages
 ```
