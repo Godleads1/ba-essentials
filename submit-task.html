@@ -13,27 +13,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@500;600;700&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet" />
 
   <!-- Tailwind Play CDN for preview only. In Django, build with the Tailwind CLI using the same config. -->
-  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            brand: { orange: '#D9662E', orangeDark: '#AD4C1D', cta: '#BE5928', ctaDark: '#A34A1F', navy: '#33397F', navySoft: '#E7E8F3', lavender: '#B8BBE6' },
-            ink: { DEFAULT: '#241A15', muted: '#5C534D', soft: '#736C66' },
-            cream: { DEFAULT: '#F5F0E8', light: '#FBF9F5', line: '#ECE5DA' },
-            cocoa: { DEFAULT: '#3B251C', deep: '#1C1712' },
-            pill: { orangeBg: '#FBE6DA', greenBg: '#DDF1EC', greenTx: '#1E7761', navyBg: '#ECEDF8' }
-          },
-          fontFamily: {
-            display: ['Lexend', 'system-ui', 'sans-serif'],
-            sans: ['Inter', 'system-ui', 'sans-serif']
-          },
-          maxWidth: { site: '1000px' }
-        }
-      }
-    }
-  </script>
   <style>
     html { scroll-behavior: smooth; scroll-padding-top: 84px; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -240,6 +219,8 @@
     @keyframes pop { from { transform: scale(.4); opacity: 0; } }
     @media (prefers-reduced-motion: reduce) { .js-steps .step, .done-burst, .done-burst::before { animation: none !important; } .cat, .step-dot { transition: none; } }
   </style>
+  <!-- Built from build/ (npm run build). Loaded last so utilities win, as with the Tailwind CDN. -->
+  <link rel="stylesheet" href="app.css" />
 </head>
 
 <body class="font-sans text-ink antialiased">
@@ -253,36 +234,36 @@
         <span class="logo-word" aria-hidden="true"><span class="logo-b">b<i class="logo-dot"></i></span>anda</span>
         <span class="logo-tag" aria-hidden="true" style="--logo-tag:#F0A77C">B<span class="amp" style="color:#F0A77C">&amp;</span>A ESSENTIALS</span>
       </a>
-      <button type="button" id="closeMenu" class="grid h-9 w-9 place-items-center rounded-lg text-white/80 hover:bg-white/10 lg:hidden" aria-label="Close menu"><i data-lucide="x" class="h-5 w-5"></i></button>
+      <button type="button" id="closeMenu" class="grid h-9 w-9 place-items-center rounded-lg text-white/80 hover:bg-white/10 lg:hidden" aria-label="Close menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-x h-5 w-5"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button>
     </div>
 
     <nav class="no-scrollbar min-h-0 flex-1 overflow-y-auto" style="margin-top:clamp(16px,4vh,40px)" aria-label="Client">
       <div class="side-group">
         <p class="side-label">MENU</p>
         <ul>
-          <li><a href="dashboard.html" class="side-link"><i data-lucide="house"></i>Dashboard</a></li>
-          <li><a href="submit-task.html" class="side-link" aria-current="page"><i data-lucide="circle-plus"></i>Submit a Task</a></li>
-          <li><a href="#" class="side-link"><i data-lucide="square-check"></i>My Tasks<span class="side-badge">5</span></a></li>
-          <li><a href="#" class="side-link"><i data-lucide="layout-grid"></i>Service Catalogue</a></li>
-          <li><a href="#" class="side-link"><i data-lucide="folder"></i>Deliverables</a></li>
-          <li><a href="#" class="side-link"><i data-lucide="message-square"></i>Messages<span class="side-badge bg-brand-orange">3</span></a></li>
+          <li><a href="dashboard.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-house"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Dashboard</a></li>
+          <li><a href="submit-task.html" class="side-link" aria-current="page"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-plus"><circle cx="12" cy="12" r="10"></circle><path d="M8 12h8"></path><path d="M12 8v8"></path></svg>Submit a Task</a></li>
+          <li><a href="#" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-square-check"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="m16 9-5.5 5.5L8 12"></path></svg>My Tasks<span class="side-badge">5</span></a></li>
+          <li><a href="#" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-layout-grid"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>Service Catalogue</a></li>
+          <li><a href="#" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-folder"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path></svg>Deliverables</a></li>
+          <li><a href="#" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-message-square"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"></path></svg>Messages<span class="side-badge bg-brand-orange">3</span></a></li>
         </ul>
       </div>
       <div class="side-group">
         <p class="side-label">ACCOUNT</p>
         <ul>
-          <li><a href="#" class="side-link"><i data-lucide="gauge"></i>Plan &amp; Usage</a></li>
-          <li><a href="#" class="side-link"><i data-lucide="receipt-text"></i>Billing</a></li>
-          <li><a href="#" class="side-link"><i data-lucide="users"></i>Team</a></li>
-          <li><a href="#" class="side-link"><i data-lucide="life-buoy"></i>Help</a></li>
-          <li><a href="index.html" class="side-link"><i data-lucide="log-out"></i>Log out</a></li>
+          <li><a href="#" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-gauge"><path d="m12 14 4-4"></path><path d="M3.34 19a10 10 0 1 1 17.32 0"></path></svg>Plan &amp; Usage</a></li>
+          <li><a href="#" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-receipt-text"><path d="M13 16H8"></path><path d="M14 8H8"></path><path d="M16 12H8"></path><path d="M4 3a1 1 0 0 1 1-1 1.3 1.3 0 0 1 .7.2l.933.6a1.3 1.3 0 0 0 1.4 0l.934-.6a1.3 1.3 0 0 1 1.4 0l.933.6a1.3 1.3 0 0 0 1.4 0l.933-.6a1.3 1.3 0 0 1 1.4 0l.934.6a1.3 1.3 0 0 0 1.4 0l.933-.6A1.3 1.3 0 0 1 19 2a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1 1.3 1.3 0 0 1-.7-.2l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.934.6a1.3 1.3 0 0 1-1.4 0l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-1.4 0l-.934-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-.7.2 1 1 0 0 1-1-1z"></path></svg>Billing</a></li>
+          <li><a href="#" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-users"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><path d="M16 3.128a4 4 0 0 1 0 7.744"></path><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><circle cx="9" cy="7" r="4"></circle></svg>Team</a></li>
+          <li><a href="#" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-life-buoy"><circle cx="12" cy="12" r="10"></circle><path d="m4.93 4.93 4.24 4.24"></path><path d="m14.83 9.17 4.24-4.24"></path><path d="m14.83 14.83 4.24 4.24"></path><path d="m9.17 14.83-4.24 4.24"></path><circle cx="12" cy="12" r="4"></circle></svg>Help</a></li>
+          <li><a href="index.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-log-out"><path d="m16 17 5-5-5-5"></path><path d="M21 12H9"></path><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg>Log out</a></li>
         </ul>
       </div>
     </nav>
 
     <div class="side-help relative mx-3 mt-4 shrink-0 overflow-hidden rounded-[18px] border border-white/15 bg-white/[.07] p-4 text-white">
       <span aria-hidden="true" class="rings pointer-events-none absolute inset-0"></span>
-      <span class="help-extra relative grid h-8 w-8 place-items-center rounded-full bg-white text-brand-navy"><i data-lucide="headset" class="h-4 w-4"></i></span>
+      <span class="help-extra relative grid h-8 w-8 place-items-center rounded-full bg-white text-brand-navy"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-headset h-4 w-4"><path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 1 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3Z"></path><path d="M21 16v2a4 4 0 0 1-4 4h-5"></path></svg></span>
       <p class="help-title relative mt-3 font-display text-[16px] font-semibold leading-snug">Need a hand?</p>
       <p class="help-extra relative mt-0.5 text-[12.5px] leading-snug text-white/75">Message the team about a request or a payment.</p>
       <a href="#" class="btn relative mt-3 w-full bg-brand-cta py-2 text-[13px] hover:bg-brand-ctaDark">Contact support</a>
@@ -292,26 +273,26 @@
   <div class="min-h-screen p-3 lg:pl-[280px]">
     <!-- ===================== TOP BAR ===================== -->
     <header class="panel flex h-[68px] items-center gap-3 px-3 sm:px-4">
-      <button type="button" id="openMenu" class="grid h-10 w-10 shrink-0 place-items-center rounded-full text-ink hover:bg-cream lg:hidden" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false"><i data-lucide="menu" class="h-5 w-5"></i></button>
+      <button type="button" id="openMenu" class="grid h-10 w-10 shrink-0 place-items-center rounded-full text-ink hover:bg-cream lg:hidden" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-menu h-5 w-5"><path d="M4 5h16"></path><path d="M4 12h16"></path><path d="M4 19h16"></path></svg></button>
       <form class="relative min-w-0 flex-1 md:max-w-[400px]" role="search" onsubmit="return false">
         <label for="q" class="sr-only">Search</label>
-        <i data-lucide="search" class="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-ink-muted"></i>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-search pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-ink-muted"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></svg>
         <input id="q" type="search" placeholder="Search requests or services" class="w-full rounded-full bg-cream-light py-2.5 pl-11 pr-14 text-[14px] ring-1 ring-cream-line placeholder:text-ink-soft focus:outline-none focus:ring-2 focus:ring-brand-navy/40" />
         <kbd class="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-md bg-cream px-1.5 py-0.5 font-sans text-[11px] font-semibold text-ink-muted sm:block">Ctrl K</kbd>
       </form>
       <div class="ml-auto flex items-center gap-2">
-        <a href="#" class="hidden h-10 w-10 place-items-center rounded-full bg-cream-light text-ink ring-1 ring-cream-line hover:bg-cream sm:grid" aria-label="Messages, 3 unread"><i data-lucide="mail" class="h-[18px] w-[18px]"></i></a>
-        <a href="#" class="relative grid h-10 w-10 place-items-center rounded-full bg-cream-light text-ink ring-1 ring-cream-line hover:bg-cream" aria-label="Notifications, 3 unread"><i data-lucide="bell" class="h-[18px] w-[18px]"></i><span class="ping absolute right-2 top-2 h-2 w-2 rounded-full bg-brand-orange ring-2 ring-white"></span></a>
+        <a href="#" class="hidden h-10 w-10 place-items-center rounded-full bg-cream-light text-ink ring-1 ring-cream-line hover:bg-cream sm:grid" aria-label="Messages, 3 unread"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-mail h-[18px] w-[18px]"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"></path><rect x="2" y="4" width="20" height="16" rx="2"></rect></svg></a>
+        <a href="#" class="relative grid h-10 w-10 place-items-center rounded-full bg-cream-light text-ink ring-1 ring-cream-line hover:bg-cream" aria-label="Notifications, 3 unread"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-bell h-[18px] w-[18px]"><path d="M10.268 21a2 2 0 0 0 3.464 0"></path><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"></path></svg><span class="ping absolute right-2 top-2 h-2 w-2 rounded-full bg-brand-orange ring-2 ring-white"></span></a>
         <div class="relative ml-1">
           <button type="button" id="userBtn" class="flex items-center gap-2.5 rounded-full py-1 pl-1 pr-1 hover:bg-cream sm:pr-3" aria-haspopup="menu" aria-expanded="false" aria-controls="userMenu">
             <span class="grid h-10 w-10 place-items-center rounded-full bg-brand-cta text-[13.5px] font-bold text-white" data-initials>CE</span>
             <span class="hidden text-left md:block"><span class="block max-w-[180px] truncate text-[14px] font-semibold leading-tight" data-fullname>Chinedu Egbuchulam</span><span class="block text-[12px] text-ink-muted">Business owner</span></span>
-            <i data-lucide="chevron-down" class="hidden h-4 w-4 text-ink-muted md:block"></i>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-chevron-down hidden h-4 w-4 text-ink-muted md:block"><path d="m6 9 6 6 6-6"></path></svg>
           </button>
           <div id="userMenu" role="menu" hidden class="absolute right-0 z-30 mt-2 w-52 overflow-hidden rounded-xl border border-cream-line bg-white py-1.5 text-[14px] shadow-[0_20px_40px_-20px_rgba(28,23,18,.35)]">
-            <a href="#" role="menuitem" class="flex items-center gap-2.5 px-4 py-2.5 hover:bg-cream"><i data-lucide="user" class="h-4 w-4 text-ink-muted"></i>Profile &amp; security</a>
-            <a href="#" role="menuitem" class="flex items-center gap-2.5 px-4 py-2.5 hover:bg-cream"><i data-lucide="building-2" class="h-4 w-4 text-ink-muted"></i>Organization</a>
-            <a href="index.html" role="menuitem" class="flex items-center gap-2.5 border-t border-cream-line px-4 py-2.5 hover:bg-cream"><i data-lucide="log-out" class="h-4 w-4 text-ink-muted"></i>Log out</a>
+            <a href="#" role="menuitem" class="flex items-center gap-2.5 px-4 py-2.5 hover:bg-cream"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-user h-4 w-4 text-ink-muted"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Profile &amp; security</a>
+            <a href="#" role="menuitem" class="flex items-center gap-2.5 px-4 py-2.5 hover:bg-cream"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-building-2 h-4 w-4 text-ink-muted"><path d="M10 12h4"></path><path d="M10 8h4"></path><path d="M14 21v-3a2 2 0 0 0-4 0v3"></path><path d="M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2"></path><path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"></path></svg>Organization</a>
+            <a href="index.html" role="menuitem" class="flex items-center gap-2.5 border-t border-cream-line px-4 py-2.5 hover:bg-cream"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-log-out h-4 w-4 text-ink-muted"><path d="m16 17 5-5-5-5"></path><path d="M21 12H9"></path><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg>Log out</a>
           </div>
         </div>
       </div>
@@ -320,13 +301,13 @@
     <main id="main" class="mt-3 rounded-[22px] bg-cream-light p-4 sm:p-6">
       <!-- page header -->
       <section class="panel flex items-center gap-4 px-5 py-4 sm:px-6">
-        <span class="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-brand-navy text-white"><i data-lucide="send" class="h-5 w-5"></i></span>
+        <span class="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-brand-navy text-white"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-send h-5 w-5"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"></path><path d="m21.854 2.147-10.94 10.939"></path></svg></span>
         <div class="min-w-0 flex-1">
           <h1 class="font-display text-[22px] font-semibold leading-tight tracking-[-0.01em] sm:text-[24px]">Submit a Task</h1>
           <p class="mt-0.5 text-[14px] text-ink-muted">Tell us what you need and we&rsquo;ll match you with the right specialist.</p>
         </div>
         <div class="hidden items-center gap-3 rounded-2xl bg-pill-navyBg px-4 py-2.5 md:flex">
-          <i data-lucide="shield-check" class="h-5 w-5 shrink-0 text-brand-navy"></i>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-shield-check h-5 w-5 shrink-0 text-brand-navy"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path><path d="m9 12 2 2 4-4"></path></svg>
           <p class="text-[12.5px] leading-snug"><span class="block font-semibold text-brand-navy">Trusted. Professional. Secure.</span><span class="text-ink-muted">Your details are kept private.</span></p>
         </div>
       </section>
@@ -351,7 +332,7 @@
               <legend class="sr-only">Service category</legend>
               <div id="cats" class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3"></div>
             </fieldset>
-            <button type="button" id="notSure" class="mt-3 inline-flex items-start gap-1.5 text-left text-[13px] font-semibold text-brand-navy hover:underline"><i data-lucide="circle-help" class="mt-px h-4 w-4 shrink-0"></i>Not sure which to pick? Describe it and we&rsquo;ll scope it.</button>
+            <button type="button" id="notSure" class="mt-3 inline-flex items-start gap-1.5 text-left text-[13px] font-semibold text-brand-navy hover:underline"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-help mt-px h-4 w-4 shrink-0"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><path d="M12 17h.01"></path></svg>Not sure which to pick? Describe it and we&rsquo;ll scope it.</button>
             <p id="catErr" class="err mt-2" hidden>Choose a service category to continue.</p>
 
             <h2 class="mt-7 font-display text-[19px] font-semibold"><label for="service">2. Choose the specific service</label></h2>
@@ -360,13 +341,13 @@
               <select id="service" class="field appearance-none pr-10" disabled aria-describedby="serviceErr">
                 <option value="">Choose a category first</option>
               </select>
-              <i data-lucide="chevron-down" class="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted"></i>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-chevron-down pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted"><path d="m6 9 6 6 6-6"></path></svg>
             </div>
             <p id="serviceErr" class="err mt-2" hidden>Choose the service you need.</p>
 
             <div class="mt-8 flex items-center justify-between gap-3">
               <a href="dashboard.html" class="btn-ghost">Cancel</a>
-              <button type="submit" class="btn-next">Next: add details <i data-lucide="arrow-right" class="h-4 w-4"></i></button>
+              <button type="submit" class="btn-next">Next: add details <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></button>
             </div>
           </form>
 
@@ -388,7 +369,7 @@
                     <option>Get advice or guidance</option>
                     <option>Something else</option>
                   </select>
-                  <i data-lucide="chevron-down" class="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted"></i>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-chevron-down pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted"><path d="m6 9 6 6 6-6"></path></svg>
                 </div>
                 <p id="purposeErr" class="err mt-1.5" hidden>Choose what you need us to do.</p>
               </div>
@@ -427,7 +408,7 @@
             <div class="mt-5">
               <p class="lbl" id="filesLabel">Attachments <span class="font-normal text-ink-soft">(optional)</span></p>
               <label id="drop" for="files" class="mt-1.5 flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-2xl border-[1.5px] border-dashed border-[#D9D2C6] bg-cream-light px-4 py-6 text-center transition hover:border-brand-navy/50 focus-within:border-brand-navy">
-                <span class="grid h-10 w-10 place-items-center rounded-full bg-pill-navyBg text-brand-navy"><i data-lucide="cloud-upload" class="h-5 w-5"></i></span>
+                <span class="grid h-10 w-10 place-items-center rounded-full bg-pill-navyBg text-brand-navy"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-cloud-upload h-5 w-5"><path d="M12 13v8"></path><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="m8 17 4-4 4 4"></path></svg></span>
                 <span class="text-[14px]">Drag files here, or <span class="font-semibold text-brand-navy underline underline-offset-2">browse</span></span>
                 <span class="text-[12px] text-ink-soft">PDF, Word, Excel, JPG or PNG · up to 20 MB each · 5 files max</span>
                 <input id="files" type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" class="sr-only" aria-labelledby="filesLabel" aria-describedby="fileErr" />
@@ -437,8 +418,8 @@
             </div>
 
             <div class="mt-8 flex items-center justify-between gap-3">
-              <button type="button" data-back class="btn-ghost"><i data-lucide="arrow-left" class="h-4 w-4"></i>Back</button>
-              <button type="submit" class="btn-next">Next: review <i data-lucide="arrow-right" class="h-4 w-4"></i></button>
+              <button type="button" data-back class="btn-ghost"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-left h-4 w-4"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>Back</button>
+              <button type="submit" class="btn-next">Next: review <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></button>
             </div>
           </form>
 
@@ -450,7 +431,7 @@
             <div class="mt-5 rounded-2xl border border-cream-line">
               <div class="flex items-center justify-between border-b border-cream-line px-5 py-3">
                 <h3 class="text-[14.5px] font-semibold">Service</h3>
-                <button type="button" data-edit="1" class="inline-flex items-center gap-1 text-[13px] font-semibold text-brand-navy hover:underline"><i data-lucide="pencil" class="h-3.5 w-3.5"></i>Edit<span class="sr-only"> service</span></button>
+                <button type="button" data-edit="1" class="inline-flex items-center gap-1 text-[13px] font-semibold text-brand-navy hover:underline"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-pencil h-3.5 w-3.5"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path><path d="m15 5 4 4"></path></svg>Edit<span class="sr-only"> service</span></button>
               </div>
               <dl class="grid gap-4 px-5 py-4 text-[14px] sm:grid-cols-2">
                 <div><dt class="rv-k">Category</dt><dd id="rvCat" class="rv-v"></dd></div>
@@ -458,7 +439,7 @@
               </dl>
               <div class="flex items-center justify-between border-y border-cream-line px-5 py-3">
                 <h3 class="text-[14.5px] font-semibold">Details</h3>
-                <button type="button" data-edit="2" class="inline-flex items-center gap-1 text-[13px] font-semibold text-brand-navy hover:underline"><i data-lucide="pencil" class="h-3.5 w-3.5"></i>Edit<span class="sr-only"> details</span></button>
+                <button type="button" data-edit="2" class="inline-flex items-center gap-1 text-[13px] font-semibold text-brand-navy hover:underline"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-pencil h-3.5 w-3.5"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path><path d="m15 5 4 4"></path></svg>Edit<span class="sr-only"> details</span></button>
               </div>
               <dl class="grid gap-4 px-5 py-4 text-[14px] sm:grid-cols-2">
                 <div><dt class="rv-k">What you need</dt><dd id="rvPurpose" class="rv-v"></dd></div>
@@ -477,15 +458,15 @@
             <p id="confirmErr" class="err mt-1.5" hidden>Tick the box to confirm before you submit.</p>
 
             <div class="mt-8 flex items-center justify-between gap-3">
-              <button type="button" data-back class="btn-ghost"><i data-lucide="arrow-left" class="h-4 w-4"></i>Back</button>
-              <button type="submit" id="submitBtn" class="btn-next disabled:cursor-wait disabled:opacity-70">Submit request <i data-lucide="send" class="h-4 w-4"></i></button>
+              <button type="button" data-back class="btn-ghost"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-left h-4 w-4"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>Back</button>
+              <button type="submit" id="submitBtn" class="btn-next disabled:cursor-wait disabled:opacity-70">Submit request <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-send h-4 w-4"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"></path><path d="m21.854 2.147-10.94 10.939"></path></svg></button>
             </div>
           </form>
 
           <!-- STEP 4: confirmation -->
           <section class="step mt-7" data-step="4" hidden aria-labelledby="doneTitle">
             <div class="rounded-2xl border border-cream-line px-5 py-8 text-center sm:px-8">
-              <span class="done-burst relative mx-auto grid h-16 w-16 place-items-center rounded-full bg-pill-greenBg text-pill-greenTx"><i data-lucide="check" class="h-8 w-8"></i></span>
+              <span class="done-burst relative mx-auto grid h-16 w-16 place-items-center rounded-full bg-pill-greenBg text-pill-greenTx"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-check h-8 w-8"><path d="M20 6 9 17l-5-5"></path></svg></span>
               <h2 id="doneTitle" class="step-title mt-4 font-display text-[24px] font-semibold" tabindex="-1">Request submitted</h2>
               <p class="mt-1 text-[14px] text-ink-muted">Your task is with our team. We&rsquo;ll keep you updated as it moves.</p>
 
@@ -493,7 +474,7 @@
                 <div>
                   <p class="text-[12px] text-ink-soft">Request reference</p>
                   <p class="mt-0.5 flex items-center gap-2 font-display text-[18px] font-semibold"><span id="ref"></span>
-                    <button type="button" id="copyRef" class="grid h-8 w-8 place-items-center rounded-lg text-brand-navy hover:bg-white" aria-label="Copy reference"><i data-lucide="copy" class="h-4 w-4"></i></button></p>
+                    <button type="button" id="copyRef" class="grid h-8 w-8 place-items-center rounded-lg text-brand-navy hover:bg-white" aria-label="Copy reference"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-copy h-4 w-4"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg></button></p>
                   <p id="copied" class="text-[12px] text-pill-greenTx" role="status"></p>
                 </div>
                 <div>
@@ -512,7 +493,7 @@
               </div>
 
               <div class="mx-auto mt-7 flex max-w-[520px] flex-col gap-2.5 sm:flex-row">
-                <a href="dashboard.html" class="btn-next flex-1">View my tasks <i data-lucide="arrow-right" class="h-4 w-4"></i></a>
+                <a href="dashboard.html" class="btn-next flex-1">View my tasks <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a>
                 <button type="button" id="another" class="btn-outline flex-1">Submit another task</button>
               </div>
             </div>
@@ -524,7 +505,7 @@
           <section id="summary" class="panel p-5" aria-live="polite">
             <h2 class="text-[14.5px] font-semibold">Selected service</h2>
             <div id="sumEmpty" class="mt-4 flex flex-col items-center gap-2 rounded-2xl bg-cream-light px-4 py-7 text-center">
-              <span class="grid h-10 w-10 place-items-center rounded-full bg-white text-ink-soft"><i data-lucide="mouse-pointer-click" class="h-5 w-5"></i></span>
+              <span class="grid h-10 w-10 place-items-center rounded-full bg-white text-ink-soft"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-mouse-pointer-click h-5 w-5"><path d="M14 4.1 12 6"></path><path d="m5.1 8-2.9-.8"></path><path d="m6 12-1.9 2"></path><path d="M7.2 2.2 8 5.1"></path><path d="M9.037 9.69a.498.498 0 0 1 .653-.653l11 4.5a.5.5 0 0 1-.074.949l-4.349 1.041a1 1 0 0 0-.74.739l-1.04 4.35a.5.5 0 0 1-.95.074z"></path></svg></span>
               <p class="text-[13px] text-ink-muted">Choose a category to see what&rsquo;s included.</p>
             </div>
             <div id="sumBody" hidden>
@@ -537,7 +518,7 @@
               <ul id="sumIncl" class="mt-2 space-y-1.5 text-[13px] text-ink-muted"></ul>
               <h3 class="mt-5 text-[13px] font-semibold">Good to know</h3>
               <ul id="sumFacts" class="mt-2 space-y-3 text-[13px]"></ul>
-              <p class="mt-5 flex gap-2.5 rounded-xl bg-pill-orangeBg px-3 py-2.5 text-[12px] leading-relaxed text-brand-orangeDark"><i data-lucide="info" class="mt-0.5 h-4 w-4 shrink-0"></i><span>Delivery time depends on how complex the request is. If anything costs extra, we&rsquo;ll tell you and wait for your go-ahead before we start.</span></p>
+              <p class="mt-5 flex gap-2.5 rounded-xl bg-pill-orangeBg px-3 py-2.5 text-[12px] leading-relaxed text-brand-orangeDark"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-info mt-0.5 h-4 w-4 shrink-0"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg><span>Delivery time depends on how complex the request is. If anything costs extra, we&rsquo;ll tell you and wait for your go-ahead before we start.</span></p>
             </div>
           </section>
 
@@ -547,9 +528,9 @@
             <a href="#" class="btn-outline mt-3 w-full">Contact support</a>
             <h3 class="mt-5 text-[13px] font-semibold">Quick links</h3>
             <ul class="mt-2 space-y-1 text-[13.5px]">
-              <li><a href="dashboard.html" class="flex items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-cream-light"><i data-lucide="square-check" class="h-4 w-4 text-brand-navy"></i>My tasks</a></li>
-              <li><a href="#" class="flex items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-cream-light"><i data-lucide="layout-grid" class="h-4 w-4 text-brand-navy"></i>Service catalogue</a></li>
-              <li><a href="index.html#faqs" class="flex items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-cream-light"><i data-lucide="circle-help" class="h-4 w-4 text-brand-navy"></i>FAQs</a></li>
+              <li><a href="dashboard.html" class="flex items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-cream-light"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-square-check h-4 w-4 text-brand-navy"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="m16 9-5.5 5.5L8 12"></path></svg>My tasks</a></li>
+              <li><a href="#" class="flex items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-cream-light"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-layout-grid h-4 w-4 text-brand-navy"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>Service catalogue</a></li>
+              <li><a href="index.html#faqs" class="flex items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-cream-light"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-help h-4 w-4 text-brand-navy"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><path d="M12 17h.01"></path></svg>FAQs</a></li>
             </ul>
           </section>
         </aside>
