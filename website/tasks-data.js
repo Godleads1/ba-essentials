@@ -148,6 +148,51 @@
   const deliverablesFor = taskId => deliverables().filter(d => d.task === taskId);
   function setDeliverable(id, status) { store['d:' + id] = { status }; writeStore(store); }
 
+  // ---------- plan, usage and billing (sample account on the Growth plan) ----------
+  const PLANS = {
+    starter: { name: 'Starter', price: 65000, tasks: 7, legal: 1, legalPer: 'quarter' },
+    growth: { name: 'Growth', price: 97500, tasks: 20, legal: 1, legalPer: 'month' },
+    dedicated: { name: 'Dedicated', price: 260000, tasks: 30, legal: 4, legalPer: 'month' },
+  };
+  // Current billing cycle. Legal & IP requests use a legal review, except business
+  // registration, which is filed by the registration agent and uses a task.
+  // Specialized Add-Ons are priced separately and don't use the plan.
+  const ACCOUNT = {
+    plan: 'growth', cycleStart: '2026-10-28', renews: '2026-11-28',
+    tasksUsed: 14, legalUsed: 1,
+    byCat: { business: 5, legal: 1, ops: 3, creator: 3, tax: 2 },
+    // tasks used so far, day by day from the start of the cycle
+    daily: [0, 1, 1, 2, 3, 3, 4, 5, 6, 6, 7, 8, 9, 10, 11, 12, 14],
+    previous: { label: '28 Sep – 27 Oct', used: 17, legalUsed: 1, daily: [0, 1, 2, 2, 3, 4, 4, 5, 6, 7, 7, 8, 8, 9, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16, 16, 16, 17, 17] },
+    card: { brand: 'Visa', last4: '4081', expires: '09/2028' },
+  };
+  const INVOICES = [
+    { id: 'INV-2026-0052', date: '2026-11-06', due: '2026-11-20', desc: 'Social media management (add-on quote)', task: 'REQ-2026-0047', amount: 120000, status: 'due' },
+    { id: 'INV-2026-0051', date: '2026-10-28', due: '2026-10-28', desc: 'Growth plan, 28 Oct – 27 Nov', amount: 97500, status: 'paid', paidOn: '2026-10-28' },
+    { id: 'INV-2026-0049', date: '2026-10-28', due: '2026-11-04', desc: 'Bookkeeping support (add-on)', task: 'REQ-2026-0045', amount: 45000, status: 'paid', paidOn: '2026-10-29' },
+    { id: 'INV-2026-0046', date: '2026-09-28', due: '2026-09-28', desc: 'Growth plan, 28 Sep – 27 Oct', amount: 97500, status: 'paid', paidOn: '2026-09-28' },
+    { id: 'INV-2026-0041', date: '2026-08-28', due: '2026-08-28', desc: 'Growth plan, 28 Aug – 27 Sep', amount: 97500, status: 'paid', paidOn: '2026-08-28' },
+    { id: 'INV-2026-0036', date: '2026-07-28', due: '2026-07-28', desc: 'Starter plan, 28 Jul – 27 Aug', amount: 65000, status: 'paid', paidOn: '2026-07-28' },
+  ];
+  const ISTATUS = {
+    due: { label: 'Due', chip: 'bg-pill-orangeBg text-brand-orangeDark' },
+    overdue: { label: 'Overdue', chip: 'bg-[#FDECEC] text-[#B42318]' },
+    paid: { label: 'Paid', chip: 'bg-pill-greenBg text-pill-greenTx' },
+  };
+  function invoices() {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    return INVOICES.map(i => {
+      const o = store['i:' + i.id] || {};
+      const v = Object.assign({}, i, o);
+      if (v.status === 'due' && new Date(v.due + 'T23:59') < today) v.status = 'overdue';
+      return v;
+    });
+  }
+  function payInvoice(id) { store['i:' + id] = { status: 'paid', paidOn: nowLocal().slice(0, 10) }; writeStore(store); }
+  const invoiceForTask = taskId => invoices().find(i => i.task === taskId);
+  const getPref = (k, fallback) => (k in (store.prefs || {}) ? store.prefs[k] : fallback);
+  function setPref(k, v) { store.prefs = Object.assign({}, store.prefs, { [k]: v }); writeStore(store); }
+
   // ---------- formatting ----------
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const toDate = s => new Date(s.length === 10 ? s + 'T12:00' : s);
@@ -167,5 +212,6 @@
   const chip = (cls, text) => `<span class="chip-status ${cls}">${esc(text)}</span>`;
 
   window.BANDA = { CATS, STATUS, CANCELLABLE, PRIORITY, all, find, update, esc, toDate, fmtDate, fmtDateTime, fmtSize, naira, chip,
-    DSTATUS, DOWNLOADABLE, deliverables, deliverablesFor, setDeliverable, fileType, nowLocal, toast };
+    DSTATUS, DOWNLOADABLE, deliverables, deliverablesFor, setDeliverable, fileType, nowLocal, toast,
+    PLANS, ACCOUNT, ISTATUS, invoices, payInvoice, invoiceForTask, getPref, setPref };
 })();
