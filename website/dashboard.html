@@ -138,7 +138,56 @@
       #sidebar { transform: translateX(-110%); transition: transform .25s ease; }
       #sidebar.is-open { transform: none; }
     }
-    @media (prefers-reduced-motion: reduce) { .day-bar, .stat { transition: none; } }
+    /* ---------- motion ---------- */
+    .js-anim .anim { opacity: 0; transform: translateY(18px) scale(.985); }
+    .js-anim .anim.in { animation: rise .75s cubic-bezier(.22,1,.36,1) var(--d, 0ms) both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(18px) scale(.985); } to { opacity: 1; transform: none; } }
+    .js-anim .anim-x { opacity: 0; transform: translateX(-10px); }
+    .js-anim .anim-x.in { animation: slideIn .55s cubic-bezier(.22,1,.36,1) var(--d, 0ms) both; }
+    @keyframes slideIn { to { opacity: 1; transform: none; } }
+    /* bars grow from the floor, the busiest day bounces, its label pops */
+    .day-bar { clip-path: inset(100% 0 0 0); transition: clip-path 1s cubic-bezier(.22,1,.36,1) var(--d, 0ms); }
+    .week-in .day-bar { clip-path: inset(-40px 0 0 0); }
+    .day-tip { opacity: 0; transform: translate(-50%, 6px) scale(.8); transition: opacity .35s ease 1.2s, transform .45s cubic-bezier(.34,1.56,.64,1) 1.2s; }
+    .week-in .day-tip { opacity: 1; transform: translate(-50%, 0) scale(1); }
+    .stripes { background-size: 12.7px 12.7px; }
+    .week-in .stripes { animation: drift 1.6s linear infinite; }
+    @keyframes drift { to { background-position: 12.7px 0; } }
+    /* the active menu bar and notification dot */
+    .side-link[aria-current="page"]::before { animation: grow .6s cubic-bezier(.34,1.56,.64,1) .3s both; transform-origin: center; }
+    @keyframes grow { from { transform: scaleY(0); } }
+    .ping::after { content: ""; position: absolute; inset: -3px; border-radius: 999px; background: #D9662E; animation: ping 2.2s cubic-bezier(0,0,.2,1) infinite; }
+    @keyframes ping { 0% { transform: scale(.6); opacity: .7; } 70%, 100% { transform: scale(2.4); opacity: 0; } }
+    /* dark cards: slow ripple of rings */
+    .rings { background-size: 100% 100%; animation: ripple 9s ease-in-out infinite alternate; }
+    @keyframes ripple { from { background-position: 0 0; } to { background-position: -26px -18px; } }
+    /* hero stat: a light sweep once it lands */
+    .stat--hero { overflow: hidden; }
+    .stat--hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.18) 50%, transparent 65%); transform: translateX(-120%); pointer-events: none; }
+    .stat--hero.in::after { animation: sweep 1.4s ease .9s; }
+    @keyframes sweep { to { transform: translateX(120%); } }
+    .stat-go svg { transition: transform .3s cubic-bezier(.34,1.56,.64,1); }
+    .stat:hover .stat-go svg { transform: rotate(45deg); }
+    /* main call to action breathes every few seconds */
+    .nudge { position: relative; }
+    .nudge::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: 0 0 0 0 rgba(51,57,127,.45); animation: nudge 3.2s ease-out 2s infinite; }
+    @keyframes nudge { 0% { box-shadow: 0 0 0 0 rgba(51,57,127,.45); } 45%, 100% { box-shadow: 0 0 0 12px rgba(51,57,127,0); } }
+    /* list rows lift on hover; icons tilt */
+    .row-hover { transition: background .2s, transform .25s cubic-bezier(.22,1,.36,1); }
+    .row-hover:hover { transform: translateX(4px); }
+    .row-hover:hover > span:first-child { transform: rotate(-8deg) scale(1.06); }
+    .row-hover > span:first-child { transition: transform .3s cubic-bezier(.34,1.56,.64,1); }
+    .panel-lift { transition: box-shadow .3s, transform .3s cubic-bezier(.22,1,.36,1); }
+    @media (hover: hover) { .panel-lift:hover { transform: translateY(-3px); box-shadow: 0 22px 40px -30px rgba(36,26,21,.45); } }
+    #gaugeSvg path + path { transition: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .js-anim .anim, .js-anim .anim-x { opacity: 1 !important; transform: none !important; animation: none !important; }
+      .day-bar { clip-path: none !important; }
+      .day-bar, .stat, .row-hover, .panel-lift, .day-tip { transition: none !important; }
+      .rings, .ping::after, .nudge::after, .stat--hero::after, .stripes, .side-link::before { animation: none !important; }
+      .day-tip { opacity: 1; transform: translate(-50%, 0); }
+    }
   </style>
 </head>
 
@@ -201,7 +250,7 @@
       </form>
       <div class="ml-auto flex items-center gap-2">
         <a href="#" class="hidden h-10 w-10 place-items-center rounded-full bg-cream-light text-ink ring-1 ring-cream-line hover:bg-cream sm:grid" aria-label="Messages, 3 unread"><i data-lucide="mail" class="h-[18px] w-[18px]"></i></a>
-        <a href="#" class="relative grid h-10 w-10 place-items-center rounded-full bg-cream-light text-ink ring-1 ring-cream-line hover:bg-cream" aria-label="Notifications, 3 unread"><i data-lucide="bell" class="h-[18px] w-[18px]"></i><span class="absolute right-2 top-2 h-2 w-2 rounded-full bg-brand-orange ring-2 ring-white"></span></a>
+        <a href="#" class="relative grid h-10 w-10 place-items-center rounded-full bg-cream-light text-ink ring-1 ring-cream-line hover:bg-cream" aria-label="Notifications, 3 unread"><i data-lucide="bell" class="h-[18px] w-[18px]"></i><span class="ping absolute right-2 top-2 h-2 w-2 rounded-full bg-brand-orange ring-2 ring-white"></span></a>
         <div class="relative ml-1">
           <button type="button" id="userBtn" class="flex items-center gap-2.5 rounded-full py-1 pl-1 pr-1 hover:bg-cream sm:pr-3" aria-haspopup="menu" aria-expanded="false" aria-controls="userMenu">
             <span class="grid h-10 w-10 place-items-center rounded-full bg-brand-orange text-[13.5px] font-bold text-white" data-initials>CE</span>
@@ -256,7 +305,7 @@
 
       <div class="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-12 [&>*]:min-w-0">
         <!-- tasks this week -->
-        <section class="panel p-5 md:col-span-2 xl:col-span-5" aria-labelledby="tw">
+        <section class="panel panel-lift p-5 md:col-span-2 xl:col-span-5" aria-labelledby="tw">
           <div class="flex items-center justify-between">
             <h2 id="tw" class="font-display text-[18px] font-semibold">Tasks sent this week</h2>
             <span class="text-[12.5px] text-ink-muted"><strong id="weekTotal" class="font-semibold text-ink">10</strong> so far</span>
@@ -265,46 +314,46 @@
         </section>
 
         <!-- next for you -->
-        <section class="panel flex flex-col p-5 xl:col-span-3" aria-labelledby="nx">
+        <section class="panel panel-lift flex flex-col p-5 xl:col-span-3" aria-labelledby="nx">
           <h2 id="nx" class="font-display text-[18px] font-semibold">Waiting on you</h2>
           <p class="mt-4 font-display text-[22px] font-semibold leading-tight text-brand-navy">Approve the business proposal</p>
           <p class="mt-2 text-[13.5px] text-ink-muted">Due Nov 13, 2026 · Business &amp; Admin</p>
-          <a href="#" class="btn mt-5 bg-brand-navy py-3 text-[14px] text-white hover:bg-[#282D68] xl:mt-auto"><i data-lucide="file-check" class="h-[18px] w-[18px]"></i>Review and approve</a>
+          <a href="#" class="btn nudge mt-5 bg-brand-navy py-3 text-[14px] text-white hover:bg-[#282D68] xl:mt-auto"><i data-lucide="file-check" class="h-[18px] w-[18px]"></i>Review and approve</a>
         </section>
 
         <!-- deadlines (spans two rows on wide screens) -->
-        <section class="panel p-5 xl:col-span-4" aria-labelledby="dl">
+        <section class="panel panel-lift p-5 xl:col-span-4" aria-labelledby="dl">
           <div class="flex items-center justify-between">
             <h2 id="dl" class="font-display text-[18px] font-semibold">Deadlines</h2>
             <a href="#" class="btn border-[1.5px] border-brand-navy px-3.5 py-1.5 text-[13px] text-brand-navy hover:bg-brand-navy hover:text-white"><i data-lucide="plus" class="h-3.5 w-3.5"></i>New task</a>
           </div>
           <ul class="mt-2">
-            <li><a href="#" class="flex items-center gap-3.5 rounded-xl px-2 py-2.5 hover:bg-cream-light"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#EFE9FB] text-[#5B3FA8]"><i data-lucide="megaphone" class="h-[18px] w-[18px]"></i></span><span class="min-w-0"><span class="block text-[14.5px] font-medium leading-snug">Review content draft</span><span class="block text-[12px] text-ink-soft">Due: Nov 12, 2026</span></span></a></li>
-            <li><a href="#" class="flex items-center gap-3.5 rounded-xl px-2 py-2.5 hover:bg-cream-light"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-pill-navyBg text-brand-navy"><i data-lucide="file-text" class="h-[18px] w-[18px]"></i></span><span class="min-w-0"><span class="block text-[14.5px] font-medium leading-snug">Business proposal document</span><span class="block text-[12px] text-ink-soft">Due: Nov 13, 2026</span></span></a></li>
-            <li><a href="#" class="flex items-center gap-3.5 rounded-xl px-2 py-2.5 hover:bg-cream-light"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-pill-greenBg text-pill-greenTx"><i data-lucide="book-open-check" class="h-[18px] w-[18px]"></i></span><span class="min-w-0"><span class="block text-[14.5px] font-medium leading-snug">Confirm October bookkeeping</span><span class="block text-[12px] text-ink-soft">Due: Nov 14, 2026</span></span></a></li>
-            <li><a href="#" class="flex items-center gap-3.5 rounded-xl px-2 py-2.5 hover:bg-cream-light"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-pill-orangeBg text-brand-orange"><i data-lucide="shield" class="h-[18px] w-[18px]"></i></span><span class="min-w-0"><span class="block text-[14.5px] font-medium leading-snug">Trademark filing support</span><span class="block text-[12px] text-ink-soft">Due: Nov 16, 2026</span></span></a></li>
+            <li><a href="#" class="row-hover flex items-center gap-3.5 rounded-xl px-2 py-2.5 hover:bg-cream-light"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#EFE9FB] text-[#5B3FA8]"><i data-lucide="megaphone" class="h-[18px] w-[18px]"></i></span><span class="min-w-0"><span class="block text-[14.5px] font-medium leading-snug">Review content draft</span><span class="block text-[12px] text-ink-soft">Due: Nov 12, 2026</span></span></a></li>
+            <li><a href="#" class="row-hover flex items-center gap-3.5 rounded-xl px-2 py-2.5 hover:bg-cream-light"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-pill-navyBg text-brand-navy"><i data-lucide="file-text" class="h-[18px] w-[18px]"></i></span><span class="min-w-0"><span class="block text-[14.5px] font-medium leading-snug">Business proposal document</span><span class="block text-[12px] text-ink-soft">Due: Nov 13, 2026</span></span></a></li>
+            <li><a href="#" class="row-hover flex items-center gap-3.5 rounded-xl px-2 py-2.5 hover:bg-cream-light"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-pill-greenBg text-pill-greenTx"><i data-lucide="book-open-check" class="h-[18px] w-[18px]"></i></span><span class="min-w-0"><span class="block text-[14.5px] font-medium leading-snug">Confirm October bookkeeping</span><span class="block text-[12px] text-ink-soft">Due: Nov 14, 2026</span></span></a></li>
+            <li><a href="#" class="row-hover flex items-center gap-3.5 rounded-xl px-2 py-2.5 hover:bg-cream-light"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-pill-orangeBg text-brand-orange"><i data-lucide="shield" class="h-[18px] w-[18px]"></i></span><span class="min-w-0"><span class="block text-[14.5px] font-medium leading-snug">Trademark filing support</span><span class="block text-[12px] text-ink-soft">Due: Nov 16, 2026</span></span></a></li>
           </ul>
         </section>
 
         <!-- recent requests -->
-        <section class="panel p-5 md:col-span-2 xl:col-span-5" aria-labelledby="rr">
+        <section class="panel panel-lift p-5 md:col-span-2 xl:col-span-5" aria-labelledby="rr">
           <div class="flex items-center justify-between">
             <h2 id="rr" class="font-display text-[18px] font-semibold">Recent requests</h2>
             <a href="#" class="btn border-[1.5px] border-brand-navy px-3.5 py-1.5 text-[13px] text-brand-navy hover:bg-brand-navy hover:text-white">View all</a>
           </div>
           <ul class="mt-3 space-y-1">
-            <li><a href="#" class="flex items-center gap-3.5 rounded-xl px-2 py-2 hover:bg-cream-light"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-pill-orangeBg text-brand-orange"><i data-lucide="file-text" class="h-[18px] w-[18px]"></i></span><span class="min-w-0 flex-1"><span class="block text-[14.5px] font-medium leading-snug">Business proposal document</span><span class="block text-[12px] leading-snug text-ink-soft">Business &amp; Admin · <span class="font-medium text-ink-muted">#REQ-0048</span></span><span class="chip-status mt-1.5 bg-pill-navyBg text-brand-navy sm:max-xl:hidden 2xl:hidden">In progress</span></span><span class="chip-status shrink-0 max-sm:hidden xl:max-2xl:hidden bg-pill-navyBg text-brand-navy">In progress</span></a></li>
-            <li><a href="#" class="flex items-center gap-3.5 rounded-xl px-2 py-2 hover:bg-cream-light"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-pill-orangeBg text-brand-orange"><i data-lucide="megaphone" class="h-[18px] w-[18px]"></i></span><span class="min-w-0 flex-1"><span class="block text-[14.5px] font-medium leading-snug">Social media content calendar</span><span class="block text-[12px] leading-snug text-ink-soft">Specialized Add-Ons · <span class="font-medium text-ink-muted">#REQ-0047</span></span><span class="chip-status mt-1.5 bg-[#EFE9FB] text-[#5B3FA8] sm:max-xl:hidden 2xl:hidden">Being checked</span></span><span class="chip-status shrink-0 max-sm:hidden xl:max-2xl:hidden bg-[#EFE9FB] text-[#5B3FA8]">Being checked</span></a></li>
-            <li><a href="#" class="flex items-center gap-3.5 rounded-xl px-2 py-2 hover:bg-cream-light"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-pill-orangeBg text-brand-orange"><i data-lucide="shield" class="h-[18px] w-[18px]"></i></span><span class="min-w-0 flex-1"><span class="block text-[14.5px] font-medium leading-snug">Trademark filing support</span><span class="block text-[12px] leading-snug text-ink-soft">Legal &amp; IP Review · <span class="font-medium text-ink-muted">#REQ-0046</span></span><span class="chip-status mt-1.5 border border-brand-navy/40 text-brand-navy sm:max-xl:hidden 2xl:hidden">Being scoped</span></span><span class="chip-status shrink-0 max-sm:hidden xl:max-2xl:hidden border border-brand-navy/40 text-brand-navy">Being scoped</span></a></li>
-            <li><a href="#" class="flex items-center gap-3.5 rounded-xl px-2 py-2 hover:bg-cream-light"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-pill-orangeBg text-brand-orange"><i data-lucide="truck" class="h-[18px] w-[18px]"></i></span><span class="min-w-0 flex-1"><span class="block text-[14.5px] font-medium leading-snug">Vendor coordination</span><span class="block text-[12px] leading-snug text-ink-soft">Operations &amp; Logistics · <span class="font-medium text-ink-muted">#REQ-0044</span></span><span class="chip-status mt-1.5 bg-pill-orangeBg text-brand-orangeDark sm:max-xl:hidden 2xl:hidden">Needs your info</span></span><span class="chip-status shrink-0 max-sm:hidden xl:max-2xl:hidden bg-pill-orangeBg text-brand-orangeDark">Needs your info</span></a></li>
+            <li><a href="#" class="row-hover flex items-center gap-3.5 rounded-xl px-2 py-2 hover:bg-cream-light"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-pill-orangeBg text-brand-orange"><i data-lucide="file-text" class="h-[18px] w-[18px]"></i></span><span class="min-w-0 flex-1"><span class="block text-[14.5px] font-medium leading-snug">Business proposal document</span><span class="block text-[12px] leading-snug text-ink-soft">Business &amp; Admin · <span class="font-medium text-ink-muted">#REQ-0048</span></span><span class="chip-status mt-1.5 bg-pill-navyBg text-brand-navy sm:max-xl:hidden 2xl:hidden">In progress</span></span><span class="chip-status shrink-0 max-sm:hidden xl:max-2xl:hidden bg-pill-navyBg text-brand-navy">In progress</span></a></li>
+            <li><a href="#" class="row-hover flex items-center gap-3.5 rounded-xl px-2 py-2 hover:bg-cream-light"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-pill-orangeBg text-brand-orange"><i data-lucide="megaphone" class="h-[18px] w-[18px]"></i></span><span class="min-w-0 flex-1"><span class="block text-[14.5px] font-medium leading-snug">Social media content calendar</span><span class="block text-[12px] leading-snug text-ink-soft">Specialized Add-Ons · <span class="font-medium text-ink-muted">#REQ-0047</span></span><span class="chip-status mt-1.5 bg-[#EFE9FB] text-[#5B3FA8] sm:max-xl:hidden 2xl:hidden">Being checked</span></span><span class="chip-status shrink-0 max-sm:hidden xl:max-2xl:hidden bg-[#EFE9FB] text-[#5B3FA8]">Being checked</span></a></li>
+            <li><a href="#" class="row-hover flex items-center gap-3.5 rounded-xl px-2 py-2 hover:bg-cream-light"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-pill-orangeBg text-brand-orange"><i data-lucide="shield" class="h-[18px] w-[18px]"></i></span><span class="min-w-0 flex-1"><span class="block text-[14.5px] font-medium leading-snug">Trademark filing support</span><span class="block text-[12px] leading-snug text-ink-soft">Legal &amp; IP Review · <span class="font-medium text-ink-muted">#REQ-0046</span></span><span class="chip-status mt-1.5 border border-brand-navy/40 text-brand-navy sm:max-xl:hidden 2xl:hidden">Being scoped</span></span><span class="chip-status shrink-0 max-sm:hidden xl:max-2xl:hidden border border-brand-navy/40 text-brand-navy">Being scoped</span></a></li>
+            <li><a href="#" class="row-hover flex items-center gap-3.5 rounded-xl px-2 py-2 hover:bg-cream-light"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-pill-orangeBg text-brand-orange"><i data-lucide="truck" class="h-[18px] w-[18px]"></i></span><span class="min-w-0 flex-1"><span class="block text-[14.5px] font-medium leading-snug">Vendor coordination</span><span class="block text-[12px] leading-snug text-ink-soft">Operations &amp; Logistics · <span class="font-medium text-ink-muted">#REQ-0044</span></span><span class="chip-status mt-1.5 bg-pill-orangeBg text-brand-orangeDark sm:max-xl:hidden 2xl:hidden">Needs your info</span></span><span class="chip-status shrink-0 max-sm:hidden xl:max-2xl:hidden bg-pill-orangeBg text-brand-orangeDark">Needs your info</span></a></li>
           </ul>
         </section>
 
         <!-- plan usage -->
-        <section class="panel p-5 xl:col-span-3" aria-labelledby="pu">
+        <section class="panel panel-lift p-5 xl:col-span-3" aria-labelledby="pu">
           <h2 id="pu" class="font-display text-[18px] font-semibold">Plan usage</h2>
           <div class="relative mx-auto mt-3 max-w-[230px]">
-            <svg viewBox="0 0 220 122" class="w-full" role="img" aria-labelledby="gaugeText">
+            <svg id="gaugeSvg" viewBox="0 0 220 122" class="w-full" role="img" aria-labelledby="gaugeText">
               <defs><pattern id="hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="7" fill="#fff"/><rect width="3" height="7" fill="#A5A8CF"/></pattern></defs>
               <path d="M 22 110 A 88 88 0 0 1 198 110" fill="none" stroke="url(#hatch)" stroke-width="26" pathLength="100"/>
               <path id="gDone" d="M 22 110 A 88 88 0 0 1 198 110" fill="none" stroke="#33397F" stroke-width="26" pathLength="100" stroke-dasharray="45 100"/>
@@ -351,10 +400,10 @@
       const future = i > today;
       const h = future ? 62 : Math.max(18, n / max * 100);
       const cls = i === today ? 'bg-brand-orange' : future || n === 0 ? 'stripes' : 'bg-brand-navy';
-      const tip = i === today ? `<span class="absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md border border-brand-orange/40 bg-white px-1.5 py-0.5 text-[10.5px] font-semibold text-brand-orangeDark">${n} today</span>` : '';
-      return `<div class="flex h-full flex-col items-center justify-end gap-2"><div class="relative w-full max-w-[46px] flex-1"><div class="day-bar absolute inset-x-0 bottom-0 rounded-full ${cls}" style="height:${h}%" title="${n} task${n === 1 ? '' : 's'}">${tip}</div></div><span class="text-[12px] ${i === today ? 'font-semibold text-ink' : 'text-ink-muted'}">${d}</span></div>`;
+      const tip = i === today ? `<span class="day-tip absolute -top-7 left-1/2 whitespace-nowrap rounded-md border border-brand-orange/40 bg-white px-1.5 py-0.5 text-[10.5px] font-semibold text-brand-orangeDark">${n} today</span>` : '';
+      return `<div class="flex h-full flex-col items-center justify-end gap-2"><div class="relative w-full max-w-[46px] flex-1"><div class="day-bar absolute inset-x-0 bottom-0 rounded-full ${cls}" style="height:${h}%;--d:${i * 80}ms" title="${n} task${n === 1 ? '' : 's'}">${tip}</div></div><span class="text-[12px] ${i === today ? 'font-semibold text-ink' : 'text-ink-muted'}">${d}</span></div>`;
     }).join('');
-    document.getElementById('weekTotal').textContent = total;
+    const weekTotal = total;
     lucide.createIcons();
 
     // Greeting by time of day
@@ -382,10 +431,77 @@
     const used = Math.min(14, plan[2]), delivered = Math.round(used * 0.64);
     document.querySelector('[data-tasks-used]').textContent = used;
     const pD = delivered / plan[2] * 100, pP = (used - delivered) / plan[2] * 100;
-    document.getElementById('gDone').setAttribute('stroke-dasharray', `${pD} 100`);
-    document.getElementById('gProg').setAttribute('stroke-dasharray', `${pP} 100`);
-    document.getElementById('gProg').setAttribute('stroke-dashoffset', -pD);
-    document.getElementById('gaugePct').textContent = Math.round(used / plan[2] * 100) + '%';
+    const pct = Math.round(used / plan[2] * 100);
+    function drawGauge(t) {
+      document.getElementById('gDone').setAttribute('stroke-dasharray', `${pD * t} 100`);
+      document.getElementById('gProg').setAttribute('stroke-dasharray', `${pP * t} 100`);
+      document.getElementById('gProg').setAttribute('stroke-dashoffset', -pD * t);
+      document.getElementById('gaugePct').textContent = Math.round(pct * t) + '%';
+    }
+
+    // ---------- motion ----------
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const ease = t => 1 - Math.pow(1 - t, 3);
+    function tween(ms, step, delay = 0) {
+      if (reduce) { step(1); return; }
+      setTimeout(() => { const t0 = performance.now(); const tick = now => { const t = Math.min(1, (now - t0) / ms); step(ease(t)); if (t < 1) requestAnimationFrame(tick); }; requestAnimationFrame(tick); }, delay);
+    }
+    const countUp = (el, to, ms, delay, suffix = '') => tween(ms, t => el.textContent = Math.round(to * t) + suffix, delay);
+
+    // What happens when each part comes into view (on load, or when scrolled to on phones).
+    const ON_SHOW = {
+      week(el) {
+        el.classList.add('week-in');
+        countUp(document.getElementById('weekTotal'), weekTotal, 1100, 200);
+      },
+      gauge() { tween(1300, drawGauge, 250); },
+    };
+    document.querySelectorAll('.stat').forEach(st => {
+      const big = st.querySelector('.font-display'); big.dataset.count = big.textContent.trim();
+    });
+
+    document.documentElement.classList.add('js-anim');
+    // stagger: header, stat cards, then the grid of panels; sidebar links slide in
+    const groups = [
+      [...document.querySelectorAll('main > div:first-child')],
+      [...document.querySelectorAll('.stat')],
+      [...document.querySelectorAll('main > div.grid > section')],
+    ];
+    let order = 0;
+    groups.forEach(list => list.forEach((el, i) => { el.classList.add('anim'); el.style.setProperty('--d', (order++ * 70) + 'ms'); }));
+    document.querySelectorAll('#sidebar .side-link, #sidebar .side-label').forEach((el, i) => { el.classList.add('anim-x'); el.style.setProperty('--d', (80 + i * 35) + 'ms'); });
+    document.querySelectorAll('#sidebar .anim-x').forEach(el => el.classList.add('in'));
+
+    function reveal(el) {
+      if (el.classList.contains('in')) return;
+      el.classList.add('in');
+      const delay = parseInt(getComputedStyle(el).getPropertyValue('--d')) || 0;
+      if (el.classList.contains('stat')) { const big = el.querySelector('[data-count]'); countUp(big, +big.dataset.count, 900, delay + 150); }
+      if (el.querySelector('#week')) setTimeout(() => ON_SHOW.week(el.querySelector('#week')), reduce ? 0 : delay + 200);
+      if (el.querySelector('#gaugeSvg')) setTimeout(ON_SHOW.gauge, reduce ? 0 : delay);
+    }
+    drawGauge(0);
+    if (reduce || !('IntersectionObserver' in window)) {
+      document.querySelectorAll('.anim').forEach(reveal);
+    } else {
+      // On tall screens everything in view reveals in sequence; further down reveals on scroll.
+      const io = new IntersectionObserver(entries => entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        // items revealed by scrolling start right away rather than waiting their turn
+        if (performance.now() > 2500) e.target.style.setProperty('--d', '0ms');
+        reveal(e.target); io.unobserve(e.target);
+      }), { threshold: 0.12 });
+      document.querySelectorAll('.anim').forEach(el => io.observe(el));
+      // a fast flick can skip past a card; anything already above the fold still gets revealed
+      let queued = false;
+      addEventListener('scroll', () => {
+        if (queued) return; queued = true;
+        requestAnimationFrame(() => {
+          queued = false;
+          document.querySelectorAll('.anim:not(.in)').forEach(el => { if (el.getBoundingClientRect().top < innerHeight) { el.style.setProperty('--d', '0ms'); reveal(el); io.unobserve(el); } });
+        });
+      }, { passive: true });
+    }
 
     // Sidebar: if the window is too short for the whole menu, the help card steps aside.
     const helpCard = document.querySelector('.side-help'), sideNav = document.querySelector('#sidebar nav');
