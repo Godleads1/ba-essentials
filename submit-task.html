@@ -141,9 +141,6 @@
     .js-anim .anim { opacity: 0; transform: translateY(18px) scale(.985); }
     .js-anim .anim.in { animation: rise .75s cubic-bezier(.22,1,.36,1) var(--d, 0ms) both; }
     @keyframes rise { from { opacity: 0; transform: translateY(18px) scale(.985); } to { opacity: 1; transform: none; } }
-    .js-anim .anim-x { opacity: 0; transform: translateX(-10px); }
-    .js-anim .anim-x.in { animation: slideIn .55s cubic-bezier(.22,1,.36,1) var(--d, 0ms) both; }
-    @keyframes slideIn { to { opacity: 1; transform: none; } }
     /* bars grow from the floor, the busiest day bounces, its label pops */
     .day-bar { clip-path: inset(100% 0 0 0); transition: clip-path 1s cubic-bezier(.22,1,.36,1) var(--d, 0ms); }
     .week-in .day-bar { clip-path: inset(-40px 0 0 0); }
@@ -153,8 +150,6 @@
     .week-in .stripes { animation: drift 1.6s linear infinite; }
     @keyframes drift { to { background-position: 12.7px 0; } }
     /* the active menu bar and notification dot */
-    .side-link[aria-current="page"]::before { animation: grow .6s cubic-bezier(.34,1.56,.64,1) .3s both; transform-origin: center; }
-    @keyframes grow { from { transform: scaleY(0); } }
     .ping::after { content: ""; position: absolute; inset: -3px; border-radius: 999px; background: #D9662E; animation: ping 2.2s cubic-bezier(0,0,.2,1) infinite; }
     @keyframes ping { 0% { transform: scale(.6); opacity: .7; } 70%, 100% { transform: scale(2.4); opacity: 0; } }
     /* dark cards: slow ripple of rings */
@@ -181,10 +176,10 @@
     #gaugeSvg path + path { transition: none; }
 
     @media (prefers-reduced-motion: reduce) {
-      .js-anim .anim, .js-anim .anim-x { opacity: 1 !important; transform: none !important; animation: none !important; }
+      .js-anim .anim { opacity: 1 !important; transform: none !important; animation: none !important; }
       .day-bar { clip-path: none !important; }
       .day-bar, .stat, .row-hover, .panel-lift, .day-tip { transition: none !important; }
-      .rings, .ping::after, .nudge::after, .stat--hero::after, .stripes, .side-link::before { animation: none !important; }
+      .rings, .ping::after, .nudge::after, .stat--hero::after, .stripes { animation: none !important; }
       .day-tip { opacity: 1; transform: translate(-50%, 0); }
     }
     /* ---------- submit a task ---------- */
