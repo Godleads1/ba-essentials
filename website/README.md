@@ -17,6 +17,9 @@ The public marketing site for B & A Essentials, built as three standalone HTML p
 | `deliverables.html` | Deliverables: every file from your requests, with download, approve drafts, archive, bulk actions and upload to a request |
 | `plan.html` | Plan & Usage: tasks and legal reviews used this cycle, usage chart, usage by category, alerts, change plan |
 | `billing.html` | Billing & Invoices: outstanding, invoices with pay and CSV export, payment method, automatic payments |
+| `team.html` | Organization & Team: business profile, members, invitations, roles and permissions, activity |
+| `help.html` | Help & Support: ways to get help, your support requests, common questions |
+| `contact.html` | Contact support: a support request form with topic, related request and files |
 
 It is published with GitHub Pages from the `gh-pages` branch, which holds a copy of this folder.
 
@@ -60,6 +63,11 @@ npm run build   # bakes icons into the pages, then compiles app.css
 
 The colours and fonts live in `build/tailwind.config.js`.
 
+## Support contact details
+
+The support email, phone and hours shown on Help and Contact come from the `SUPPORT` setting in
+`tasks-data.js`. Anything left empty is hidden, so no unconfirmed number appears on the site.
+
 ## Payments (Paystack)
 
 Step 6 of `onboarding.html` takes payment with Paystack's popup (Inline JS v2), by card,
@@ -86,7 +94,7 @@ Edit the files here, then copy them to the `gh-pages` branch:
 
 ```bash
 git checkout gh-pages
-git checkout main -- website/index.html website/login.html website/onboarding.html website/dashboard.html website/submit-task.html website/my-tasks.html website/task.html website/tasks-data.js website/catalogue.html website/catalogue-data.js website/deliverables.html website/plan.html website/billing.html
+git checkout main -- website/index.html website/login.html website/onboarding.html website/dashboard.html website/submit-task.html website/my-tasks.html website/task.html website/tasks-data.js website/catalogue.html website/catalogue-data.js website/deliverables.html website/plan.html website/billing.html website/team.html website/help.html website/contact.html
 mv website/*.html . && rmdir website
 git commit -am "Update website" && git push origin gh-pages
 ```

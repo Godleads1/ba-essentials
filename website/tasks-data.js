@@ -193,6 +193,85 @@
   const getPref = (k, fallback) => (k in (store.prefs || {}) ? store.prefs[k] : fallback);
   function setPref(k, v) { store.prefs = Object.assign({}, store.prefs, { [k]: v }); writeStore(store); }
 
+  // ---------- organization and team ----------
+  const ORG = {
+    id: 'ORG-2026-0112', name: 'Okeke Foods Ltd', type: 'Small business', state: 'Lagos', joined: '2026-07-28',
+    phone: '', registration: { label: 'CAC registration in progress', task: 'REQ-2026-0043' },
+  };
+  // Access levels for the customer's own staff.
+  const ROLES = {
+    owner: { label: 'Owner', chip: 'bg-brand-navy text-white', about: 'Full access, including billing, plan and team. One per organization.' },
+    admin: { label: 'Admin', chip: 'bg-pill-navyBg text-brand-navy', about: 'Everything except changing the plan or removing the owner.' },
+    member: { label: 'Member', chip: 'bg-pill-greenBg text-pill-greenTx', about: 'Submits and follows their own requests, and approves their deliverables.' },
+    finance: { label: 'Finance', chip: 'bg-pill-orangeBg text-brand-orangeDark', about: 'Pays invoices and sees billing. Can’t submit tasks.' },
+    viewer: { label: 'Viewer', chip: 'bg-cream text-ink', about: 'Can see tasks and files, but can’t change anything.' },
+  };
+  const PERMISSIONS = [
+    ['Submit tasks', ['owner', 'admin', 'member']],
+    ['See all the organization’s tasks', ['owner', 'admin', 'finance', 'viewer']],
+    ['Approve drafts and download files', ['owner', 'admin', 'member']],
+    ['Pay invoices and see billing', ['owner', 'admin', 'finance']],
+    ['Change the plan', ['owner']],
+    ['Invite and manage team members', ['owner', 'admin']],
+  ];
+  const MEMBERS = [
+    { id: 'U1', name: 'Chinedu Egbuchulam', email: 'chinedu@okekefoods.ng', role: 'owner', you: true, last: '2026-11-13T00:10' },
+    { id: 'U2', name: 'Amara Okafor', email: 'amara@okekefoods.ng', role: 'admin', last: '2026-11-12T15:42' },
+    { id: 'U3', name: 'Tunde Adebayo', email: 'tunde@okekefoods.ng', role: 'member', last: '2026-11-12T11:12' },
+    { id: 'U4', name: 'Ngozi Nwosu', email: 'ngozi@okekefoods.ng', role: 'finance', last: '2026-11-10T09:18' },
+    { id: 'U5', name: 'Emeka Okafor', email: 'emeka@okekefoods.ng', role: 'member', last: '2026-11-06T14:07' },
+    { id: 'U6', name: 'Aisha Bello', email: 'aisha@okekefoods.ng', role: 'viewer', last: '2026-10-30T13:26' },
+  ];
+  const INVITES = [
+    { id: 'I1', email: 'ifeanyi@okekefoods.ng', role: 'member', sent: '2026-11-11T10:05' },
+  ];
+  const ACTIVITY = [
+    ['2026-11-12T15:42', 'Amara Okafor', 'submitted REQ-2026-0038 (Brand deal contract filing)'],
+    ['2026-11-11T10:05', 'Chinedu Egbuchulam', 'invited ifeanyi@okekefoods.ng as a Member'],
+    ['2026-11-06T13:05', 'Chinedu Egbuchulam', 'replied on REQ-2026-0047'],
+    ['2026-11-04T09:10', 'Chinedu Egbuchulam', 'submitted REQ-2026-0046 (Trademark filing support)'],
+    ['2026-11-02T14:07', 'Amara Okafor', 'submitted REQ-2026-0043 (Company registration)'],
+    ['2026-10-29T08:40', 'Ngozi Nwosu', 'paid INV-2026-0049'],
+    ['2026-10-14T12:00', 'Chinedu Egbuchulam', 'changed Aisha Bello’s role to Viewer'],
+  ];
+
+  // ---------- support ----------
+  // Fill these in to show them across Help and Contact. Empty values are hidden.
+  const SUPPORT = { email: 'support@baessentials.com', phone: '', hours: 'Mon–Fri, 8am–6pm (WAT)', replyWithin: 'one business day' };
+  const TOPICS = {
+    billing: { label: 'Billing & invoices', icon: 'receipt-text' },
+    tasks: { label: 'Tasks & requests', icon: 'square-check' },
+    files: { label: 'Files & deliverables', icon: 'folder' },
+    plan: { label: 'Plan & usage', icon: 'gauge' },
+    team: { label: 'Account & team', icon: 'users' },
+    technical: { label: 'Something isn’t working', icon: 'wrench' },
+    other: { label: 'Something else', icon: 'circle-help' },
+  };
+  const TSTATUS = {
+    open: { label: 'Open', chip: 'bg-pill-navyBg text-brand-navy' },
+    progress: { label: 'In progress', chip: 'bg-[#EFE9FB] text-[#5B3FA8]' },
+    waiting: { label: 'Waiting on you', chip: 'bg-pill-orangeBg text-brand-orangeDark' },
+    resolved: { label: 'Resolved', chip: 'bg-pill-greenBg text-pill-greenTx' },
+  };
+  const TICKETS = [
+    { id: 'SUP-2026-0048', topic: 'billing', subject: 'Bank transfer not showing on invoice', status: 'progress', created: '2026-11-11T10:24', updated: '2026-11-12T14:15',
+      body: 'I paid INV-2026-0049 by bank transfer but it still showed as due for a day.', reply: 'Thanks, we’ve found the transfer and are matching it to the invoice. We’ll confirm today.' },
+    { id: 'SUP-2026-0047', topic: 'team', subject: 'Invite email not received', status: 'waiting', created: '2026-11-11T15:42', updated: '2026-11-12T09:10',
+      body: 'Ifeanyi hasn’t received his invitation email.', reply: 'We resent it. Could you ask him to check his spam folder and tell us if it’s still missing?' },
+    { id: 'SUP-2026-0046', topic: 'files', subject: 'Can’t open the October summary', status: 'resolved', created: '2026-11-05T11:12', updated: '2026-11-05T16:33',
+      body: 'The October summary PDF won’t open on my phone.', reply: 'We re-exported the file. It should open everywhere now.' },
+    { id: 'SUP-2026-0045', topic: 'plan', subject: 'More tasks this month?', status: 'resolved', created: '2026-10-25T09:18', updated: '2026-10-25T12:40',
+      body: 'Can we get a few more tasks this month without changing plan?', reply: 'Extra tasks wait for your renewal, or you can move up a plan any time from Plan & Usage.' },
+  ];
+  const listOr = (key, fallback) => (Array.isArray(store[key]) ? store[key] : fallback.map(x => Object.assign({}, x)));
+  const getList = key => listOr(key, { members: MEMBERS, invites: INVITES, tickets: TICKETS }[key] || []);
+  function setList(key, arr) { store[key] = arr; writeStore(store); }
+  const activity = () => (store.activity || []).concat(ACTIVITY).sort((a, b) => (a[0] === b[0] ? 0 : a[0] < b[0] ? 1 : -1));
+  function logActivity(who, what) { store.activity = [[nowLocal(), who, what]].concat(store.activity || []); writeStore(store); }
+  const getOrg = () => Object.assign({}, ORG, store.org || {});
+  function setOrg(change) { store.org = Object.assign({}, store.org, change); writeStore(store); }
+  const initials = name => name.trim().split(/\s+/).filter(Boolean).map(w => Array.from(w)[0]).filter((_, i, a) => i === 0 || i === a.length - 1).join('').toUpperCase();
+
   // ---------- formatting ----------
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const toDate = s => new Date(s.length === 10 ? s + 'T12:00' : s);
@@ -213,5 +292,6 @@
 
   window.BANDA = { CATS, STATUS, CANCELLABLE, PRIORITY, all, find, update, esc, toDate, fmtDate, fmtDateTime, fmtSize, naira, chip,
     DSTATUS, DOWNLOADABLE, deliverables, deliverablesFor, setDeliverable, fileType, nowLocal, toast,
-    PLANS, ACCOUNT, ISTATUS, invoices, payInvoice, invoiceForTask, getPref, setPref };
+    PLANS, ACCOUNT, ISTATUS, invoices, payInvoice, invoiceForTask, getPref, setPref,
+    ROLES, PERMISSIONS, SUPPORT, TOPICS, TSTATUS, getList, setList, activity, logActivity, getOrg, setOrg, initials };
 })();
