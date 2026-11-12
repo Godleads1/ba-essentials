@@ -108,6 +108,8 @@
     .side-badge { margin-left: auto; border-radius: 6px; background: rgba(255,255,255,.16); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; }
     .side-group + .side-group { margin-top: clamp(12px, 3vh, 34px); }
     /* the help card steps aside on short screens so the menu never scrolls */
+    /* the help card lives in the phone menu only */
+    @media (min-width: 1024px) { .side-help { display: none !important; } }
     .side-help.is-compact .help-extra { display: none; }
     .side-help.is-compact { padding: 12px 14px; }
     .side-help.is-compact .help-title { margin-top: 0; }
