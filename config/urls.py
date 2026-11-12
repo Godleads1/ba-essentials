@@ -8,6 +8,7 @@ from apps.website import views_public as website_views
 
 urlpatterns = [
     path("", core_views.landing, name="landing"),
+    path("about/", core_views.about, name="about"),
     path("health/", core_views.health, name="health"),
     path("", include("apps.accounts.urls")),
     path("", include("apps.organizations.urls_public")),

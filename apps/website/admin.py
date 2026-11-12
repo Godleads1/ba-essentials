@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import ContactMessage, Page, PageRevision
+from .models import ContactMessage, Page, PageRevision, Testimonial
 
 
 @admin.register(Page)
@@ -24,3 +24,11 @@ class ContactMessageAdmin(admin.ModelAdmin):
     list_filter = ("status",)
     search_fields = ("name", "email", "company")
     readonly_fields = ("source_ip_hash", "created_at", "updated_at")
+
+
+@admin.register(Testimonial)
+class TestimonialAdmin(admin.ModelAdmin):
+    list_display = ("name", "role", "rating", "is_published", "consent_confirmed", "sort_order")
+    list_filter = ("is_published", "consent_confirmed")
+    list_editable = ("sort_order",)
+    search_fields = ("name", "role", "quote")

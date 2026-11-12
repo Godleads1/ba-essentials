@@ -1,0 +1,80 @@
+{% extends "public/base.html" %}
+{% load site %}
+{% block title %}About Us · B &amp; A Essentials{% endblock %}
+{% block meta_description %}B &amp; A Essentials is a people-powered business support service for small businesses and SMEs in Nigeria.{% endblock %}
+{% block content %}
+  <main>
+    <section class="relative overflow-hidden bg-cream">
+      <div aria-hidden="true" class="pointer-events-none absolute -right-40 -top-48 h-[520px] w-[520px] rounded-full bg-brand-orange/[.12] blur-3xl"></div>
+      <div class="relative mx-auto max-w-site px-5 py-16 lg:px-0 lg:py-[84px]">
+        <div class="reveal max-w-[680px]">
+          <p class="flex items-center gap-3 text-[11.5px] font-bold tracking-[0.14em] text-brand-navy"><span class="h-[2px] w-5 rounded bg-brand-orange"></span>ABOUT US</p>
+          <h1 class="mt-5 font-display text-[34px] font-semibold leading-[1.1] tracking-[-0.025em] sm:text-[46px]">Real people behind your <span class="text-brand-navy">business support</span></h1>
+          <p class="mt-6 text-[17px] leading-relaxed text-ink-muted">B &amp; A Essentials helps small businesses and SMEs in Nigeria get work done. You tell us what you need, and our team handles it with care, from documents and design to admin, finance and IT support.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-cream-light">
+      <div class="mx-auto grid max-w-site gap-10 px-5 py-16 lg:grid-cols-[0.8fr_1.4fr] lg:gap-16 lg:px-0 lg:py-[72px]">
+        <div class="reveal">
+          <p class="flex items-center gap-3 text-[11.5px] font-bold tracking-[0.14em] text-brand-navy"><span class="h-[2px] w-5 rounded bg-brand-orange"></span>WHY WE EXIST</p>
+          <h2 class="mt-4 font-display text-[28px] font-semibold leading-tight tracking-tight sm:text-[30px]">Beyond your AI.</h2>
+        </div>
+        <div class="reveal reveal-d1 space-y-5 text-[16px] leading-relaxed text-ink-muted">
+          <p>Tools can now draft a proposal or outline a plan in seconds. What they cannot do is take responsibility for the result. Someone still has to check the work, finish it properly and stand behind it.</p>
+          <p>That is the gap we fill. B &amp; A Essentials adds people to the process: someone to do the work, someone to review it, and one clear place for you to see where everything stands.</p>
+          <p class="font-medium text-ink">So you spend less time chasing tasks, and more time running your business.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-cream">
+      <div class="mx-auto max-w-site px-5 py-16 lg:px-0 lg:py-[72px]">
+        <div class="reveal">
+          <p class="flex items-center gap-3 text-[11.5px] font-bold tracking-[0.14em] text-brand-navy"><span class="h-[2px] w-5 rounded bg-brand-orange"></span>HOW WE WORK</p>
+          <h2 class="mt-4 font-display text-[28px] font-semibold tracking-tight sm:text-[30px]">What you can expect from us</h2>
+        </div>
+        <ul class="mt-9 grid gap-4 sm:grid-cols-2">
+          <li class="reveal rounded-xl border border-cream-line bg-white p-6">
+            <span class="grid h-11 w-11 place-items-center rounded-lg bg-pill-navy-bg text-brand-navy">{% icon "user-check" "h-5 w-5" %}</span>
+            <h3 class="mt-5 font-display text-[16.5px] font-semibold">People do the work</h3>
+            <p class="mt-2.5 text-[14px] leading-relaxed text-ink-muted">Every request is handled by a person with the right skills, and checked by a second person before it reaches you.</p>
+          </li>
+          <li class="reveal rounded-xl border border-cream-line bg-white p-6">
+            <span class="grid h-11 w-11 place-items-center rounded-lg bg-pill-navy-bg text-brand-navy">{% icon "wallet" "h-5 w-5" %}</span>
+            <h3 class="mt-5 font-display text-[16.5px] font-semibold">You agree the cost first</h3>
+            <p class="mt-2.5 text-[14px] leading-relaxed text-ink-muted">We confirm the scope and send a quote. Nothing chargeable starts until you approve it.</p>
+          </li>
+          <li class="reveal rounded-xl border border-cream-line bg-white p-6">
+            <span class="grid h-11 w-11 place-items-center rounded-lg bg-pill-navy-bg text-brand-navy">{% icon "layout-list" "h-5 w-5" %}</span>
+            <h3 class="mt-5 font-display text-[16.5px] font-semibold">One place to follow it</h3>
+            <p class="mt-2.5 text-[14px] leading-relaxed text-ink-muted">Submit requests, share files, see progress and collect finished work from a single workspace.</p>
+          </li>
+          <li class="reveal rounded-xl border border-cream-line bg-white p-6">
+            <span class="grid h-11 w-11 place-items-center rounded-lg bg-pill-navy-bg text-brand-navy">{% icon "shield-check" "h-5 w-5" %}</span>
+            <h3 class="mt-5 font-display text-[16.5px] font-semibold">Your files stay private</h3>
+            <p class="mt-2.5 text-[14px] leading-relaxed text-ink-muted">Documents are stored privately and opened only by the people working on your request.</p>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="bg-cream-light pb-16 pt-16 lg:pb-[72px] lg:pt-[72px]">
+      <div class="mx-auto max-w-site px-5 lg:px-0">
+        <div class="reveal relative flex flex-col gap-6 overflow-hidden rounded-2xl bg-cocoa px-6 py-8 sm:px-9 md:flex-row md:items-center md:justify-between">
+          <span aria-hidden="true" class="pointer-events-none absolute -right-16 -top-24 h-64 w-64 rounded-full border border-brand-lavender/15"></span>
+          <span aria-hidden="true" class="pointer-events-none absolute -right-4 -top-12 h-40 w-40 rounded-full border border-brand-lavender/15"></span>
+          <div class="relative">
+            <h2 class="font-display text-[22px] font-semibold text-white sm:text-[24px]">Want to know more?</h2>
+            <p class="mt-1.5 text-[14px] text-white/80">Tell us about your business and what you need help with.</p>
+          </div>
+          <div class="relative flex flex-wrap gap-3">
+            <a href="{% url 'contact' %}" class="inline-flex items-center rounded-lg border border-white/30 px-5 py-3.5 text-[14px] font-semibold text-white transition hover:bg-white/10 focus-visible:outline-white">Talk to Our Team</a>
+            <a href="{% url 'signup' %}" class="group inline-flex items-center gap-2 rounded-lg bg-brand-orange px-5 py-3.5 text-[14px] font-semibold text-white transition hover:bg-brand-orange-dark focus-visible:outline-white">Get Started {% icon "arrow-right" "h-4 w-4 transition-transform group-hover:translate-x-0.5" %}</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+{% endblock %}

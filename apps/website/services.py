@@ -9,7 +9,7 @@ from django.utils.text import slugify
 from apps.audit import services as audit
 from apps.core.exceptions import ValidationFailure
 
-from .models import ContactMessage, ContactStatus, Page, PageRevision
+from .models import ContactMessage, ContactStatus, Page, PageRevision, Testimonial
 
 RESERVED_SLUGS = frozenset(
     {
@@ -172,6 +172,11 @@ def published_pages():
         .filter(published_revision__isnull=False)
         .order_by("slug")
     )
+
+
+def published_testimonials():
+    """Client quotes cleared for the public site: published and consented."""
+    return Testimonial.objects.filter(is_published=True, consent_confirmed=True)
 
 
 def submit_contact_message(

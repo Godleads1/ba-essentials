@@ -15,7 +15,7 @@ from .middleware import _safe_next
 
 # Design placeholders for the testimonial section. They are not real clients, so
 # they are only ever rendered with DEBUG on, under a visible "sample" notice.
-# Replace this with real, consented quotes before enabling the section live.
+# Real quotes are added through the Testimonial model in the admin.
 SAMPLE_TESTIMONIALS = (
     {
         "quote": "B & A Essentials has been a game-changer for my business. "
@@ -23,6 +23,8 @@ SAMPLE_TESTIMONIALS = (
         "name": "Ada Okafor",
         "role": "CEO, Bloom & Co.",
         "initials": "AO",
+        "stars": range(5),
+        "rating": 5,
     },
     {
         "quote": "I love how easy it is to request services and track progress. "
@@ -30,6 +32,8 @@ SAMPLE_TESTIMONIALS = (
         "name": "Tunde Adebayo",
         "role": "Founder, Tunde's Foods",
         "initials": "TA",
+        "stars": range(5),
+        "rating": 5,
     },
     {
         "quote": "The quality of work is excellent, and their support team is "
@@ -37,6 +41,8 @@ SAMPLE_TESTIMONIALS = (
         "name": "Ngozi Eze",
         "role": "Owner, Eze Retail",
         "initials": "NE",
+        "stars": range(5),
+        "rating": 5,
     },
 )
 
@@ -46,23 +52,42 @@ def landing(request):
     if request.user.is_authenticated:
         return redirect("staff-dashboard" if _is_staff(request.user) else "client-overview")
     from apps.catalogue.models import ServiceCategory
-    from apps.website.services import published_pages
+    from apps.website.services import published_pages, published_testimonials
 
     categories = ServiceCategory.objects.filter(is_active=True).order_by("sort_order", "name")
+    # Real, consented client quotes come from the Testimonial model. Until some
+    # exist the section stays hidden, except in DEBUG where labelled samples
+    # stand in so the design can be reviewed.
+    testimonials = list(published_testimonials())
+    use_samples = settings.DEBUG and not testimonials
+    if use_samples:
+        testimonials = SAMPLE_TESTIMONIALS
     return render(
         request,
         "public/landing.html",
         {
             "categories": categories,
             "site_pages": published_pages(),
-            "testimonials": SAMPLE_TESTIMONIALS if settings.DEBUG else (),
-            "testimonials_are_samples": settings.DEBUG,
+            "testimonials": testimonials,
+            "testimonials_are_samples": use_samples,
         },
     )
 
 
 def _is_staff(user) -> bool:
     return bool(getattr(user, "staff_role", ""))
+
+
+@require_GET
+def about(request):
+    """About Us. A published website page with the slug "about" replaces the
+    built-in copy, so staff can rewrite it without a deploy."""
+    from apps.website import views_public as website_views
+    from apps.website.services import published_page, published_pages
+
+    if published_page("about") is not None:
+        return website_views.page(request, slug="about")
+    return render(request, "public/about.html", {"site_pages": published_pages()})
 
 
 @require_GET

@@ -46,7 +46,8 @@ def _make_page(editor, slug="about", title="About us", body="Synthetic body copy
 
 
 def test_unpublished_drafts_are_not_public(client, editor):
-    page, _revision = _make_page(editor)
+    # "about" has a built-in default page, so use a slug with no fallback.
+    page, _revision = _make_page(editor, slug="delivery-policy")
 
     response = client.get(reverse("website-page", args=[page.slug]))
 

@@ -86,9 +86,13 @@ third-party origins and stay inside the Content-Security-Policy.
 
 - Service cards come from the active catalogue categories, falling back to
   five default cards while no catalogue is loaded.
-- The testimonial section is hidden unless `DEBUG` is on, where it shows
-  labelled sample content. Add real, consented quotes before enabling it live.
-- Footer social icons appear only for the `SOCIAL_*_URL` values that are set.
+- The testimonial section shows published `Testimonial` records (Django admin,
+  Website section). A quote needs "consent confirmed" before it can be
+  published. With none published the section is hidden; with `DEBUG` on,
+  labelled sample content stands in so the design can be reviewed.
+- `/about/` is a static About Us page (`templates/public/about.html`).
+- The footer always shows the five social icons. Each becomes a link once its
+  `SOCIAL_*_URL` value is set.
 
 ## Tests
 

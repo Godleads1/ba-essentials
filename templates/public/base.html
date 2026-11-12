@@ -27,9 +27,10 @@
             <li><a href="{% url 'landing' %}#top" data-spy="top" class="site-nav-link">Home</a></li>
             <li><a href="{% url 'landing' %}#services" data-spy="services" class="site-nav-link">Services</a></li>
             <li><a href="{% url 'landing' %}#how" data-spy="how" class="site-nav-link">How It Works</a></li>
-            {% for item in site_pages %}
+            <li><a href="{% url 'about' %}" class="site-nav-link{% if current == 'about' %} is-active{% endif %}"{% if current == 'about' %} aria-current="page"{% endif %}>About Us</a></li>
+            {% for item in site_pages %}{% if item.slug != "about" %}
               <li><a href="{% url 'website-page' slug=item.slug %}" class="site-nav-link{% if page.slug == item.slug %} is-active{% endif %}"{% if page.slug == item.slug %} aria-current="page"{% endif %}>{{ item.published_revision.title }}</a></li>
-            {% endfor %}
+            {% endif %}{% endfor %}
             <li><a href="{% url 'contact' %}" class="site-nav-link{% if current == 'contact' %} is-active{% endif %}"{% if current == 'contact' %} aria-current="page"{% endif %}>Contact</a></li>
           </ul>
         </nav>
@@ -51,9 +52,10 @@
           <li><a href="{% url 'landing' %}#top" class="block rounded-md px-2 py-2 font-medium text-brand-navy">Home</a></li>
           <li><a href="{% url 'landing' %}#services" class="block rounded-md px-2 py-2 text-ink-muted">Services</a></li>
           <li><a href="{% url 'landing' %}#how" class="block rounded-md px-2 py-2 text-ink-muted">How It Works</a></li>
-          {% for item in site_pages %}
+          <li><a href="{% url 'about' %}" class="block rounded-md px-2 py-2 text-ink-muted">About Us</a></li>
+          {% for item in site_pages %}{% if item.slug != "about" %}
             <li><a href="{% url 'website-page' slug=item.slug %}" class="block rounded-md px-2 py-2 text-ink-muted">{{ item.published_revision.title }}</a></li>
-          {% endfor %}
+          {% endif %}{% endfor %}
           <li><a href="{% url 'contact' %}" class="block rounded-md px-2 py-2 text-ink-muted">Contact</a></li>
           <li class="flex gap-3 pt-3">
             <a href="{% url 'login' %}" class="flex-1 rounded-lg border border-cream-line py-2.5 text-center font-semibold">Log In</a>
@@ -81,20 +83,25 @@
               <li><a href="{% url 'landing' %}#top" class="transition-colors hover:text-brand-lavender">Home</a></li>
               <li><a href="{% url 'landing' %}#services" class="transition-colors hover:text-brand-lavender">Services</a></li>
               <li><a href="{% url 'landing' %}#how" class="transition-colors hover:text-brand-lavender">How It Works</a></li>
-              {% for item in site_pages %}
+              <li><a href="{% url 'about' %}" class="transition-colors hover:text-brand-lavender">About Us</a></li>
+              {% for item in site_pages %}{% if item.slug != "about" %}
                 <li><a href="{% url 'website-page' slug=item.slug %}" class="transition-colors hover:text-brand-lavender">{{ item.published_revision.title }}</a></li>
-              {% endfor %}
+              {% endif %}{% endfor %}
               <li><a href="{% url 'contact' %}" class="transition-colors hover:text-brand-lavender">Contact</a></li>
             </ul>
           </nav>
           {% social_links as socials %}
-          {% if socials %}
-            <ul class="flex gap-2.5">
-              {% for key, label, url in socials %}
-                <li><a href="{{ url }}" rel="noopener noreferrer" aria-label="{{ label }}" class="grid h-11 w-11 place-items-center rounded-full border border-white/20 transition hover:-translate-y-0.5 hover:border-brand-orange hover:bg-brand-orange">{% icon key "h-[15px] w-[15px]" %}</a></li>
-              {% endfor %}
-            </ul>
-          {% endif %}
+          <ul class="flex gap-2.5">
+            {% for key, label, url in socials %}
+              <li>
+                {% if url %}
+                  <a href="{{ url }}" rel="noopener noreferrer" aria-label="{{ label }}" class="grid h-11 w-11 place-items-center rounded-full border border-white/20 transition hover:-translate-y-0.5 hover:border-brand-orange hover:bg-brand-orange">{% icon key "h-[15px] w-[15px]" %}</a>
+                {% else %}
+                  <span role="img" aria-label="{{ label }}" class="grid h-11 w-11 place-items-center rounded-full border border-white/20">{% icon key "h-[15px] w-[15px]" %}</span>
+                {% endif %}
+              </li>
+            {% endfor %}
+          </ul>
         </div>
         <div class="flex flex-col gap-2 border-t border-white/10 py-6 text-[13px] text-white/70 sm:flex-row sm:justify-between">
           <p>&copy; {% now "Y" %} B &amp; A Essentials. All rights reserved.</p>

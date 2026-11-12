@@ -244,7 +244,7 @@
             <h2 id="stories-title" class="mt-4 font-display text-[30px] font-semibold tracking-tight sm:text-[32px]">What Our Clients Say</h2>
             <p class="mt-4 max-w-[460px] text-[15px] leading-relaxed text-ink-muted">Businesses across Nigeria trust B &amp; A Essentials to help them work smarter and grow faster.</p>
             {% if testimonials_are_samples %}
-              <p class="mt-4 inline-flex rounded-md border border-amber-300 bg-amber-50 px-3 py-1.5 text-[12px] font-semibold text-amber-900">Sample content, shown in development only. This section is hidden on the live site.</p>
+              <p class="mt-4 inline-flex rounded-md border border-amber-300 bg-amber-50 px-3 py-1.5 text-[12px] font-semibold text-amber-900">Sample content, shown in development only. The live site shows this section once real client quotes are added.</p>
             {% endif %}
           </div>
           <div class="flex gap-3">
@@ -258,7 +258,7 @@
             {% cycle "bg-brand-navy" "bg-brand-orange" "bg-cocoa" as avatar_tone silent %}
             <figure class="relative w-[85%] shrink-0 snap-start rounded-xl border border-cream-line bg-white p-6 transition hover:shadow-[0_18px_40px_-26px_rgba(28,23,18,.35)] sm:w-[calc(50%-8px)] lg:w-[calc(33.333%-11px)]">
               {% icon "quote" "absolute right-5 top-5 h-7 w-7 text-brand-navy-soft" %}
-              <div class="flex gap-1 text-brand-orange" role="img" aria-label="5 out of 5 stars">{% icon "star" "h-3 w-3" %}{% icon "star" "h-3 w-3" %}{% icon "star" "h-3 w-3" %}{% icon "star" "h-3 w-3" %}{% icon "star" "h-3 w-3" %}</div>
+              <div class="flex gap-1 text-brand-orange" role="img" aria-label="{{ item.rating }} out of 5 stars">{% for _ in item.stars %}{% icon "star" "h-3 w-3" %}{% endfor %}</div>
               <blockquote class="mt-5 text-[14px] leading-relaxed text-ink">&ldquo;{{ item.quote }}&rdquo;</blockquote>
               <figcaption class="mt-6 flex items-center gap-3">
                 <span class="grid h-10 w-10 place-items-center rounded-full {{ avatar_tone }} text-[12px] font-bold text-white" aria-hidden="true">{{ item.initials }}</span>
