@@ -6,7 +6,8 @@ The public marketing site for B & A Essentials, built as three standalone HTML p
 |---|---|
 | `index.html` | One-page website: hero, services, how it works, pricing, about us, real stories, FAQs |
 | `login.html` | Log in |
-| `onboarding.html` | Five-step sign-up: account, email code, business details, plan, review |
+| `onboarding.html` | Six-step sign-up: account, email code, business details, plan, review, payment |
+| `dashboard.html` | Client dashboard (sample data) |
 
 It is published with GitHub Pages from the `gh-pages` branch, which holds a copy of this folder.
 
