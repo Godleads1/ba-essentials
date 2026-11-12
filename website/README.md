@@ -14,6 +14,7 @@ The public marketing site for B & A Essentials, built as three standalone HTML p
 | `tasks-data.js` | Sample task data shared by My Tasks and Request detail (the app will replace it with its API) |
 | `catalogue.html` | Service Catalogue: categories, availability, search across services, details panel with request links |
 | `catalogue-data.js` | The service list (from the Task Bank), shared by the Catalogue and Submit a Task |
+| `deliverables.html` | Deliverables: every file from your requests, with download, approve drafts, archive, bulk actions and upload to a request |
 
 It is published with GitHub Pages from the `gh-pages` branch, which holds a copy of this folder.
 
@@ -83,7 +84,7 @@ Edit the files here, then copy them to the `gh-pages` branch:
 
 ```bash
 git checkout gh-pages
-git checkout main -- website/index.html website/login.html website/onboarding.html website/dashboard.html website/submit-task.html website/my-tasks.html website/task.html website/tasks-data.js website/catalogue.html website/catalogue-data.js
+git checkout main -- website/index.html website/login.html website/onboarding.html website/dashboard.html website/submit-task.html website/my-tasks.html website/task.html website/tasks-data.js website/catalogue.html website/catalogue-data.js website/deliverables.html
 mv website/*.html . && rmdir website
 git commit -am "Update website" && git push origin gh-pages
 ```

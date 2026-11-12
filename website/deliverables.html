@@ -1,0 +1,723 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Deliverables · banda — B &amp; A Essentials</title>
+  <meta name="description" content="Your B &amp; A Essentials client dashboard." />
+  <meta name="theme-color" content="#1C1712" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='14'%20fill='%231C1712'/%3E%3Cpath%20d='M17%209h9v17a13%2013%200%201%201-9%2012z'%20fill='%23FDFBF6'/%3E%3Ccircle%20cx='39'%20cy='39'%20r='7'%20fill='%231C1712'/%3E%3Ccircle%20cx='31'%20cy='40'%20r='5'%20fill='%23D9662E'/%3E%3C/svg%3E" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@500;600;700&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind Play CDN for preview only. In Django, build with the Tailwind CLI using the same config. -->
+  <style>
+    html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { scrollbar-width: none; }
+
+    /* ---------- banda logo (HTML/CSS, crisp at any size) ---------- */
+    .logo { display: inline-flex; flex-direction: column; align-items: flex-start; font-size: 36px; line-height: 1; text-decoration: none; }
+    .logo-word { font-family: Inter, system-ui, sans-serif; font-weight: 800; line-height: .82; letter-spacing: -.035em; color: var(--logo-word, #1C1712); }
+    .logo-b { position: relative; display: inline-block; }
+    .logo-dot { position: absolute; left: .215em; top: .43em; width: .18em; height: .18em; border-radius: 50%; background: #D9662E; transition: transform .35s cubic-bezier(.34,1.56,.64,1); }
+    .logo:hover .logo-dot { transform: scale(1.18); }
+    .logo-tag { font-family: Inter, system-ui, sans-serif; font-weight: 600; font-size: .2em; letter-spacing: .5em; margin-top: .55em; white-space: nowrap; color: var(--logo-tag, #33397F); }
+    .logo-tag .amp { color: #D9662E; letter-spacing: .3em; }
+    .logo--light { --logo-word: #FDFBF6; --logo-tag: #B8BBE6; }
+    /* large lockup (hero/brand use) keeps the original airy tagline */
+    .logo--lg .logo-tag { font-weight: 500; font-size: .172em; letter-spacing: .66em; margin-top: .62em; }
+
+    /* ---------- motion ---------- */
+    .reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s ease, transform .6s ease; }
+    .reveal.in { opacity: 1; transform: none; }
+    .bar { width: 0; transition: width 1.2s cubic-bezier(.22,1,.36,1) .3s; }
+    .float { animation: float 7s ease-in-out infinite; }
+    @keyframes float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-6px) } }
+    .hero-underline path { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .9s cubic-bezier(.22,1,.36,1) .5s; }
+    .reveal.in .hero-underline path { stroke-dashoffset: 0; }
+    details > summary { list-style: none; cursor: pointer; }
+    details > summary::-webkit-details-marker { display: none; }
+    details[open] .faq-plus { transform: rotate(45deg); }
+    /* Square grid: thin lines forming squares, faded out towards the edges. */
+    .grid-lines {
+      --gl: rgba(51,57,127,.12);
+      --cell: 64px;
+      background-image:
+        linear-gradient(to right, var(--gl) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--gl) 1px, transparent 1px);
+      background-size: var(--cell) var(--cell);
+      background-position: center top;
+    }
+    .grid-lines--light { --gl: rgba(255,255,255,.085); }
+    .grid-fade {
+      -webkit-mask-image: radial-gradient(ellipse 72% 68% at 50% 42%, #000 35%, transparent 78%);
+              mask-image: radial-gradient(ellipse 72% 68% at 50% 42%, #000 35%, transparent 78%);
+    }
+    /* a few squares filled in, like the reference */
+    .grid-cell { position: absolute; width: var(--cell, 64px); height: var(--cell, 64px); background: rgba(51,57,127,.035); }
+    .dot-grid { background-image: radial-gradient(rgba(51,57,127,.13) 1px, transparent 1px); background-size: 18px 18px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .reveal { opacity: 1; transform: none; }
+      .hero-underline path { stroke-dashoffset: 0; }
+    }
+
+    /* ---------- dashboard ---------- */
+    [hidden] { display: none !important; }
+    body { background: #EFEAE1; }
+    .panel { background: #fff; border-radius: 22px; }
+    .side-link:focus-visible { outline: 2px solid #F0A77C; outline-offset: -2px; }
+    .ring-focus:focus-visible, .btn:focus-visible { outline: 2px solid #33397F; outline-offset: 2px; }
+
+    /* sidebar: a light card that always fits the screen height */
+    #sidebar { top: 12px; bottom: 12px; background: linear-gradient(140deg, #3A41935e 0%, transparent 60%), linear-gradient(160deg, #33397F, #22265A); color: #fff; }
+    .side-label { font-size: 11.5px; font-weight: 600; letter-spacing: .14em; color: rgba(184,187,230,.75); padding: 0 22px; margin-bottom: clamp(2px, .6vh, 6px); }
+    .side-link { position: relative; display: flex; align-items: center; gap: 13px; height: clamp(34px, 4.7vh, 44px); padding: 0 22px; font-size: 15px; font-weight: 500; color: rgba(255,255,255,.68); transition: color .15s, background .15s; }
+    .side-link svg { width: 20px; height: 20px; flex-shrink: 0; }
+    .side-link:hover { color: #fff; background: rgba(255,255,255,.06); }
+    .side-link[aria-current="page"] { color: #fff; font-weight: 600; background: rgba(255,255,255,.1); }
+    .side-link[aria-current="page"] svg { color: #F0A77C; }
+    .side-link[aria-current="page"]::before { content: ""; position: absolute; left: 0; top: 18%; bottom: 18%; width: 5px; border-radius: 0 6px 6px 0; background: #D9662E; }
+    .side-badge { margin-left: auto; border-radius: 6px; background: rgba(255,255,255,.16); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; }
+    .side-group + .side-group { margin-top: clamp(12px, 3vh, 34px); }
+    /* the help card steps aside on short screens so the menu never scrolls */
+    /* the help card lives in the phone menu only */
+    @media (min-width: 1024px) { .side-help { display: none !important; } }
+    .side-help.is-compact .help-extra { display: none; }
+    .side-help.is-compact { padding: 12px 14px; }
+    .side-help.is-compact .help-title { margin-top: 0; }
+
+    /* stat cards */
+    .stat { position: relative; display: block; border-radius: 20px; background: #fff; padding: 18px 20px; transition: transform .2s, box-shadow .2s; }
+    .stat:hover { transform: translateY(-2px); box-shadow: 0 18px 34px -26px rgba(51,57,127,.55); }
+    .stat-go { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 999px; border: 1.5px solid #241A15; transition: background .2s, color .2s; }
+    .stat:hover .stat-go { background: #241A15; color: #fff; }
+    .stat--hero { background: linear-gradient(140deg, #3A41935e 0%, transparent 60%), linear-gradient(160deg, #33397F, #22265A); color: #fff; }
+    .stat--hero .stat-go { border: 0; background: #fff; color: #33397F; }
+    .trend { display: inline-flex; align-items: center; gap: 3px; border: 1px solid currentColor; border-radius: 6px; padding: 0 5px; font-size: 11px; font-weight: 700; line-height: 17px; }
+
+    .chip-status { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; border-radius: 6px; padding: 2px 8px; font-size: 11.5px; font-weight: 600; }
+    .stripes { background: repeating-linear-gradient(135deg, #A5A8CF 0 3px, transparent 3px 9px); box-shadow: inset 0 0 0 1px #DADCEE; }
+    .day-bar { transition: height .9s cubic-bezier(.22,1,.36,1); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 999px; font-weight: 600; transition: background .15s, color .15s, border-color .15s; }
+    .rings { background: repeating-radial-gradient(circle at 115% 120%, transparent 0 16px, rgba(240,167,124,.16) 16px 17px); }
+
+    @media (max-width: 639px) {
+      .stat { padding: 14px 15px; }
+      .stat > span:first-child > span:first-child { font-size: 14px; }
+      .stat-go { width: 30px; height: 30px; }
+    }
+    @media (max-width: 1023px) {
+      #sidebar { transform: translateX(-110%); transition: transform .25s ease; }
+      #sidebar.is-open { transform: none; }
+    }
+    /* ---------- motion ---------- */
+    .js-anim .anim { opacity: 0; transform: translateY(18px) scale(.985); }
+    .js-anim .anim.in { animation: rise .75s cubic-bezier(.22,1,.36,1) var(--d, 0ms) both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(18px) scale(.985); } to { opacity: 1; transform: none; } }
+    /* bars grow from the floor, the busiest day bounces, its label pops */
+    .day-bar { clip-path: inset(100% 0 0 0); transition: clip-path 1s cubic-bezier(.22,1,.36,1) var(--d, 0ms); }
+    .week-in .day-bar { clip-path: inset(-40px 0 0 0); }
+    .day-tip { opacity: 0; transform: translate(-50%, 6px) scale(.8); transition: opacity .35s ease 1.2s, transform .45s cubic-bezier(.34,1.56,.64,1) 1.2s; }
+    .week-in .day-tip { opacity: 1; transform: translate(-50%, 0) scale(1); }
+    .stripes { background-size: 12.7px 12.7px; }
+    .week-in .stripes { animation: drift 1.6s linear infinite; }
+    @keyframes drift { to { background-position: 12.7px 0; } }
+    /* the active menu bar and notification dot */
+    .ping::after { content: ""; position: absolute; inset: -3px; border-radius: 999px; background: #D9662E; animation: ping 2.2s cubic-bezier(0,0,.2,1) infinite; }
+    @keyframes ping { 0% { transform: scale(.6); opacity: .7; } 70%, 100% { transform: scale(2.4); opacity: 0; } }
+    /* dark cards: slow ripple of rings */
+    .rings { background-size: 100% 100%; animation: ripple 9s ease-in-out infinite alternate; }
+    @keyframes ripple { from { background-position: 0 0; } to { background-position: -26px -18px; } }
+    /* hero stat: a light sweep once it lands */
+    .stat--hero { overflow: hidden; }
+    .stat--hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.18) 50%, transparent 65%); transform: translateX(-120%); pointer-events: none; }
+    .stat--hero.in::after { animation: sweep 1.4s ease .9s; }
+    @keyframes sweep { to { transform: translateX(120%); } }
+    .stat-go svg { transition: transform .3s cubic-bezier(.34,1.56,.64,1); }
+    .stat:hover .stat-go svg { transform: rotate(45deg); }
+    /* main call to action breathes every few seconds */
+    .nudge { position: relative; }
+    .nudge::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: 0 0 0 0 rgba(51,57,127,.45); animation: nudge 3.2s ease-out 2s infinite; }
+    @keyframes nudge { 0% { box-shadow: 0 0 0 0 rgba(51,57,127,.45); } 45%, 100% { box-shadow: 0 0 0 12px rgba(51,57,127,0); } }
+    /* list rows lift on hover; icons tilt */
+    .row-hover { transition: background .2s, transform .25s cubic-bezier(.22,1,.36,1); }
+    .row-hover:hover { transform: translateX(4px); }
+    .row-hover:hover > span:first-child { transform: rotate(-8deg) scale(1.06); }
+    .row-hover > span:first-child { transition: transform .3s cubic-bezier(.34,1.56,.64,1); }
+    .panel-lift { transition: box-shadow .3s, transform .3s cubic-bezier(.22,1,.36,1); }
+    @media (hover: hover) { .panel-lift:hover { transform: translateY(-3px); box-shadow: 0 22px 40px -30px rgba(36,26,21,.45); } }
+    #gaugeSvg path + path { transition: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .js-anim .anim { opacity: 1 !important; transform: none !important; animation: none !important; }
+      .day-bar { clip-path: none !important; }
+      .day-bar, .stat, .row-hover, .panel-lift, .day-tip { transition: none !important; }
+      .rings, .ping::after, .nudge::after, .stat--hero::after, .stripes { animation: none !important; }
+      .day-tip { opacity: 1; transform: translate(-50%, 0); }
+    }
+    /* ---------- submit a task ---------- */
+    .step-item { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; font-size: 12.5px; color: #736C66; }
+    .step-item:not(:last-child)::after { content: ""; position: absolute; top: 15px; left: calc(50% + 22px); right: calc(-50% + 22px); height: 2px; border-radius: 2px; background: #ECE5DA; }
+    .step-item.is-done:not(:last-child)::after { background: #33397F; }
+    .step-dot { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 999px; border: 1.5px solid #D9D2C6; background: #fff; font-weight: 600; font-size: 13px; transition: background .25s, border-color .25s, color .25s; }
+    .step-item.is-current { color: #241A15; font-weight: 600; }
+    .step-item.is-current .step-dot { border-color: #33397F; background: #33397F; color: #fff; box-shadow: 0 0 0 5px #ECEDF8; }
+    .step-item.is-done .step-dot { border-color: #33397F; background: #33397F; color: transparent; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E"); background-size: 15px; background-repeat: no-repeat; background-position: center; }
+    .step-item.is-done { color: #33397F; }
+
+    .cat { position: relative; display: block; cursor: pointer; border-radius: 18px; border: 1.5px solid #ECE5DA; background: #fff; padding: 16px; transition: border-color .2s, box-shadow .2s, transform .2s; }
+    .cat:hover { border-color: #B8BBE6; transform: translateY(-1px); }
+    .cat:has(input:checked) { border-color: #33397F; box-shadow: 0 0 0 3px #ECEDF8; }
+    .cat:has(input:focus-visible) { outline: 2px solid #33397F; outline-offset: 2px; }
+    .cat-check { position: absolute; right: 14px; top: 14px; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 999px; border: 1.5px solid #D9D2C6; color: transparent; transition: all .2s; }
+    .cat:has(input:checked) .cat-check { border-color: #33397F; background: #33397F; color: #fff; }
+
+    .lbl { display: block; font-size: 13.5px; font-weight: 600; }
+    .field { display: block; width: 100%; border-radius: 12px; border: 1.5px solid #ECE5DA; background: #fff; padding: 11px 14px; font-size: 14.5px; color: #241A15; transition: border-color .15s, box-shadow .15s; }
+    .field::placeholder { color: #8A817A; }
+    .field:focus { outline: none; border-color: #33397F; box-shadow: 0 0 0 3px #ECEDF8; }
+    .field:disabled { background: #FBF9F5; color: #736C66; cursor: not-allowed; }
+    .field[aria-invalid="true"] { border-color: #C2410C; }
+    .err { font-size: 12.5px; font-weight: 500; color: #B42318; }
+    .choice { display: block; cursor: pointer; }
+    .choice span { display: block; border-radius: 12px; border: 1.5px solid #ECE5DA; background: #fff; padding: 10px; text-align: center; font-size: 14px; font-weight: 500; transition: all .15s; }
+    .choice input:checked + span { border-color: #33397F; background: #ECEDF8; color: #33397F; font-weight: 600; }
+    .choice input:focus-visible + span { outline: 2px solid #33397F; outline-offset: 2px; }
+    @media (max-width: 639px) {
+      .cat { display: grid; grid-template-columns: 40px 1fr; column-gap: 12px; padding: 12px 40px 12px 12px; }
+      .cat > :nth-child(3) { grid-row: 1 / 3; }
+      .cat > :nth-child(4) { margin-top: 0; }
+      .cat > :nth-child(5) { margin-top: 2px; }
+      .cat > :nth-child(6) { display: none; }
+      .cat-check { top: 50%; transform: translateY(-50%); }
+    }
+    #drop.is-over { border-color: #33397F; background: #ECEDF8; }
+
+    .btn-next, .btn-ghost, .btn-outline { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 999px; font-size: 14px; font-weight: 600; transition: background .15s, color .15s, border-color .15s; }
+    .btn-next { background: #33397F; color: #fff; padding: 12px 22px; }
+    .btn-next:hover { background: #282D68; }
+    .btn-ghost { padding: 12px 16px; color: #736C66; }
+    .btn-ghost:hover { background: #F5F0E8; color: #241A15; }
+    .btn-outline { border: 1.5px solid #33397F; color: #33397F; padding: 10.5px 20px; }
+    .btn-outline:hover { background: #33397F; color: #fff; }
+    .btn-next:focus-visible, .btn-ghost:focus-visible, .btn-outline:focus-visible { outline: 2px solid #33397F; outline-offset: 2px; }
+    .rv-k { font-size: 12px; color: #736C66; }
+    .rv-v { margin-top: 2px; font-weight: 600; }
+    .step-title:focus { outline: none; }
+
+    .js-steps .step:not([hidden]) { animation: stepIn .45s cubic-bezier(.22,1,.36,1); }
+    @keyframes stepIn { from { opacity: 0; transform: translateY(10px); } }
+    .done-burst::before { content: ""; position: absolute; inset: 0; border-radius: 999px; box-shadow: 0 0 0 0 rgba(30,119,97,.35); animation: burst 1.4s ease-out .2s 2; }
+    @keyframes burst { to { box-shadow: 0 0 0 22px rgba(30,119,97,0); } }
+    .step:not([hidden]) .done-burst { animation: pop .6s cubic-bezier(.34,1.56,.64,1); }
+    @keyframes pop { from { transform: scale(.4); opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { .js-steps .step, .done-burst, .done-burst::before { animation: none !important; } .cat, .step-dot { transition: none; } }
+    /* ---------- my tasks / request detail ---------- */
+    .stat-f { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 12px; row-gap: 2px; border-radius: 20px; background: #fff; padding: 16px 18px; text-align: left; border: 1.5px solid transparent; transition: border-color .2s, transform .2s, box-shadow .2s; }
+    .stat-f:hover { transform: translateY(-2px); box-shadow: 0 18px 34px -26px rgba(51,57,127,.5); }
+    .stat-f[aria-pressed="true"] { border-color: #33397F; }
+    .stat-f:focus-visible { outline: 2px solid #33397F; outline-offset: 2px; }
+    .stat-ic { grid-row: span 1; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 999px; }
+    .stat-label { font-size: 14.5px; font-weight: 500; }
+    .stat-num { grid-column: 1 / -1; margin-top: 10px; font-family: Lexend, system-ui, sans-serif; font-size: 32px; font-weight: 600; line-height: 1; }
+    .stat-sub { grid-column: 1 / -1; margin-top: 6px; font-size: 12.5px; color: #736C66; }
+    .th { border-bottom: 1px solid #ECE5DA; padding: 10px 12px; font-weight: 600; white-space: nowrap; }
+    .td { border-bottom: 1px solid #F1ECE3; padding: 12px; vertical-align: middle; }
+    .row:last-child .td { border-bottom: 0; }
+    .row:hover .td { background: #FBF9F5; }
+    .page-b { display: grid; place-items: center; min-width: 36px; height: 36px; padding: 0 8px; border-radius: 10px; border: 1px solid #ECE5DA; background: #fff; font-size: 13.5px; font-weight: 600; }
+    .page-b:hover:not(:disabled) { border-color: #33397F; }
+    .page-b[aria-current="page"] { background: #33397F; border-color: #33397F; color: #fff; }
+    .page-b:disabled { opacity: .4; cursor: not-allowed; }
+    .page-b:focus-visible { outline: 2px solid #33397F; outline-offset: 2px; }
+    .qa { display: flex; flex-direction: column; gap: 2px; border-radius: 16px; border: 1px solid #ECE5DA; padding: 12px; transition: border-color .2s, background .2s; }
+    .qa:hover { border-color: #B8BBE6; background: #FBF9F5; }
+    .qa:focus-visible { outline: 2px solid #33397F; outline-offset: 2px; }
+    .qa-ic { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 999px; margin-bottom: 8px; }
+    .qa-t { font-size: 13.5px; font-weight: 600; line-height: 1.25; }
+    .qa-s { font-size: 11.5px; color: #736C66; }
+    .menu-i { display: flex; align-items: center; gap: 10px; padding: 9px 14px; text-align: left; }
+    .menu-i:hover, .menu-i:focus-visible { background: #F5F0E8; outline: none; }
+    .toast { position: fixed; left: 50%; bottom: 20px; z-index: 70; max-width: min(92vw, 460px); transform: translateX(-50%); border-radius: 14px; background: #1C1712; color: #fff; padding: 12px 16px; font-size: 13.5px; box-shadow: 0 18px 40px -18px rgba(0,0,0,.5); animation: toastIn .3s cubic-bezier(.22,1,.36,1); }
+    @keyframes toastIn { from { opacity: 0; transform: translate(-50%, 10px); } }
+    dialog[open] { animation: dlgIn .25s cubic-bezier(.22,1,.36,1); }
+    @keyframes dlgIn { from { opacity: 0; transform: translateY(8px) scale(.98); } }
+    @media (prefers-reduced-motion: reduce) { dialog[open], .stat-f { animation: none; transition: none; } }
+  </style>
+  <!-- Built from build/ (npm run build). Loaded last so utilities win, as with the Tailwind CDN. -->
+  <link rel="stylesheet" href="app.css" />
+</head>
+
+<body class="font-sans text-ink antialiased">
+  <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-md focus:bg-white focus:px-4 focus:py-2">Skip to content</a>
+  <div id="scrim" class="fixed inset-0 z-40 bg-cocoa-deep/50 lg:hidden" hidden></div>
+
+  <!-- ===================== SIDEBAR ===================== -->
+  <aside id="sidebar" class="panel fixed left-3 z-50 flex w-[256px] flex-col overflow-hidden pb-4" style="padding-top:clamp(18px,3.4vh,30px)" aria-label="Main menu">
+    <div class="flex items-center justify-between px-[22px]">
+      <a href="index.html" class="logo logo--light ring-focus rounded" style="font-size:34px" aria-label="banda, B and A Essentials, home">
+        <span class="logo-word" aria-hidden="true"><span class="logo-b">b<i class="logo-dot"></i></span>anda</span>
+        <span class="logo-tag" aria-hidden="true" style="--logo-tag:#F0A77C">B<span class="amp" style="color:#F0A77C">&amp;</span>A ESSENTIALS</span>
+      </a>
+      <button type="button" id="closeMenu" class="grid h-9 w-9 place-items-center rounded-lg text-white/80 hover:bg-white/10 lg:hidden" aria-label="Close menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-x h-5 w-5"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button>
+    </div>
+
+    <nav class="no-scrollbar min-h-0 flex-1 overflow-y-auto" style="margin-top:clamp(16px,4vh,40px)" aria-label="Client">
+      <div class="side-group">
+        <p class="side-label">MENU</p>
+        <ul>
+          <li><a href="dashboard.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-house"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Dashboard</a></li>
+          <li><a href="submit-task.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-plus"><circle cx="12" cy="12" r="10"></circle><path d="M8 12h8"></path><path d="M12 8v8"></path></svg>Submit a Task</a></li>
+          <li><a href="my-tasks.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-square-check"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="m16 9-5.5 5.5L8 12"></path></svg>My Tasks<span class="side-badge">5</span></a></li>
+          <li><a href="catalogue.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-layout-grid"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>Service Catalogue</a></li>
+          <li><a href="deliverables.html" class="side-link" aria-current="page"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-folder"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path></svg>Deliverables</a></li>
+          <li><a href="#" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-message-square"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"></path></svg>Messages<span class="side-badge bg-brand-orange">3</span></a></li>
+        </ul>
+      </div>
+      <div class="side-group">
+        <p class="side-label">ACCOUNT</p>
+        <ul>
+          <li><a href="#" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-gauge"><path d="m12 14 4-4"></path><path d="M3.34 19a10 10 0 1 1 17.32 0"></path></svg>Plan &amp; Usage</a></li>
+          <li><a href="#" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-receipt-text"><path d="M13 16H8"></path><path d="M14 8H8"></path><path d="M16 12H8"></path><path d="M4 3a1 1 0 0 1 1-1 1.3 1.3 0 0 1 .7.2l.933.6a1.3 1.3 0 0 0 1.4 0l.934-.6a1.3 1.3 0 0 1 1.4 0l.933.6a1.3 1.3 0 0 0 1.4 0l.933-.6a1.3 1.3 0 0 1 1.4 0l.934.6a1.3 1.3 0 0 0 1.4 0l.933-.6A1.3 1.3 0 0 1 19 2a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1 1.3 1.3 0 0 1-.7-.2l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.934.6a1.3 1.3 0 0 1-1.4 0l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-1.4 0l-.934-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-.7.2 1 1 0 0 1-1-1z"></path></svg>Billing</a></li>
+          <li><a href="#" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-users"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><path d="M16 3.128a4 4 0 0 1 0 7.744"></path><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><circle cx="9" cy="7" r="4"></circle></svg>Team</a></li>
+          <li><a href="#" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-life-buoy"><circle cx="12" cy="12" r="10"></circle><path d="m4.93 4.93 4.24 4.24"></path><path d="m14.83 9.17 4.24-4.24"></path><path d="m14.83 14.83 4.24 4.24"></path><path d="m9.17 14.83-4.24 4.24"></path><circle cx="12" cy="12" r="4"></circle></svg>Help</a></li>
+          <li><a href="index.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-log-out"><path d="m16 17 5-5-5-5"></path><path d="M21 12H9"></path><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg>Log out</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="side-help relative mx-3 mt-4 shrink-0 overflow-hidden rounded-[18px] border border-white/15 bg-white/[.07] p-4 text-white">
+      <span aria-hidden="true" class="rings pointer-events-none absolute inset-0"></span>
+      <span class="help-extra relative grid h-8 w-8 place-items-center rounded-full bg-white text-brand-navy"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-headset h-4 w-4"><path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 1 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3Z"></path><path d="M21 16v2a4 4 0 0 1-4 4h-5"></path></svg></span>
+      <p class="help-title relative mt-3 font-display text-[16px] font-semibold leading-snug">Need a hand?</p>
+      <p class="help-extra relative mt-0.5 text-[12.5px] leading-snug text-white/75">Message the team about a request or a payment.</p>
+      <a href="#" class="btn relative mt-3 w-full bg-brand-cta py-2 text-[13px] hover:bg-brand-ctaDark">Contact support</a>
+    </div>
+  </aside>
+
+  <div class="min-h-screen p-3 lg:pl-[280px]">
+    <!-- ===================== TOP BAR ===================== -->
+    <header class="panel flex h-[68px] items-center gap-3 px-3 sm:px-4">
+      <button type="button" id="openMenu" class="grid h-10 w-10 shrink-0 place-items-center rounded-full text-ink hover:bg-cream lg:hidden" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-menu h-5 w-5"><path d="M4 5h16"></path><path d="M4 12h16"></path><path d="M4 19h16"></path></svg></button>
+      <form class="relative min-w-0 flex-1 md:max-w-[400px]" role="search" onsubmit="return false">
+        <label for="q" class="sr-only">Search</label>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-search pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-ink-muted"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></svg>
+        <input id="q" type="search" placeholder="Search requests or services" class="w-full rounded-full bg-cream-light py-2.5 pl-11 pr-14 text-[14px] ring-1 ring-cream-line placeholder:text-ink-soft focus:outline-none focus:ring-2 focus:ring-brand-navy/40" />
+        <kbd class="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-md bg-cream px-1.5 py-0.5 font-sans text-[11px] font-semibold text-ink-muted sm:block">Ctrl K</kbd>
+      </form>
+      <div class="ml-auto flex items-center gap-2">
+        <a href="#" class="hidden h-10 w-10 place-items-center rounded-full bg-cream-light text-ink ring-1 ring-cream-line hover:bg-cream sm:grid" aria-label="Messages, 3 unread"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-mail h-[18px] w-[18px]"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"></path><rect x="2" y="4" width="20" height="16" rx="2"></rect></svg></a>
+        <a href="#" class="relative grid h-10 w-10 place-items-center rounded-full bg-cream-light text-ink ring-1 ring-cream-line hover:bg-cream" aria-label="Notifications, 3 unread"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-bell h-[18px] w-[18px]"><path d="M10.268 21a2 2 0 0 0 3.464 0"></path><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"></path></svg><span class="ping absolute right-2 top-2 h-2 w-2 rounded-full bg-brand-orange ring-2 ring-white"></span></a>
+        <div class="relative ml-1">
+          <button type="button" id="userBtn" class="flex items-center gap-2.5 rounded-full py-1 pl-1 pr-1 hover:bg-cream sm:pr-3" aria-haspopup="menu" aria-expanded="false" aria-controls="userMenu">
+            <span class="grid h-10 w-10 place-items-center rounded-full bg-brand-cta text-[13.5px] font-bold text-white" data-initials>CE</span>
+            <span class="hidden text-left md:block"><span class="block max-w-[180px] truncate text-[14px] font-semibold leading-tight" data-fullname>Chinedu Egbuchulam</span><span class="block text-[12px] text-ink-muted">Business owner</span></span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-chevron-down hidden h-4 w-4 text-ink-muted md:block"><path d="m6 9 6 6 6-6"></path></svg>
+          </button>
+          <div id="userMenu" role="menu" hidden class="absolute right-0 z-30 mt-2 w-52 overflow-hidden rounded-xl border border-cream-line bg-white py-1.5 text-[14px] shadow-[0_20px_40px_-20px_rgba(28,23,18,.35)]">
+            <a href="#" role="menuitem" class="flex items-center gap-2.5 px-4 py-2.5 hover:bg-cream"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-user h-4 w-4 text-ink-muted"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Profile &amp; security</a>
+            <a href="#" role="menuitem" class="flex items-center gap-2.5 px-4 py-2.5 hover:bg-cream"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-building-2 h-4 w-4 text-ink-muted"><path d="M10 12h4"></path><path d="M10 8h4"></path><path d="M14 21v-3a2 2 0 0 0-4 0v3"></path><path d="M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2"></path><path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"></path></svg>Organization</a>
+            <a href="index.html" role="menuitem" class="flex items-center gap-2.5 border-t border-cream-line px-4 py-2.5 hover:bg-cream"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-log-out h-4 w-4 text-ink-muted"><path d="m16 17 5-5-5-5"></path><path d="M21 12H9"></path><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg>Log out</a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main id="main" class="mt-3 rounded-[22px] bg-cream-light p-4 sm:p-6">
+      <section class="panel flex flex-wrap items-center gap-4 px-5 py-4 sm:px-6">
+        <span class="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-brand-navy text-white"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-folder-open h-5 w-5"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"></path></svg></span>
+        <div class="min-w-0 flex-1">
+          <h1 class="font-display text-[22px] font-semibold leading-tight tracking-[-0.01em] sm:text-[24px]">Deliverables</h1>
+          <p class="mt-0.5 text-[14px] text-ink-muted">Finished work and drafts from your requests, in one place.</p>
+        </div>
+        <button type="button" id="openUpload" class="btn-outline max-sm:w-full"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-upload h-4 w-4"><path d="M12 3v12"></path><path d="m17 8-5-5-5 5"></path><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path></svg>Upload files</button>
+      </section>
+
+      <section class="mt-3 grid grid-cols-2 gap-3 xl:grid-cols-4" aria-label="Deliverables summary">
+        <button type="button" class="stat-f" data-quick=""><span class="stat-ic bg-pill-navyBg text-brand-navy"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-files h-5 w-5"><path d="M15 2h-4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8"></path><path d="M16.706 2.706A2.4 2.4 0 0 0 15 2v5a1 1 0 0 0 1 1h5a2.4 2.4 0 0 0-.706-1.706z"></path><path d="M5 7a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h8a2 2 0 0 0 1.732-1"></path></svg></span><span class="stat-label">All files</span><span class="stat-num" data-count="">0</span><span class="stat-sub">Not counting archived</span></button>
+        <button type="button" class="stat-f" data-quick="ready"><span class="stat-ic bg-pill-greenBg text-pill-greenTx"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-download h-5 w-5"><path d="M12 15V3"></path><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="m7 10 5 5 5-5"></path></svg></span><span class="stat-label">Ready to download</span><span class="stat-num" data-count="ready">0</span><span class="stat-sub">Not downloaded yet</span></button>
+        <button type="button" class="stat-f" data-quick="approval"><span class="stat-ic bg-pill-orangeBg text-brand-orangeDark"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-file-pen-line h-5 w-5"><path d="M14.364 13.634a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506l4.013-4.009a1 1 0 0 0-3.004-3.004z"></path><path d="M14.487 7.858A1 1 0 0 1 14 7V2"></path><path d="M20 19.645V20a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l2.516 2.516"></path><path d="M8 18h1"></path></svg></span><span class="stat-label">Needs your approval</span><span class="stat-num" data-count="approval">0</span><span class="stat-sub">Drafts waiting on you</span></button>
+        <button type="button" class="stat-f" data-quick="archived"><span class="stat-ic bg-[#F1EFEC] text-ink-muted"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-archive h-5 w-5"><rect width="20" height="5" x="2" y="3" rx="1"></rect><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path><path d="M10 12h4"></path></svg></span><span class="stat-label">Archived</span><span class="stat-num" data-count="archived">0</span><span class="stat-sub">Still downloadable</span></button>
+      </section>
+
+      <div class="mt-3 grid grid-cols-1 gap-3 2xl:grid-cols-[minmax(0,1fr)_320px]">
+        <section class="panel min-w-0 p-4 sm:p-5" aria-labelledby="listTitle">
+          <h2 id="listTitle" class="font-display text-[17px] font-semibold">Your files</h2>
+          <form id="filters" aria-label="Filter files" class="mt-3 grid grid-cols-2 gap-2.5 lg:grid-cols-[minmax(0,1fr)_170px_170px_140px_auto]" onsubmit="return false">
+            <div class="relative col-span-2 lg:col-span-1">
+              <label for="fq" class="sr-only">Search files</label>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-search pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></svg>
+              <input id="fq" type="search" class="field pl-10" placeholder="Search by file name, request or ID" autocomplete="off" />
+            </div>
+            <div class="relative"><label for="fcat" class="sr-only">Category</label><select id="fcat" class="field appearance-none pr-9"><option value="">All categories</option></select><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-chevron-down pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted"><path d="m6 9 6 6 6-6"></path></svg></div>
+            <div class="relative"><label for="fstatus" class="sr-only">Status</label><select id="fstatus" class="field appearance-none pr-9"><option value="">All statuses</option></select><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-chevron-down pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted"><path d="m6 9 6 6 6-6"></path></svg></div>
+            <div class="relative"><label for="ftype" class="sr-only">File type</label><select id="ftype" class="field appearance-none pr-9"><option value="">All types</option><option>PDF</option><option>Document</option><option>Spreadsheet</option><option>Image</option><option>Archive</option></select><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-chevron-down pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted"><path d="m6 9 6 6 6-6"></path></svg></div>
+            <button type="button" id="clear" class="btn-ghost justify-self-start py-2.5 text-[13.5px]" hidden><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-rotate-ccw h-4 w-4"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>Clear</button>
+          </form>
+
+          <!-- appears when files are selected -->
+          <div id="bulk" class="mt-3 flex flex-wrap items-center gap-2.5 rounded-2xl bg-pill-navyBg px-4 py-2.5" hidden>
+            <p class="text-[13.5px] font-semibold text-brand-navy"><span id="selCount">0</span> selected</p>
+            <button type="button" id="bulkDl" class="btn-next ml-auto py-2 text-[13px]"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-download h-4 w-4"><path d="M12 15V3"></path><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="m7 10 5 5 5-5"></path></svg>Download</button>
+            <button type="button" id="bulkArchive" class="btn-outline py-1.5 text-[13px]"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-archive h-4 w-4"><rect width="20" height="5" x="2" y="3" rx="1"></rect><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path><path d="M10 12h4"></path></svg><span id="bulkArchiveLabel">Archive</span></button>
+            <button type="button" id="bulkNone" class="btn-ghost py-2 text-[13px]">Clear selection</button>
+          </div>
+          <p id="resultInfo" class="mt-3 text-[12.5px] text-ink-muted" aria-live="polite"></p>
+
+          <div class="mt-2 hidden overflow-x-auto md:block">
+            <table class="w-full min-w-[780px] border-separate border-spacing-0 text-left text-[13.5px]">
+              <thead>
+                <tr class="text-[12px] text-ink-muted">
+                  <th scope="col" class="th w-10"><input type="checkbox" id="selAll" class="h-4 w-4 accent-[#33397F]" aria-label="Select all files on this page" /></th>
+                  <th scope="col" class="th">File</th>
+                  <th scope="col" class="th">Request</th>
+                  <th scope="col" class="th">Status</th>
+                  <th scope="col" class="th">Added</th>
+                  <th scope="col" class="th text-right"><span class="sr-only">Actions</span></th>
+                </tr>
+              </thead>
+              <tbody id="rows"></tbody>
+            </table>
+          </div>
+          <ul id="cards" class="mt-2 space-y-2.5 md:hidden"></ul>
+
+          <div id="empty" class="mt-3 flex flex-col items-center gap-2 rounded-2xl bg-cream-light px-4 py-10 text-center" hidden>
+            <span class="grid h-11 w-11 place-items-center rounded-full bg-white text-ink-soft"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-folder-search h-5 w-5"><path d="M10.7 20H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H20a2 2 0 0 1 2 2v4.1"></path><path d="m21 21-1.9-1.9"></path><circle cx="17" cy="17" r="3"></circle></svg></span>
+            <p class="font-semibold">No files match these filters</p>
+            <button type="button" class="btn-outline mt-1 py-2 text-[13px]" data-clear>Clear filters</button>
+          </div>
+
+          <nav id="pager" class="mt-4 flex items-center justify-between gap-3" aria-label="Pages">
+            <p id="pageInfo" class="text-[12.5px] text-ink-muted"></p>
+            <div id="pageBtns" class="flex items-center gap-1.5"></div>
+          </nav>
+        </section>
+
+        <aside class="grid gap-3 md:grid-cols-2 2xl:grid-cols-1 2xl:self-start" aria-label="Shortcuts and help">
+          <section class="panel p-5" aria-labelledby="qa">
+            <h2 id="qa" class="font-display text-[17px] font-semibold">Quick actions</h2>
+            <div class="mt-3 grid grid-cols-2 gap-2.5">
+              <button type="button" class="qa text-left" data-upload><span class="qa-ic bg-brand-navy text-white"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-upload h-4 w-4"><path d="M12 3v12"></path><path d="m17 8-5-5-5 5"></path><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path></svg></span><span class="qa-t">Upload files</span><span class="qa-s">Add files to a request</span></button>
+              <a href="my-tasks.html" class="qa"><span class="qa-ic bg-pill-navyBg text-brand-navy"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-square-check h-4 w-4"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="m16 9-5.5 5.5L8 12"></path></svg></span><span class="qa-t">My tasks</span><span class="qa-s">Track your requests</span></a>
+              <a href="catalogue.html" class="qa"><span class="qa-ic bg-pill-orangeBg text-brand-orangeDark"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-layout-grid h-4 w-4"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg></span><span class="qa-t">Service catalogue</span><span class="qa-s">See all services</span></a>
+              <a href="#" class="qa"><span class="qa-ic bg-[#EFE9FB] text-[#5B3FA8]"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-message-square h-4 w-4"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"></path></svg></span><span class="qa-t">Messages</span><span class="qa-s">Talk to the team</span></a>
+            </div>
+          </section>
+          <section class="panel p-5" aria-labelledby="fg">
+            <h2 id="fg" class="font-display text-[17px] font-semibold">Uploading files</h2>
+            <ul class="mt-3 space-y-2 text-[13px] text-ink-muted">
+              <li class="flex gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-check mt-0.5 h-4 w-4 shrink-0 text-pill-greenTx"><path d="M20 6 9 17l-5-5"></path></svg>PDF, Word, Excel, JPG or PNG</li>
+              <li class="flex gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-check mt-0.5 h-4 w-4 shrink-0 text-pill-greenTx"><path d="M20 6 9 17l-5-5"></path></svg>Up to 20 MB each, 5 files at a time</li>
+              <li class="flex gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-check mt-0.5 h-4 w-4 shrink-0 text-pill-greenTx"><path d="M20 6 9 17l-5-5"></path></svg>Clear names help us find things fast, e.g. <span class="font-medium text-ink">May_Invoices.pdf</span></li>
+              <li class="flex gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-x mt-0.5 h-4 w-4 shrink-0 text-[#B42318]"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>Never upload passwords or card details</li>
+            </ul>
+          </section>
+          <section class="relative overflow-hidden rounded-[22px] bg-brand-navy p-5 text-white md:col-span-2 2xl:col-span-1" aria-labelledby="nh">
+            <span aria-hidden="true" class="rings pointer-events-none absolute inset-0"></span>
+            <h2 id="nh" class="relative font-display text-[17px] font-semibold">Missing a file?</h2>
+            <p class="relative mt-1 text-[13px] text-white/75">Tell the team which request it&rsquo;s for and we&rsquo;ll sort it out.</p>
+            <a href="#" class="btn relative mt-3 bg-brand-cta px-4 py-2 text-[13px] text-white hover:bg-brand-ctaDark">Contact support <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a>
+          </section>
+        </aside>
+      </div>
+      <p class="pt-5 text-center text-[12px] text-ink-soft">Design preview with sample files. Nothing is downloaded or uploaded yet.</p>
+    </main>
+  </div>
+
+  <div id="rowMenu" role="menu" hidden class="fixed z-50 w-56 overflow-hidden rounded-xl border border-cream-line bg-white py-1.5 text-[13.5px] shadow-[0_20px_40px_-20px_rgba(28,23,18,.4)]">
+    <button role="menuitem" type="button" data-act="download" class="menu-i w-full"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-download h-4 w-4 text-ink-muted"><path d="M12 15V3"></path><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="m7 10 5 5 5-5"></path></svg>Download</button>
+    <button role="menuitem" type="button" data-act="approve" class="menu-i w-full"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-check h-4 w-4 text-ink-muted"><path d="M20 6 9 17l-5-5"></path></svg>Approve draft</button>
+    <a role="menuitem" data-act="changes" href="#" class="menu-i"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-message-square h-4 w-4 text-ink-muted"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"></path></svg>Ask for changes</a>
+    <a role="menuitem" data-act="request" href="#" class="menu-i"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-external-link h-4 w-4 text-ink-muted"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg>View request</a>
+    <button role="menuitem" type="button" data-act="archive" class="menu-i w-full border-t border-cream-line"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-archive h-4 w-4 text-ink-muted"><rect width="20" height="5" x="2" y="3" rx="1"></rect><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path><path d="M10 12h4"></path></svg><span>Archive</span></button>
+  </div>
+
+  <div id="toast" role="status" hidden class="toast"></div>
+
+  <dialog id="uploadDlg" class="w-[min(92vw,480px)] rounded-2xl p-0 text-ink backdrop:bg-cocoa-deep/50" aria-labelledby="upTitle">
+    <form id="upForm" class="p-6" novalidate>
+      <div class="flex items-start justify-between gap-3">
+        <h2 id="upTitle" class="font-display text-[19px] font-semibold">Upload files to a request</h2>
+        <button type="button" data-close class="grid h-9 w-9 shrink-0 place-items-center rounded-full text-ink-muted hover:bg-cream" aria-label="Close"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-x h-5 w-5"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button>
+      </div>
+      <p class="mt-1 text-[13.5px] text-ink-muted">Files go to the request you pick, where the team will see them.</p>
+      <label for="upTask" class="lbl mt-5">Request</label>
+      <div class="relative mt-1.5"><select id="upTask" class="field appearance-none pr-9" aria-describedby="upTaskErr"><option value="">Choose a request</option></select><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-chevron-down pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted"><path d="m6 9 6 6 6-6"></path></svg></div>
+      <p id="upTaskErr" class="err mt-1.5" hidden>Choose which request these files are for.</p>
+      <p class="lbl mt-4" id="upFilesLabel">Files</p>
+      <label for="upFiles" class="mt-1.5 flex cursor-pointer flex-col items-center gap-1 rounded-2xl border-[1.5px] border-dashed border-[#D9D2C6] bg-cream-light px-4 py-5 text-center hover:border-brand-navy/50 focus-within:border-brand-navy">
+        <span class="text-[14px]">Choose files, or drag them here</span>
+        <span class="text-[12px] text-ink-soft">PDF, Word, Excel, JPG or PNG · up to 20 MB each · 5 max</span>
+        <input id="upFiles" type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" class="sr-only" aria-labelledby="upFilesLabel" aria-describedby="upErr" />
+      </label>
+      <p id="upErr" class="err mt-1.5" hidden></p>
+      <ul id="upList" class="mt-2 space-y-1.5"></ul>
+      <div class="mt-6 flex justify-end gap-2.5">
+        <button type="button" data-close class="btn-ghost py-2.5">Cancel</button>
+        <button type="submit" class="btn-next py-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-upload h-4 w-4"><path d="M12 3v12"></path><path d="m17 8-5-5-5 5"></path><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path></svg>Upload</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="https://unpkg.com/lucide@1.60.0/dist/umd/lucide.min.js"></script>
+  <script src="tasks-data.js"></script>
+  <script>
+    const { CATS, all, find: findTask, update, esc, fmtDate, fmtSize, chip, DSTATUS, DOWNLOADABLE, deliverables, setDeliverable, fileType, nowLocal, toast } = window.BANDA;
+    const $ = id => document.getElementById(id);
+    const icons = () => { if (window.lucide) lucide.createIcons(); };
+    const PER_PAGE = 8;
+    let files = load();
+    const view = { q: '', cat: '', status: '', type: '', page: 1 };
+    const selected = new Set();
+
+    function load() {
+      return deliverables().map(d => { const t = findTask(d.task); return Object.assign(d, { title: t ? t.title : d.task, cat: t ? t.cat : '' }); });
+    }
+    $('fcat').insertAdjacentHTML('beforeend', Object.entries(CATS).map(([k, c]) => `<option value="${k}">${esc(c.name)}</option>`).join(''));
+    $('fstatus').insertAdjacentHTML('beforeend', Object.entries(DSTATUS).map(([k, s]) => `<option value="${k}">${esc(s.label)}</option>`).join(''));
+
+    // Archived files stay out of the list unless you ask for them.
+    function filtered() {
+      const q = view.q.trim().toLowerCase();
+      return files.filter(f =>
+        (view.status ? f.status === view.status : f.status !== 'archived') &&
+        (!q || [f.name, f.title, f.task].some(v => v.toLowerCase().includes(q))) &&
+        (!view.cat || f.cat === view.cat) &&
+        (!view.type || fileType(f.name).label === view.type));
+    }
+    const isFiltered = () => !!(view.q || view.cat || view.status || view.type);
+
+    function actions(f) {
+      const main = DOWNLOADABLE.includes(f.status)
+        ? `<button type="button" class="btn-outline px-4 py-1.5 text-[13px]" data-dl="${f.id}"><i data-lucide="download" class="h-4 w-4"></i>Download<span class="sr-only"> ${esc(f.name)}</span></button>`
+        : f.status === 'approval'
+          ? `<button type="button" class="btn-next px-4 py-1.5 text-[13px]" data-approve="${f.id}">Approve<span class="sr-only"> ${esc(f.name)}</span></button>`
+          : `<span class="px-2 text-[12px] text-ink-soft">Available soon</span>`;
+      return `<div class="flex items-center justify-end gap-1.5">${main}
+        <button type="button" class="grid h-9 w-9 place-items-center rounded-full text-ink-muted hover:bg-cream hover:text-ink" data-menu="${f.id}" aria-haspopup="menu" aria-expanded="false" aria-label="More actions for ${esc(f.name)}"><i data-lucide="ellipsis" class="h-5 w-5"></i></button></div>`;
+    }
+    const fileCell = f => { const ft = fileType(f.name); return `<span class="flex items-center gap-3"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg ${ft.tone}"><i data-lucide="${ft.icon}" class="h-4 w-4"></i></span><span class="min-w-0"><span class="block break-all font-semibold leading-snug">${esc(f.name)}</span><span class="block text-[12px] text-ink-soft">${ft.label} · ${fmtSize(f.size)}</span></span></span>`; };
+    const taskCell = f => `<a href="task.html?id=${f.task}" class="block leading-snug hover:text-brand-navy hover:underline">${esc(f.title)}</a><span class="block text-[12px] font-medium text-brand-navy">${f.task}</span>`;
+    const check = f => `<input type="checkbox" class="h-4 w-4 accent-[#33397F]" data-sel="${f.id}" ${selected.has(f.id) ? 'checked' : ''} aria-label="Select ${esc(f.name)}" />`;
+
+    function render() {
+      const list = filtered();
+      const pages = Math.max(1, Math.ceil(list.length / PER_PAGE));
+      view.page = Math.min(view.page, pages);
+      const start = (view.page - 1) * PER_PAGE, slice = list.slice(start, start + PER_PAGE);
+      $('rows').innerHTML = slice.map(f => `<tr class="row">
+          <td class="td">${check(f)}</td><td class="td">${fileCell(f)}</td><td class="td">${taskCell(f)}</td>
+          <td class="td">${chip(DSTATUS[f.status].chip, DSTATUS[f.status].label)}</td>
+          <td class="td whitespace-nowrap"><time datetime="${f.at}">${fmtDate(f.at)}</time></td><td class="td">${actions(f)}</td></tr>`).join('');
+      $('cards').innerHTML = slice.map(f => `<li class="rounded-2xl border border-cream-line p-4">
+          <div class="flex items-start gap-3"><span class="pt-2.5">${check(f)}</span><div class="min-w-0 flex-1">${fileCell(f)}</div></div>
+          <div class="mt-3 flex flex-wrap items-center gap-2 pl-7">${chip(DSTATUS[f.status].chip, DSTATUS[f.status].label)}<span class="text-[12px] text-ink-muted">${fmtDate(f.at)}</span></div>
+          <div class="mt-2 pl-7 text-[13px]">${taskCell(f)}</div>
+          <div class="mt-3 border-t border-cream-line pt-3">${actions(f)}</div></li>`).join('');
+      $('empty').hidden = list.length > 0; $('pager').hidden = !list.length;
+      $('pageInfo').textContent = list.length ? `Showing ${start + 1}–${start + slice.length} of ${list.length}` : '';
+      $('clear').hidden = !isFiltered();
+      if (!$('resultInfo').dataset.keep) $('resultInfo').textContent = isFiltered() ? `${list.length} file${list.length === 1 ? '' : 's'} match` : '';
+      delete $('resultInfo').dataset.keep;
+      const btn = (label, page, attrs = '') => `<button type="button" class="page-b" data-page="${page}" ${attrs}>${label}</button>`;
+      $('pageBtns').innerHTML = pages < 2 ? '' :
+        btn('<i data-lucide="chevron-left" class="h-4 w-4"></i>', view.page - 1, `aria-label="Previous page" ${view.page === 1 ? 'disabled' : ''}`) +
+        Array.from({ length: pages }, (_, i) => btn(i + 1, i + 1, i + 1 === view.page ? 'aria-current="page"' : `aria-label="Page ${i + 1}"`)).join('') +
+        btn('<i data-lucide="chevron-right" class="h-4 w-4"></i>', view.page + 1, `aria-label="Next page" ${view.page === pages ? 'disabled' : ''}`);
+      document.querySelectorAll('[data-count]').forEach(el => { const k = el.dataset.count; el.textContent = files.filter(f => k ? f.status === k : f.status !== 'archived').length; });
+      document.querySelectorAll('[data-quick]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.quick === view.status && !view.q && !view.cat && !view.type)));
+      // selection
+      const onPage = slice.map(f => f.id);
+      [...selected].forEach(id => { if (!list.some(f => f.id === id)) selected.delete(id); });
+      $('selAll').checked = onPage.length > 0 && onPage.every(id => selected.has(id));
+      $('selAll').indeterminate = !$('selAll').checked && onPage.some(id => selected.has(id));
+      $('bulk').hidden = selected.size === 0; $('selCount').textContent = selected.size;
+      const sel = files.filter(f => selected.has(f.id));
+      $('bulkDl').disabled = !sel.some(f => DOWNLOADABLE.includes(f.status));
+      $('bulkArchiveLabel').textContent = sel.length && sel.every(f => f.status === 'archived') ? 'Restore' : 'Archive';
+      icons();
+    }
+    const refresh = () => { files = load(); render(); };
+
+    // ---------- filters ----------
+    const setFilter = (k, v) => { view[k] = v; view.page = 1; render(); };
+    $('fq').addEventListener('input', e => setFilter('q', e.target.value));
+    $('fcat').addEventListener('change', e => setFilter('cat', e.target.value));
+    $('fstatus').addEventListener('change', e => setFilter('status', e.target.value));
+    $('ftype').addEventListener('change', e => setFilter('type', e.target.value));
+    function clearAll() { Object.assign(view, { q: '', cat: '', status: '', type: '', page: 1 }); $('filters').reset(); render(); }
+    $('clear').addEventListener('click', clearAll);
+    document.querySelector('[data-clear]').addEventListener('click', () => { clearAll(); $('fq').focus(); });
+    document.querySelectorAll('[data-quick]').forEach(b => b.addEventListener('click', () => { clearAll(); if (b.dataset.quick) { view.status = b.dataset.quick; $('fstatus').value = b.dataset.quick; } render(); }));
+    $('pageBtns').addEventListener('click', e => { const b = e.target.closest('[data-page]'); if (!b || b.disabled) return; view.page = +b.dataset.page; render(); document.querySelector('#pageBtns [aria-current="page"]').focus(); });
+
+    // ---------- actions ----------
+    function download(list) {
+      const ok = list.filter(f => DOWNLOADABLE.includes(f.status));
+      ok.forEach(f => { if (f.status === 'ready') setDeliverable(f.id, 'downloaded'); });
+      refresh();
+      toast(ok.length ? `Preview only: no file is downloaded yet. ${ok.length === 1 ? 'It’s' : `${ok.length} files are`} now marked as downloaded.` : 'Those files aren’t ready to download yet.');
+    }
+    function approve(f) {
+      setDeliverable(f.id, 'ready');
+      update(f.task, { message: ['You', nowLocal(), `Approved ${f.name}.`] });
+      refresh(); toast(`${f.name} approved. It’s ready to download.`);
+    }
+    function archive(list, restore) {
+      // Restored files go back to "Downloaded"; files are only archived once they were delivered.
+      list.forEach(f => { if (restore && f.status === 'archived') setDeliverable(f.id, 'downloaded'); else if (!restore && DOWNLOADABLE.includes(f.status)) setDeliverable(f.id, 'archived'); });
+      const skipped = restore ? 0 : list.filter(f => !DOWNLOADABLE.includes(f.status)).length;
+      selected.clear(); refresh();
+      toast(restore ? 'Restored to your files.' : `Archived.${skipped ? ` ${skipped} not-yet-delivered file${skipped === 1 ? ' was' : 's were'} left as is.` : ' Find it under Archived.'}`);
+    }
+    const byId = id => files.find(f => f.id === id);
+    document.addEventListener('click', e => {
+      const dl = e.target.closest('[data-dl]'); if (dl) download([byId(dl.dataset.dl)]);
+      const ap = e.target.closest('[data-approve]'); if (ap) approve(byId(ap.dataset.approve));
+    });
+    document.addEventListener('change', e => {
+      const box = e.target.closest('[data-sel]');
+      if (box) { box.checked ? selected.add(box.dataset.sel) : selected.delete(box.dataset.sel); render(); }
+    });
+    $('selAll').addEventListener('change', e => {
+      const list = filtered(), start = (view.page - 1) * PER_PAGE;
+      list.slice(start, start + PER_PAGE).forEach(f => e.target.checked ? selected.add(f.id) : selected.delete(f.id));
+      render();
+    });
+    $('bulkDl').addEventListener('click', () => download(files.filter(f => selected.has(f.id))));
+    $('bulkArchive').addEventListener('click', () => { const sel = files.filter(f => selected.has(f.id)); archive(sel, sel.every(f => f.status === 'archived')); });
+    $('bulkNone').addEventListener('click', () => { selected.clear(); render(); });
+
+    // ---------- ⋯ menu ----------
+    const menu = $('rowMenu');
+    let menuFor = null, menuBtn = null;
+    function placeMenu() {
+      const r = menuBtn.getBoundingClientRect(), mh = menu.offsetHeight, mw = menu.offsetWidth;
+      if (r.bottom < 0 || r.top > innerHeight) { closeMenu(); return; }
+      menu.style.top = (r.bottom + 6 + mh > innerHeight ? Math.max(8, r.top - mh - 6) : r.bottom + 6) + 'px';
+      menu.style.left = Math.max(8, Math.min(innerWidth - mw - 8, r.right - mw)) + 'px';
+    }
+    function openMenu(btn) {
+      closeMenu();
+      menuFor = byId(btn.dataset.menu); menuBtn = btn;
+      const st = menuFor.status;
+      menu.querySelector('[data-act="download"]').hidden = !DOWNLOADABLE.includes(st);
+      menu.querySelector('[data-act="approve"]').hidden = st !== 'approval';
+      menu.querySelector('[data-act="changes"]').hidden = st !== 'approval';
+      menu.querySelector('[data-act="changes"]').href = `task.html?id=${menuFor.task}#reply`;
+      menu.querySelector('[data-act="request"]').href = `task.html?id=${menuFor.task}`;
+      const arch = menu.querySelector('[data-act="archive"]');
+      arch.hidden = !DOWNLOADABLE.includes(st);
+      arch.querySelector('span').textContent = st === 'archived' ? 'Restore' : 'Archive';
+      menu.hidden = false; placeMenu();
+      btn.setAttribute('aria-expanded', 'true');
+      menu.querySelector('[role="menuitem"]:not([hidden])').focus();
+    }
+    function closeMenu(returnFocus) { if (menu.hidden) return; menu.hidden = true; if (menuBtn) { menuBtn.setAttribute('aria-expanded', 'false'); if (returnFocus) menuBtn.focus(); } }
+    document.addEventListener('click', e => {
+      const btn = e.target.closest('[data-menu]');
+      if (btn) { e.stopPropagation(); if (menu.hidden || menuBtn !== btn) openMenu(btn); else closeMenu(true); return; }
+      if (!menu.contains(e.target)) closeMenu();
+    });
+    menu.addEventListener('click', e => {
+      const item = e.target.closest('[data-act]'); if (!item) return;
+      const f = menuFor, act = item.dataset.act;
+      if (act === 'download') { closeMenu(true); download([f]); }
+      if (act === 'approve') { closeMenu(true); approve(f); }
+      if (act === 'archive') { closeMenu(true); archive([f], f.status === 'archived'); }
+    });
+    menu.addEventListener('keydown', e => {
+      const items = [...menu.querySelectorAll('[role="menuitem"]:not([hidden])')];
+      const i = items.indexOf(document.activeElement);
+      if (e.key === 'ArrowDown') { e.preventDefault(); items[(i + 1) % items.length].focus(); }
+      if (e.key === 'ArrowUp') { e.preventDefault(); items[(i - 1 + items.length) % items.length].focus(); }
+      if (e.key === 'Escape') { e.preventDefault(); closeMenu(true); }
+      if (e.key === 'Tab') closeMenu();
+    });
+    addEventListener('scroll', () => { if (!menu.hidden) placeMenu(); }, { passive: true });
+    addEventListener('resize', () => { if (!menu.hidden) placeMenu(); });
+
+    // ---------- upload ----------
+    const dlg = $('uploadDlg'), MAX_FILES = 5, MAX_MB = 20, OK_EXT = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png'];
+    let picked = [], uploadOpener = null;
+    function openUpload(btn) {
+      uploadOpener = btn; picked = []; $('upForm').reset(); $('upErr').hidden = true; $('upTaskErr').hidden = true; $('upList').innerHTML = '';
+      $('upTask').innerHTML = '<option value="">Choose a request</option>' + all().filter(t => !['delivered', 'cancelled'].includes(t.status)).map(t => `<option value="${t.id}">${esc(t.title)} (${t.id})</option>`).join('');
+      if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', '');
+      $('upTask').focus();
+    }
+    $('openUpload').addEventListener('click', e => openUpload(e.currentTarget));
+    document.querySelector('[data-upload]').addEventListener('click', e => openUpload(e.currentTarget));
+    dlg.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => dlg.close()));
+    dlg.addEventListener('close', () => { if (uploadOpener) uploadOpener.focus(); });
+    function addPicked(list) {
+      const problems = [];
+      for (const f of list) {
+        const ext = (f.name.split('.').pop() || '').toLowerCase();
+        if (!OK_EXT.includes(ext)) { problems.push(`${f.name} isn’t a supported file type.`); continue; }
+        if (f.size > MAX_MB * 1048576) { problems.push(`${f.name} is larger than ${MAX_MB} MB.`); continue; }
+        if (picked.some(x => x.name === f.name && x.size === f.size)) continue;
+        if (picked.length >= MAX_FILES) { problems.push(`You can upload up to ${MAX_FILES} files at a time.`); break; }
+        picked.push(f);
+      }
+      $('upErr').textContent = problems.join(' '); $('upErr').hidden = !problems.length;
+      $('upList').innerHTML = picked.map((f, i) => `<li class="flex items-center gap-3 rounded-xl border border-cream-line px-3 py-2 text-[13px]"><span class="min-w-0 flex-1 truncate font-medium">${esc(f.name)}</span><span class="text-ink-soft">${fmtSize(f.size)}</span><button type="button" data-unpick="${i}" class="grid h-7 w-7 place-items-center rounded-lg text-ink-muted hover:bg-cream" aria-label="Remove ${esc(f.name)}"><i data-lucide="x" class="h-4 w-4"></i></button></li>`).join('');
+      icons();
+    }
+    $('upFiles').addEventListener('change', e => { addPicked(e.target.files); e.target.value = ''; });
+    $('upList').addEventListener('click', e => { const b = e.target.closest('[data-unpick]'); if (b) { picked.splice(+b.dataset.unpick, 1); addPicked([]); } });
+    const dropZone = $('upFiles').closest('label');
+    ['dragenter', 'dragover'].forEach(t => dropZone.addEventListener(t, e => { e.preventDefault(); dropZone.classList.add('border-brand-navy'); }));
+    ['dragleave', 'drop'].forEach(t => dropZone.addEventListener(t, e => { e.preventDefault(); dropZone.classList.remove('border-brand-navy'); }));
+    dropZone.addEventListener('drop', e => { if (e.dataTransfer && e.dataTransfer.files.length) addPicked(e.dataTransfer.files); });
+    $('upTask').addEventListener('change', () => { if ($('upTask').value) $('upTaskErr').hidden = true; });
+    $('upForm').addEventListener('submit', e => {
+      e.preventDefault();
+      if (!$('upTask').value) { $('upTaskErr').hidden = false; $('upTask').focus(); return; }
+      if (!picked.length) { $('upErr').textContent = 'Choose at least one file.'; $('upErr').hidden = false; $('upFiles').focus(); return; }
+      const id = $('upTask').value;
+      update(id, { files: picked.map(f => [f.name, f.size]), message: ['You', nowLocal(), `Uploaded ${picked.length} file${picked.length === 1 ? '' : 's'}: ${picked.map(f => f.name).join(', ')}`] });
+      dlg.close();
+      toast(`Added to ${id}. Preview only: the files stay in this browser tab.`);
+    });
+
+    const qs = new URLSearchParams(location.search);
+    if (Object.prototype.hasOwnProperty.call(DSTATUS, qs.get('status'))) { view.status = qs.get('status'); $('fstatus').value = view.status; }
+    render();
+
+    // Sidebar: if the window is too short for the whole menu, the help card steps aside.
+    const helpCard = document.querySelector('.side-help'), sideNav = document.querySelector('#sidebar nav');
+    const overflows = () => sideNav.scrollHeight > sideNav.clientHeight + 1;
+    function fitSidebar() {
+      helpCard.style.display = ''; helpCard.classList.remove('is-compact');
+      if (overflows()) helpCard.classList.add('is-compact');
+      if (overflows()) helpCard.style.display = 'none';
+    }
+    fitSidebar();
+    // Re-check whenever the sidebar changes size (window resize, zoom, full-page capture).
+    if ('ResizeObserver' in window) new ResizeObserver(fitSidebar).observe(document.getElementById('sidebar'));
+    addEventListener('resize', fitSidebar);
+    addEventListener('load', fitSidebar);
+    document.fonts && document.fonts.ready.then(fitSidebar);
+
+    // Mobile menu
+    const sidebar = document.getElementById('sidebar'), scrim = document.getElementById('scrim'), openBtn = document.getElementById('openMenu');
+    const setMenu = open => { sidebar.classList.toggle('is-open', open); scrim.hidden = !open; openBtn.setAttribute('aria-expanded', String(open)); if (open) sidebar.querySelector('a').focus(); };
+    openBtn.addEventListener('click', () => setMenu(true));
+    document.getElementById('closeMenu').addEventListener('click', () => setMenu(false));
+    scrim.addEventListener('click', () => setMenu(false));
+
+    // User menu
+    const userBtn = document.getElementById('userBtn'), userMenu = document.getElementById('userMenu');
+    userBtn.addEventListener('click', e => { e.stopPropagation(); const open = userMenu.hidden; userMenu.hidden = !open; userBtn.setAttribute('aria-expanded', String(open)); });
+    document.addEventListener('click', () => { userMenu.hidden = true; userBtn.setAttribute('aria-expanded', 'false'); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { userMenu.hidden = true; userBtn.setAttribute('aria-expanded', 'false'); setMenu(false); } });
+  </script>
+</body>
+</html>

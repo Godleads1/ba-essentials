@@ -57,7 +57,6 @@
       submitted: '2026-10-28T11:12', due: '2026-11-05',
       details: 'Record October sales and expenses from the attached statements and receipts.',
       files: [['October_Statement.pdf', 880000], ['Receipts_October.pdf', 3400000]],
-      deliverables: [['October_Books.xlsx', 154000], ['October_Summary.pdf', 210000]],
       messages: [[TEAM, '2026-11-04T16:40', 'Your October books are ready. The summary shows a few uncategorised expenses we flagged for you.']] },
     { id: 'REQ-2026-0044', title: 'Vendor coordination', cat: 'ops', service: 'Schedule and brief a vendor', status: 'input', priority: 'Medium',
       submitted: '2026-11-03T16:36', due: '2026-11-18',
@@ -72,11 +71,11 @@
     { id: 'REQ-2026-0042', title: 'Inventory tracker spreadsheet', cat: 'business', service: 'CRM or spreadsheet updates', status: 'delivered', priority: 'Low',
       submitted: '2026-10-27T13:05', due: '2026-11-03',
       details: 'Clean up our inventory sheet and add low-stock alerts.',
-      files: [['Inventory_2026.xlsx', 230000]], deliverables: [['Inventory_Tracker.xlsx', 260000]], messages: [] },
+      files: [['Inventory_2026.xlsx', 230000]], messages: [] },
     { id: 'REQ-2026-0041', title: 'NDA review', cat: 'legal', service: 'NDA', status: 'delivered', priority: 'Medium',
       submitted: '2026-10-22T09:45', due: '2026-10-30',
       details: 'Review the NDA from a distributor before we share our recipes.',
-      files: [['Distributor_NDA.pdf', 320000]], deliverables: [['NDA_Review_Notes.pdf', 180000]], messages: [] },
+      files: [['Distributor_NDA.pdf', 320000]], messages: [] },
     { id: 'REQ-2026-0040', title: 'Q3 income summary', cat: 'tax', service: 'Income summary', status: 'checking', priority: 'Medium',
       submitted: '2026-11-01T12:20', due: '2026-11-14',
       details: 'Compile July to September income from our invoices for our accountant.',
@@ -84,7 +83,7 @@
     { id: 'REQ-2026-0039', title: 'Abuja trip: flights and hotel', cat: 'ops', service: 'Flight and hotel booking', status: 'delivered', priority: 'High',
       submitted: '2026-10-20T08:30', due: '2026-10-28',
       details: 'Return flights Lagos–Abuja for 2 people, 27–29 Oct, and a hotel near the Wuse 2 office.',
-      files: [], deliverables: [['Abuja_Itinerary.pdf', 140000]], messages: [] },
+      files: [], messages: [] },
     { id: 'REQ-2026-0038', title: 'Brand deal contract filing', cat: 'creator', service: 'File brand deal contracts', status: 'submitted', priority: 'Low',
       submitted: '2026-11-11T17:50', due: '2026-11-22',
       details: 'File the signed brand deal contracts from this quarter and set up a folder for future ones.',
@@ -96,6 +95,35 @@
       messages: [['You', '2026-11-02T09:15', 'Please pause this until our new prices are final.'], [TEAM, '2026-11-02T10:01', 'Done. We’ve put it on hold. Message us when you’re ready.']] },
   ];
 
+  // ---------- deliverables: finished (or nearly finished) files from the team ----------
+  const DSTATUS = {
+    review: { label: 'Being checked', chip: 'bg-[#EFE9FB] text-[#5B3FA8]', about: 'Quality check before it’s released to you' },
+    approval: { label: 'Needs your approval', chip: 'bg-pill-orangeBg text-brand-orangeDark', about: 'A draft for you to approve or ask changes on' },
+    ready: { label: 'Ready to download', chip: 'bg-pill-greenBg text-pill-greenTx', about: 'New, and not downloaded yet' },
+    downloaded: { label: 'Downloaded', chip: 'bg-pill-navyBg text-brand-navy', about: 'You’ve downloaded it at least once' },
+    archived: { label: 'Archived', chip: 'bg-[#F1EFEC] text-ink-muted', about: 'Moved out of the main list' },
+  };
+  const DOWNLOADABLE = ['ready', 'downloaded', 'archived'];
+  const DELIVERABLES = [
+    { id: 'D-0109', name: 'Q3_Income_Summary.xlsx', size: 188000, task: 'REQ-2026-0040', status: 'review', at: '2026-11-12T09:05' },
+    { id: 'D-0108', name: 'Proposal_Draft_v1.docx', size: 412000, task: 'REQ-2026-0048', status: 'approval', at: '2026-11-11T16:20' },
+    { id: 'D-0107', name: 'October_Summary.pdf', size: 210000, task: 'REQ-2026-0045', status: 'ready', at: '2026-11-04T16:40' },
+    { id: 'D-0106', name: 'October_Books.xlsx', size: 154000, task: 'REQ-2026-0045', status: 'downloaded', at: '2026-11-04T16:40' },
+    { id: 'D-0105', name: 'CAC_Name_Search_Result.pdf', size: 96000, task: 'REQ-2026-0043', status: 'ready', at: '2026-11-04T10:30' },
+    { id: 'D-0104', name: 'Inventory_Tracker.xlsx', size: 260000, task: 'REQ-2026-0042', status: 'downloaded', at: '2026-11-02T12:10' },
+    { id: 'D-0103', name: 'NDA_Review_Notes.pdf', size: 180000, task: 'REQ-2026-0041', status: 'ready', at: '2026-10-29T15:00' },
+    { id: 'D-0102', name: 'Abuja_Itinerary.pdf', size: 140000, task: 'REQ-2026-0039', status: 'archived', at: '2026-10-26T09:30' },
+    { id: 'D-0101', name: 'Abuja_Hotel_Booking.pdf', size: 122000, task: 'REQ-2026-0039', status: 'archived', at: '2026-10-26T09:30' },
+  ];
+  const fileType = name => {
+    const ext = (name.split('.').pop() || '').toLowerCase();
+    if (['xls', 'xlsx', 'csv'].includes(ext)) return { label: 'Spreadsheet', icon: 'file-spreadsheet', tone: 'bg-pill-greenBg text-pill-greenTx' };
+    if (['png', 'jpg', 'jpeg'].includes(ext)) return { label: 'Image', icon: 'image', tone: 'bg-[#EFE9FB] text-[#5B3FA8]' };
+    if (ext === 'zip') return { label: 'Archive', icon: 'file-archive', tone: 'bg-cream text-ink' };
+    if (ext === 'pdf') return { label: 'PDF', icon: 'file-text', tone: 'bg-[#FDECEC] text-[#B42318]' };
+    return { label: 'Document', icon: 'file-text', tone: 'bg-pill-navyBg text-brand-navy' };
+  };
+
   // ---------- session overrides (status changes and new messages) ----------
   const KEY = 'banda.tasks.v1';
   function readStore() { try { return JSON.parse(sessionStorage.getItem(KEY)) || {}; } catch { return {}; } }
@@ -104,7 +132,7 @@
 
   function withOverrides(t) {
     const o = store[t.id] || {};
-    return Object.assign({}, t, { status: o.status || t.status, messages: t.messages.concat(o.messages || []) });
+    return Object.assign({}, t, { status: o.status || t.status, messages: t.messages.concat(o.messages || []), files: t.files.concat(o.files || []) });
   }
   const all = () => TASKS.map(withOverrides);
   const find = id => { const t = TASKS.find(x => x.id === id); return t ? withOverrides(t) : null; };
@@ -112,8 +140,13 @@
     const o = store[id] || {};
     if (change.status) o.status = change.status;
     if (change.message) o.messages = (o.messages || []).concat([change.message]);
+    if (change.files) o.files = (o.files || []).concat(change.files);
     store[id] = o; writeStore(store);
   }
+
+  const deliverables = () => DELIVERABLES.map(d => Object.assign({}, d, { status: (store['d:' + d.id] || {}).status || d.status }));
+  const deliverablesFor = taskId => deliverables().filter(d => d.task === taskId);
+  function setDeliverable(id, status) { store['d:' + id] = { status }; writeStore(store); }
 
   // ---------- formatting ----------
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -122,7 +155,17 @@
   const fmtDateTime = s => toDate(s).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' });
   const fmtSize = b => b < 1048576 ? Math.max(1, Math.round(b / 1024)) + ' KB' : (b / 1048576).toFixed(1) + ' MB';
   const naira = n => '₦' + n.toLocaleString('en-NG');
+  const pad = n => String(n).padStart(2, '0');
+  const nowLocal = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+  // A small announcement at the bottom of the screen (needs <div id="toast" role="status"> on the page).
+  let toastTimer;
+  function toast(text) {
+    const el = document.getElementById('toast'); if (!el) return;
+    el.textContent = text; el.hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => { el.hidden = true; }, 4000);
+  }
   const chip = (cls, text) => `<span class="chip-status ${cls}">${esc(text)}</span>`;
 
-  window.BANDA = { CATS, STATUS, CANCELLABLE, PRIORITY, all, find, update, esc, toDate, fmtDate, fmtDateTime, fmtSize, naira, chip };
+  window.BANDA = { CATS, STATUS, CANCELLABLE, PRIORITY, all, find, update, esc, toDate, fmtDate, fmtDateTime, fmtSize, naira, chip,
+    DSTATUS, DOWNLOADABLE, deliverables, deliverablesFor, setDeliverable, fileType, nowLocal, toast };
 })();
