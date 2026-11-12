@@ -1,0 +1,680 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>banda — B &amp; A Essentials | Beyond your AI</title>
+  <meta name="description" content="Reliable, professional and affordable business support services for small businesses and SMEs in Nigeria." />
+  <meta name="theme-color" content="#1C1712" />
+  <meta property="og:title" content="banda — B & A Essentials" />
+  <meta property="og:description" content="Reliable, professional and affordable business support for small businesses and SMEs in Nigeria." />
+  <meta property="og:type" content="website" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231C1712'/%3E%3Cpath d='M17 9h9v17a13 13 0 1 1-9 12z' fill='%23FDFBF6'/%3E%3Ccircle cx='39' cy='39' r='7' fill='%231C1712'/%3E%3Ccircle cx='31' cy='40' r='5' fill='%23D9662E'/%3E%3C/svg%3E" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@500;600;700&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+  <!-- Tailwind Play CDN for preview only. In Django, build with the Tailwind CLI using the same config. -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { orange: '#D9662E', orangeDark: '#BF5420', navy: '#33397F', navySoft: '#E7E8F3', lavender: '#B8BBE6' },
+            ink: { DEFAULT: '#241A15', muted: '#5C534D', soft: '#8A817A' },
+            cream: { DEFAULT: '#F5F0E8', light: '#FBF9F5', line: '#ECE5DA' },
+            cocoa: { DEFAULT: '#3B251C', deep: '#1C1712' },
+            pill: { orangeBg: '#FBE6DA', greenBg: '#DDF1EC', greenTx: '#1F7A63', navyBg: '#ECEDF8' }
+          },
+          fontFamily: {
+            display: ['Lexend', 'system-ui', 'sans-serif'],
+            sans: ['Inter', 'system-ui', 'sans-serif']
+          },
+          maxWidth: { site: '1000px' }
+        }
+      }
+    }
+  </script>
+  <style>
+    html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { scrollbar-width: none; }
+
+    /* ---------- banda logo (HTML/CSS, crisp at any size) ---------- */
+    .logo { display: inline-flex; flex-direction: column; align-items: flex-start; font-size: 36px; line-height: 1; text-decoration: none; }
+    .logo-word { font-family: Inter, system-ui, sans-serif; font-weight: 800; line-height: .82; letter-spacing: -.035em; color: var(--logo-word, #1C1712); }
+    .logo-b { position: relative; display: inline-block; }
+    .logo-dot { position: absolute; left: .215em; top: .43em; width: .18em; height: .18em; border-radius: 50%; background: #D9662E; transition: transform .35s cubic-bezier(.34,1.56,.64,1); }
+    .logo:hover .logo-dot { transform: scale(1.18); }
+    .logo-tag { font-family: Inter, system-ui, sans-serif; font-weight: 600; font-size: .2em; letter-spacing: .5em; margin-top: .55em; white-space: nowrap; color: var(--logo-tag, #33397F); }
+    .logo-tag .amp { color: #D9662E; letter-spacing: .3em; }
+    .logo--light { --logo-word: #FDFBF6; --logo-tag: #B8BBE6; }
+    /* large lockup (hero/brand use) keeps the original airy tagline */
+    .logo--lg .logo-tag { font-weight: 500; font-size: .172em; letter-spacing: .66em; margin-top: .62em; }
+
+    /* ---------- motion ---------- */
+    .reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s ease, transform .6s ease; }
+    .reveal.in { opacity: 1; transform: none; }
+    .bar { width: 0; transition: width 1.2s cubic-bezier(.22,1,.36,1) .3s; }
+    .float { animation: float 7s ease-in-out infinite; }
+    @keyframes float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-6px) } }
+    .hero-underline path { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .9s cubic-bezier(.22,1,.36,1) .5s; }
+    .reveal.in .hero-underline path { stroke-dashoffset: 0; }
+    details > summary { list-style: none; cursor: pointer; }
+    details > summary::-webkit-details-marker { display: none; }
+    details[open] .faq-plus { transform: rotate(45deg); }
+    /* Square grid: thin lines forming squares, faded out towards the edges. */
+    .grid-lines {
+      --gl: rgba(51,57,127,.12);
+      --cell: 64px;
+      background-image:
+        linear-gradient(to right, var(--gl) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--gl) 1px, transparent 1px);
+      background-size: var(--cell) var(--cell);
+      background-position: center top;
+    }
+    .grid-lines--light { --gl: rgba(255,255,255,.085); }
+    .grid-fade {
+      -webkit-mask-image: radial-gradient(ellipse 72% 68% at 50% 42%, #000 35%, transparent 78%);
+              mask-image: radial-gradient(ellipse 72% 68% at 50% 42%, #000 35%, transparent 78%);
+    }
+    /* a few squares filled in, like the reference */
+    .grid-cell { position: absolute; width: var(--cell, 64px); height: var(--cell, 64px); background: rgba(51,57,127,.035); }
+    .dot-grid { background-image: radial-gradient(rgba(51,57,127,.13) 1px, transparent 1px); background-size: 18px 18px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .reveal { opacity: 1; transform: none; }
+      .hero-underline path { stroke-dashoffset: 0; }
+    }
+  </style>
+</head>
+
+<body class="bg-cream-light font-sans text-ink antialiased">
+  <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-white focus:px-4 focus:py-2">Skip to content</a>
+
+  <!-- ===================== HEADER ===================== -->
+  <header id="siteHeader" class="sticky top-0 z-40 border-b border-transparent bg-cream-light/90 backdrop-blur-md transition-[box-shadow,border-color] duration-300">
+    <div class="mx-auto flex h-[72px] max-w-site items-center justify-between px-5 lg:px-0">
+      <a href="#top" class="logo" aria-label="banda, B and A Essentials, home">
+        <span class="logo-word" aria-hidden="true"><span class="logo-b">b<i class="logo-dot"></i></span>anda</span>
+        <span class="logo-tag" aria-hidden="true">B<span class="amp">&amp;</span>A ESSENTIALS</span>
+      </a>
+
+      <nav class="hidden md:block" aria-label="Main">
+        <ul class="flex items-center gap-6 text-[14px] text-ink-muted">
+          <li><a href="#top" data-spy="top" class="nav-link relative pb-1.5 font-medium transition-colors hover:text-ink after:absolute after:inset-x-0 after:-bottom-0.5 after:h-[2px] after:origin-left after:scale-x-0 after:rounded after:bg-brand-orange after:transition-transform">Home</a></li>
+          <li><a href="#services" data-spy="services" class="nav-link relative pb-1.5 font-medium transition-colors hover:text-ink after:absolute after:inset-x-0 after:-bottom-0.5 after:h-[2px] after:origin-left after:scale-x-0 after:rounded after:bg-brand-orange after:transition-transform">Services</a></li>
+          <li><a href="#how" data-spy="how" class="nav-link relative pb-1.5 font-medium transition-colors hover:text-ink after:absolute after:inset-x-0 after:-bottom-0.5 after:h-[2px] after:origin-left after:scale-x-0 after:rounded after:bg-brand-orange after:transition-transform">How It Works</a></li>
+          <li><a href="#pricing" data-spy="pricing" class="nav-link relative pb-1.5 font-medium transition-colors hover:text-ink after:absolute after:inset-x-0 after:-bottom-0.5 after:h-[2px] after:origin-left after:scale-x-0 after:rounded after:bg-brand-orange after:transition-transform">Pricing</a></li>
+          <li><a href="#about" data-spy="about" class="nav-link relative pb-1.5 font-medium transition-colors hover:text-ink after:absolute after:inset-x-0 after:-bottom-0.5 after:h-[2px] after:origin-left after:scale-x-0 after:rounded after:bg-brand-orange after:transition-transform">About Us</a></li>
+          <li><a href="#faqs" data-spy="faqs" class="nav-link relative pb-1.5 font-medium transition-colors hover:text-ink after:absolute after:inset-x-0 after:-bottom-0.5 after:h-[2px] after:origin-left after:scale-x-0 after:rounded after:bg-brand-orange after:transition-transform">FAQs</a></li>
+        </ul>
+      </nav>
+
+      <div class="hidden items-center gap-4 md:flex">
+        <a href="login.html" class="text-[14px] font-semibold text-ink transition-colors hover:text-brand-navy">Log In</a>
+        <a href="onboarding.html" class="group inline-flex items-center gap-2 rounded-lg bg-brand-orange px-4 py-2.5 text-[14px] font-semibold text-white shadow-sm shadow-brand-orange/30 transition hover:bg-brand-orangeDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">
+          Get Started <i data-lucide="arrow-right" class="h-4 w-4 transition-transform group-hover:translate-x-0.5"></i>
+        </a>
+      </div>
+
+      <button id="menuBtn" class="rounded-md p-2 md:hidden" aria-expanded="false" aria-controls="mobileMenu" aria-label="Open menu">
+        <i data-lucide="menu" class="h-6 w-6"></i>
+      </button>
+    </div>
+
+    <div id="mobileMenu" class="hidden border-t border-cream-line bg-cream-light md:hidden">
+      <ul class="space-y-1 px-5 py-4 text-[15px]">
+        <li><a href="#top" class="block rounded-md px-2 py-2 font-medium text-brand-navy">Home</a></li>
+        <li><a href="#services" class="block rounded-md px-2 py-2 text-ink-muted">Services</a></li>
+        <li><a href="#how" class="block rounded-md px-2 py-2 text-ink-muted">How It Works</a></li>
+        <li><a href="#pricing" class="block rounded-md px-2 py-2 text-ink-muted">Pricing</a></li>
+        <li><a href="#about" class="block rounded-md px-2 py-2 text-ink-muted">About Us</a></li>
+        <li><a href="#faqs" class="block rounded-md px-2 py-2 text-ink-muted">FAQs</a></li>
+        <li class="flex gap-3 pt-3">
+          <a href="login.html" class="flex-1 rounded-lg border border-cream-line py-2.5 text-center font-semibold">Log In</a>
+          <a href="onboarding.html" class="flex-1 rounded-lg bg-brand-orange py-2.5 text-center font-semibold text-white">Get Started</a>
+        </li>
+      </ul>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- ===================== HERO ===================== -->
+    <section id="top" class="relative overflow-hidden bg-cream">
+      <!-- decorative background -->
+      <div aria-hidden="true" class="pointer-events-none absolute -right-40 -top-48 h-[520px] w-[520px] rounded-full bg-brand-orange/[.13] blur-3xl"></div>
+      <div aria-hidden="true" class="pointer-events-none absolute -bottom-48 left-1/4 h-[420px] w-[420px] rounded-full bg-brand-navy/[.08] blur-3xl"></div>
+      <div aria-hidden="true" class="grid-lines grid-fade pointer-events-none absolute inset-0"></div>
+
+      <div class="relative mx-auto grid max-w-site items-center gap-14 px-5 pb-16 pt-12 lg:grid-cols-[1.1fr_1fr] lg:gap-10 lg:px-0 lg:pb-[88px] lg:pt-[76px]">
+        <div class="reveal">
+          <span class="inline-flex items-center gap-2 rounded-full border border-brand-orange/20 bg-pill-orangeBg px-4 py-2 text-[11px] font-bold tracking-[0.12em] text-ink">
+            <span class="relative flex h-1.5 w-1.5"><span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-orange opacity-60"></span><span class="relative h-1.5 w-1.5 rounded-full bg-brand-orange"></span></span>
+            YOUR BUSINESS. OUR SUPPORT.
+          </span>
+
+          <h1 class="mt-6 font-display text-[33px] font-semibold leading-[1.1] tracking-[-0.025em] text-ink min-[400px]:text-[36px] sm:text-[46px] lg:text-[49px]">
+            Get More Done with<br />
+            <span class="relative inline-block whitespace-nowrap text-brand-navy">B &amp; A Essentials
+              <svg aria-hidden="true" class="hero-underline absolute -bottom-2 left-0 h-3 w-full" viewBox="0 0 300 12" fill="none" preserveAspectRatio="none"><path d="M3 8.5C52 3 120 2.5 168 5c44 2.2 88 1.5 129-1.5" stroke="#D9662E" stroke-width="4" stroke-linecap="round" pathLength="1"/></svg>
+            </span>
+          </h1>
+
+          <p class="mt-7 max-w-[440px] text-[16.5px] leading-relaxed text-ink-muted">
+            Reliable, professional and affordable business support services for small businesses and SMEs in Nigeria.
+          </p>
+
+          <div class="mt-8 flex flex-wrap gap-3">
+            <a href="login.html" class="group inline-flex items-center gap-2 rounded-lg bg-brand-orange px-6 py-4 text-[14.5px] font-semibold text-white shadow-lg shadow-brand-orange/30 transition hover:-translate-y-0.5 hover:bg-brand-orangeDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">
+              Start Today <i data-lucide="arrow-right" class="h-4 w-4 transition-transform group-hover:translate-x-0.5"></i>
+            </a>
+            <a href="#services" class="inline-flex items-center rounded-lg border-[1.5px] border-brand-navy bg-white/70 px-6 py-4 text-[14.5px] font-semibold text-brand-navy backdrop-blur transition hover:-translate-y-0.5 hover:bg-brand-navy hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy focus-visible:ring-offset-2">
+              Explore Our Services
+            </a>
+          </div>
+
+          <ul class="mt-9 flex flex-wrap gap-x-6 gap-y-3 border-t border-ink/10 pt-6 text-[13.5px] font-medium text-ink">
+            <li class="flex items-center gap-2"><i data-lucide="circle-check" class="h-4 w-4 text-brand-navy"></i>Save time</li>
+            <li class="flex items-center gap-2"><i data-lucide="circle-check" class="h-4 w-4 text-brand-navy"></i>Get expert support</li>
+            <li class="flex items-center gap-2"><i data-lucide="circle-check" class="h-4 w-4 text-brand-navy"></i>Focus on growth</li>
+          </ul>
+        </div>
+
+        <!-- Requests preview (illustrative) -->
+        <div class="reveal relative mt-4 min-w-0 lg:mt-0 lg:pl-6" style="transition-delay:.12s" role="img" aria-label="Example of the client dashboard: three requests with their statuses, and a note that deliverables are reviewed by a person before delivery">
+          <!-- tilted backing panel -->
+          <div aria-hidden="true" class="absolute -right-2 bottom-1 left-6 top-6 rotate-[4deg] rounded-3xl bg-brand-navy lg:-right-4 lg:left-14"></div>
+          <div aria-hidden="true" class="absolute -right-3 -top-4 h-20 w-20 rounded-2xl border-2 border-dashed border-brand-orange/40"></div>
+
+          <div class="relative rounded-2xl border border-cream-line bg-white p-5 shadow-[0_30px_70px_-30px_rgba(28,23,18,0.45)] sm:p-6">
+            <div class="mb-4 flex items-center justify-between">
+              <div class="flex items-center gap-2.5">
+                <span class="grid h-8 w-8 place-items-center rounded-lg bg-brand-navy text-white"><i data-lucide="layout-list" class="h-4 w-4"></i></span>
+                <h2 class="text-[14.5px] font-semibold">Your requests</h2>
+              </div>
+              <span class="rounded-md bg-cream px-2 py-1 text-[11.5px] font-medium text-ink-muted">This week</span>
+            </div>
+
+            <div class="mb-4 grid grid-cols-3 gap-2 text-center">
+              <div class="rounded-lg bg-cream/70 py-2.5"><p class="font-display text-[18px] font-semibold leading-none text-ink">3</p><p class="mt-1.5 text-[10.5px] font-medium uppercase tracking-wider text-ink-soft">Requests</p></div>
+              <div class="rounded-lg bg-cream/70 py-2.5"><p class="font-display text-[18px] font-semibold leading-none text-brand-orangeDark">1</p><p class="mt-1.5 text-[10.5px] font-medium uppercase tracking-wider text-ink-soft">In progress</p></div>
+              <div class="rounded-lg bg-cream/70 py-2.5"><p class="font-display text-[18px] font-semibold leading-none text-pill-greenTx">1</p><p class="mt-1.5 text-[10.5px] font-medium uppercase tracking-wider text-ink-soft">Delivered</p></div>
+            </div>
+
+            <div class="space-y-2.5">
+              <div class="flex items-center gap-3 rounded-xl border border-cream-line p-3 transition hover:border-brand-lavender sm:gap-4 sm:p-3.5">
+                <span class="hidden h-10 w-10 shrink-0 place-items-center rounded-lg bg-cream min-[400px]:grid"><i data-lucide="file-spreadsheet" class="h-4 w-4 text-ink-muted"></i></span>
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-[13.5px] font-semibold">Monthly invoices</p>
+                  <p class="text-[12px] text-ink-muted">Finance &amp; Accounting</p>
+                  <div class="mt-2.5 h-1 rounded-full bg-cream-line"><div class="bar h-1 rounded-full bg-brand-navy" data-w="70%"></div></div>
+                </div>
+                <span class="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-pill-orangeBg px-2.5 py-1 text-[11px] font-semibold text-brand-orangeDark"><span class="h-1.5 w-1.5 animate-pulse rounded-full bg-brand-orange"></span>In progress</span>
+              </div>
+
+              <div class="flex items-center gap-3 rounded-xl border border-cream-line p-3 transition hover:border-brand-lavender sm:gap-4 sm:p-3.5">
+                <span class="hidden h-10 w-10 shrink-0 place-items-center rounded-lg bg-cream min-[400px]:grid"><i data-lucide="file-text" class="h-4 w-4 text-ink-muted"></i></span>
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-[13.5px] font-semibold">Investor pitch deck</p>
+                  <p class="text-[12px] text-ink-muted">Business Documents</p>
+                  <div class="mt-2.5 h-1 rounded-full bg-cream-line"><div class="bar h-1 rounded-full bg-pill-greenTx" data-w="100%"></div></div>
+                </div>
+                <span class="inline-flex shrink-0 items-center gap-1 rounded-full bg-pill-greenBg px-2.5 py-1 text-[11px] font-semibold text-pill-greenTx"><i data-lucide="check" class="h-3 w-3"></i>Delivered</span>
+              </div>
+
+              <div class="flex items-center gap-3 rounded-xl border border-cream-line p-3 transition hover:border-brand-lavender sm:gap-4 sm:p-3.5">
+                <span class="hidden h-10 w-10 shrink-0 place-items-center rounded-lg bg-cream min-[400px]:grid"><i data-lucide="pen-line" class="h-4 w-4 text-ink-muted"></i></span>
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-[13.5px] font-semibold">Social media calendar</p>
+                  <p class="text-[12px] text-ink-muted">Content &amp; Design</p>
+                  <div class="mt-2.5 h-1 rounded-full bg-cream-line"><div class="bar h-1 rounded-full bg-brand-navy" data-w="15%"></div></div>
+                </div>
+                <span class="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-pill-navyBg px-2.5 py-1 text-[11px] font-semibold text-brand-navy"><span class="h-1.5 w-1.5 rounded-full bg-brand-navy"></span>Submitted</span>
+              </div>
+            </div>
+
+            <p class="mt-5 flex items-center gap-3 text-[13.5px] font-semibold text-brand-navy">
+              <span class="h-[2px] w-6 rounded bg-brand-orange"></span>Grow Your Business with Confidence
+            </p>
+          </div>
+
+          <!-- floating chips -->
+          <div aria-hidden="true" class="float absolute -left-2 -top-9 flex items-center gap-2.5 rounded-xl border border-cream-line bg-white py-2 pl-2 pr-3.5 shadow-[0_14px_30px_-14px_rgba(28,23,18,.4)] lg:-left-4">
+            <span class="grid h-8 w-8 place-items-center rounded-lg bg-pill-greenBg text-pill-greenTx"><i data-lucide="user-check" class="h-4 w-4"></i></span>
+            <span class="leading-tight"><span class="block text-[12px] font-semibold text-ink">Reviewed by a person</span><span class="block text-[10.5px] text-ink-muted">before it reaches you</span></span>
+          </div>
+          <div aria-hidden="true" class="float absolute -bottom-9 right-3 flex items-center gap-2.5 rounded-xl bg-cocoa-deep py-2 pl-2 pr-3.5 text-white shadow-[0_14px_30px_-12px_rgba(28,23,18,.6)] [animation-delay:-3.5s] lg:-right-5">
+            <span class="grid h-8 w-8 place-items-center rounded-lg bg-brand-orange"><i data-lucide="bell-ring" class="h-4 w-4"></i></span>
+            <span class="leading-tight"><span class="block text-[12px] font-semibold">Deliverable ready</span><span class="block text-[10.5px] text-brand-lavender">Investor pitch deck</span></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== SERVICES ===================== -->
+    <section id="services" class="bg-cream-light">
+      <div class="mx-auto max-w-site px-5 py-16 lg:px-0 lg:py-[72px]">
+        <div class="reveal flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p class="flex items-center gap-3 text-[11.5px] font-bold tracking-[0.14em] text-brand-navy"><span class="h-[2px] w-5 rounded bg-brand-orange"></span>OUR SERVICES</p>
+            <h2 class="mt-4 font-display text-[30px] font-semibold tracking-tight sm:text-[32px]">Everything Your Business Needs</h2>
+            <p class="mt-4 max-w-[420px] text-[15px] leading-relaxed text-ink-muted">From admin support to specialised services, we handle the work so you can focus on what matters most.</p>
+          </div>
+          <a href="#pricing" class="group inline-flex items-center gap-2 self-start border-b-2 border-brand-orange pb-1 text-[14.5px] font-semibold text-brand-navy md:self-auto">
+            See Plans &amp; Pricing <i data-lucide="arrow-right" class="h-4 w-4 transition-transform group-hover:translate-x-1"></i>
+          </a>
+        </div>
+
+        <div class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <div class="svc reveal group rounded-xl border border-cream-line bg-white p-5 transition duration-300 hover:-translate-y-1 hover:border-brand-lavender hover:shadow-[0_18px_40px_-24px_rgba(51,57,127,.45)]">
+            <span class="grid h-11 w-11 place-items-center rounded-lg bg-cream text-brand-navy transition-colors duration-300 group-hover:bg-brand-navy group-hover:text-white"><i data-lucide="file-text" class="h-[18px] w-[18px]"></i></span>
+            <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug">Business Documents</h3>
+            <p class="mt-3 text-[13px] leading-relaxed text-ink-muted">Proposals, reports, presentations and more.</p>
+          </div>
+          <div class="svc reveal group rounded-xl border border-cream-line bg-white p-5 transition duration-300 hover:-translate-y-1 hover:border-brand-lavender hover:shadow-[0_18px_40px_-24px_rgba(51,57,127,.45)]">
+            <span class="grid h-11 w-11 place-items-center rounded-lg bg-cream text-brand-navy transition-colors duration-300 group-hover:bg-brand-navy group-hover:text-white"><i data-lucide="pen-line" class="h-[18px] w-[18px]"></i></span>
+            <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug">Content &amp; Design</h3>
+            <p class="mt-3 text-[13px] leading-relaxed text-ink-muted">Social media, branding, graphic design and content creation.</p>
+          </div>
+          <div class="svc reveal group rounded-xl border border-cream-line bg-white p-5 transition duration-300 hover:-translate-y-1 hover:border-brand-lavender hover:shadow-[0_18px_40px_-24px_rgba(51,57,127,.45)]">
+            <span class="grid h-11 w-11 place-items-center rounded-lg bg-cream text-brand-navy transition-colors duration-300 group-hover:bg-brand-navy group-hover:text-white"><i data-lucide="calendar" class="h-[18px] w-[18px]"></i></span>
+            <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug">Administrative Support</h3>
+            <p class="mt-3 text-[13px] leading-relaxed text-ink-muted">Calendar management, data entry, research and more.</p>
+          </div>
+          <div class="svc reveal group rounded-xl border border-cream-line bg-white p-5 transition duration-300 hover:-translate-y-1 hover:border-brand-lavender hover:shadow-[0_18px_40px_-24px_rgba(51,57,127,.45)]">
+            <span class="grid h-11 w-11 place-items-center rounded-lg bg-cream text-brand-navy transition-colors duration-300 group-hover:bg-brand-navy group-hover:text-white"><i data-lucide="file-spreadsheet" class="h-[18px] w-[18px]"></i></span>
+            <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug">Finance &amp; Accounting</h3>
+            <p class="mt-3 text-[13px] leading-relaxed text-ink-muted">Invoicing, bookkeeping, financial reports and support.</p>
+          </div>
+          <div class="svc reveal group rounded-xl border border-cream-line bg-white p-5 transition duration-300 hover:-translate-y-1 hover:border-brand-lavender hover:shadow-[0_18px_40px_-24px_rgba(51,57,127,.45)]">
+            <span class="grid h-11 w-11 place-items-center rounded-lg bg-cream text-brand-navy transition-colors duration-300 group-hover:bg-brand-navy group-hover:text-white"><i data-lucide="monitor" class="h-[18px] w-[18px]"></i></span>
+            <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug">IT &amp; Digital Support</h3>
+            <p class="mt-3 text-[13px] leading-relaxed text-ink-muted">Setup, troubleshooting, and tech assistance.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== HOW IT WORKS ===================== -->
+    <section id="how" class="relative overflow-hidden bg-cream">
+      <!-- soft arcs, top right -->
+      <div aria-hidden="true" class="pointer-events-none absolute -right-48 -top-64 h-[720px] w-[720px] rounded-full border-[70px] border-brand-orange/[.05]"></div>
+      <div aria-hidden="true" class="pointer-events-none absolute -right-80 -top-96 h-[1040px] w-[1040px] rounded-full border-[70px] border-brand-orange/[.05]"></div>
+      <!-- navy wave, bottom left -->
+      <svg aria-hidden="true" class="pointer-events-none absolute bottom-0 left-0 h-[110px] w-[70%] max-w-[760px]" viewBox="0 0 760 110" preserveAspectRatio="none"><path d="M0 0c150 8 300 28 430 62 110 28 220 42 330 48H0z" fill="#fbe6da" opacity=".7" transform="translate(0 -26)"/><path d="M0 22c150 6 290 24 410 52 110 26 190 34 270 36H0z" fill="#33397f"/></svg>
+
+      <div class="relative mx-auto max-w-site px-5 pb-28 pt-16 lg:px-0 lg:pb-32 lg:pt-[84px]">
+        <div class="grid items-center gap-14 lg:grid-cols-[0.78fr_2fr] lg:gap-8">
+          <div class="reveal">
+            <p class="inline-flex items-center gap-3 rounded-full bg-white px-4 py-2.5 text-[12px] font-bold tracking-[0.06em] text-brand-navy shadow-[0_8px_20px_-12px_rgba(36,26,21,.3)]"><span class="h-[3px] w-6 rounded bg-brand-orange"></span>HOW IT WORKS</p>
+            <h2 class="mt-5 font-display text-[34px] font-semibold leading-[1.12] tracking-tight sm:text-[38px] lg:text-[36px]">Simple Steps<br /> to <span class="text-brand-orange">Get Started</span></h2>
+            <p class="mt-5 max-w-[340px] text-[15px] leading-relaxed text-ink-muted">Getting the support you need is easy. Follow these simple steps and let us handle the rest.</p>
+            <a href="onboarding.html" class="group mt-7 inline-flex items-center gap-2.5 rounded-full bg-brand-orange px-7 py-3.5 text-[14.5px] font-semibold text-white shadow-lg shadow-brand-orange/30 transition hover:-translate-y-px hover:bg-brand-orangeDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">
+              Get Started <i data-lucide="arrow-right" class="h-4 w-4 transition-transform group-hover:translate-x-0.5"></i>
+            </a>
+          </div>
+
+          <ol class="grid grid-cols-1 gap-x-5 gap-y-10 min-[480px]:grid-cols-2 lg:flex lg:items-stretch lg:gap-0">
+            <li class="reveal relative flex-1 rounded-2xl border-b-4 border-brand-navy bg-white px-4 pb-7 pt-11 text-center shadow-[0_18px_40px_-26px_rgba(36,26,21,.35)] lg:px-3.5">
+              <span class="absolute -top-5 left-1/2 grid h-10 w-10 -translate-x-1/2 place-items-center rounded-full bg-brand-navy font-display text-[17px] font-semibold text-white ring-4 ring-cream">1</span>
+              <span class="relative mx-auto grid h-[68px] w-[68px] place-items-center rounded-full bg-brand-navySoft text-brand-navy"><i data-lucide="user-round" class="h-7 w-7"></i><span class="absolute -bottom-0.5 -right-1 grid h-[18px] w-[18px] place-items-center rounded-full bg-brand-orange text-white ring-2 ring-brand-navySoft"><i data-lucide="plus" class="h-3 w-3"></i></span></span>
+              <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug text-brand-navy">Sign Up</h3>
+              <p class="mx-auto mt-2.5 max-w-[220px] text-[13px] leading-relaxed text-ink-muted">Create your account in minutes.</p>
+            </li>
+            <li aria-hidden="true" class="hidden shrink-0 items-center lg:flex"><span class="relative z-10 -mx-3 grid h-9 w-9 place-items-center rounded-full bg-brand-navySoft text-brand-navy ring-4 ring-cream"><i data-lucide="arrow-right" class="h-4 w-4"></i></span></li>
+            <li class="reveal relative flex-1 rounded-2xl border-b-4 border-brand-orange bg-white px-4 pb-7 pt-11 text-center shadow-[0_18px_40px_-26px_rgba(36,26,21,.35)] lg:px-3.5" style="transition-delay:.06s">
+              <span class="absolute -top-5 left-1/2 grid h-10 w-10 -translate-x-1/2 place-items-center rounded-full bg-brand-navy font-display text-[17px] font-semibold text-white ring-4 ring-cream">2</span>
+              <span class="relative mx-auto grid h-[68px] w-[68px] place-items-center rounded-full bg-brand-navySoft text-brand-navy"><i data-lucide="clipboard-list" class="h-7 w-7"></i><span class="absolute -bottom-0.5 -right-1 grid h-[18px] w-[18px] place-items-center rounded-full bg-brand-orange text-white ring-2 ring-brand-navySoft"><i data-lucide="check" class="h-3 w-3"></i></span></span>
+              <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug text-brand-navy">Submit a Task</h3>
+              <p class="mx-auto mt-2.5 max-w-[220px] text-[13px] leading-relaxed text-ink-muted">Tell us what you need and set your preferences.</p>
+            </li>
+            <li aria-hidden="true" class="hidden shrink-0 items-center lg:flex"><span class="relative z-10 -mx-3 grid h-9 w-9 place-items-center rounded-full bg-brand-navySoft text-brand-navy ring-4 ring-cream"><i data-lucide="arrow-right" class="h-4 w-4"></i></span></li>
+            <li class="reveal relative flex-1 rounded-2xl border-b-4 border-brand-navy bg-white px-4 pb-7 pt-11 text-center shadow-[0_18px_40px_-26px_rgba(36,26,21,.35)] lg:px-3.5" style="transition-delay:.12s">
+              <span class="absolute -top-5 left-1/2 grid h-10 w-10 -translate-x-1/2 place-items-center rounded-full bg-brand-navy font-display text-[17px] font-semibold text-white ring-4 ring-cream">3</span>
+              <span class="relative mx-auto grid h-[68px] w-[68px] place-items-center rounded-full bg-brand-navySoft text-brand-navy"><i data-lucide="headset" class="h-7 w-7"></i></span>
+              <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug text-brand-navy">We Get to Work</h3>
+              <p class="mx-auto mt-2.5 max-w-[220px] text-[13px] leading-relaxed text-ink-muted">Our team handles the task with care and expertise.</p>
+            </li>
+            <li aria-hidden="true" class="hidden shrink-0 items-center lg:flex"><span class="relative z-10 -mx-3 grid h-9 w-9 place-items-center rounded-full bg-brand-navySoft text-brand-navy ring-4 ring-cream"><i data-lucide="arrow-right" class="h-4 w-4"></i></span></li>
+            <li class="reveal relative flex-1 rounded-2xl border-b-4 border-brand-orange bg-white px-4 pb-7 pt-11 text-center shadow-[0_18px_40px_-26px_rgba(36,26,21,.35)] lg:px-3.5" style="transition-delay:.18s">
+              <span class="absolute -top-5 left-1/2 grid h-10 w-10 -translate-x-1/2 place-items-center rounded-full bg-brand-orange font-display text-[17px] font-semibold text-white ring-4 ring-cream">4</span>
+              <span class="relative mx-auto grid h-[68px] w-[68px] place-items-center rounded-full bg-pill-orangeBg text-brand-orange"><i data-lucide="circle-check" class="h-8 w-8"></i></span>
+              <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug text-brand-navy">You Get Results</h3>
+              <p class="mx-auto mt-2.5 max-w-[220px] text-[13px] leading-relaxed text-ink-muted">Receive updates and track every step.</p>
+            </li>
+          </ol>
+        </div>
+
+        <p class="mt-14 flex flex-col items-center justify-center gap-2 text-center text-[14px] sm:flex-row sm:gap-5 lg:mt-20">
+          <span aria-hidden="true" class="hidden h-px w-24 bg-ink/15 sm:block"></span>
+          <span class="font-display text-[16px] font-semibold text-brand-navy">B &amp; A Essentials</span>
+          <span aria-hidden="true" class="hidden h-5 w-[2px] rounded bg-brand-orange sm:block"></span>
+          <span class="italic text-ink-muted">Your Business. Our Priority.</span>
+          <span aria-hidden="true" class="hidden h-px w-24 bg-ink/15 sm:block"></span>
+        </p>
+      </div>
+    </section>
+
+    <!-- ===================== PRICING ===================== -->
+    <section id="pricing" class="bg-cream-light">
+      <div class="mx-auto max-w-site px-5 py-16 lg:px-0 lg:py-[72px]">
+        <div class="reveal text-center">
+          <p class="inline-flex items-center gap-3 text-[11.5px] font-bold tracking-[0.14em] text-brand-navy"><span class="h-[2px] w-5 rounded bg-brand-orange"></span>OUR PRICING PLANS<span class="h-[2px] w-5 rounded bg-brand-orange"></span></p>
+          <h2 class="mt-4 font-display text-[28px] font-semibold tracking-tight sm:text-[32px]">Simple, clear and built for your business</h2>
+          <p class="mx-auto mt-3 max-w-[520px] text-[15px] leading-relaxed text-ink-muted">All plans include access to our secure platform, expert support and quality assurance.</p>
+          <ul class="mt-6 flex flex-wrap justify-center gap-x-6 gap-y-3 text-[13px] font-medium text-ink"><li class="flex items-center gap-2"><span class="grid h-7 w-7 place-items-center rounded-full bg-white text-brand-navy shadow-sm"><i data-lucide="shield-check" class="h-3.5 w-3.5"></i></span>No hidden fees</li><li class="flex items-center gap-2"><span class="grid h-7 w-7 place-items-center rounded-full bg-white text-brand-navy shadow-sm"><i data-lucide="calendar-check" class="h-3.5 w-3.5"></i></span>Flexible plans</li><li class="flex items-center gap-2"><span class="grid h-7 w-7 place-items-center rounded-full bg-white text-brand-navy shadow-sm"><i data-lucide="star" class="h-3.5 w-3.5"></i></span>Cancel anytime</li><li class="flex items-center gap-2"><span class="grid h-7 w-7 place-items-center rounded-full bg-white text-brand-navy shadow-sm"><i data-lucide="headset" class="h-3.5 w-3.5"></i></span>Dedicated support</li></ul>
+        </div>
+
+        <div class="mt-12 grid items-stretch gap-5 lg:grid-cols-3">
+          <!-- Starter -->
+          <article class="reveal flex flex-col rounded-2xl border border-cream-line bg-white p-6 transition hover:-translate-y-1 hover:shadow-[0_24px_50px_-30px_rgba(51,57,127,.45)]">
+            <div class="flex items-center gap-4">
+              <span class="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-pill-navyBg text-brand-navy"><i data-lucide="send" class="h-5 w-5"></i></span>
+              <div><h3 class="font-display text-[18px] font-semibold">Starter</h3><p class="text-[12.5px] text-ink-muted">Perfect for small businesses getting started.</p></div>
+            </div>
+            <p class="mt-6 flex items-baseline gap-2"><span class="font-display text-[34px] font-semibold tracking-tight text-ink">₦25,000</span><span class="text-[13.5px] text-ink-muted">/ month</span></p>
+            <p class="mt-3 inline-flex self-start rounded-full bg-pill-navyBg px-3.5 py-1.5 text-[12.5px] font-semibold text-brand-navy">Up to 5 tasks per month</p>
+            <ul class="mb-8 mt-6 space-y-3.5 text-[14px] text-ink"><li class="flex items-start gap-2.5"><i data-lucide="circle-check" class="mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-navy"></i>Access to core services</li><li class="flex items-start gap-2.5"><i data-lucide="circle-check" class="mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-navy"></i>Business support &amp; admin tasks</li><li class="flex items-start gap-2.5"><i data-lucide="circle-check" class="mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-navy"></i>Standard turnaround time</li><li class="flex items-start gap-2.5"><i data-lucide="circle-check" class="mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-navy"></i>Email support</li></ul>
+            <a href="onboarding.html?plan=starter" class="group mt-auto flex items-center justify-center gap-2 rounded-lg border-[1.5px] border-brand-navy py-3.5 text-[14px] font-semibold text-brand-navy transition hover:bg-brand-navy hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy focus-visible:ring-offset-2">Get Started <i data-lucide="arrow-right" class="h-4 w-4 transition-transform group-hover:translate-x-0.5"></i></a>
+          </article>
+
+          <!-- Growth -->
+          <article class="reveal relative flex flex-col rounded-2xl border-2 border-brand-navy bg-white p-6 pt-12 shadow-[0_30px_60px_-34px_rgba(51,57,127,.6)] lg:-my-3" style="transition-delay:.08s">
+            <p class="absolute inset-x-0 top-0 rounded-t-[13px] bg-brand-navy py-2 text-center text-[11px] font-bold tracking-[0.16em] text-white">MOST POPULAR</p>
+            <div class="flex items-center gap-4">
+              <span class="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-pill-orangeBg text-brand-orange"><i data-lucide="trending-up" class="h-5 w-5"></i></span>
+              <div><h3 class="font-display text-[18px] font-semibold">Growth</h3><p class="text-[12.5px] text-ink-muted">Ideal for established businesses.</p></div>
+            </div>
+            <p class="mt-6 flex items-baseline gap-2"><span class="font-display text-[34px] font-semibold tracking-tight text-ink">₦45,000</span><span class="text-[13.5px] text-ink-muted">/ month</span></p>
+            <p class="mt-3 inline-flex self-start rounded-full bg-pill-orangeBg px-3.5 py-1.5 text-[12.5px] font-semibold text-brand-orangeDark">Up to 15 tasks per month</p>
+            <ul class="mb-8 mt-6 space-y-3.5 text-[14px] text-ink"><li class="flex items-start gap-2.5"><i data-lucide="circle-check" class="mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-orange"></i>Everything in Starter</li><li class="flex items-start gap-2.5"><i data-lucide="circle-check" class="mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-orange"></i>Priority support</li><li class="flex items-start gap-2.5"><i data-lucide="circle-check" class="mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-orange"></i>Faster turnaround time</li><li class="flex items-start gap-2.5"><i data-lucide="circle-check" class="mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-orange"></i>Access to more service categories</li><li class="flex items-start gap-2.5"><i data-lucide="circle-check" class="mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-orange"></i>Monthly performance summary</li></ul>
+            <a href="onboarding.html?plan=growth" class="group mt-auto flex items-center justify-center gap-2 rounded-lg bg-brand-orange py-3.5 text-[14px] font-semibold text-white shadow-lg shadow-brand-orange/30 transition hover:bg-brand-orangeDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">Get Started <i data-lucide="arrow-right" class="h-4 w-4 transition-transform group-hover:translate-x-0.5"></i></a>
+          </article>
+
+          <!-- Enterprise -->
+          <article class="reveal flex flex-col rounded-2xl border border-cream-line bg-white p-6 transition hover:-translate-y-1 hover:shadow-[0_24px_50px_-30px_rgba(51,57,127,.45)]" style="transition-delay:.16s">
+            <div class="flex items-center gap-4">
+              <span class="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-pill-navyBg text-brand-navy"><i data-lucide="building-2" class="h-5 w-5"></i></span>
+              <div><h3 class="font-display text-[18px] font-semibold">Enterprise</h3><p class="text-[12.5px] text-ink-muted">For high-volume and complex needs.</p></div>
+            </div>
+            <p class="mt-6"><span class="block font-display text-[34px] font-semibold leading-none tracking-tight text-ink">Custom</span><span class="mt-2 block text-[13.5px] text-ink-muted">Tailored to your business.</span></p>
+            <p class="mt-3 inline-flex self-start rounded-full bg-pill-navyBg px-3.5 py-1.5 text-[12.5px] font-semibold text-brand-navy">Unlimited tasks</p>
+            <ul class="mb-8 mt-6 space-y-3.5 text-[14px] text-ink"><li class="flex items-start gap-2.5"><i data-lucide="circle-check" class="mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-navy"></i>Everything in Growth</li><li class="flex items-start gap-2.5"><i data-lucide="circle-check" class="mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-navy"></i>Dedicated account manager</li><li class="flex items-start gap-2.5"><i data-lucide="circle-check" class="mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-navy"></i>Custom service packages</li><li class="flex items-start gap-2.5"><i data-lucide="circle-check" class="mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-navy"></i>SLA options</li><li class="flex items-start gap-2.5"><i data-lucide="circle-check" class="mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-navy"></i>Advanced reporting &amp; insights</li></ul>
+            <a href="#" class="group mt-auto flex items-center justify-center gap-2 rounded-lg border-[1.5px] border-brand-navy py-3.5 text-[14px] font-semibold text-brand-navy transition hover:bg-brand-navy hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy focus-visible:ring-offset-2">Contact Sales <i data-lucide="arrow-right" class="h-4 w-4 transition-transform group-hover:translate-x-0.5"></i></a>
+          </article>
+        </div>
+
+        <!-- custom plan -->
+        <div class="reveal mt-10 flex flex-col gap-5 rounded-2xl border border-cream-line bg-cream px-6 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+          <div class="flex items-center gap-4">
+            <span class="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white text-brand-orange shadow-sm"><i data-lucide="tag" class="h-5 w-5"></i></span>
+            <div>
+              <h3 class="font-display text-[16px] font-semibold">Need a custom plan?</h3>
+              <p class="mt-1 text-[13.5px] text-ink-muted">If your business has unique requirements or high volume needs, we'll create a plan that works for you.</p>
+            </div>
+          </div>
+          <a href="#" class="group inline-flex shrink-0 items-center gap-2 self-start rounded-lg border-[1.5px] border-brand-navy bg-white px-5 py-3 text-[14px] font-semibold text-brand-navy transition hover:bg-brand-navy hover:text-white sm:self-auto">Talk to Our Team <i data-lucide="arrow-right" class="h-4 w-4 transition-transform group-hover:translate-x-0.5"></i></a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== ABOUT US ===================== -->
+    <section id="about" class="relative overflow-hidden bg-cream">
+      <div aria-hidden="true" class="pointer-events-none absolute -left-40 -top-40 h-[420px] w-[420px] rounded-full bg-brand-orange/[.08] blur-3xl"></div>
+      <div class="relative mx-auto grid max-w-site items-start gap-10 px-5 py-16 lg:grid-cols-[1fr_1.15fr] lg:gap-14 lg:px-0 lg:py-[80px]">
+        <div class="reveal lg:sticky lg:top-28">
+          <p class="flex items-center gap-3 text-[11.5px] font-bold tracking-[0.14em] text-brand-navy"><span class="h-[2px] w-5 rounded bg-brand-orange"></span>ABOUT US</p>
+          <h2 class="mt-4 font-display text-[30px] font-semibold leading-[1.15] tracking-tight sm:text-[34px]">Real people behind your <span class="text-brand-navy">business support</span></h2>
+          <div class="mt-5 space-y-4 text-[15.5px] leading-relaxed text-ink-muted">
+            <p>B &amp; A Essentials helps small businesses and SMEs in Nigeria get work done. You tell us what you need, and our team handles it with care, from documents and design to admin, finance and IT support.</p>
+            <p>Tools can now draft a proposal or outline a plan in seconds. What they can&rsquo;t do is take responsibility for the result. We add people to the process: someone to do the work, someone to check it, and one clear place to see where everything stands.</p>
+          </div>
+          <p class="mt-6 inline-flex items-center gap-3 rounded-full bg-cocoa-deep px-5 py-2.5 font-display text-[15px] font-semibold text-white"><span class="h-2 w-2 rounded-full bg-brand-orange"></span>Beyond your AI.</p>
+        </div>
+        <ul class="grid gap-4 sm:grid-cols-2">
+          <li class="reveal rounded-xl border border-cream-line bg-white p-5">
+            <span class="grid h-10 w-10 place-items-center rounded-lg bg-pill-navyBg text-brand-navy"><i data-lucide="user-check" class="h-[18px] w-[18px]"></i></span>
+            <h3 class="mt-4 font-display text-[15.5px] font-semibold">People do the work</h3>
+            <p class="mt-2 text-[13.5px] leading-relaxed text-ink-muted">Every request is handled by a person with the right skills, and checked by a second person before it reaches you.</p>
+          </li>
+          <li class="reveal rounded-xl border border-cream-line bg-white p-5" style="transition-delay:0.06s">
+            <span class="grid h-10 w-10 place-items-center rounded-lg bg-pill-navyBg text-brand-navy"><i data-lucide="wallet" class="h-[18px] w-[18px]"></i></span>
+            <h3 class="mt-4 font-display text-[15.5px] font-semibold">You agree the cost first</h3>
+            <p class="mt-2 text-[13.5px] leading-relaxed text-ink-muted">We confirm the scope and price with you. Nothing extra starts until you approve it.</p>
+          </li>
+          <li class="reveal rounded-xl border border-cream-line bg-white p-5" style="transition-delay:0.12s">
+            <span class="grid h-10 w-10 place-items-center rounded-lg bg-pill-navyBg text-brand-navy"><i data-lucide="layout-list" class="h-[18px] w-[18px]"></i></span>
+            <h3 class="mt-4 font-display text-[15.5px] font-semibold">One place to follow it</h3>
+            <p class="mt-2 text-[13.5px] leading-relaxed text-ink-muted">Submit requests, share files, see progress and collect finished work from a single workspace.</p>
+          </li>
+          <li class="reveal rounded-xl border border-cream-line bg-white p-5" style="transition-delay:0.18s">
+            <span class="grid h-10 w-10 place-items-center rounded-lg bg-pill-navyBg text-brand-navy"><i data-lucide="shield-check" class="h-[18px] w-[18px]"></i></span>
+            <h3 class="mt-4 font-display text-[15.5px] font-semibold">Your files stay private</h3>
+            <p class="mt-2 text-[13.5px] leading-relaxed text-ink-muted">Documents are stored privately and opened only by the people working on your request.</p>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== TESTIMONIALS ===================== -->
+    <!-- PLACEHOLDER CONTENT: names and quotes below are design samples from the mockup.
+         Replace with real, consented client testimonials before this page goes live. -->
+    <section class="bg-cream" aria-labelledby="stories-title">
+      <div class="mx-auto max-w-site px-5 py-16 lg:px-0 lg:py-[72px]">
+        <div class="reveal flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p class="flex items-center gap-3 text-[11.5px] font-bold tracking-[0.14em] text-brand-navy"><span class="h-[2px] w-5 rounded bg-brand-orange"></span>REAL STORIES</p>
+            <h2 id="stories-title" class="mt-4 font-display text-[30px] font-semibold tracking-tight sm:text-[32px]">What Our Clients Say</h2>
+            <p class="mt-4 max-w-[460px] text-[15px] leading-relaxed text-ink-muted">Businesses across Nigeria trust B &amp; A Essentials to help them work smarter and grow faster.</p>
+          </div>
+          <div class="flex gap-3">
+            <button id="prevBtn" class="grid h-11 w-11 place-items-center rounded-full border-[1.5px] border-brand-navy text-brand-navy transition hover:bg-brand-navy hover:text-white" aria-label="Previous testimonials"><i data-lucide="chevron-left" class="h-4 w-4"></i></button>
+            <button id="nextBtn" class="grid h-11 w-11 place-items-center rounded-full border-[1.5px] border-brand-navy text-brand-navy transition hover:bg-brand-navy hover:text-white" aria-label="Next testimonials"><i data-lucide="chevron-right" class="h-4 w-4"></i></button>
+          </div>
+        </div>
+
+        <div id="track" class="no-scrollbar mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2" tabindex="0" aria-label="Testimonials">
+          <figure class="relative w-[85%] shrink-0 snap-start rounded-xl border border-cream-line bg-white p-6 transition hover:shadow-[0_18px_40px_-26px_rgba(28,23,18,.35)] sm:w-[calc(50%-8px)] lg:w-[calc(33.333%-11px)]" data-placeholder="testimonial">
+            <i data-lucide="quote" aria-hidden="true" class="absolute right-5 top-5 h-7 w-7 text-brand-navySoft"></i>
+            <div class="flex gap-1 text-brand-orange" role="img" aria-label="5 out of 5 stars"><i class="fa-solid fa-star text-[12px]"></i><i class="fa-solid fa-star text-[12px]"></i><i class="fa-solid fa-star text-[12px]"></i><i class="fa-solid fa-star text-[12px]"></i><i class="fa-solid fa-star text-[12px]"></i></div>
+            <blockquote class="mt-5 text-[14px] leading-relaxed text-ink">“B &amp; A Essentials has been a game-changer for my business. Their team is professional, responsive and always delivers on time.”</blockquote>
+            <figcaption class="mt-6 flex items-center gap-3">
+              <span class="grid h-10 w-10 place-items-center rounded-full bg-brand-navy text-[12px] font-bold text-white">AO</span>
+              <span><span class="block text-[13.5px] font-semibold">Ada Okafor</span><span class="block text-[12px] text-ink-muted">CEO, Bloom &amp; Co.</span></span>
+            </figcaption>
+          </figure>
+
+          <figure class="relative w-[85%] shrink-0 snap-start rounded-xl border border-cream-line bg-white p-6 transition hover:shadow-[0_18px_40px_-26px_rgba(28,23,18,.35)] sm:w-[calc(50%-8px)] lg:w-[calc(33.333%-11px)]" data-placeholder="testimonial">
+            <i data-lucide="quote" aria-hidden="true" class="absolute right-5 top-5 h-7 w-7 text-brand-navySoft"></i>
+            <div class="flex gap-1 text-brand-orange" role="img" aria-label="5 out of 5 stars"><i class="fa-solid fa-star text-[12px]"></i><i class="fa-solid fa-star text-[12px]"></i><i class="fa-solid fa-star text-[12px]"></i><i class="fa-solid fa-star text-[12px]"></i><i class="fa-solid fa-star text-[12px]"></i></div>
+            <blockquote class="mt-5 text-[14px] leading-relaxed text-ink">“I love how easy it is to request services and track progress. It saves me hours each week.”</blockquote>
+            <figcaption class="mt-6 flex items-center gap-3">
+              <span class="grid h-10 w-10 place-items-center rounded-full bg-brand-orange text-[12px] font-bold text-white">TA</span>
+              <span><span class="block text-[13.5px] font-semibold">Tunde Adebayo</span><span class="block text-[12px] text-ink-muted">Founder, Tunde's Foods</span></span>
+            </figcaption>
+          </figure>
+
+          <figure class="relative w-[85%] shrink-0 snap-start rounded-xl border border-cream-line bg-white p-6 transition hover:shadow-[0_18px_40px_-26px_rgba(28,23,18,.35)] sm:w-[calc(50%-8px)] lg:w-[calc(33.333%-11px)]" data-placeholder="testimonial">
+            <i data-lucide="quote" aria-hidden="true" class="absolute right-5 top-5 h-7 w-7 text-brand-navySoft"></i>
+            <div class="flex gap-1 text-brand-orange" role="img" aria-label="5 out of 5 stars"><i class="fa-solid fa-star text-[12px]"></i><i class="fa-solid fa-star text-[12px]"></i><i class="fa-solid fa-star text-[12px]"></i><i class="fa-solid fa-star text-[12px]"></i><i class="fa-solid fa-star text-[12px]"></i></div>
+            <blockquote class="mt-5 text-[14px] leading-relaxed text-ink">“The quality of work is excellent, and their support team is always available. Highly recommended!”</blockquote>
+            <figcaption class="mt-6 flex items-center gap-3">
+              <span class="grid h-10 w-10 place-items-center rounded-full bg-cocoa text-[12px] font-bold text-white">NE</span>
+              <span><span class="block text-[13.5px] font-semibold">Ngozi Eze</span><span class="block text-[12px] text-ink-muted">Owner, Eze Retail</span></span>
+            </figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== FAQ ===================== -->
+    <section id="faqs" class="relative overflow-hidden bg-cream-light">
+      <div aria-hidden="true" class="grid-lines pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_45%_60%_at_15%_35%,black,transparent_75%)]"></div>
+      <div class="relative mx-auto grid max-w-site gap-10 px-5 py-16 lg:grid-cols-[0.8fr_1.6fr] lg:gap-14 lg:px-0 lg:py-[72px]">
+        <div class="reveal">
+          <p class="flex items-center gap-3 text-[11.5px] font-bold tracking-[0.14em] text-brand-navy"><span class="h-[2px] w-5 rounded bg-brand-orange"></span>FREQUENTLY ASKED QUESTIONS</p>
+          <h2 class="mt-4 font-display text-[28px] font-semibold tracking-tight sm:text-[30px]">Still have questions?</h2>
+          <p class="mt-3 max-w-[300px] text-[15px] leading-relaxed text-ink-muted">Answers to the questions we hear most about how we work and what it costs.</p>
+        </div>
+        <div class="reveal space-y-3" style="transition-delay:.08s">
+          <details class="group rounded-xl border border-cream-line bg-white transition open:border-brand-lavender open:shadow-[0_14px_30px_-22px_rgba(51,57,127,.5)]">
+            <summary class="flex items-center justify-between gap-4 rounded-xl px-5 py-4 text-[14.5px] font-semibold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy">What kind of tasks can I send you?<i data-lucide="plus" class="faq-plus h-4 w-4 shrink-0 text-brand-navy transition-transform"></i></summary>
+            <p class="px-5 pb-5 text-[14px] leading-relaxed text-ink-muted">Business documents, content and design, admin support, finance and accounting, and IT help. If you are not sure whether something fits, ask us and we will tell you before any work starts.</p>
+          </details>
+          <details class="group rounded-xl border border-cream-line bg-white transition open:border-brand-lavender open:shadow-[0_14px_30px_-22px_rgba(51,57,127,.5)]">
+            <summary class="flex items-center justify-between gap-4 rounded-xl px-5 py-4 text-[14.5px] font-semibold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy">Who does the work?<i data-lucide="plus" class="faq-plus h-4 w-4 shrink-0 text-brand-navy transition-transform"></i></summary>
+            <p class="px-5 pb-5 text-[14px] leading-relaxed text-ink-muted">A member of our team with the right skills does the work, and a second person checks it before it is delivered to you.</p>
+          </details>
+          <details class="group rounded-xl border border-cream-line bg-white transition open:border-brand-lavender open:shadow-[0_14px_30px_-22px_rgba(51,57,127,.5)]">
+            <summary class="flex items-center justify-between gap-4 rounded-xl px-5 py-4 text-[14.5px] font-semibold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy">Can I change my plan later?<i data-lucide="plus" class="faq-plus h-4 w-4 shrink-0 text-brand-navy transition-transform"></i></summary>
+            <p class="px-5 pb-5 text-[14px] leading-relaxed text-ink-muted">Yes. You can move up or down between plans, and the change applies from your next billing month.</p>
+          </details>
+          <details class="group rounded-xl border border-cream-line bg-white transition open:border-brand-lavender open:shadow-[0_14px_30px_-22px_rgba(51,57,127,.5)]">
+            <summary class="flex items-center justify-between gap-4 rounded-xl px-5 py-4 text-[14.5px] font-semibold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy">Is there a setup fee?<i data-lucide="plus" class="faq-plus h-4 w-4 shrink-0 text-brand-navy transition-transform"></i></summary>
+            <p class="px-5 pb-5 text-[14px] leading-relaxed text-ink-muted">No. You pay the monthly price of your plan and nothing extra to get started.</p>
+          </details>
+          <details class="group rounded-xl border border-cream-line bg-white transition open:border-brand-lavender open:shadow-[0_14px_30px_-22px_rgba(51,57,127,.5)]">
+            <summary class="flex items-center justify-between gap-4 rounded-xl px-5 py-4 text-[14.5px] font-semibold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy">What happens if I use more tasks than my plan allows?<i data-lucide="plus" class="faq-plus h-4 w-4 shrink-0 text-brand-navy transition-transform"></i></summary>
+            <p class="px-5 pb-5 text-[14px] leading-relaxed text-ink-muted">We let you know before you reach your limit. You can upgrade your plan, or we send a quote for the extra work and only start once you approve it.</p>
+          </details>
+          <details class="group rounded-xl border border-cream-line bg-white transition open:border-brand-lavender open:shadow-[0_14px_30px_-22px_rgba(51,57,127,.5)]">
+            <summary class="flex items-center justify-between gap-4 rounded-xl px-5 py-4 text-[14.5px] font-semibold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy">Do you offer refunds?<i data-lucide="plus" class="faq-plus h-4 w-4 shrink-0 text-brand-navy transition-transform"></i></summary>
+            <p class="px-5 pb-5 text-[14px] leading-relaxed text-ink-muted">If something is not right with a delivered task, tell us and we will correct it. For refund requests, contact our team and we will review it with you.</p>
+          </details>
+          <details class="group rounded-xl border border-cream-line bg-white transition open:border-brand-lavender open:shadow-[0_14px_30px_-22px_rgba(51,57,127,.5)]">
+            <summary class="flex items-center justify-between gap-4 rounded-xl px-5 py-4 text-[14.5px] font-semibold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy">Can I cancel my plan anytime?<i data-lucide="plus" class="faq-plus h-4 w-4 shrink-0 text-brand-navy transition-transform"></i></summary>
+            <p class="px-5 pb-5 text-[14px] leading-relaxed text-ink-muted">Yes. Cancel whenever you like and your plan stays active until the end of the month you have paid for.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== CTA ===================== -->
+    <section class="bg-cream-light pb-16 lg:pb-[72px]">
+      <div class="mx-auto max-w-site px-5 lg:px-0">
+        <div class="reveal relative flex flex-col gap-6 overflow-hidden rounded-2xl bg-cocoa px-6 py-8 sm:px-9 md:flex-row md:items-center md:justify-between">
+          <div aria-hidden="true" class="grid-lines grid-lines--light pointer-events-none absolute inset-0" style="--cell:48px"></div>
+          <!-- decorative rings -->
+          <span aria-hidden="true" class="pointer-events-none absolute -right-16 -top-24 h-64 w-64 rounded-full border border-brand-lavender/15"></span>
+          <span aria-hidden="true" class="pointer-events-none absolute -right-4 -top-12 h-40 w-40 rounded-full border border-brand-lavender/15"></span>
+          <span aria-hidden="true" class="pointer-events-none absolute -bottom-20 left-1/3 h-48 w-48 rounded-full bg-brand-orange/10 blur-2xl"></span>
+
+          <div class="relative flex items-center gap-5">
+            <span class="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-brand-orange shadow-lg shadow-black/20"><i data-lucide="rocket" class="h-5 w-5 text-cocoa"></i></span>
+            <div>
+              <h2 class="font-display text-[22px] font-semibold text-white sm:text-[24px]">Ready to grow your business?</h2>
+              <p class="mt-1.5 text-[14px] text-white/80">Join B &amp; A Essentials today and experience professional support, built for your success.</p>
+            </div>
+          </div>
+          <a href="onboarding.html" class="group relative inline-flex shrink-0 items-center gap-2 self-start rounded-lg bg-brand-orange px-5 py-3.5 text-[14px] font-semibold text-white transition hover:-translate-y-px hover:bg-brand-orangeDark focus:outline-none focus-visible:ring-2 focus-visible:ring-white md:self-auto">
+            Get Started <i data-lucide="arrow-right" class="h-4 w-4 transition-transform group-hover:translate-x-0.5"></i>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer class="bg-cocoa-deep text-white">
+    <div class="mx-auto max-w-site px-5 lg:px-0">
+      <div class="flex flex-col gap-8 py-10 lg:flex-row lg:items-center lg:justify-between">
+        <a href="#top" class="logo logo--light" aria-label="banda, B and A Essentials, home">
+          <span class="logo-word" aria-hidden="true"><span class="logo-b">b<i class="logo-dot"></i></span>anda</span>
+          <span class="logo-tag" aria-hidden="true">B<span class="amp">&amp;</span>A ESSENTIALS</span>
+        </a>
+        <nav aria-label="Footer">
+          <ul class="flex flex-wrap gap-x-6 gap-y-3 text-[14px] font-medium text-white/85">
+            <li><a href="#top" class="transition-colors hover:text-brand-lavender">Home</a></li>
+            <li><a href="#services" class="transition-colors hover:text-brand-lavender">Services</a></li>
+            <li><a href="#how" class="transition-colors hover:text-brand-lavender">How It Works</a></li>
+            <li><a href="#pricing" class="transition-colors hover:text-brand-lavender">Pricing</a></li>
+            <li><a href="#about" class="transition-colors hover:text-brand-lavender">About Us</a></li>
+            <li><a href="#faqs" class="transition-colors hover:text-brand-lavender">FAQs</a></li>
+          </ul>
+        </nav>
+        <ul class="flex gap-2.5">
+          <li><a href="#" aria-label="LinkedIn" class="grid h-11 w-11 place-items-center rounded-full border border-white/20 transition hover:-translate-y-0.5 hover:border-brand-orange hover:bg-brand-orange"><i class="fa-brands fa-linkedin-in text-[15px]"></i></a></li>
+          <li><a href="#" aria-label="X" class="grid h-11 w-11 place-items-center rounded-full border border-white/20 transition hover:-translate-y-0.5 hover:border-brand-orange hover:bg-brand-orange"><i class="fa-brands fa-x-twitter text-[15px]"></i></a></li>
+          <li><a href="#" aria-label="Instagram" class="grid h-11 w-11 place-items-center rounded-full border border-white/20 transition hover:-translate-y-0.5 hover:border-brand-orange hover:bg-brand-orange"><i class="fa-brands fa-instagram text-[15px]"></i></a></li>
+          <li><a href="#" aria-label="Facebook" class="grid h-11 w-11 place-items-center rounded-full border border-white/20 transition hover:-translate-y-0.5 hover:border-brand-orange hover:bg-brand-orange"><i class="fa-brands fa-facebook-f text-[15px]"></i></a></li>
+          <li><a href="#" aria-label="YouTube" class="grid h-11 w-11 place-items-center rounded-full border border-white/20 transition hover:-translate-y-0.5 hover:border-brand-orange hover:bg-brand-orange"><i class="fa-brands fa-youtube text-[15px]"></i></a></li>
+        </ul>
+      </div>
+      <div class="flex flex-col gap-2 border-t border-white/10 py-6 text-[13px] text-white/70 sm:flex-row sm:justify-between">
+        <p>© <span id="year">2026</span> B &amp; A Essentials. All rights reserved.</p>
+        <p class="text-brand-lavender">Your Success, Our Mission.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script>
+    lucide.createIcons();
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Header shadow on scroll
+    const header = document.getElementById('siteHeader');
+    const onScroll = () => {
+      const s = window.scrollY > 8;
+      header.classList.toggle('shadow-[0_8px_24px_-18px_rgba(28,23,18,.35)]', s);
+      header.classList.toggle('border-cream-line', s);
+      header.classList.toggle('border-transparent', !s);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
+
+    // Mobile menu
+    const menuBtn = document.getElementById('menuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    menuBtn.addEventListener('click', () => {
+      const open = mobileMenu.classList.toggle('hidden') === false;
+      menuBtn.setAttribute('aria-expanded', String(open));
+      menuBtn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    });
+    mobileMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => { mobileMenu.classList.add('hidden'); menuBtn.setAttribute('aria-expanded', 'false'); }));
+
+    // Scroll-spy: active nav item follows the section in view
+    const links = document.querySelectorAll('[data-spy]');
+    const setActive = id => links.forEach(l => {
+      const on = l.dataset.spy === id;
+      l.classList.toggle('text-brand-navy', on);
+      l.classList.toggle('after:scale-x-100', on);
+      on ? l.setAttribute('aria-current', 'true') : l.removeAttribute('aria-current');
+    });
+    setActive('top');
+    const spy = new IntersectionObserver(es => es.forEach(e => e.isIntersecting && setActive(e.target.id)), { rootMargin: '-45% 0px -50% 0px' });
+    ['top', 'services', 'how', 'pricing', 'about', 'faqs'].forEach(id => spy.observe(document.getElementById(id)));
+
+    // Reveal on scroll + progress bars
+    const reveal = new IntersectionObserver(es => es.forEach(e => {
+      if (!e.isIntersecting) return;
+      e.target.classList.add('in');
+      e.target.querySelectorAll('.bar').forEach(b => b.style.width = b.dataset.w);
+      reveal.unobserve(e.target);
+    }), { threshold: 0.15 });
+    document.querySelectorAll('.reveal').forEach((el, i) => {
+      if (el.classList.contains('svc')) el.style.transitionDelay = (i % 5) * 0.06 + 's';
+      reveal.observe(el);
+    });
+
+    // FAQ: opening one answer closes the others
+    const faqs = document.querySelectorAll('#faqs details');
+    faqs.forEach(d => d.addEventListener('toggle', () => { if (d.open) faqs.forEach(o => o !== d && (o.open = false)); }));
+
+    // Testimonial carousel with disabled ends
+    const track = document.getElementById('track');
+    const prev = document.getElementById('prevBtn'), next = document.getElementById('nextBtn');
+    const step = () => (track.firstElementChild?.offsetWidth || 300) + 16;
+    // Loops at the ends so the arrows always do something once there are more cards than fit.
+    const atStart = () => track.scrollLeft <= 2;
+    const atEnd = () => track.scrollLeft + track.clientWidth >= track.scrollWidth - 2;
+    prev.addEventListener('click', () => track.scrollBy({ left: atStart() ? track.scrollWidth : -step(), behavior: 'smooth' }));
+    next.addEventListener('click', () => track.scrollBy({ left: atEnd() ? -track.scrollWidth : step(), behavior: 'smooth' }));
+  </script>
+</body>
+</html>
