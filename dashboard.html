@@ -394,7 +394,10 @@
       if (overflows()) helpCard.style.display = 'none';
     }
     fitSidebar();
+    // Re-check whenever the sidebar changes size (window resize, zoom, full-page capture).
+    if ('ResizeObserver' in window) new ResizeObserver(fitSidebar).observe(document.getElementById('sidebar'));
     addEventListener('resize', fitSidebar);
+    addEventListener('load', fitSidebar);
     document.fonts && document.fonts.ready.then(fitSidebar);
 
     // Mobile menu
