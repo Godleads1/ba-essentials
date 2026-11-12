@@ -86,10 +86,6 @@ third-party origins and stay inside the Content-Security-Policy.
 
 - Service cards come from the active catalogue categories, falling back to
   five default cards while no catalogue is loaded.
-- `/services/` lists the services a client can request (Available and
-  Scoping only), with category, search and sort filters, and `/services/<slug>/`
-  shows one service. Unavailable services are never public. The catalogue has
-  no price field, so pages state that a quote is approved before work starts.
 - The testimonial section is hidden unless `DEBUG` is on, where it shows
   labelled sample content. Add real, consented quotes before enabling it live.
 - Footer social icons appear only for the `SOCIAL_*_URL` values that are set.
