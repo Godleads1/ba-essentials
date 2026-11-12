@@ -171,76 +171,62 @@
     </section>
 
     <!-- ===================== HOW IT WORKS ===================== -->
-    {# One request followed through the service, drawn as the job ticket that travels with it. #}
-    <section id="how" class="relative overflow-hidden bg-cocoa-deep">
-      <div aria-hidden="true" class="pointer-events-none absolute -left-40 top-1/2 h-[420px] w-[420px] -translate-y-1/2 rounded-full bg-brand-navy/30 blur-3xl"></div>
+    <section id="how" class="relative overflow-hidden bg-cream">
+      <!-- soft arcs, top right -->
+      <div aria-hidden="true" class="pointer-events-none absolute -right-48 -top-64 h-[720px] w-[720px] rounded-full border-[70px] border-brand-orange/[.05]"></div>
+      <div aria-hidden="true" class="pointer-events-none absolute -right-80 -top-96 h-[1040px] w-[1040px] rounded-full border-[70px] border-brand-orange/[.05]"></div>
+      <!-- navy wave, bottom left -->
+      <svg aria-hidden="true" class="pointer-events-none absolute bottom-0 left-0 h-[110px] w-[70%] max-w-[760px]" viewBox="0 0 760 110" preserveAspectRatio="none"><path d="M0 0c150 8 300 28 430 62 110 28 220 42 330 48H0z" fill="#fbe6da" opacity=".7" transform="translate(0 -26)"/><path d="M0 22c150 6 290 24 410 52 110 26 190 34 270 36H0z" fill="#33397f"/></svg>
 
-      <div class="relative mx-auto grid max-w-site items-center gap-12 px-5 py-16 lg:grid-cols-[0.82fr_1.5fr] lg:gap-14 lg:px-0 lg:py-[88px]">
-        <div class="reveal">
-          <p class="flex items-center gap-3 text-[11.5px] font-bold tracking-[0.14em] text-brand-lavender"><span class="h-[2px] w-5 rounded bg-brand-orange"></span>HOW IT WORKS</p>
-          <h2 class="mt-4 font-display text-[30px] font-semibold leading-[1.2] tracking-tight text-white sm:text-[34px]">Simple Steps<br class="hidden lg:block"> to Get Started</h2>
-          <p class="mt-4 max-w-[340px] text-[15px] leading-relaxed text-white/70">Getting the support you need is easy. This is the path one request takes, from your first click to the finished work.</p>
-          <a href="{% url 'signup' %}" class="group mt-7 inline-flex items-center gap-2 rounded-lg bg-brand-orange px-5 py-3.5 text-[14px] font-semibold text-white transition hover:-translate-y-px hover:bg-brand-orange-dark focus-visible:outline-white">
-            Get Started {% icon "arrow-right" "h-4 w-4 transition-transform group-hover:translate-x-0.5" %}
-          </a>
-        </div>
-
-        <div class="reveal ticket">
-          <div class="ticket-stub">
-            <div>
-              <p class="ticket-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-ink-soft">Job ticket</p>
-              <p class="ticket-mono mt-1.5 text-[19px] font-bold tracking-tight text-ink">BA-0147</p>
-            </div>
-            <p class="ticket-stub-note text-[12px] leading-snug text-ink-muted">One request,<br>start to finish.</p>
-            <span class="ticket-barcode" aria-hidden="true"></span>
+      <div class="relative mx-auto max-w-site px-5 pb-28 pt-16 lg:px-0 lg:pb-32 lg:pt-[84px]">
+        <div class="grid items-center gap-14 lg:grid-cols-[0.78fr_2fr] lg:gap-8">
+          <div class="reveal">
+            <p class="inline-flex items-center gap-3 rounded-full bg-white px-4 py-2.5 text-[12px] font-bold tracking-[0.06em] text-brand-navy shadow-[0_8px_20px_-12px_rgba(36,26,21,.3)]"><span class="h-[3px] w-6 rounded bg-brand-orange"></span>HOW IT WORKS</p>
+            <h2 class="mt-5 font-display text-[34px] font-semibold leading-[1.12] tracking-tight sm:text-[38px] lg:text-[36px]">Simple Steps<br> to <span class="text-brand-orange">Get Started</span></h2>
+            <p class="mt-5 max-w-[340px] text-[15px] leading-relaxed text-ink-muted">Getting the support you need is easy. Follow these simple steps and let us handle the rest.</p>
+            <a href="{% url 'signup' %}" class="group mt-7 inline-flex items-center gap-2.5 rounded-full bg-brand-orange px-7 py-3.5 text-[14.5px] font-semibold text-white shadow-lg shadow-brand-orange/30 transition hover:-translate-y-px hover:bg-brand-orange-dark focus-visible:outline-brand-orange">
+              Get Started {% icon "arrow-right" "h-4 w-4 transition-transform group-hover:translate-x-0.5" %}
+            </a>
           </div>
 
-          <div class="ticket-body">
-            <span class="ticket-notch ticket-notch--a" aria-hidden="true"></span>
-            <span class="ticket-notch ticket-notch--b" aria-hidden="true"></span>
-            <ol class="divide-y divide-dashed divide-ink/15">
-              <li class="grid grid-cols-[2.25rem_1fr] items-start gap-x-4 gap-y-3 px-5 py-5 sm:grid-cols-[2.25rem_1fr_auto] sm:items-center sm:px-7">
-                <span class="font-display text-[26px] font-semibold leading-none text-ink/25" aria-hidden="true">1</span>
-                <div>
-                  <p class="ticket-mono text-[10.5px] font-semibold uppercase tracking-[0.16em] text-brand-navy">You</p>
-                  <h3 class="mt-1 font-display text-[16.5px] font-semibold leading-snug">Sign Up</h3>
-                  <p class="mt-1.5 max-w-[340px] text-[13.5px] leading-relaxed text-ink-muted">Create your account in minutes. No paperwork, no long forms.</p>
-                </div>
-                <span class="stamp stamp--navy col-start-2 justify-self-start sm:col-start-3 sm:justify-self-end" style="--r:-6deg;--d:.35s" aria-hidden="true">Signed up</span>
-              </li>
-              <li class="grid grid-cols-[2.25rem_1fr] items-start gap-x-4 gap-y-3 px-5 py-5 sm:grid-cols-[2.25rem_1fr_auto] sm:items-center sm:px-7">
-                <span class="font-display text-[26px] font-semibold leading-none text-ink/25" aria-hidden="true">2</span>
-                <div>
-                  <p class="ticket-mono text-[10.5px] font-semibold uppercase tracking-[0.16em] text-brand-navy">You</p>
-                  <h3 class="mt-1 font-display text-[16.5px] font-semibold leading-snug">Submit a Task</h3>
-                  <p class="mt-1.5 max-w-[340px] text-[13.5px] leading-relaxed text-ink-muted">Tell us what you need and attach your files. You get a reference number straight away.</p>
-                </div>
-                <span class="stamp stamp--navy col-start-2 justify-self-start sm:col-start-3 sm:justify-self-end" style="--r:4deg;--d:.75s" aria-hidden="true">Received</span>
-              </li>
-              <li class="grid grid-cols-[2.25rem_1fr] items-start gap-x-4 gap-y-3 px-5 py-5 sm:grid-cols-[2.25rem_1fr_auto] sm:items-center sm:px-7">
-                <span class="font-display text-[26px] font-semibold leading-none text-ink/25" aria-hidden="true">3</span>
-                <div>
-                  <p class="ticket-mono text-[10.5px] font-semibold uppercase tracking-[0.16em] text-brand-orange-dark">Our team</p>
-                  <h3 class="mt-1 font-display text-[16.5px] font-semibold leading-snug">We Get to Work</h3>
-                  <p class="mt-1.5 max-w-[340px] text-[13.5px] leading-relaxed text-ink-muted">A specialist does the work, then a second person checks it before it leaves us.</p>
-                </div>
-                <span class="stamp stamp--orange col-start-2 justify-self-start sm:col-start-3 sm:justify-self-end" style="--r:-3deg;--d:1.15s" aria-hidden="true">Reviewed</span>
-              </li>
-              <li class="grid grid-cols-[2.25rem_1fr] items-start gap-x-4 gap-y-3 px-5 py-5 sm:grid-cols-[2.25rem_1fr_auto] sm:items-center sm:px-7">
-                <span class="font-display text-[26px] font-semibold leading-none text-ink/25" aria-hidden="true">4</span>
-                <div>
-                  <p class="ticket-mono text-[10.5px] font-semibold uppercase tracking-[0.16em] text-brand-navy">You</p>
-                  <h3 class="mt-1 font-display text-[16.5px] font-semibold leading-snug">You Get Results</h3>
-                  <p class="mt-1.5 max-w-[340px] text-[13.5px] leading-relaxed text-ink-muted">Receive the finished work, track every step and ask for corrections if something is off.</p>
-                </div>
-                <span class="stamp stamp--green col-start-2 justify-self-start sm:col-start-3 sm:justify-self-end" style="--r:5deg;--d:1.55s" aria-hidden="true">Delivered</span>
-              </li>
-            </ol>
-            <p class="flex items-center gap-2.5 rounded-b-[14px] border-t border-ink/15 bg-cream/60 px-5 sm:rounded-bl-none py-3.5 text-[12.5px] font-medium text-ink-muted sm:px-7">
-              {% icon "user-check" "h-4 w-4 shrink-0 text-brand-navy" %}Every request is handled and checked by people, not left to software.
-            </p>
-          </div>
+          <ol class="grid grid-cols-1 gap-x-5 gap-y-10 min-[480px]:grid-cols-2 lg:flex lg:items-stretch lg:gap-0">
+            <li class="reveal relative flex-1 rounded-2xl border-b-4 border-brand-navy bg-white px-4 pb-7 pt-11 text-center shadow-[0_18px_40px_-26px_rgba(36,26,21,.35)] lg:px-3.5">
+              <span class="absolute -top-5 left-1/2 grid h-10 w-10 -translate-x-1/2 place-items-center rounded-full bg-brand-navy font-display text-[17px] font-semibold text-white ring-4 ring-cream">1</span>
+              <span class="relative mx-auto grid h-[68px] w-[68px] place-items-center rounded-full bg-brand-navy-soft text-brand-navy">{% icon "user-round" "h-7 w-7" %}<span class="absolute -bottom-0.5 -right-1 grid h-[18px] w-[18px] place-items-center rounded-full bg-brand-orange text-white ring-2 ring-brand-navy-soft">{% icon "plus" "h-3 w-3" %}</span></span>
+              <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug text-brand-navy">Sign Up</h3>
+              <p class="mx-auto mt-2.5 max-w-[220px] text-[13px] leading-relaxed text-ink-muted">Create your account in minutes.</p>
+            </li>
+            <li aria-hidden="true" class="hidden shrink-0 items-center lg:flex"><span class="relative z-10 -mx-3 grid h-9 w-9 place-items-center rounded-full bg-brand-navy-soft text-brand-navy ring-4 ring-cream">{% icon "arrow-right" "h-4 w-4" %}</span></li>
+            <li class="reveal reveal-d1 relative flex-1 rounded-2xl border-b-4 border-brand-orange bg-white px-4 pb-7 pt-11 text-center shadow-[0_18px_40px_-26px_rgba(36,26,21,.35)] lg:px-3.5">
+              <span class="absolute -top-5 left-1/2 grid h-10 w-10 -translate-x-1/2 place-items-center rounded-full bg-brand-navy font-display text-[17px] font-semibold text-white ring-4 ring-cream">2</span>
+              <span class="relative mx-auto grid h-[68px] w-[68px] place-items-center rounded-full bg-brand-navy-soft text-brand-navy">{% icon "clipboard-list" "h-7 w-7" %}<span class="absolute -bottom-0.5 -right-1 grid h-[18px] w-[18px] place-items-center rounded-full bg-brand-orange text-white ring-2 ring-brand-navy-soft">{% icon "check" "h-3 w-3" %}</span></span>
+              <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug text-brand-navy">Submit a Task</h3>
+              <p class="mx-auto mt-2.5 max-w-[220px] text-[13px] leading-relaxed text-ink-muted">Tell us what you need and set your preferences.</p>
+            </li>
+            <li aria-hidden="true" class="hidden shrink-0 items-center lg:flex"><span class="relative z-10 -mx-3 grid h-9 w-9 place-items-center rounded-full bg-brand-navy-soft text-brand-navy ring-4 ring-cream">{% icon "arrow-right" "h-4 w-4" %}</span></li>
+            <li class="reveal reveal-d2 relative flex-1 rounded-2xl border-b-4 border-brand-navy bg-white px-4 pb-7 pt-11 text-center shadow-[0_18px_40px_-26px_rgba(36,26,21,.35)] lg:px-3.5">
+              <span class="absolute -top-5 left-1/2 grid h-10 w-10 -translate-x-1/2 place-items-center rounded-full bg-brand-navy font-display text-[17px] font-semibold text-white ring-4 ring-cream">3</span>
+              <span class="relative mx-auto grid h-[68px] w-[68px] place-items-center rounded-full bg-brand-navy-soft text-brand-navy">{% icon "headset" "h-7 w-7" %}</span>
+              <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug text-brand-navy">We Get to Work</h3>
+              <p class="mx-auto mt-2.5 max-w-[220px] text-[13px] leading-relaxed text-ink-muted">Our team handles the task with care and expertise.</p>
+            </li>
+            <li aria-hidden="true" class="hidden shrink-0 items-center lg:flex"><span class="relative z-10 -mx-3 grid h-9 w-9 place-items-center rounded-full bg-brand-navy-soft text-brand-navy ring-4 ring-cream">{% icon "arrow-right" "h-4 w-4" %}</span></li>
+            <li class="reveal reveal-d3 relative flex-1 rounded-2xl border-b-4 border-brand-orange bg-white px-4 pb-7 pt-11 text-center shadow-[0_18px_40px_-26px_rgba(36,26,21,.35)] lg:px-3.5">
+              <span class="absolute -top-5 left-1/2 grid h-10 w-10 -translate-x-1/2 place-items-center rounded-full bg-brand-orange font-display text-[17px] font-semibold text-white ring-4 ring-cream">4</span>
+              <span class="relative mx-auto grid h-[68px] w-[68px] place-items-center rounded-full bg-pill-orange-bg text-brand-orange">{% icon "circle-check" "h-8 w-8" %}</span>
+              <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug text-brand-navy">You Get Results</h3>
+              <p class="mx-auto mt-2.5 max-w-[220px] text-[13px] leading-relaxed text-ink-muted">Receive updates and track every step.</p>
+            </li>
+          </ol>
         </div>
+
+        <p class="mt-14 flex flex-col items-center justify-center gap-2 text-center text-[14px] sm:flex-row sm:gap-5 lg:mt-20">
+          <span aria-hidden="true" class="hidden h-px w-24 bg-ink/15 sm:block"></span>
+          <span class="font-display text-[16px] font-semibold text-brand-navy">B &amp; A Essentials</span>
+          <span aria-hidden="true" class="hidden h-5 w-[2px] rounded bg-brand-orange sm:block"></span>
+          <span class="italic text-ink-muted">Your Business. Our Priority.</span>
+          <span aria-hidden="true" class="hidden h-px w-24 bg-ink/15 sm:block"></span>
+        </p>
       </div>
     </section>
 
