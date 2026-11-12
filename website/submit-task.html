@@ -174,6 +174,9 @@
     .cat { position: relative; display: block; cursor: pointer; border-radius: 18px; border: 1.5px solid #ECE5DA; background: #fff; padding: 16px; transition: border-color .2s, box-shadow .2s, transform .2s; }
     .cat:hover { border-color: #B8BBE6; transform: translateY(-1px); }
     .cat:has(input:checked) { border-color: #33397F; box-shadow: 0 0 0 3px #ECEDF8; }
+    .cat.is-soon { cursor: not-allowed; background: #FBF9F5; }
+    .cat.is-soon:hover { border-color: #ECE5DA; transform: none; }
+    .cat.is-soon > :not(.chip-status) { opacity: .55; }
     .cat:has(input:focus-visible) { outline: 2px solid #33397F; outline-offset: 2px; }
     .cat-check { position: absolute; right: 14px; top: 14px; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 999px; border: 1.5px solid #D9D2C6; color: transparent; transition: all .2s; }
     .cat:has(input:checked) .cat-check { border-color: #33397F; background: #33397F; color: #fff; }
@@ -244,7 +247,7 @@
           <li><a href="dashboard.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-house"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Dashboard</a></li>
           <li><a href="submit-task.html" class="side-link" aria-current="page"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-plus"><circle cx="12" cy="12" r="10"></circle><path d="M8 12h8"></path><path d="M12 8v8"></path></svg>Submit a Task</a></li>
           <li><a href="my-tasks.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-square-check"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="m16 9-5.5 5.5L8 12"></path></svg>My Tasks<span class="side-badge">5</span></a></li>
-          <li><a href="#" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-layout-grid"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>Service Catalogue</a></li>
+          <li><a href="catalogue.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-layout-grid"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>Service Catalogue</a></li>
           <li><a href="#" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-folder"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path></svg>Deliverables</a></li>
           <li><a href="#" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-message-square"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"></path></svg>Messages<span class="side-badge bg-brand-orange">3</span></a></li>
         </ul>
@@ -511,7 +514,7 @@
             <div id="sumBody" hidden>
               <div class="mt-3 flex items-center gap-3">
                 <span id="sumIcon" class="grid h-11 w-11 shrink-0 place-items-center rounded-xl"></span>
-                <div class="min-w-0"><p id="sumName" class="font-semibold leading-snug"></p><span class="chip-status mt-1 bg-pill-greenBg text-pill-greenTx">Available</span></div>
+                <div class="min-w-0"><p id="sumName" class="font-semibold leading-snug"></p><span id="sumAvail" class="chip-status mt-1"></span></div>
               </div>
               <p id="sumService" class="mt-3 rounded-xl bg-pill-navyBg px-3 py-2 text-[13px] font-medium text-brand-navy" hidden></p>
               <h3 class="mt-5 text-[13px] font-semibold">What&rsquo;s included</h3>
@@ -529,7 +532,7 @@
             <h3 class="mt-5 text-[13px] font-semibold">Quick links</h3>
             <ul class="mt-2 space-y-1 text-[13.5px]">
               <li><a href="my-tasks.html" class="flex items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-cream-light"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-square-check h-4 w-4 text-brand-navy"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="m16 9-5.5 5.5L8 12"></path></svg>My tasks</a></li>
-              <li><a href="#" class="flex items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-cream-light"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-layout-grid h-4 w-4 text-brand-navy"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>Service catalogue</a></li>
+              <li><a href="catalogue.html" class="flex items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-cream-light"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-layout-grid h-4 w-4 text-brand-navy"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>Service catalogue</a></li>
               <li><a href="index.html#faqs" class="flex items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-cream-light"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-help h-4 w-4 text-brand-navy"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><path d="M12 17h.01"></path></svg>FAQs</a></li>
             </ul>
           </section>
@@ -540,82 +543,10 @@
   </div>
 
   <script src="https://unpkg.com/lucide@1.60.0/dist/umd/lucide.min.js"></script>
+  <script src="catalogue-data.js"></script>
   <script>
     // ---------- Service catalogue (from the Task Bank) ----------
-    const CATS = {
-      business: {
-        name: 'Business & Admin', icon: 'briefcase', tone: 'bg-pill-navyBg text-brand-navy',
-        blurb: 'Documents, invoicing, scheduling, outreach and filing.',
-        incl: ['Document and proposal support', 'Invoicing and payment follow-up', 'Scheduling and reminders', 'Outreach, filing and data upkeep'],
-        facts: [['clock', 'Typical delivery', '2–5 business days'], ['ticket', 'From your plan', 'Uses 1 task'], ['wallet', 'Extra costs', 'None expected']],
-        services: {
-          'Proposals & documents': ['Proposal review and editing', 'Business plan review', 'Pitch deck content review', 'Report formatting and clean-up', 'Cover letter or executive summary', 'Presentation content editing'],
-          'Scheduling & reminders': ['Book, reschedule or cancel an appointment', 'Recurring reminders (up to 25 entries)'],
-          'Invoicing & payments': ['Create and send invoices', 'Payment reminder follow-ups', 'Basic reconciliation support', 'Expense report'],
-          'Outreach on your behalf': ['Vendor outreach or enquiries', 'Supplier quote requests (RFQs)', 'Partnership outreach emails', 'Follow-up correspondence'],
-          'Filing & data upkeep': ['Contract filing and organisation', 'Record-keeping and folder set-up', 'Cloud storage organisation', 'CRM or spreadsheet updates', 'Contact list clean-up'],
-        },
-      },
-      legal: {
-        name: 'Legal & IP Review', icon: 'scale', tone: 'bg-pill-orangeBg text-brand-orangeDark',
-        blurb: 'Contracts, CAC registration, trademarks, IP and policies.',
-        incl: ['Contract review and drafting', 'CAC and business registration', 'Trademark and IP protection', 'Policies, SOPs and legal guidance'],
-        facts: [['clock', 'Typical delivery', '3–7 business days'], ['ticket', 'From your plan', 'Uses 1 legal review'], ['wallet', 'Extra costs', 'Government and filing fees, if any'], ['badge-check', 'Specialist review', 'Yes. Done by a qualified legal practitioner']],
-        services: {
-          'Review a contract': ['Brand or sponsorship deal', 'Service agreement', 'Vendor or supplier contract', 'Freelance or consulting agreement', 'Lease agreement', 'NDA'],
-          'Draft a document': ['NDA', 'Memorandum of understanding (MOU)', 'Service agreement', 'Employment contract', 'Partnership agreement', 'Shareholder agreement', 'Terms of service', 'Privacy policy', 'Independent contractor agreement'],
-          'Business registration': ['CAC business name', 'CAC limited company', 'Incorporated trustees', 'Limited by guarantee', 'SCUML registration', 'Business permit application'],
-          'Trademark & IP': ['Trademark search and clearance', 'Trademark application', 'Copyright registration guidance', 'Takedown notice', 'Cease-and-desist letter', 'Licensing agreement review'],
-          'Policies & guidance': ['HR policy or employee handbook', 'Data protection policy (NDPA)', 'Standard operating procedures (SOPs)', 'General legal question', 'Regulatory or compliance guidance'],
-          'Property documents': ['Deed of assignment', 'Deed of lease', 'Tenancy agreement', 'Agreement of sale', 'Power of attorney (land)'],
-        },
-      },
-      ops: {
-        name: 'Operations & Logistics', icon: 'truck', tone: 'bg-pill-greenBg text-pill-greenTx',
-        blurb: 'Vendors, travel, events, project tracking and reporting.',
-        incl: ['Vendor sourcing and coordination', 'Travel and event logistics', 'Project and task tracking', 'Reports and process documents'],
-        facts: [['clock', 'Typical delivery', '2–5 business days'], ['ticket', 'From your plan', 'Uses 1 task'], ['wallet', 'Extra costs', 'Bookings and vendor fees are paid by you']],
-        services: {
-          'Vendors & collaborators': ['Find a freelancer or vendor', 'Schedule and brief a vendor', 'Coordinate a vendor payment'],
-          'Travel & events': ['Flight and hotel booking', 'Itinerary planning', 'Event venue coordination', 'Local transport', 'Visa application support'],
-          'Projects & tasks': ['Project timeline', 'Task tracking and follow-up', 'Team check-in coordination', 'Deliverable tracking'],
-          'Reports & processes': ['Weekly or monthly report', 'KPI tracking template', 'Process documentation', 'Workflow mapping'],
-        },
-      },
-      creator: {
-        name: 'Creator Essentials', icon: 'camera', tone: 'bg-[#EFE9FB] text-[#5B3FA8]',
-        blurb: 'Brand deals, sponsor invoices, collaborators and shoots.',
-        incl: ['Brand deal paperwork and filing', 'Sponsor invoicing and income log', 'Collaborator outreach', 'Travel and shoot logistics'],
-        facts: [['clock', 'Typical delivery', '2–5 business days'], ['ticket', 'From your plan', 'Uses 1 task (legal requests use a legal review)'], ['wallet', 'Extra costs', 'Bookings are paid by you']],
-        services: {
-          'Creator services': ['File brand deal contracts', 'Sponsor invoicing and income logging', 'Collaborator or vendor outreach', 'Brand deal legal review', 'Book a photographer, videographer or editor', 'Travel and shoot logistics'],
-        },
-      },
-      tax: {
-        name: 'Tax Readiness', icon: 'calculator', tone: 'bg-cream text-ink',
-        blurb: 'Income summaries, expense records and tax reminders.',
-        incl: ['Income summary from your invoices', 'Expense categorisation', 'Quarterly tax reminders', 'An export pack for your accountant'],
-        facts: [['clock', 'Typical delivery', '2–5 business days'], ['ticket', 'From your plan', 'Uses 1 task'], ['circle-alert', 'Please note', 'We prepare your records. We don’t file taxes or give tax advice']],
-        services: {
-          'Tax readiness': ['Income summary', 'Expense categorisation', 'Quarterly tax reminders', 'Document vault set-up', 'Export pack for your accountant'],
-        },
-      },
-      addons: {
-        name: 'Specialized Add-Ons', icon: 'sparkles', tone: 'bg-pill-navyBg text-brand-navy',
-        blurb: 'Social media, bookkeeping, copywriting, CRM and translation.',
-        incl: ['Social media management', 'Bookkeeping support', 'Content and copywriting', 'CRM set-up, and translation'],
-        facts: [['clock', 'Typical delivery', 'Agreed with you in the quote'], ['ticket', 'From your plan', 'Priced separately. We send a quote first'], ['badge-check', 'Specialist', 'Yes. Matched to the work']],
-        services: {
-          'Add-on services': ['Social media management', 'Bookkeeping support', 'Content and copywriting', 'CRM set-up and management', 'Translation support'],
-        },
-      },
-      scoping: {
-        name: 'Not sure yet', icon: 'circle-help', tone: 'bg-cream text-ink', hidden: true,
-        blurb: '', incl: ['A coordinator reads your request', 'We suggest the right service', 'You approve before work starts'],
-        facts: [['clock', 'First reply', 'Within one business day'], ['ticket', 'From your plan', 'Confirmed once scoped']],
-        services: { 'Scoping': ['Help me work out what I need'] },
-      },
-    };
+    const { AVAIL, CATS } = window.CATALOGUE;
     const MAX_FILES = 5, MAX_MB = 20, OK_EXT = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png'];
 
     const $ = id => document.getElementById(id);
@@ -625,24 +556,24 @@
 
     // ---------- category cards ----------
     $('cats').innerHTML = Object.entries(CATS).filter(([, c]) => !c.hidden).map(([key, c]) => `
-      <label class="cat">
-        <input type="radio" name="cat" value="${key}" class="sr-only" />
+      <label class="cat${c.avail === 'soon' ? ' is-soon' : ''}">
+        <input type="radio" name="cat" value="${key}" class="sr-only"${c.avail === 'soon' ? ' disabled' : ''} />
         <span class="cat-check" aria-hidden="true"><i data-lucide="check" class="h-3 w-3"></i></span>
         <span class="grid h-10 w-10 place-items-center rounded-xl ${c.tone}"><i data-lucide="${c.icon}" class="h-5 w-5"></i></span>
         <span class="mt-3 block text-[14.5px] font-semibold leading-snug">${esc(c.name)}</span>
         <span class="mt-1 block text-[12.5px] leading-snug text-ink-muted">${esc(c.blurb)}</span>
-        <span class="chip-status mt-3 bg-pill-greenBg text-pill-greenTx">Available</span>
+        <span class="chip-status mt-3 ${AVAIL[c.avail].chip}">${AVAIL[c.avail].label}</span>
       </label>`).join('');
 
     function setCategory(key, keepService) {
-      if (!CATS[key]) return;
+      if (!CATS[key] || CATS[key].avail === 'soon') return;
       state.cat = key;
       const c = CATS[key];
       document.querySelectorAll('input[name="cat"]').forEach(r => r.checked = r.value === key);
       const sel = $('service'), prev = sel.value;
       sel.disabled = false;
       sel.innerHTML = '<option value="">Choose a service</option>' + Object.entries(c.services).map(([group, items]) =>
-        `<optgroup label="${esc(group)}">${items.map(i => `<option>${esc(i)}</option>`).join('')}</optgroup>`).join('');
+        `<optgroup label="${esc(group)}">${items.map(i => `<option value="${esc(group + ': ' + i)}">${esc(i)}</option>`).join('')}</optgroup>`).join('');
       if (keepService && [...sel.options].some(o => o.value === prev)) sel.value = prev;
       if (key === 'scoping') sel.selectedIndex = 1;
       $('catErr').hidden = true;
@@ -659,6 +590,7 @@
       $('sumIcon').className = 'grid h-11 w-11 shrink-0 place-items-center rounded-xl ' + c.tone;
       $('sumIcon').innerHTML = `<i data-lucide="${c.icon}" class="h-5 w-5"></i>`;
       $('sumName').textContent = c.name;
+      $('sumAvail').className = 'chip-status mt-1 ' + AVAIL[c.avail].chip; $('sumAvail').textContent = AVAIL[c.avail].label;
       const svc = $('service').value;
       $('sumService').hidden = !svc; $('sumService').textContent = svc;
       $('sumIncl').innerHTML = c.incl.map(i => `<li class="flex gap-2"><i data-lucide="check" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-pill-greenTx"></i>${esc(i)}</li>`).join('');
@@ -822,7 +754,12 @@
 
     // A link can open a category directly: submit-task.html?category=legal
     const wanted = new URLSearchParams(location.search).get('category');
-    if (Object.prototype.hasOwnProperty.call(CATS, wanted)) setCategory(wanted);
+    if (Object.prototype.hasOwnProperty.call(CATS, wanted)) {
+      setCategory(wanted);
+      // ...and a service: submit-task.html?category=legal&service=NDA (only if it's in that category)
+      const svc = new URLSearchParams(location.search).get('service');
+      if (svc && [...$('service').options].some(o => o.value === svc)) { $('service').value = svc; renderSummary(); }
+    }
 
     icons();
     show(1, false);
