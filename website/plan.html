@@ -266,6 +266,10 @@
     .plan-opt:has(input:checked) { border-color: #33397F; box-shadow: 0 0 0 3px #ECEDF8; }
     .plan-opt:has(input:focus-visible) { outline: 2px solid #33397F; outline-offset: 2px; }
     @media (prefers-reduced-motion: reduce) { .switch, .switch span { transition: none; } }
+    .tab { flex-shrink: 0; border-radius: 999px; border: 1.5px solid #ECE5DA; background: #fff; padding: 6px 12px; font-size: 12.5px; font-weight: 600; color: #5C534D; white-space: nowrap; transition: all .15s; }
+    .tab:hover { border-color: #B8BBE6; color: #241A15; }
+    .tab[aria-pressed="true"] { border-color: #33397F; background: #33397F; color: #fff; }
+    .tab:focus-visible { outline: 2px solid #33397F; outline-offset: 2px; }
   </style>
   <!-- Built from build/ (npm run build). Loaded last so utilities win, as with the Tailwind CDN. -->
   <link rel="stylesheet" href="app.css" />
@@ -363,6 +367,11 @@
           <p class="mt-0.5 text-[14px] text-ink-muted">How much of your plan you&rsquo;ve used this cycle, and what&rsquo;s left.</p>
         </div>
         <button type="button" id="openChange" class="btn-outline max-sm:w-full">Change plan</button>
+      </section>
+
+      <section class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl border border-dashed border-brand-navy/30 px-4 py-2.5 text-[13px] text-brand-navy" aria-label="Design preview">
+        <span><span class="font-semibold">Design preview:</span> view the app as</span>
+        <div id="pvPlans" class="flex flex-wrap gap-1.5"></div>
       </section>
 
       <section class="mt-3 grid grid-cols-2 gap-3 xl:grid-cols-4" aria-label="Plan summary">
@@ -491,7 +500,7 @@
   <script src="https://unpkg.com/lucide@1.60.0/dist/umd/lucide.min.js"></script>
   <script src="tasks-data.js"></script>
   <script>
-    const { CATS, PLANS, ACCOUNT, esc, toDate, fmtDate, naira, getPref, setPref, toast } = window.BANDA;
+    const { CATS, PLANS, PLAN_ORDER, CAT_MIN_PLAN, ACCOUNT, esc, toDate, fmtDate, naira, getPref, setPref, toast } = window.BANDA;
     const $ = id => document.getElementById(id);
     const icons = () => { if (window.lucide) lucide.createIcons(); };
     const setAll = (sel, text) => document.querySelectorAll(sel).forEach(el => el.textContent = text);
@@ -617,6 +626,10 @@
     renderAlerts();
 
     // ---------- change plan ----------
+    // Categories each plan adds (each plan includes everything in the plans below it).
+    function catsUnlockedBy(k) {
+      return Object.keys(CATS).filter(c => CAT_MIN_PLAN[c] === k).map(c => CATS[c].name);
+    }
     const dlg = $('changeDlg');
     $('planOpts').innerHTML = Object.entries(PLANS).map(([k, p]) => `
       <label class="plan-opt">
@@ -625,6 +638,7 @@
         <span class="mt-1 block font-display text-[22px] font-semibold">${naira(p.price)}<span class="text-[13px] font-medium text-ink-muted"> / month</span></span>
         <span class="mt-2 block text-[13px] text-ink-muted">${p.tasks} tasks a month</span>
         <span class="block text-[13px] text-ink-muted">${p.legal === 4 ? 'Up to 4' : p.legal} legal review${p.legal === 1 ? '' : 's'} a ${p.legalPer}</span>
+        <span class="mt-2 block border-t border-cream-line pt-2 text-[12.5px] leading-snug"><span class="font-semibold">${k === 'starter' ? 'Services' : 'Adds'}:</span> ${esc(catsUnlockedBy(k).join(', '))}</span>
       </label>`).join('');
     const chosen = () => (document.querySelector('input[name="newPlan"]:checked') || {}).value;
     // Pro-rata charge for an upgrade: the price difference for the days left in this period.
@@ -647,6 +661,23 @@
     $('openChange').addEventListener('click', e => openChange(e.currentTarget));
     document.addEventListener('click', e => { const b = e.target.closest('[data-open-change]'); if (b) openChange(b); });
     dlg.addEventListener('close', () => {
+      if (dlg.returnValue === 'change' && PLANS[chosen()] && PLANS[chosen()].price > plan.price) {
+        // Moving up starts straight away, so the difference for the rest of this period is paid now.
+        const k = chosen(), np = PLANS[k];
+        const charge = Math.round((np.price - plan.price) * daysLeft / periodDays);
+        window.BANDA.payWithPaystack({
+          amount: charge, purpose: 'Plan upgrade', ref: `${plan.name} to ${np.name}`,
+          onPaid: reference => {
+            setPref('nextPlan', null); setPref('previewPlan', k);
+            setPref('upgradedNote', `You’re now on ${np.name}. Paystack test reference ${reference}; no real money moved.`);
+            location.href = 'plan.html';
+          },
+          onCancel: () => toast(`Payment cancelled. You’re still on ${plan.name}.`),
+          onFail: why => toast(why === 'load' ? 'We couldn’t reach Paystack. Check your connection and try again.' : 'Paystack couldn’t start this payment. Try again in a moment.'),
+        });
+        if (dlg._opener) dlg._opener.focus();
+        return;
+      }
       if (dlg.returnValue === 'change') {
         const k = chosen();
         setPref('nextPlan', k === ACCOUNT.plan ? null : k);
@@ -655,6 +686,20 @@
         renderAlerts();
       }
       if (dlg._opener) dlg._opener.focus();
+    });
+    const upgradeTo = new URLSearchParams(location.search).get('upgrade');
+    if (PLANS[upgradeTo] && PLAN_ORDER.indexOf(upgradeTo) > PLAN_ORDER.indexOf(ACCOUNT.plan)) {
+      const r = document.querySelector(`input[name="newPlan"][value="${upgradeTo}"]`);
+      if (r) { r.checked = true; $('confirmChange').disabled = false; changeNote(); openChange($('openChange')); }
+    }
+    const upgraded = getPref('upgradedNote', null);
+    if (upgraded) { setPref('upgradedNote', null); toast(upgraded); }
+
+    // ---------- design preview only: view the app as another plan ----------
+    $('pvPlans').innerHTML = PLAN_ORDER.map(k => `<button type="button" class="tab" data-pv="${k}" aria-pressed="${k === ACCOUNT.plan}">${esc(PLANS[k].name)}</button>`).join('');
+    $('pvPlans').addEventListener('click', e => {
+      const b = e.target.closest('[data-pv]'); if (!b) return;
+      setPref('previewPlan', b.dataset.pv); setPref('nextPlan', null); location.reload();
     });
     icons();
 

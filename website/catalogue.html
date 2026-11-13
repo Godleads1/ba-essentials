@@ -437,7 +437,7 @@
         </div>
         <button type="button" id="shClose" class="grid h-9 w-9 shrink-0 place-items-center rounded-full text-ink-muted hover:bg-cream hover:text-ink" aria-label="Close"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-x h-5 w-5"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button>
       </div>
-      <div class="flex-1 overflow-y-auto px-5 py-5">
+      <div class="flex-1 overflow-y-auto px-5 py-5" tabindex="0" role="region" aria-label="Category details">
         <p id="shBlurb" class="text-[14px] text-ink-muted"></p>
         <ul id="shFacts" class="mt-4 grid gap-3 rounded-2xl bg-cream-light p-4 text-[13px]"></ul>
         <h3 class="mt-5 text-[14px] font-semibold">Services in this category</h3>
@@ -445,6 +445,7 @@
       </div>
       <div class="border-t border-cream-line px-5 py-4">
         <a id="shCta" href="#" class="btn-next w-full">Request a service <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a>
+        <div id="shLocked" class="rounded-xl bg-pill-navyBg px-4 py-3 text-center text-[13px] text-brand-navy" hidden><p id="shLockedText"></p><a id="shUpgrade" href="plan.html" class="btn-next mt-2 py-2"></a></div>
         <p id="shSoon" class="rounded-xl bg-[#EFE9FB] px-4 py-3 text-center text-[13px] text-[#5B3FA8]" hidden>This category isn&rsquo;t open for requests yet. Message the team if you need it sooner.</p>
       </div>
     </div>
@@ -460,6 +461,10 @@
     const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     const icons = () => { if (window.lucide) lucide.createIcons(); };
     const LISTED = Object.entries(CATS).filter(([, c]) => !c.hidden);
+    const { PLANS, ACCOUNT, planAllows, minPlanFor } = window.BANDA;
+    const planName = key => PLANS[minPlanFor(key)].name;
+    const upgradeLink = key => 'plan.html?upgrade=' + minPlanFor(key);
+    const lockChip = key => `<span class="chip-status bg-pill-navyBg text-brand-navy"><i data-lucide="lock" class="h-3 w-3"></i>On ${esc(planName(key))}</span>`;
     const requestLink = (key, service) => 'submit-task.html?' + new URLSearchParams(service ? { category: key, service } : { category: key });
     let current = 'all', lastOpener = null;
 
@@ -479,7 +484,7 @@
           ${c.incl.map(i => `<li class="flex gap-2"><span class="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-brand-lavender"></span>${esc(i)}</li>`).join('')}
         </ul>
         <div class="mt-auto flex items-center justify-between gap-3 pt-5">
-          <span class="chip-status ${AVAIL[c.avail].chip}">${AVAIL[c.avail].label}</span>
+          ${planAllows(key) ? `<span class="chip-status ${AVAIL[c.avail].chip}">${AVAIL[c.avail].label}</span>` : lockChip(key)}
           <button type="button" class="inline-flex items-center gap-1 text-[13.5px] font-semibold text-brand-navy hover:underline" data-open="${key}">View details<span class="sr-only"> for ${esc(c.name)}</span> <i data-lucide="arrow-right" class="h-4 w-4"></i></button>
         </div>
       </article>`).join('');
@@ -515,7 +520,7 @@
         <li class="flex flex-wrap items-center gap-3 rounded-xl px-3 py-3 hover:bg-cream-light">
           <span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg ${h.c.tone}"><i data-lucide="${h.c.icon}" class="h-4 w-4"></i></span>
           <span class="min-w-0 flex-1"><span class="block text-[14px] font-medium">${esc(h.name)}</span><span class="block text-[12px] text-ink-muted">${esc(h.c.name)} · ${esc(h.group)}</span></span>
-          ${h.c.avail === 'soon' ? `<span class="chip-status ${AVAIL.soon.chip}">${AVAIL.soon.label}</span>` : `<a href="${esc(requestLink(h.key, h.group + ': ' + h.name))}" class="btn-outline px-4 py-1.5 text-[13px]">Request<span class="sr-only"> ${esc(h.name)}</span></a>`}
+          ${!planAllows(h.key) ? `<a href="${esc(upgradeLink(h.key))}" class="btn-outline px-4 py-1.5 text-[13px]"><i data-lucide="lock" class="h-3.5 w-3.5"></i>Upgrade<span class="sr-only"> to ${esc(planName(h.key))} for ${esc(h.name)}</span></a>` : h.c.avail === 'soon' ? `<span class="chip-status ${AVAIL.soon.chip}">${AVAIL.soon.label}</span>` : `<a href="${esc(requestLink(h.key, h.group + ': ' + h.name))}" class="btn-outline px-4 py-1.5 text-[13px]">Request<span class="sr-only"> ${esc(h.name)}</span></a>`}
         </li>`).join('')}</ul>`;
       icons();
     }
@@ -529,16 +534,24 @@
       $('shIcon').className = 'grid h-11 w-11 shrink-0 place-items-center rounded-xl ' + c.tone;
       $('shIcon').innerHTML = `<i data-lucide="${c.icon}" class="h-5 w-5"></i>`;
       $('shName').textContent = c.name;
-      $('shAvail').className = 'chip-status mt-1 ' + AVAIL[c.avail].chip; $('shAvail').textContent = AVAIL[c.avail].label;
+      const allowed = planAllows(key);
+      $('shAvail').className = 'chip-status mt-1 ' + (allowed ? AVAIL[c.avail].chip : 'bg-pill-navyBg text-brand-navy');
+      $('shAvail').textContent = allowed ? AVAIL[c.avail].label : `On ${planName(key)}`;
       $('shBlurb').textContent = c.blurb + (c.avail === 'scoping' ? ' Each request is reviewed first, so we can confirm what’s needed and any fees before work starts.' : '');
       $('shFacts').innerHTML = c.facts.map(([ic, k, v]) => `<li class="flex gap-2.5"><i data-lucide="${ic}" class="mt-0.5 h-4 w-4 shrink-0 text-brand-navy"></i><p><span class="block font-medium">${esc(k)}</span><span class="block text-ink-muted">${esc(v)}</span></p></li>`).join('');
-      const soon = c.avail === 'soon';
+      const soon = c.avail === 'soon' || !allowed;
       $('shServices').innerHTML = Object.entries(c.services).map(([group, items]) => `
         <h4 class="mt-3 text-[12px] font-semibold uppercase tracking-[0.08em] text-ink-soft">${esc(group)}</h4>
         <ul class="mt-1.5 divide-y divide-cream-line rounded-xl border border-cream-line">
           ${items.map(name => `<li class="flex items-center justify-between gap-3 px-3.5 py-2.5 text-[13.5px]"><span>${esc(name)}</span>${soon ? '' : `<a href="${esc(requestLink(key, group + ': ' + name))}" class="shrink-0 text-[12.5px] font-semibold text-brand-navy hover:underline">Request<span class="sr-only"> ${esc(name)}</span></a>`}</li>`).join('')}
         </ul>`).join('');
-      $('shCta').hidden = soon; $('shSoon').hidden = !soon;
+      $('shCta').hidden = soon; $('shSoon').hidden = c.avail !== 'soon' || !allowed;
+      $('shLocked').hidden = allowed;
+      if (!allowed) {
+        $('shLockedText').textContent = `${c.name} is included from the ${planName(key)} plan. You’re on ${PLANS[ACCOUNT.plan].name}.`;
+        $('shUpgrade').href = upgradeLink(key);
+        $('shUpgrade').textContent = `Upgrade to ${planName(key)}`;
+      }
       $('shCta').href = requestLink(key);
       icons();
       if (typeof sheet.showModal === 'function') sheet.showModal(); else sheet.setAttribute('open', '');
