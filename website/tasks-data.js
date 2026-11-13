@@ -329,6 +329,8 @@
     }
     // Only a JPEG the Profile page itself produced is used; anything else falls back to initials.
     const photoOk = prof && /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(prof.photo || '');
+    // The head's early paint has done its job; from here the elements' own styles decide.
+    const early = document.getElementById('bandaEarlyPhoto'); if (early) early.remove();
     if (prof) {
       if (!photoOk) prof.photo = '';
       document.querySelectorAll('[data-initials]').forEach(el => {

@@ -269,6 +269,17 @@
   </style>
   <!-- Built from build/ (npm run build). Loaded last so utilities win, as with the Tailwind CDN. -->
   <link rel="stylesheet" href="app.css" />
+  <script>
+    // Paint the saved profile photo before the first frame, so avatars don't flash initials first.
+    try {
+      var bandaSaved = JSON.parse(localStorage.getItem('banda.tasks.v1') || '{}'), bandaMe = bandaSaved.prefs && bandaSaved.prefs.profile;
+      if (bandaMe && /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(bandaMe.photo || '')) {
+        var bandaStyle = document.createElement('style'); bandaStyle.id = 'bandaEarlyPhoto';
+        bandaStyle.textContent = '[data-initials],#pfInitials,#phPreview{background-image:url("' + bandaMe.photo + '");background-size:cover;background-position:center;color:transparent}';
+        document.head.appendChild(bandaStyle);
+      }
+    } catch (e) { /* storage blocked: initials show instead */ }
+  </script>
 </head>
 
 <body class="font-sans text-ink antialiased">
