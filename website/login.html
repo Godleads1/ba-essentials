@@ -227,11 +227,18 @@
     // In the app, "Send my code" asks the server to send a code through Termii (WhatsApp, SMS or email).
     const $ = id => document.getElementById(id);
     const ident = $('ident');
+    // A Nigerian mobile in any common format: 0801 234 5678, 0801-234-5678, (0801) 234 5678, +234 801 234 5678, +234 (0) 801…, 2348012345678.
+    const ngMobile = v => {
+      if (/[^\d\s()+.\-]/.test(v)) return false;
+      let d = v.replace(/\D/g, '');
+      if (d.startsWith('234')) d = d.slice(3);
+      if (d.startsWith('0')) d = d.slice(1);
+      return /^[2789]\d{9}$/.test(d);
+    };
     const kind = v => {
       const t = v.trim();
       if (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(t)) return 'email';
-      const d = t.replace(/[\s-]/g, '').replace(/^\+?234/, '').replace(/^0/, '');
-      return /^[789][01]\d{8}$/.test(d) ? 'phone' : '';
+      return ngMobile(t) ? 'phone' : '';
     };
     ident.addEventListener('input', () => {
       $('chanSet').hidden = kind(ident.value) !== 'phone';
