@@ -497,7 +497,8 @@
         <tbody><tr><td class="td px-0"><span id="ivDesc" class="font-medium"></span><a id="ivTask" class="mt-0.5 block text-[12px] font-semibold text-brand-navy hover:underline" hidden></a></td><td class="td px-0 text-right font-medium" id="ivAmt"></td></tr></tbody>
         <tfoot><tr><th scope="row" class="pt-3 text-left font-semibold">Total</th><td class="pt-3 text-right font-display text-[20px] font-semibold" id="ivTotal"></td></tr></tfoot>
       </table>
-      <p id="ivPayNote" class="mt-4 rounded-xl bg-pill-navyBg px-3.5 py-2.5 text-[13px] text-brand-navy" hidden>Payment opens in Paystack once it&rsquo;s connected. In this preview the invoice is marked as paid and no money is taken.</p>
+      <p id="ivPayNote" class="mt-4 rounded-xl bg-pill-navyBg px-3.5 py-2.5 text-[13px] text-brand-navy" hidden>You&rsquo;ll pay in Paystack&rsquo;s secure window. Paystack test mode: use a Paystack test card. No real money moves.</p>
+      <p id="ivPayMsg" role="status" hidden></p>
       <p id="ivGrace" class="mt-3 rounded-xl bg-pill-orangeBg px-3.5 py-2.5 text-[13px] text-brand-orangeDark" hidden>This payment didn&rsquo;t go through. Your service carries on for 5 business days from the first failed attempt. After that, new tasks pause until it&rsquo;s paid. We don&rsquo;t charge late fees.</p>
       <div class="mt-6 flex flex-wrap justify-end gap-2.5">
         <button type="button" class="btn-ghost py-2.5" data-close>Close</button>
@@ -606,7 +607,8 @@
       if (current.task) { $('ivTask').href = `task.html?id=${current.task}`; $('ivTask').textContent = `Request ${current.task}`; }
       $('ivAmt').textContent = naira(current.amount); $('ivTotal').textContent = naira(current.amount);
       $('ivPay').hidden = !isOpen(current); $('ivPay').textContent = `Pay ${naira(current.amount)}`;
-      $('ivPayNote').hidden = !payNow;
+      $('ivPayNote').hidden = !isOpen(current);
+      ivNotice('');
       $('ivVat').textContent = current.vat || 'Shown on the issued invoice';
       $('ivGrace').hidden = current.status !== 'overdue';
       if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', '');
@@ -616,13 +618,29 @@
     dlg.addEventListener('close', () => { if (dlgOpener && document.contains(dlgOpener)) dlgOpener.focus(); else $('invT').focus(); });
     $('invT').tabIndex = -1;
     $('ivPdf').addEventListener('click', () => toast('Preview only: invoice PDFs download here once billing is connected.'));
+    function ivNotice(text, tone) {
+      const n = $('ivPayMsg');
+      n.className = 'mt-3 rounded-xl px-3.5 py-2.5 text-[13px] ' + (tone === 'error' ? 'bg-red-50 text-red-800' : 'bg-pill-orangeBg text-brand-orangeDark');
+      n.textContent = text; n.hidden = !text;
+    }
     $('ivPay').addEventListener('click', () => {
-      // With Paystack connected this opens the payment window; the server marks the invoice
-      // paid only after Paystack confirms it (webhook). The preview marks it paid straight away.
-      payInvoice(current.id);
-      if (current.task) update(current.task, { message: ['You', nowLocal(), `Paid invoice ${current.id} (${naira(current.amount)}).`] });
-      dlg.close(); render();
-      toast(`${current.id} marked as paid. Preview only: no money was taken.`);
+      // Opens Paystack. The invoice is marked paid only when Paystack reports a completed payment;
+      // in the live app the server confirms it with Paystack (webhook + verify) first.
+      const inv = current, btn = $('ivPay');
+      ivNotice('');
+      btn.disabled = true; btn.textContent = 'Opening Paystack…';
+      const reset = () => { btn.disabled = false; btn.textContent = `Pay ${naira(inv.amount)}`; };
+      window.BANDA.payWithPaystack({
+        amount: inv.amount, purpose: 'Invoice', ref: inv.id,
+        onPaid: reference => {
+          payInvoice(inv.id, reference);
+          if (inv.task) update(inv.task, { message: ['You', nowLocal(), `Paid invoice ${inv.id} (${naira(inv.amount)}). Paystack reference ${reference}.`] });
+          reset(); dlg.close(); render();
+          toast(window.BANDA.PAYSTACK_TEST ? `${inv.id} paid in Paystack test mode (${reference}). No real money moved.` : `${inv.id} paid. Reference ${reference}.`);
+        },
+        onCancel: () => { reset(); ivNotice('Payment cancelled. You haven’t been charged.', 'warn'); btn.focus(); },
+        onFail: () => { reset(); ivNotice('We couldn’t reach Paystack. Check your connection and try again.', 'error'); btn.focus(); },
+      });
     });
     document.addEventListener('click', e => {
       const v = e.target.closest('[data-view]'); if (v) openInvoice(v.dataset.view, v, false);
