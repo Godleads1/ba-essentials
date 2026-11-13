@@ -178,7 +178,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-at-sign pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-ink-soft"><circle cx="12" cy="12" r="4"></circle><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"></path></svg>
             <input id="ident" name="username" type="text" autocomplete="username" required placeholder="0801 234 5678 or you@company.com" aria-describedby="identError" class="w-full rounded-xl border border-cream-line bg-white py-3.5 pl-12 pr-4 text-[15px] text-ink placeholder:text-ink-soft transition focus:border-brand-navy focus:outline-none focus:ring-4 focus:ring-brand-navy/10 aria-[invalid=true]:border-red-600" />
           </div>
-          <p id="identError" class="mt-1.5 hidden text-[13px] font-medium text-red-700">Enter a Nigerian phone number, like 0801 234 5678, or an email address.</p>
+          <p id="identError" class="mt-1.5 hidden text-[13px] font-medium text-red-700" aria-live="polite"><span id="identMsg">Enter a Nigerian phone number, like 0801 234 5678, or an email address.</span> <button type="button" id="identFix" class="hidden font-semibold text-brand-navy underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy/40 rounded"></button></p>
 
           <fieldset id="chanSet" class="gap mt-5" hidden>
             <legend class="block text-[14px] font-semibold">Send my code by</legend>
@@ -240,12 +240,47 @@
     };
     const kind = v => {
       const t = clean(v);
-      if (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(t)) return 'email';
+      if (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(t)) {
+        const dom = t.split('@')[1].toLowerCase();
+        return TYPOS.has(dom.split('.')[0]) || /\.con$/.test(dom) ? '' : 'email';
+      }
       return ngMobile(t) ? 'phone' : '';
     };
+    // Say exactly what is missing, and offer a one-tap fix for common email slips (no ".com", "gmial", ".con").
+    const DOMAINS = { gmail: 'gmail.com', gmial: 'gmail.com', gmai: 'gmail.com', gamil: 'gmail.com', yahoo: 'yahoo.com', yaho: 'yahoo.com', ymail: 'ymail.com', hotmail: 'hotmail.com', outlook: 'outlook.com', icloud: 'icloud.com', live: 'live.com', aol: 'aol.com' };
+    const TYPOS = new Set(['gmial', 'gmai', 'gamil', 'yaho']);
+    function emailHint(t) {
+      const m = t.match(/^([^\s@]+)@([^\s@]*)$/);
+      if (!m) return null;
+      const [, user, dom] = m, low = dom.toLowerCase().replace(/\.+$/, '');
+      if (!low) return { msg: 'Add the rest of your email address after the @, like name@gmail.com.' };
+      const base = low.split('.')[0];
+      if (TYPOS.has(base)) return { msg: 'Check the spelling of your email address.', fix: `${user}@${DOMAINS[base]}` };
+      if (DOMAINS[base] && !low.includes('.')) return { msg: 'Your email address is missing its ending.', fix: `${user}@${DOMAINS[base]}` };
+      if (/\.con$/.test(low)) return { msg: 'Check the ending of your email address.', fix: `${user}@${dom.replace(/\.con$/i, '.com')}` };
+      if (!low.includes('.')) return { msg: `Add the ending of your email address, like @${low}.com.` };
+      return { msg: 'Check your email address. It should look like name@gmail.com.' };
+    }
+    function showIdentError(t) {
+      const h = /@/.test(t) ? emailHint(t) : null;
+      const digits = t.replace(/\D/g, '');
+      $('identMsg').textContent = h ? h.msg
+        : digits.length >= 7 && !/[\p{L}]/u.test(t) ? 'That phone number doesn’t look complete. Nigerian mobile numbers have 11 digits, like 0801 234 5678.'
+        : 'Enter a Nigerian phone number, like 0801 234 5678, or an email address.';
+      const fix = $('identFix');
+      if (h && h.fix) { fix.textContent = `Use ${h.fix}`; fix.dataset.value = h.fix; fix.classList.remove('hidden'); }
+      else fix.classList.add('hidden');
+      $('identError').classList.remove('hidden');
+      ident.setAttribute('aria-invalid', 'true');
+    }
+    function hideIdentError() { $('identError').classList.add('hidden'); ident.removeAttribute('aria-invalid'); }
+    $('identFix').addEventListener('click', () => {
+      ident.value = $('identFix').dataset.value; hideIdentError(); ident.focus();
+      $('chanSet').hidden = kind(ident.value) !== 'phone';
+    });
     ident.addEventListener('input', () => {
       $('chanSet').hidden = kind(ident.value) !== 'phone';
-      if (kind(ident.value)) { $('identError').classList.add('hidden'); ident.removeAttribute('aria-invalid'); }
+      hideIdentError();
     });
     let resendTimer;
     function startResendWait() {
@@ -256,9 +291,8 @@
     $('loginForm').addEventListener('submit', e => {
       e.preventDefault();
       const k = kind(ident.value);
-      $('identError').classList.toggle('hidden', !!k);
-      ident.setAttribute('aria-invalid', String(!k));
-      if (!k) { ident.focus(); return; }
+      if (!k) { showIdentError(clean(ident.value)); ident.focus(); return; }
+      hideIdentError();
       const chan = k === 'email' ? 'email' : document.querySelector('input[name="chan"]:checked').value;
       const shown = k === 'email' ? clean(ident.value) : `your ${chan === 'whatsapp' ? 'WhatsApp' : 'phone'} number ending ${ident.value.replace(/\D/g, '').slice(-4)}`;
       $('sentTo').textContent = shown;
