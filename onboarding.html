@@ -502,11 +502,15 @@
       1: () => {
         const name = document.getElementById('name'), email = document.getElementById('email');
         const phone = document.getElementById('phone');
-        const digits = phone.value.replace(/\D/g, '').replace(/^0/, '');
+        let digits = phone.value.trim();
+        if (/[^\d\s()+.\-]/.test(digits)) digits = '';
+        digits = digits.replace(/\D/g, '');
+        if (digits.startsWith('234')) digits = digits.slice(3);
+        if (digits.startsWith('0')) digits = digits.slice(1);
         const r = [
           flag(name, name.value.trim().split(/\s+/).length >= 1 && name.value.trim().length > 1),
           flag(email, /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())),
-          flag(phone, /^[789]\d{9}$/.test(digits)),
+          flag(phone, /^[2789]\d{9}$/.test(digits)),
         ];
         return r.every(Boolean);
       },
