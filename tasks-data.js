@@ -104,16 +104,18 @@
     archived: { label: 'Archived', chip: 'bg-[#F1EFEC] text-ink-muted', about: 'Moved out of the main list' },
   };
   const DOWNLOADABLE = ['ready', 'downloaded', 'archived'];
+  // Each delivered task includes one consolidated revision request within 2 days of delivery (Terms 6.2).
+  const REVISION_NOTE = 'Each delivered task includes one round of changes, asked for within 2 days of delivery and within the agreed scope.';
   const DELIVERABLES = [
-    { id: 'D-0109', name: 'Q3_Income_Summary.xlsx', size: 188000, task: 'REQ-2026-0040', status: 'review', at: '2026-11-12T09:05' },
-    { id: 'D-0108', name: 'Proposal_Draft_v1.docx', size: 412000, task: 'REQ-2026-0048', status: 'approval', at: '2026-11-11T16:20' },
-    { id: 'D-0107', name: 'October_Summary.pdf', size: 210000, task: 'REQ-2026-0045', status: 'ready', at: '2026-11-04T16:40' },
-    { id: 'D-0106', name: 'October_Books.xlsx', size: 154000, task: 'REQ-2026-0045', status: 'downloaded', at: '2026-11-04T16:40' },
-    { id: 'D-0105', name: 'CAC_Name_Search_Result.pdf', size: 96000, task: 'REQ-2026-0043', status: 'ready', at: '2026-11-04T10:30' },
-    { id: 'D-0104', name: 'Inventory_Tracker.xlsx', size: 260000, task: 'REQ-2026-0042', status: 'downloaded', at: '2026-11-02T12:10' },
-    { id: 'D-0103', name: 'NDA_Review_Notes.pdf', size: 180000, task: 'REQ-2026-0041', status: 'ready', at: '2026-10-29T15:00' },
-    { id: 'D-0102', name: 'Abuja_Itinerary.pdf', size: 140000, task: 'REQ-2026-0039', status: 'archived', at: '2026-10-26T09:30' },
-    { id: 'D-0101', name: 'Abuja_Hotel_Booking.pdf', size: 122000, task: 'REQ-2026-0039', status: 'archived', at: '2026-10-26T09:30' },
+    { id: 'D-0109', name: 'Q3_Income_Summary.xlsx', size: 188000, task: 'REQ-2026-0040', status: 'review', at: '2026-11-12T09:05', reviewer: 'B & A quality check' },
+    { id: 'D-0108', name: 'Proposal_Draft_v1.docx', size: 412000, task: 'REQ-2026-0048', status: 'approval', at: '2026-11-11T16:20', reviewer: 'B & A quality check' },
+    { id: 'D-0107', name: 'October_Summary.pdf', size: 210000, task: 'REQ-2026-0045', status: 'ready', at: '2026-11-04T16:40', reviewer: 'B & A quality check' },
+    { id: 'D-0106', name: 'October_Books.xlsx', size: 154000, task: 'REQ-2026-0045', status: 'downloaded', at: '2026-11-04T16:40', reviewer: 'B & A quality check' },
+    { id: 'D-0105', name: 'CAC_Name_Search_Result.pdf', size: 96000, task: 'REQ-2026-0043', status: 'ready', at: '2026-11-04T10:30', reviewer: 'Mr Bamgbose, accredited filing agent' },
+    { id: 'D-0104', name: 'Inventory_Tracker.xlsx', size: 260000, task: 'REQ-2026-0042', status: 'downloaded', at: '2026-11-02T12:10', reviewer: 'B & A quality check' },
+    { id: 'D-0103', name: 'NDA_Review_Notes.pdf', size: 180000, task: 'REQ-2026-0041', status: 'ready', at: '2026-10-29T15:00', reviewer: 'Mr Ayodeji, legal reviewer' },
+    { id: 'D-0102', name: 'Abuja_Itinerary.pdf', size: 140000, task: 'REQ-2026-0039', status: 'archived', at: '2026-10-26T09:30', reviewer: 'B & A quality check' },
+    { id: 'D-0101', name: 'Abuja_Hotel_Booking.pdf', size: 122000, task: 'REQ-2026-0039', status: 'archived', at: '2026-10-26T09:30', reviewer: 'B & A quality check' },
   ];
   const fileType = name => {
     const ext = (name.split('.').pop() || '').toLowerCase();
@@ -154,25 +156,26 @@
     growth: { name: 'Growth', price: 97500, tasks: 20, legal: 1, legalPer: 'month' },
     dedicated: { name: 'Dedicated', price: 260000, tasks: 30, legal: 4, legalPer: 'month' },
   };
-  // Current billing cycle. Legal & IP requests use a legal review, except business
-  // registration, which is filed by the registration agent and uses a task.
-  // Specialized Add-Ons are priced separately and don't use the plan.
+  // Current billing cycle (it starts on the activation date, Terms 3.1). Legal & IP work,
+  // including company and trademark filings, uses the legal review allowance (Terms 3.3).
+  // Specialized Add-Ons are quoted separately and don't use the plan.
   const ACCOUNT = {
     plan: 'growth', cycleStart: '2026-10-28', renews: '2026-11-28',
     tasksUsed: 14, legalUsed: 1,
-    byCat: { business: 5, legal: 1, ops: 3, creator: 3, tax: 2 },
+    byCat: { business: 6, ops: 3, creator: 3, tax: 2 },
     // tasks used so far, day by day from the start of the cycle
     daily: [0, 1, 1, 2, 3, 3, 4, 5, 6, 6, 7, 8, 9, 10, 11, 12, 14],
     previous: { label: '28 Sep – 27 Oct', used: 17, legalUsed: 1, daily: [0, 1, 2, 2, 3, 4, 4, 5, 6, 7, 7, 8, 8, 9, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16, 16, 16, 17, 17] },
     card: { brand: 'Visa', last4: '4081', expires: '09/2028' },
   };
+  // Each invoice states whether it includes VAT (Terms 5.2). Sample values.
   const INVOICES = [
-    { id: 'INV-2026-0052', date: '2026-11-06', due: '2026-11-20', desc: 'Social media management (add-on quote)', task: 'REQ-2026-0047', amount: 120000, status: 'due' },
-    { id: 'INV-2026-0051', date: '2026-10-28', due: '2026-10-28', desc: 'Growth plan, 28 Oct – 27 Nov', amount: 97500, status: 'paid', paidOn: '2026-10-28' },
-    { id: 'INV-2026-0049', date: '2026-10-28', due: '2026-11-04', desc: 'Bookkeeping support (add-on)', task: 'REQ-2026-0045', amount: 45000, status: 'paid', paidOn: '2026-10-29' },
-    { id: 'INV-2026-0046', date: '2026-09-28', due: '2026-09-28', desc: 'Growth plan, 28 Sep – 27 Oct', amount: 97500, status: 'paid', paidOn: '2026-09-28' },
-    { id: 'INV-2026-0041', date: '2026-08-28', due: '2026-08-28', desc: 'Growth plan, 28 Aug – 27 Sep', amount: 97500, status: 'paid', paidOn: '2026-08-28' },
-    { id: 'INV-2026-0036', date: '2026-07-28', due: '2026-07-28', desc: 'Starter plan, 28 Jul – 27 Aug', amount: 65000, status: 'paid', paidOn: '2026-07-28' },
+    { id: 'INV-2026-0052', vat: 'VAT exclusive', date: '2026-11-06', due: '2026-11-20', desc: 'Social media management (add-on quote)', task: 'REQ-2026-0047', amount: 120000, status: 'due' },
+    { id: 'INV-2026-0051', vat: 'VAT exclusive', date: '2026-10-28', due: '2026-10-28', desc: 'Growth plan, 28 Oct – 27 Nov', amount: 97500, status: 'paid', paidOn: '2026-10-28' },
+    { id: 'INV-2026-0049', vat: 'VAT exclusive', date: '2026-10-28', due: '2026-11-04', desc: 'Bookkeeping support (add-on)', task: 'REQ-2026-0045', amount: 45000, status: 'paid', paidOn: '2026-10-29' },
+    { id: 'INV-2026-0046', vat: 'VAT exclusive', date: '2026-09-28', due: '2026-09-28', desc: 'Growth plan, 28 Sep – 27 Oct', amount: 97500, status: 'paid', paidOn: '2026-09-28' },
+    { id: 'INV-2026-0041', vat: 'VAT exclusive', date: '2026-08-28', due: '2026-08-28', desc: 'Growth plan, 28 Aug – 27 Sep', amount: 97500, status: 'paid', paidOn: '2026-08-28' },
+    { id: 'INV-2026-0036', vat: 'VAT exclusive', date: '2026-07-28', due: '2026-07-28', desc: 'Starter plan, 28 Jul – 27 Aug', amount: 65000, status: 'paid', paidOn: '2026-07-28' },
   ];
   const ISTATUS = {
     due: { label: 'Due', chip: 'bg-pill-orangeBg text-brand-orangeDark' },
@@ -193,57 +196,17 @@
   const getPref = (k, fallback) => (k in (store.prefs || {}) ? store.prefs[k] : fallback);
   function setPref(k, v) { store.prefs = Object.assign({}, store.prefs, { [k]: v }); writeStore(store); }
 
-  // ---------- organization and team ----------
-  const ORG = {
-    id: 'ORG-2026-0112', name: 'Okeke Foods Ltd', type: 'Small business', state: 'Lagos', joined: '2026-07-28',
-    phone: '', registration: { label: 'CAC registration in progress', task: 'REQ-2026-0043' },
-  };
-  // Access levels for the customer's own staff.
-  const ROLES = {
-    owner: { label: 'Owner', chip: 'bg-brand-navy text-white', about: 'Full access, including billing, plan and team. One per organization.' },
-    admin: { label: 'Admin', chip: 'bg-pill-navyBg text-brand-navy', about: 'Everything except changing the plan or removing the owner.' },
-    member: { label: 'Member', chip: 'bg-pill-greenBg text-pill-greenTx', about: 'Submits and follows their own requests, and approves their deliverables.' },
-    finance: { label: 'Finance', chip: 'bg-pill-orangeBg text-brand-orangeDark', about: 'Pays invoices and sees billing. Can’t submit tasks.' },
-    viewer: { label: 'Viewer', chip: 'bg-cream text-ink', about: 'Can see tasks and files, but can’t change anything.' },
-  };
-  const PERMISSIONS = [
-    ['Submit tasks', ['owner', 'admin', 'member']],
-    ['See all the organization’s tasks', ['owner', 'admin', 'finance', 'viewer']],
-    ['Approve drafts and download files', ['owner', 'admin', 'member']],
-    ['Pay invoices and see billing', ['owner', 'admin', 'finance']],
-    ['Change the plan', ['owner']],
-    ['Invite and manage team members', ['owner', 'admin']],
-  ];
-  const MEMBERS = [
-    { id: 'U1', name: 'Chinedu Egbuchulam', email: 'chinedu@okekefoods.ng', role: 'owner', you: true, last: '2026-11-13T00:10' },
-    { id: 'U2', name: 'Amara Okafor', email: 'amara@okekefoods.ng', role: 'admin', last: '2026-11-12T15:42' },
-    { id: 'U3', name: 'Tunde Adebayo', email: 'tunde@okekefoods.ng', role: 'member', last: '2026-11-12T11:12' },
-    { id: 'U4', name: 'Ngozi Nwosu', email: 'ngozi@okekefoods.ng', role: 'finance', last: '2026-11-10T09:18' },
-    { id: 'U5', name: 'Emeka Okafor', email: 'emeka@okekefoods.ng', role: 'member', last: '2026-11-06T14:07' },
-    { id: 'U6', name: 'Aisha Bello', email: 'aisha@okekefoods.ng', role: 'viewer', last: '2026-10-30T13:26' },
-  ];
-  const INVITES = [
-    { id: 'I1', email: 'ifeanyi@okekefoods.ng', role: 'member', sent: '2026-11-11T10:05' },
-  ];
-  const ACTIVITY = [
-    ['2026-11-12T15:42', 'Amara Okafor', 'submitted REQ-2026-0038 (Brand deal contract filing)'],
-    ['2026-11-11T10:05', 'Chinedu Egbuchulam', 'invited ifeanyi@okekefoods.ng as a Member'],
-    ['2026-11-06T13:05', 'Chinedu Egbuchulam', 'replied on REQ-2026-0047'],
-    ['2026-11-04T09:10', 'Chinedu Egbuchulam', 'submitted REQ-2026-0046 (Trademark filing support)'],
-    ['2026-11-02T14:07', 'Amara Okafor', 'submitted REQ-2026-0043 (Company registration)'],
-    ['2026-10-29T08:40', 'Ngozi Nwosu', 'paid INV-2026-0049'],
-    ['2026-10-14T12:00', 'Chinedu Egbuchulam', 'changed Aisha Bello’s role to Viewer'],
-  ];
-
   // ---------- support ----------
   // Fill these in to show them across Help and Contact. Empty values are hidden.
-  const SUPPORT = { email: 'support@baessentials.com', phone: '', hours: 'Mon–Fri, 8am–6pm (WAT)', replyWithin: 'one business day' };
+  // From the Terms of Service (3.6, 6.5, 10.5) and the Privacy Policy.
+  const SUPPORT = { email: 'support@bandaessentials.com', privacy: 'dpo@bandaessentials.com', phone: '', hours: 'Mon–Fri, 9am–5pm WAT', replyWithin: '24 hours' };
   const TOPICS = {
     billing: { label: 'Billing & invoices', icon: 'receipt-text' },
     tasks: { label: 'Tasks & requests', icon: 'square-check' },
     files: { label: 'Files & deliverables', icon: 'folder' },
     plan: { label: 'Plan & usage', icon: 'gauge' },
-    team: { label: 'Account & team', icon: 'users' },
+    account: { label: 'Your account & sign-in', icon: 'user' },
+    privacy: { label: 'Your data & privacy', icon: 'shield' },
     technical: { label: 'Something isn’t working', icon: 'wrench' },
     other: { label: 'Something else', icon: 'circle-help' },
   };
@@ -256,21 +219,16 @@
   const TICKETS = [
     { id: 'SUP-2026-0048', topic: 'billing', subject: 'Bank transfer not showing on invoice', status: 'progress', created: '2026-11-11T10:24', updated: '2026-11-12T14:15',
       body: 'I paid INV-2026-0049 by bank transfer but it still showed as due for a day.', reply: 'Thanks, we’ve found the transfer and are matching it to the invoice. We’ll confirm today.' },
-    { id: 'SUP-2026-0047', topic: 'team', subject: 'Invite email not received', status: 'waiting', created: '2026-11-11T15:42', updated: '2026-11-12T09:10',
-      body: 'Ifeanyi hasn’t received his invitation email.', reply: 'We resent it. Could you ask him to check his spam folder and tell us if it’s still missing?' },
+    { id: 'SUP-2026-0047', topic: 'account', subject: 'Sign-in code not arriving on WhatsApp', status: 'waiting', created: '2026-11-11T15:42', updated: '2026-11-12T09:10',
+      body: 'My one-time sign-in code isn’t coming through on WhatsApp.', reply: 'We’ve checked and the codes are being sent. Could you confirm the WhatsApp number on your account ends in 4567? You can also choose to get the code by SMS or email.' },
     { id: 'SUP-2026-0046', topic: 'files', subject: 'Can’t open the October summary', status: 'resolved', created: '2026-11-05T11:12', updated: '2026-11-05T16:33',
       body: 'The October summary PDF won’t open on my phone.', reply: 'We re-exported the file. It should open everywhere now.' },
     { id: 'SUP-2026-0045', topic: 'plan', subject: 'More tasks this month?', status: 'resolved', created: '2026-10-25T09:18', updated: '2026-10-25T12:40',
       body: 'Can we get a few more tasks this month without changing plan?', reply: 'Extra tasks wait for your renewal, or you can move up a plan any time from Plan & Usage.' },
   ];
   const listOr = (key, fallback) => (Array.isArray(store[key]) ? store[key] : fallback.map(x => Object.assign({}, x)));
-  const getList = key => listOr(key, { members: MEMBERS, invites: INVITES, tickets: TICKETS }[key] || []);
+  const getList = key => listOr(key, { tickets: TICKETS }[key] || []);
   function setList(key, arr) { store[key] = arr; writeStore(store); }
-  const activity = () => (store.activity || []).concat(ACTIVITY).sort((a, b) => (a[0] === b[0] ? 0 : a[0] < b[0] ? 1 : -1));
-  function logActivity(who, what) { store.activity = [[nowLocal(), who, what]].concat(store.activity || []); writeStore(store); }
-  const getOrg = () => Object.assign({}, ORG, store.org || {});
-  function setOrg(change) { store.org = Object.assign({}, store.org, change); writeStore(store); }
-  const initials = name => name.trim().split(/\s+/).filter(Boolean).map(w => Array.from(w)[0]).filter((_, i, a) => i === 0 || i === a.length - 1).join('').toUpperCase();
 
   // ---------- formatting ----------
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -291,7 +249,7 @@
   const chip = (cls, text) => `<span class="chip-status ${cls}">${esc(text)}</span>`;
 
   window.BANDA = { CATS, STATUS, CANCELLABLE, PRIORITY, all, find, update, esc, toDate, fmtDate, fmtDateTime, fmtSize, naira, chip,
-    DSTATUS, DOWNLOADABLE, deliverables, deliverablesFor, setDeliverable, fileType, nowLocal, toast,
+    DSTATUS, DOWNLOADABLE, REVISION_NOTE, deliverables, deliverablesFor, setDeliverable, fileType, nowLocal, toast,
     PLANS, ACCOUNT, ISTATUS, invoices, payInvoice, invoiceForTask, getPref, setPref,
-    ROLES, PERMISSIONS, SUPPORT, TOPICS, TSTATUS, getList, setList, activity, logActivity, getOrg, setOrg, initials };
+    SUPPORT, TOPICS, TSTATUS, getList, setList };
 })();

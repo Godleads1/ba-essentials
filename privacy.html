@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Privacy Policy · banda — B &amp; A Essentials</title>
+  <meta name="description" content="B&amp;A Essentials — Privacy Policy. Version 0.1 · Effective date: 12th of November, 2026." />
+  <meta name="theme-color" content="#1C1712" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='14'%20fill='%231C1712'/%3E%3Cpath%20d='M17%209h9v17a13%2013%200%201%201-9%2012z'%20fill='%23FDFBF6'/%3E%3Ccircle%20cx='39'%20cy='39'%20r='7'%20fill='%231C1712'/%3E%3Ccircle%20cx='31'%20cy='40'%20r='5'%20fill='%23D9662E'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@500;600;700&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet" />
+  <style>
+    html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { scrollbar-width: none; }
+
+    /* ---------- banda logo (HTML/CSS, crisp at any size) ---------- */
+    .logo { display: inline-flex; flex-direction: column; align-items: flex-start; font-size: 36px; line-height: 1; text-decoration: none; }
+    .logo-word { font-family: Inter, system-ui, sans-serif; font-weight: 800; line-height: .82; letter-spacing: -.035em; color: var(--logo-word, #1C1712); }
+    .logo-b { position: relative; display: inline-block; }
+    .logo-dot { position: absolute; left: .215em; top: .43em; width: .18em; height: .18em; border-radius: 50%; background: #D9662E; transition: transform .35s cubic-bezier(.34,1.56,.64,1); }
+    .logo:hover .logo-dot { transform: scale(1.18); }
+    .logo-tag { font-family: Inter, system-ui, sans-serif; font-weight: 600; font-size: .2em; letter-spacing: .5em; margin-top: .55em; white-space: nowrap; color: var(--logo-tag, #33397F); }
+    .logo-tag .amp { color: #D9662E; letter-spacing: .3em; }
+    .logo--light { --logo-word: #FDFBF6; --logo-tag: #B8BBE6; }
+    /* large lockup (hero/brand use) keeps the original airy tagline */
+    .logo--lg .logo-tag { font-weight: 500; font-size: .172em; letter-spacing: .66em; margin-top: .62em; }
+
+    /* ---------- motion ---------- */
+    .reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s ease, transform .6s ease; }
+    .reveal.in { opacity: 1; transform: none; }
+    .bar { width: 0; transition: width 1.2s cubic-bezier(.22,1,.36,1) .3s; }
+    .float { animation: float 7s ease-in-out infinite; }
+    @keyframes float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-6px) } }
+    .hero-underline path { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .9s cubic-bezier(.22,1,.36,1) .5s; }
+    .reveal.in .hero-underline path { stroke-dashoffset: 0; }
+    details > summary { list-style: none; cursor: pointer; }
+    details > summary::-webkit-details-marker { display: none; }
+    details[open] .faq-plus { transform: rotate(45deg); }
+    /* Square grid: thin lines forming squares, faded out towards the edges. */
+    .grid-lines {
+      --gl: rgba(51,57,127,.12);
+      --cell: 64px;
+      background-image:
+        linear-gradient(to right, var(--gl) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--gl) 1px, transparent 1px);
+      background-size: var(--cell) var(--cell);
+      background-position: center top;
+    }
+    .grid-lines--light { --gl: rgba(255,255,255,.085); }
+    .grid-fade {
+      -webkit-mask-image: radial-gradient(ellipse 72% 68% at 50% 42%, #000 35%, transparent 78%);
+              mask-image: radial-gradient(ellipse 72% 68% at 50% 42%, #000 35%, transparent 78%);
+    }
+    /* a few squares filled in, like the reference */
+    .grid-cell { position: absolute; width: var(--cell, 64px); height: var(--cell, 64px); background: rgba(51,57,127,.035); }
+    .dot-grid { background-image: radial-gradient(rgba(51,57,127,.13) 1px, transparent 1px); background-size: 18px 18px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .reveal { opacity: 1; transform: none; }
+      .hero-underline path { stroke-dashoffset: 0; }
+    }
+  </style>
+  <style>
+    .doc h2 { margin: 40px 0 12px; scroll-margin-top: 90px; font-family: Lexend, system-ui, sans-serif; font-size: 21px; font-weight: 600; letter-spacing: -.01em; color: #241A15; }
+    .doc h2:first-child { margin-top: 0; }
+    .doc p, .doc li { font-size: 15.5px; line-height: 1.75; color: #3D332D; }
+    .doc p { margin: 12px 0; }
+    .doc p.clause { padding-left: 0; }
+    .doc ul { margin: 10px 0 14px; padding-left: 22px; list-style: disc; }
+    .doc li { margin: 4px 0; }
+    .doc strong { color: #241A15; font-weight: 600; }
+    .doc a { color: #33397F; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+    .doc .var { color: #5C534D; font-weight: 600; }
+    .doc mark { background: #FBE6DA; color: #AD4C1D; border-radius: 4px; padding: 0 3px; }
+    .doc .box { display: inline-block; width: 14px; height: 14px; border: 1.5px solid #736C66; border-radius: 3px; vertical-align: -2px; margin-right: 2px; }
+    .doc .tbl { margin: 16px 0; overflow-x: auto; border: 1px solid #ECE5DA; border-radius: 14px; position: relative; }
+    .doc .tbl:focus-visible { outline: 2px solid #33397F; outline-offset: 2px; }
+    .doc table { width: 100%; min-width: 560px; border-collapse: collapse; font-size: 14px; }
+    .doc th { background: #F5F0E8; text-align: left; font-weight: 600; padding: 10px 14px; color: #241A15; }
+    .doc td { border-top: 1px solid #ECE5DA; padding: 10px 14px; vertical-align: top; line-height: 1.55; color: #3D332D; }
+    .toc a { display: block; border-radius: 8px; padding: 6px 10px; font-size: 13.5px; color: #5C534D; }
+    .toc a:hover { background: #F5F0E8; color: #241A15; }
+    .toc a.is-here { background: #ECEDF8; color: #33397F; font-weight: 600; }
+    .doc-tab { border-radius: 999px; border: 1.5px solid #ECE5DA; background: #fff; padding: 7px 14px; font-size: 13px; font-weight: 600; color: #5C534D; white-space: nowrap; }
+    .doc-tab:hover { border-color: #B8BBE6; }
+    .doc-tab[aria-current="page"] { border-color: #33397F; background: #33397F; color: #fff; }
+    a:focus-visible, .doc-tab:focus-visible { outline: 2px solid #33397F; outline-offset: 2px; }
+    @media print { header, aside, footer, .no-print { display: none !important; } body { background: #fff; } }
+  </style>
+  <link rel="stylesheet" href="app.css" />
+</head>
+<body class="bg-cream-light font-sans text-ink antialiased">
+  <a href="#doc" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-md focus:bg-white focus:px-4 focus:py-2">Skip to content</a>
+  <header class="sticky top-0 z-40 border-b border-cream-line bg-cream-light/95 backdrop-blur">
+    <div class="mx-auto flex h-[68px] max-w-[1100px] items-center justify-between gap-4 px-5">
+      <a href="index.html" class="logo" aria-label="banda, B and A Essentials, home">
+        <span class="logo-word" aria-hidden="true"><span class="logo-b">b<i class="logo-dot"></i></span>anda</span>
+        <span class="logo-tag" aria-hidden="true">B<span class="amp">&amp;</span>A ESSENTIALS</span>
+      </a>
+      <a href="index.html" class="text-[14px] font-semibold text-brand-navy hover:underline">Back to home</a>
+    </div>
+  </header>
+
+  <main id="doc" class="mx-auto max-w-[1100px] px-5 pb-16 pt-8">
+    <nav class="no-scrollbar no-print -mx-1 flex gap-2 overflow-x-auto px-1 pb-1" aria-label="Legal documents"><a href="terms.html" class="doc-tab">Terms of Service</a><a href="privacy.html" class="doc-tab" aria-current="page">Privacy Policy</a><a href="cookies.html" class="doc-tab">Cookie Notice</a></nav>
+    <div class="mt-6 grid gap-10 lg:grid-cols-[240px_minmax(0,1fr)]">
+      <aside class="hidden lg:block">
+        <nav class="toc sticky top-[92px]" aria-label="On this page">
+          <p class="mb-2 px-2.5 text-[11.5px] font-semibold uppercase tracking-[.12em] text-ink-soft">On this page</p>
+          <ul><li><a href="#1-who-we-are-and-what-this-policy-covers">1. Who we are and what this policy covers</a></li><li><a href="#2-what-personal-data-we-collect">2. What personal data we collect</a></li><li><a href="#3-why-we-use-your-data">3. Why we use your data</a></li><li><a href="#4-who-sees-your-data-and-where-it-goes">4. Who sees your data and where it goes</a></li><li><a href="#5-how-long-we-keep-your-data">5. How long we keep your data</a></li><li><a href="#6-your-rights">6. Your rights</a></li><li><a href="#7-security-children-marketing-and-changes">7. Security, children, marketing and changes</a></li></ul>
+        </nav>
+      </aside>
+      <article class="min-w-0">
+        <h1 class="font-display text-[30px] font-semibold leading-tight tracking-[-0.02em] sm:text-[38px]">B&amp;A Essentials — Privacy Policy</h1>
+        <p class="mt-2 text-[14px] text-ink-muted">Version 0.1 · Effective date: 12th of November, 2026</p>
+        <details class="no-print mt-5 rounded-2xl border border-cream-line bg-white p-4 lg:hidden">
+          <summary class="cursor-pointer text-[14px] font-semibold">On this page</summary>
+          <ul class="toc mt-2"><li><a href="#1-who-we-are-and-what-this-policy-covers">1. Who we are and what this policy covers</a></li><li><a href="#2-what-personal-data-we-collect">2. What personal data we collect</a></li><li><a href="#3-why-we-use-your-data">3. Why we use your data</a></li><li><a href="#4-who-sees-your-data-and-where-it-goes">4. Who sees your data and where it goes</a></li><li><a href="#5-how-long-we-keep-your-data">5. How long we keep your data</a></li><li><a href="#6-your-rights">6. Your rights</a></li><li><a href="#7-security-children-marketing-and-changes">7. Security, children, marketing and changes</a></li></ul>
+        </details>
+        <div class="doc mt-8">
+<h2 id="1-who-we-are-and-what-this-policy-covers">1. Who we are and what this policy covers</h2>
+<p>This policy explains how <mark title="To be confirmed">[registered name of B&amp;A Essentials entity]</mark> ("B&amp;A Essentials", "we", "us") collects and uses personal data when you visit bandaessentials.com or use the B&amp;A Essential Services platform and services. We are a company registered in Nigeria <mark title="Registration number to be confirmed">BN No. 7410773</mark>, with our registered office at Plot 136 Alake Onile-Ere Crescent, Gbagada, Lagos, Nigeria. We follow the Nigeria Data Protection Act 2023 and the guidance of the Nigeria Data Protection Commission (NDPC).</p>
+<p><strong>Our role.</strong> For your account, billing, security and website data, we decide why and how the data is used, so we are the "controller". For documents and information you send us to work on, which may include personal data about your staff, customers or others, you decide what to send and what we do with it, and we handle it on your instructions as your "processor".</p>
+<p><strong>Who to contact.</strong> Our data protection contact is reachable at <a href="mailto:dpo@bandaessentials.com">dpo@bandaessentials.com</a>. General support is at <a href="mailto:support@bandaessentials.com">support@bandaessentials.com</a>. Our postal address is Plot 136 Alake Onile-Ere Crescent, Gbagada, Lagos, Nigeria.</p>
+<p>A shorter notice is shown at sign-up and upload. If anything in it differs from this policy, tell us.</p>
+<h2 id="2-what-personal-data-we-collect">2. What personal data we collect</h2>
+<p>We collect only what we need for the service you ask for. We do not ask for identity documents when you sign up. We ask for them only for a task that needs them, such as a registration.</p>
+<div class="tbl" tabindex="0" role="region" aria-label="2. What personal data we collect"><table><thead><tr><th scope="col">Type of data</th><th scope="col">Examples</th><th scope="col">Where it comes from</th></tr></thead><tbody><tr><td>Contact and account</td><td>Name, business name, phone or WhatsApp number, email address, sign-in codes and sign-in records</td><td>You</td></tr><tr><td>Business profile</td><td>Business type, size, location, services you use</td><td>You</td></tr><tr><td>Task content</td><td>Contracts, brand deals, policies, letters, records and other documents you upload, and your instructions</td><td>You</td></tr><tr><td>Registration and identity documents</td><td>Documents needed for a company registration or filing, such as ID or address details of directors</td><td>You, only for tasks that need them</td></tr><tr><td>Intellectual property material</td><td>Names, logos, descriptions and filings for review or registration</td><td>You</td></tr><tr><td>Financial records</td><td>Receipts, expense and income records you ask us to organise</td><td>You</td></tr><tr><td>Billing and payment</td><td>Plan, invoices, payment status and payment references. Card details go directly to our payment provider and we do not store them</td><td>You and our payment providers</td></tr><tr><td>Support and complaints</td><td>Messages, call notes, task questions and complaint records</td><td>You and our staff</td></tr><tr><td>Security and audit</td><td>Who did what and when on the platform, device and network information, fraud and abuse checks</td><td>Automatically</td></tr><tr><td>Website and device</td><td>Pages visited, browser type, cookies (see our <a href="cookies.html">Cookie Notice</a>)</td><td>Automatically</td></tr><tr><td>Choices and consents</td><td>Your acceptance of terms, optional AI consent, marketing choices, with the date and version</td><td>You</td></tr></tbody></table></div>
+<p>If your documents include personal data about other people, you must have the right to share it with us. Please send only what the task needs.</p>
+<h2 id="3-why-we-use-your-data">3. Why we use your data</h2>
+<p>We use personal data only for the purposes below. Accepting our <a href="terms.html">Terms of Service</a> is not our legal basis for everything. We rely on the basis shown for each purpose.</p>
+<div class="tbl" tabindex="0" role="region" aria-label="3. Why we use your data"><table><thead><tr><th scope="col">Purpose</th><th scope="col">Data used</th><th scope="col">Legal basis</th></tr></thead><tbody><tr><td>Open and run your account, verify you with a one-time code</td><td>Contact and account</td><td>Performing our contract with you</td></tr><tr><td>Carry out your tasks, route them to the right qualified staff, and deliver the results</td><td>Task content, registration and identity documents, IP material, financial records</td><td>Performing our contract with you</td></tr><tr><td>Take payment, issue invoices, refund</td><td>Billing and payment</td><td>Performing our contract with you; complying with legal obligations</td></tr><tr><td>Keep financial, tax and accounting records</td><td>Billing and payment</td><td>Complying with legal obligations</td></tr><tr><td>Answer questions and handle complaints</td><td>Support and complaints</td><td>Performing our contract; our legitimate interest in good service</td></tr><tr><td>Keep the platform secure, prevent fraud and misuse, and keep an audit trail</td><td>Security and audit</td><td>Our legitimate interests in security and accountability; complying with legal obligations</td></tr><tr><td>Check the quality of our work and improve the service</td><td>Task metadata, support records</td><td>Our legitimate interest in running and improving the service. We do not use the content of your documents for this unless it is anonymised or you agree</td></tr><tr><td>Send you service messages (reminders, status updates, billing notices)</td><td>Contact and account</td><td>Performing our contract with you</td></tr><tr><td>Send marketing messages</td><td>Contact</td><td>Your consent, which you can withdraw at any time</td></tr><tr><td>Use optional AI-assisted features, where we offer them</td><td>Task content</td><td>Your separate consent</td></tr><tr><td>Use non-essential cookies</td><td>Website and device</td><td>Your consent</td></tr><tr><td>Respond to legal claims and lawful requests</td><td>Any data needed</td><td>Complying with legal obligations; our legitimate interest in defending our rights</td></tr></tbody></table></div>
+<p>We do not sell your personal data. We do not make decisions about you using solely automated means that have a legal or similarly significant effect. A person makes every decision that affects your service.</p>
+<h2 id="4-who-sees-your-data-and-where-it-goes">4. Who sees your data and where it goes</h2>
+<p><strong>Our people.</strong> Only staff and approved providers who need your information for a task can see it. Each task is limited to the people assigned to it, and their access ends when the assignment ends. Legal work is seen by a qualified legal reviewer. Registration filings are seen by our accredited filing agent. All of them are bound by confidentiality duties. Our named staff are listed in the task record you receive.</p>
+<p><strong>Our service providers.</strong> We use the providers below to run the platform. Each one handles data only for the purpose shown and under a written contract.</p>
+<div class="tbl" tabindex="0" role="region" aria-label="4. Who sees your data and where it goes"><table><thead><tr><th scope="col">Provider</th><th scope="col">What it does</th><th scope="col">Data involved</th></tr></thead><tbody><tr><td>Amazon Web Services (AWS)</td><td>Hosts the platform and database</td><td>All platform data</td></tr><tr><td>Cloudflare (including R2 storage)</td><td>Network protection, private file storage and encrypted backups</td><td>Uploaded files, backups, connection data</td></tr><tr><td>Termii</td><td>Sends one-time sign-in codes and messages by SMS, email or WhatsApp</td><td>Phone number or email, message content</td></tr><tr><td>Paystack and Flutterwave</td><td>Process card and bank payments</td><td>Payment details, payment status</td></tr><tr><td>GitHub</td><td>Holds the platform's source code</td><td>No personal data</td></tr><tr><td><mark title="To be confirmed">[Email, monitoring and any other providers]</mark></td><td><mark title="To be confirmed">[Purpose]</mark></td><td><mark title="To be confirmed">[Data]</mark></td></tr></tbody></table></div>
+<p><mark title="To be confirmed">[Hosting regions and the transfer safeguard for each provider are to be filled in once confirmed.]</mark></p>
+<p><strong>Transfers outside Nigeria.</strong> Some of these providers store or process data outside Nigeria. We transfer personal data out of Nigeria only where the law allows: where the receiving country or provider gives adequate protection, or under a contract containing approved safeguards (such as standard contractual clauses), or under another lawful exception. We have, or will have before we handle real client data, a data processing agreement with each provider. You can ask us at <a href="mailto:dpo@bandaessentials.com">dpo@bandaessentials.com</a> for details of the safeguards we use.</p>
+<p><strong>Others.</strong> We share data with government bodies, courts or regulators if the law requires us to, and with our professional advisers (such as lawyers, accountants and auditors) under duties of confidentiality. We may share data with a buyer or investor if our business is sold or restructured, and the new owner must keep to this policy. We do not send your documents to your customers, partners or counterparties. That is your decision.</p>
+<p><strong>AI tools.</strong> If we offer AI-assisted features, they are optional and off by default, require your separate consent, use an approved provider and a minimum of your data, and a human professional keeps control of every conclusion.</p>
+<h2 id="5-how-long-we-keep-your-data">5. How long we keep your data</h2>
+<p>We keep personal data only for as long as we need it for the purpose it was collected for, and as long as the law requires. When the time is up we delete it or make it unreadable, unless a legal hold applies.</p>
+<div class="tbl" tabindex="0" role="region" aria-label="5. How long we keep your data"><table><thead><tr><th scope="col">Record</th><th scope="col">How long</th><th scope="col">Reason</th></tr></thead><tbody><tr><td>Contracts, tax and income records, invoices</td><td>Seven (7) years</td><td>Legal and accounting obligations</td></tr><tr><td>Intellectual property and trademark filings</td><td>The life of the registration plus 3 years</td><td>Protecting your rights and ours</td></tr><tr><td>Source and delivered documents for tasks</td><td>Six (6) years after the task closes, by document type</td><td>Providing the service and responding to claims</td></tr><tr><td>Account and business profile</td><td>While your account is active, and ninety (90) days after it closes</td><td>Providing the service and legal claims</td></tr><tr><td>Audit trail of who did what</td><td>At least as long as the longest record it relates to</td><td>Accountability and evidence</td></tr><tr><td>One-time sign-in codes</td><td>One (1) day</td><td>Security and abuse checks</td></tr><tr><td>Support and complaint records</td><td>Six (6) years</td><td>Service quality and legal claims</td></tr><tr><td>Backups</td><td>Rotated within two (2) days; deletions are reapplied if a backup is restored</td><td>Recovery</td></tr></tbody></table></div>
+<p><strong>Legal holds.</strong> If we are legally required to preserve records, such as for a claim or an investigation, we keep only the affected records and only for as long as needed, whatever the schedule above says.</p>
+<p><strong>After your plan ends.</strong> Your data stays available to you in read-only form (see our <a href="terms.html">Terms of Service</a>). Retention periods start from the dates shown above.</p>
+<h2 id="6-your-rights">6. Your rights</h2>
+<p>Under the Nigeria Data Protection Act 2023 you have rights over your personal data. You can ask us to:</p>
+<ul><li>tell you whether we hold your data and give you a copy;</li><li>correct data that is wrong or incomplete;</li><li>delete your data, where we no longer need it or have no lawful reason to keep it;</li><li>restrict how we use your data while a question about it is settled;</li><li>stop using your data where we rely on our legitimate interests, and stop marketing at any time;</li><li>give you your data in a common format, or send it to another provider, where the law allows;</li><li>withdraw any consent you gave, which does not affect what we did before; and</li><li>review any decision made about you by automated means.</li></ul>
+<p><strong>How to use them.</strong> Email <a href="mailto:dpo@bandaessentials.com">dpo@bandaessentials.com</a> or use the request option in your account. We may need to check it is you, and we will ask only for what is needed. We reply within thirty (30) days, and tell you if we need more time or cannot do what you ask and why. Requests are free unless they are clearly unfounded or excessive.</p>
+<p><strong>Data in your documents.</strong> If your request concerns data about other people in documents you gave us, we may refer you to the business that sent the document, or act on that business's instructions.</p>
+<p><strong>Complaints.</strong> If you are unhappy with how we handled your data, please tell us first at <a href="mailto:dpo@bandaessentials.com">dpo@bandaessentials.com</a>. You also have the right to complain to the Nigeria Data Protection Commission (<a href="https://ndpc.gov.ng" rel="noopener">ndpc.gov.ng</a>).</p>
+<h2 id="7-security-children-marketing-and-changes">7. Security, children, marketing and changes</h2>
+<p><strong>Security.</strong> We protect your data with sign-in verification, multi-factor authentication for all staff, role-based access so people see only what their task needs, private encrypted storage for documents, file scanning, audit logs and regular backups with tested recovery. No system is completely secure, so please keep your sign-in channel safe.</p>
+<p><strong>If something goes wrong.</strong> If there is a personal data breach that puts your rights at risk, we will tell the NDPC and the people affected within the time the law requires, and tell you what happened and what to do.</p>
+<p><strong>Children.</strong> Our services are for businesses and adults aged 18 and over. We do not knowingly collect data about children. If you think we have, please tell us at <a href="mailto:dpo@bandaessentials.com">dpo@bandaessentials.com</a>.</p>
+<p><strong>Marketing.</strong> We send marketing messages only with your consent, which you can withdraw at any time using the link in a message or by emailing <a href="mailto:support@bandaessentials.com">support@bandaessentials.com</a>. Service messages, such as reminders and billing notices, are not marketing and you cannot opt out of those while you use the service.</p>
+<p><strong>Cookies.</strong> See our <a href="cookies.html">Cookie Notice</a> for how we use cookies and how to choose.</p>
+<p><strong>Changes.</strong> We may update this policy. We will post the new version here with its date, and tell you directly if the change is significant.</p>
+<p><strong>Contact.</strong> Data protection: <a href="mailto:dpo@bandaessentials.com">dpo@bandaessentials.com</a>. Support: <a href="mailto:support@bandaessentials.com">support@bandaessentials.com</a>. Website: bandaessentials.com.</p>
+        </div>
+        <div class="no-print mt-10 flex flex-wrap gap-3 border-t border-cream-line pt-6 text-[14px]">
+          <button type="button" onclick="window.print()" class="rounded-full border-[1.5px] border-brand-navy px-4 py-2 font-semibold text-brand-navy hover:bg-brand-navy hover:text-white">Print or save as PDF</button>
+          <a href="#doc" class="rounded-full px-4 py-2 font-semibold text-ink-muted hover:bg-cream">Back to top</a>
+        </div>
+      </article>
+    </div>
+  </main>
+
+  <footer class="bg-cocoa-deep text-white">
+    <div class="mx-auto flex max-w-[1100px] flex-col gap-3 px-5 py-6 text-[13px] text-white/75 sm:flex-row sm:items-center sm:justify-between">
+      <p>© 2026 B &amp; A Essentials. All rights reserved.</p>
+      <ul class="flex flex-wrap gap-x-5 gap-y-2">
+        <li><a href="terms.html" class="hover:text-white">Terms</a></li>
+        <li><a href="privacy.html" class="hover:text-white">Privacy</a></li>
+        <li><a href="cookies.html" class="hover:text-white">Cookies</a></li>
+        <li><button type="button" data-cookie-settings class="hover:text-white">Cookie settings</button></li>
+      </ul>
+    </div>
+  </footer>
+  <script src="consent.js"></script>
+  <script>
+    // Highlight the section you're reading in the contents list.
+    const links = [...document.querySelectorAll('aside .toc a')];
+    if ('IntersectionObserver' in window && links.length) {
+      const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) links.forEach(a => a.classList.toggle('is-here', a.hash === '#' + e.target.id)); }), { rootMargin: '-90px 0px -70% 0px' });
+      document.querySelectorAll('.doc h2[id]').forEach(h => io.observe(h));
+    }
+  </script>
+</body>
+</html>

@@ -11,7 +11,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@500;600;700&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 
   <!-- Tailwind Play CDN for preview only. In Django, build with the Tailwind CLI using the same config. -->
   <style>
@@ -71,8 +70,6 @@
       .fit form input:not([type=checkbox]) { padding-block: clamp(8px, 1.5vh, 14px); font-size: clamp(14px, 1.8vh, 15px); }
       .fit form .gap { margin-top: clamp(9px, 2vh, 20px); }
       .fit form .submit { margin-top: clamp(12px, 2.7vh, 28px); padding-block: clamp(10px, 1.8vh, 16px); }
-      .fit .or { margin-block: clamp(10px, 2.4vh, 28px); }
-      .fit .social button { padding-block: clamp(8px, 1.5vh, 14px); }
       .fit .signup { margin-top: clamp(10px, 2.6vh, 32px); }
     }
     /* Square grid: thin lines forming squares, faded out towards the edges. */
@@ -92,6 +89,10 @@
     }
     /* a few squares filled in, like the reference */
     .grid-cell { position: absolute; width: var(--cell, 64px); height: var(--cell, 64px); background: rgba(51,57,127,.035); }
+    .chan span { display: block; border-radius: 12px; border: 1.5px solid #ECE5DA; background: #fff; padding: 11px 6px; text-align: center; font-size: 14.5px; font-weight: 500; cursor: pointer; transition: all .15s; }
+    .chan input:checked + span { border-color: #33397F; background: #ECEDF8; color: #33397F; font-weight: 600; }
+    .chan input:focus-visible + span { outline: 2px solid #33397F; outline-offset: 2px; }
+    [hidden] { display: none !important; }
     .dot-grid { background-image: radial-gradient(rgba(51,57,127,.13) 1px, transparent 1px); background-size: 18px 18px; }
 
     @media (prefers-reduced-motion: reduce) {
@@ -136,7 +137,7 @@
           </li>
           <li class="flex items-center gap-4">
             <span class="ico grid h-12 w-12 shrink-0 place-items-center rounded-full bg-brand-navy text-white"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-shield h-5 w-5"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path></svg></span>
-            <span><span class="t block font-display text-[17px] font-semibold text-white">Secure &amp; Confidential</span><span class="d mt-0.5 block text-[14px] text-white/70">Your data is always protected.</span></span>
+            <span><span class="t block font-display text-[17px] font-semibold text-white">Secure &amp; Confidential</span><span class="d mt-0.5 block text-[14px] text-white/70">Stored privately, seen only by your task team.</span></span>
           </li>
           <li class="flex items-center gap-4">
             <span class="ico grid h-12 w-12 shrink-0 place-items-center rounded-full bg-brand-navy text-white"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-clock h-5 w-5"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg></span>
@@ -144,7 +145,7 @@
           </li>
           <li class="flex items-center gap-4">
             <span class="ico grid h-12 w-12 shrink-0 place-items-center rounded-full bg-brand-navy text-white"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-badge-check h-5 w-5"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"></path><path d="m16 9-5.5 5.5L8 12"></path></svg></span>
-            <span><span class="t block font-display text-[17px] font-semibold text-white">Quality Guaranteed</span><span class="d mt-0.5 block text-[14px] text-white/70">We review before you receive.</span></span>
+            <span><span class="t block font-display text-[17px] font-semibold text-white">Quality Checked</span><span class="d mt-0.5 block text-[14px] text-white/70">We review before you receive.</span></span>
           </li>
         </ul>
 
@@ -170,83 +171,106 @@
         <h2 class="font-display text-[34px] font-semibold leading-tight tracking-[-0.02em] sm:text-[38px]">Welcome back</h2>
         <p class="sub mt-1.5 text-[16.5px] text-ink-muted">Log in to your B &amp; A Essentials account</p>
 
+        <!-- Sign in with a one-time code (Terms of Service 2.2). No passwords. -->
         <form id="loginForm" class="mt-9" novalidate>
-          <label for="email" class="block text-[14px] font-semibold">Email address</label>
+          <label for="ident" class="block text-[14px] font-semibold">Phone, WhatsApp number or email</label>
           <div class="relative mt-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-mail pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-ink-muted"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"></path><rect x="2" y="4" width="20" height="16" rx="2"></rect></svg>
-            <input id="email" name="email" type="email" autocomplete="email" required placeholder="you@company.com" class="w-full rounded-xl border border-cream-line bg-white py-3.5 pl-12 pr-4 text-[15px] text-ink placeholder:text-ink-soft transition focus:border-brand-navy focus:outline-none focus:ring-2 focus:ring-brand-navy/25" />
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-at-sign pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-ink-soft"><circle cx="12" cy="12" r="4"></circle><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"></path></svg>
+            <input id="ident" name="username" type="text" autocomplete="username" required placeholder="0801 234 5678 or you@company.com" aria-describedby="identError" class="w-full rounded-xl border border-cream-line bg-white py-3.5 pl-12 pr-4 text-[15px] text-ink placeholder:text-ink-soft transition focus:border-brand-navy focus:outline-none focus:ring-4 focus:ring-brand-navy/10 aria-[invalid=true]:border-red-600" />
           </div>
-          <p id="emailError" class="mt-1.5 hidden text-[13px] font-medium text-red-700">Enter your email address, like you@company.com.</p>
+          <p id="identError" class="mt-1.5 hidden text-[13px] font-medium text-red-700">Enter a Nigerian phone number, like 0801 234 5678, or an email address.</p>
 
-          <label for="password" class="gap mt-5 block text-[14px] font-semibold">Password</label>
-          <div class="relative mt-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-lock pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-ink-muted"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-            <input id="password" name="password" type="password" autocomplete="current-password" required placeholder="Your password" class="w-full rounded-xl border border-cream-line bg-white py-3.5 pl-12 pr-12 text-[15px] text-ink placeholder:text-ink-soft transition focus:border-brand-navy focus:outline-none focus:ring-2 focus:ring-brand-navy/25" />
-            <button type="button" id="togglePw" aria-label="Show password" aria-pressed="false" class="absolute right-2 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-lg text-ink-muted transition hover:bg-cream hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy">
-              <span id="pwOff"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-eye-off h-[18px] w-[18px]"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"></path><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"></path><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"></path><path d="m2 2 20 20"></path></svg></span>
-              <span id="pwOn" class="hidden"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-eye h-[18px] w-[18px]"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path><circle cx="12" cy="12" r="3"></circle></svg></span>
-            </button>
-          </div>
-          <p id="pwError" class="mt-1.5 hidden text-[13px] font-medium text-red-700">Enter your password.</p>
+          <fieldset id="chanSet" class="gap mt-5" hidden>
+            <legend class="block text-[14px] font-semibold">Send my code by</legend>
+            <div class="mt-2 grid grid-cols-2 gap-2">
+              <label class="chan"><input type="radio" name="chan" value="whatsapp" class="sr-only" checked /><span>WhatsApp</span></label>
+              <label class="chan"><input type="radio" name="chan" value="sms" class="sr-only" /><span>SMS</span></label>
+            </div>
+          </fieldset>
 
-          <div class="gap mt-5 flex items-center justify-between gap-4">
-            <label class="flex cursor-pointer items-center gap-2.5 text-[14px] text-ink">
-              <input type="checkbox" name="remember" checked class="h-[18px] w-[18px] rounded border-cream-line accent-[#33397F]" />
-              Remember me
-            </label>
-            <a href="#" class="text-[14px] font-semibold text-ink underline-offset-4 hover:text-brand-navy hover:underline">Forgot password?</a>
-          </div>
+          <label class="gap mt-5 flex cursor-pointer items-center gap-2.5 text-[14px] text-ink">
+            <input type="checkbox" name="remember" class="h-[18px] w-[18px] rounded border-cream-line accent-[#33397F]" />
+            Keep me signed in on this device
+          </label>
 
           <button type="submit" class="submit group mt-7 flex w-full items-center justify-center gap-2.5 rounded-xl bg-brand-cta py-4 text-[15.5px] font-semibold text-white shadow-lg shadow-brand-orange/25 transition hover:bg-brand-ctaDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">
-            Log in <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4 transition-transform group-hover:translate-x-0.5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+            Send my code <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-[18px] w-[18px] transition-transform group-hover:translate-x-0.5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
           </button>
-          <p id="formNote" class="mt-3 hidden rounded-lg bg-pill-navyBg px-4 py-3 text-[13.5px] text-brand-navy" role="status">This is a design preview, so nothing was sent. Logging in will work once the page is connected to the app.</p>
         </form>
 
-        <div class="or my-7 flex items-center gap-4 text-[13.5px] text-ink-muted"><span class="h-px flex-1 bg-cream-line"></span>or continue with<span class="h-px flex-1 bg-cream-line"></span></div>
-
-        <div class="social grid grid-cols-2 gap-3">
-          <button type="button" class="flex items-center justify-center gap-2.5 rounded-xl border border-cream-line bg-white py-3.5 text-[15px] font-semibold text-ink transition hover:border-brand-lavender hover:bg-cream-light focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy"><i class="fa-brands fa-google text-[16px]"></i>Google</button>
-          <button type="button" class="flex items-center justify-center gap-2.5 rounded-xl border border-cream-line bg-white py-3.5 text-[15px] font-semibold text-ink transition hover:border-brand-lavender hover:bg-cream-light focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy"><i class="fa-brands fa-apple text-[18px]"></i>Apple</button>
-        </div>
+        <form id="codeForm" class="mt-9" novalidate hidden>
+          <p class="text-[15px] text-ink-muted">We sent a 6-digit code to <strong id="sentTo" class="text-ink"></strong>.</p>
+          <label for="code" class="gap mt-5 block text-[14px] font-semibold">Your code</label>
+          <input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required aria-describedby="codeError codeWarn" class="mt-2 w-full rounded-xl border border-cream-line bg-white px-4 py-3.5 text-center font-display text-[24px] font-semibold tracking-[.4em] text-ink transition focus:border-brand-navy focus:outline-none focus:ring-4 focus:ring-brand-navy/10 aria-[invalid=true]:border-red-600" />
+          <p id="codeError" class="mt-1.5 hidden text-[13px] font-medium text-red-700">Enter the 6 digits from your message.</p>
+          <p id="codeWarn" class="mt-3 flex items-start gap-2 rounded-xl bg-pill-orangeBg px-3.5 py-2.5 text-[13px] leading-snug text-brand-orangeDark"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-shield-alert mt-px h-4 w-4 shrink-0"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path><path d="M12 8v4"></path><path d="M12 16h.01"></path></svg>We&rsquo;ll never ask you for this code. Don&rsquo;t share it with anyone, even someone who says they work for us.</p>
+          <button type="submit" class="submit group mt-6 flex w-full items-center justify-center gap-2.5 rounded-xl bg-brand-cta py-4 text-[15.5px] font-semibold text-white shadow-lg shadow-brand-orange/25 transition hover:bg-brand-ctaDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">
+            Log in <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-[18px] w-[18px] transition-transform group-hover:translate-x-0.5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+          </button>
+          <p class="mt-4 text-center text-[14px] text-ink-muted"><button type="button" id="resend" class="font-semibold text-brand-navy underline-offset-4 hover:underline disabled:cursor-default disabled:text-ink-soft disabled:no-underline">Send a new code</button><span class="mx-1.5 text-cream-line">|</span><button type="button" id="changeIdent" class="font-semibold text-brand-navy underline-offset-4 hover:underline">Use a different number or email</button></p>
+          <p id="formNote" class="mt-3 rounded-lg bg-pill-navyBg px-4 py-3 text-[13.5px] text-brand-navy" role="status">Design preview: no code is sent. Enter any 6 digits to continue.</p>
+        </form>
 
         <p class="signup mt-8 text-center text-[14.5px] text-ink-muted">Don't have an account? <a href="onboarding.html" class="font-semibold text-brand-navy underline-offset-4 hover:underline">Sign up</a></p>
+        <p class="legal mt-4 flex flex-wrap justify-center gap-x-4 gap-y-1 text-[12.5px] text-ink-muted"><a href="terms.html" class="hover:text-ink hover:underline">Terms</a><a href="privacy.html" class="hover:text-ink hover:underline">Privacy</a><button type="button" data-cookie-settings class="hover:text-ink hover:underline">Cookie settings</button></p>
       </div>
     </main>
   </div>
 
+  <script src="consent.js"></script>
   <script src="https://unpkg.com/lucide@1.60.0/dist/umd/lucide.min.js"></script>
   <script>
     // Icons are decoration: if the icon library fails to load, everything else still works.
     if (window.lucide) lucide.createIcons();
 
-    // Show / hide password
-    const pw = document.getElementById('password');
-    const toggle = document.getElementById('togglePw');
-    toggle.addEventListener('click', () => {
-      const show = pw.type === 'password';
-      pw.type = show ? 'text' : 'password';
-      toggle.setAttribute('aria-pressed', String(show));
-      toggle.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
-      document.getElementById('pwOn').classList.toggle('hidden', !show);
-      document.getElementById('pwOff').classList.toggle('hidden', show);
+    // Preview-only sign-in with a one-time code: validate, but send nothing.
+    // In the app, "Send my code" asks the server to send a code through Termii (WhatsApp, SMS or email).
+    const $ = id => document.getElementById(id);
+    const ident = $('ident');
+    const kind = v => {
+      const t = v.trim();
+      if (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(t)) return 'email';
+      const d = t.replace(/[\s-]/g, '').replace(/^\+?234/, '').replace(/^0/, '');
+      return /^[789][01]\d{8}$/.test(d) ? 'phone' : '';
+    };
+    ident.addEventListener('input', () => {
+      $('chanSet').hidden = kind(ident.value) !== 'phone';
+      if (kind(ident.value)) { $('identError').classList.add('hidden'); ident.removeAttribute('aria-invalid'); }
     });
-
-    // Preview-only form handling: validate, but send nothing.
-    const form = document.getElementById('loginForm');
-    const email = document.getElementById('email');
-    form.addEventListener('submit', (e) => {
+    let resendTimer;
+    function startResendWait() {
+      let left = 30; const b = $('resend'); b.disabled = true; b.textContent = `Send a new code in ${left}s`;
+      clearInterval(resendTimer);
+      resendTimer = setInterval(() => { left -= 1; if (left <= 0) { clearInterval(resendTimer); b.disabled = false; b.textContent = 'Send a new code'; } else b.textContent = `Send a new code in ${left}s`; }, 1000);
+    }
+    $('loginForm').addEventListener('submit', e => {
       e.preventDefault();
-      const emailOk = email.validity.valid && email.value.trim() !== '';
-      const pwOk = pw.value !== '';
-      document.getElementById('emailError').classList.toggle('hidden', emailOk);
-      document.getElementById('pwError').classList.toggle('hidden', pwOk);
-      email.setAttribute('aria-invalid', String(!emailOk));
-      pw.setAttribute('aria-invalid', String(!pwOk));
-      // Preview: any valid email and password opens the sample dashboard.
-      if (emailOk && pwOk) { window.location.href = 'dashboard.html'; return; }
-      if (!emailOk) email.focus(); else if (!pwOk) pw.focus();
+      const k = kind(ident.value);
+      $('identError').classList.toggle('hidden', !!k);
+      ident.setAttribute('aria-invalid', String(!k));
+      if (!k) { ident.focus(); return; }
+      const chan = k === 'email' ? 'email' : document.querySelector('input[name="chan"]:checked').value;
+      const shown = k === 'email' ? ident.value.trim() : `your ${chan === 'whatsapp' ? 'WhatsApp' : 'phone'} number ending ${ident.value.replace(/\D/g, '').slice(-4)}`;
+      $('sentTo').textContent = shown;
+      $('loginForm').hidden = true; $('codeForm').hidden = false;
+      $('code').value = ''; $('code').focus();
+      startResendWait();
     });
+    $('code').addEventListener('input', () => {
+      $('code').value = $('code').value.replace(/\D/g, '').slice(0, 6);
+      if ($('code').value.length === 6) { $('codeError').classList.add('hidden'); $('code').removeAttribute('aria-invalid'); }
+    });
+    $('codeForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const ok = /^\d{6}$/.test($('code').value);
+      $('codeError').classList.toggle('hidden', ok);
+      $('code').setAttribute('aria-invalid', String(!ok));
+      if (!ok) { $('code').focus(); return; }
+      // Preview: any 6 digits open the sample dashboard.
+      window.location.href = 'dashboard.html';
+    });
+    $('resend').addEventListener('click', () => { startResendWait(); $('code').focus(); });
+    $('changeIdent').addEventListener('click', () => { clearInterval(resendTimer); $('codeForm').hidden = true; $('loginForm').hidden = false; ident.focus(); });
   </script>
 </body>
 </html>

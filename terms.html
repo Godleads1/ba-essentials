@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Terms of Service · banda — B &amp; A Essentials</title>
+  <meta name="description" content="B&amp;A Essentials — Terms of Service. Version 0.1 · Effective date: 12th of November, 2026." />
+  <meta name="theme-color" content="#1C1712" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='14'%20fill='%231C1712'/%3E%3Cpath%20d='M17%209h9v17a13%2013%200%201%201-9%2012z'%20fill='%23FDFBF6'/%3E%3Ccircle%20cx='39'%20cy='39'%20r='7'%20fill='%231C1712'/%3E%3Ccircle%20cx='31'%20cy='40'%20r='5'%20fill='%23D9662E'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@500;600;700&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet" />
+  <style>
+    html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { scrollbar-width: none; }
+
+    /* ---------- banda logo (HTML/CSS, crisp at any size) ---------- */
+    .logo { display: inline-flex; flex-direction: column; align-items: flex-start; font-size: 36px; line-height: 1; text-decoration: none; }
+    .logo-word { font-family: Inter, system-ui, sans-serif; font-weight: 800; line-height: .82; letter-spacing: -.035em; color: var(--logo-word, #1C1712); }
+    .logo-b { position: relative; display: inline-block; }
+    .logo-dot { position: absolute; left: .215em; top: .43em; width: .18em; height: .18em; border-radius: 50%; background: #D9662E; transition: transform .35s cubic-bezier(.34,1.56,.64,1); }
+    .logo:hover .logo-dot { transform: scale(1.18); }
+    .logo-tag { font-family: Inter, system-ui, sans-serif; font-weight: 600; font-size: .2em; letter-spacing: .5em; margin-top: .55em; white-space: nowrap; color: var(--logo-tag, #33397F); }
+    .logo-tag .amp { color: #D9662E; letter-spacing: .3em; }
+    .logo--light { --logo-word: #FDFBF6; --logo-tag: #B8BBE6; }
+    /* large lockup (hero/brand use) keeps the original airy tagline */
+    .logo--lg .logo-tag { font-weight: 500; font-size: .172em; letter-spacing: .66em; margin-top: .62em; }
+
+    /* ---------- motion ---------- */
+    .reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s ease, transform .6s ease; }
+    .reveal.in { opacity: 1; transform: none; }
+    .bar { width: 0; transition: width 1.2s cubic-bezier(.22,1,.36,1) .3s; }
+    .float { animation: float 7s ease-in-out infinite; }
+    @keyframes float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-6px) } }
+    .hero-underline path { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .9s cubic-bezier(.22,1,.36,1) .5s; }
+    .reveal.in .hero-underline path { stroke-dashoffset: 0; }
+    details > summary { list-style: none; cursor: pointer; }
+    details > summary::-webkit-details-marker { display: none; }
+    details[open] .faq-plus { transform: rotate(45deg); }
+    /* Square grid: thin lines forming squares, faded out towards the edges. */
+    .grid-lines {
+      --gl: rgba(51,57,127,.12);
+      --cell: 64px;
+      background-image:
+        linear-gradient(to right, var(--gl) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--gl) 1px, transparent 1px);
+      background-size: var(--cell) var(--cell);
+      background-position: center top;
+    }
+    .grid-lines--light { --gl: rgba(255,255,255,.085); }
+    .grid-fade {
+      -webkit-mask-image: radial-gradient(ellipse 72% 68% at 50% 42%, #000 35%, transparent 78%);
+              mask-image: radial-gradient(ellipse 72% 68% at 50% 42%, #000 35%, transparent 78%);
+    }
+    /* a few squares filled in, like the reference */
+    .grid-cell { position: absolute; width: var(--cell, 64px); height: var(--cell, 64px); background: rgba(51,57,127,.035); }
+    .dot-grid { background-image: radial-gradient(rgba(51,57,127,.13) 1px, transparent 1px); background-size: 18px 18px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .reveal { opacity: 1; transform: none; }
+      .hero-underline path { stroke-dashoffset: 0; }
+    }
+  </style>
+  <style>
+    .doc h2 { margin: 40px 0 12px; scroll-margin-top: 90px; font-family: Lexend, system-ui, sans-serif; font-size: 21px; font-weight: 600; letter-spacing: -.01em; color: #241A15; }
+    .doc h2:first-child { margin-top: 0; }
+    .doc p, .doc li { font-size: 15.5px; line-height: 1.75; color: #3D332D; }
+    .doc p { margin: 12px 0; }
+    .doc p.clause { padding-left: 0; }
+    .doc ul { margin: 10px 0 14px; padding-left: 22px; list-style: disc; }
+    .doc li { margin: 4px 0; }
+    .doc strong { color: #241A15; font-weight: 600; }
+    .doc a { color: #33397F; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+    .doc .var { color: #5C534D; font-weight: 600; }
+    .doc mark { background: #FBE6DA; color: #AD4C1D; border-radius: 4px; padding: 0 3px; }
+    .doc .box { display: inline-block; width: 14px; height: 14px; border: 1.5px solid #736C66; border-radius: 3px; vertical-align: -2px; margin-right: 2px; }
+    .doc .tbl { margin: 16px 0; overflow-x: auto; border: 1px solid #ECE5DA; border-radius: 14px; position: relative; }
+    .doc .tbl:focus-visible { outline: 2px solid #33397F; outline-offset: 2px; }
+    .doc table { width: 100%; min-width: 560px; border-collapse: collapse; font-size: 14px; }
+    .doc th { background: #F5F0E8; text-align: left; font-weight: 600; padding: 10px 14px; color: #241A15; }
+    .doc td { border-top: 1px solid #ECE5DA; padding: 10px 14px; vertical-align: top; line-height: 1.55; color: #3D332D; }
+    .toc a { display: block; border-radius: 8px; padding: 6px 10px; font-size: 13.5px; color: #5C534D; }
+    .toc a:hover { background: #F5F0E8; color: #241A15; }
+    .toc a.is-here { background: #ECEDF8; color: #33397F; font-weight: 600; }
+    .doc-tab { border-radius: 999px; border: 1.5px solid #ECE5DA; background: #fff; padding: 7px 14px; font-size: 13px; font-weight: 600; color: #5C534D; white-space: nowrap; }
+    .doc-tab:hover { border-color: #B8BBE6; }
+    .doc-tab[aria-current="page"] { border-color: #33397F; background: #33397F; color: #fff; }
+    a:focus-visible, .doc-tab:focus-visible { outline: 2px solid #33397F; outline-offset: 2px; }
+    @media print { header, aside, footer, .no-print { display: none !important; } body { background: #fff; } }
+  </style>
+  <link rel="stylesheet" href="app.css" />
+</head>
+<body class="bg-cream-light font-sans text-ink antialiased">
+  <a href="#doc" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-md focus:bg-white focus:px-4 focus:py-2">Skip to content</a>
+  <header class="sticky top-0 z-40 border-b border-cream-line bg-cream-light/95 backdrop-blur">
+    <div class="mx-auto flex h-[68px] max-w-[1100px] items-center justify-between gap-4 px-5">
+      <a href="index.html" class="logo" aria-label="banda, B and A Essentials, home">
+        <span class="logo-word" aria-hidden="true"><span class="logo-b">b<i class="logo-dot"></i></span>anda</span>
+        <span class="logo-tag" aria-hidden="true">B<span class="amp">&amp;</span>A ESSENTIALS</span>
+      </a>
+      <a href="index.html" class="text-[14px] font-semibold text-brand-navy hover:underline">Back to home</a>
+    </div>
+  </header>
+
+  <main id="doc" class="mx-auto max-w-[1100px] px-5 pb-16 pt-8">
+    <nav class="no-scrollbar no-print -mx-1 flex gap-2 overflow-x-auto px-1 pb-1" aria-label="Legal documents"><a href="terms.html" class="doc-tab" aria-current="page">Terms of Service</a><a href="privacy.html" class="doc-tab">Privacy Policy</a><a href="cookies.html" class="doc-tab">Cookie Notice</a></nav>
+    <div class="mt-6 grid gap-10 lg:grid-cols-[240px_minmax(0,1fr)]">
+      <aside class="hidden lg:block">
+        <nav class="toc sticky top-[92px]" aria-label="On this page">
+          <p class="mb-2 px-2.5 text-[11.5px] font-semibold uppercase tracking-[.12em] text-ink-soft">On this page</p>
+          <ul><li><a href="#1-about-these-terms">1. About these terms</a></li><li><a href="#2-your-account">2. Your account</a></li><li><a href="#3-what-the-service-includes">3. What the service includes</a></li><li><a href="#4-review-not-final-sign-off">4. Review, not final sign-off</a></li><li><a href="#5-fees-billing-and-cancellation">5. Fees, billing and cancellation</a></li><li><a href="#6-using-the-service">6. Using the service</a></li><li><a href="#7-intellectual-property-and-confidentiality">7. Intellectual property and confidentiality</a></li><li><a href="#8-suspension-and-ending-the-service">8. Suspension and ending the service</a></li><li><a href="#9-liability">9. Liability</a></li><li><a href="#10-general">10. General</a></li></ul>
+        </nav>
+      </aside>
+      <article class="min-w-0">
+        <h1 class="font-display text-[30px] font-semibold leading-tight tracking-[-0.02em] sm:text-[38px]">B&amp;A Essentials — Terms of Service</h1>
+        <p class="mt-2 text-[14px] text-ink-muted">Version 0.1 · Effective date: 12th of November, 2026</p>
+        <details class="no-print mt-5 rounded-2xl border border-cream-line bg-white p-4 lg:hidden">
+          <summary class="cursor-pointer text-[14px] font-semibold">On this page</summary>
+          <ul class="toc mt-2"><li><a href="#1-about-these-terms">1. About these terms</a></li><li><a href="#2-your-account">2. Your account</a></li><li><a href="#3-what-the-service-includes">3. What the service includes</a></li><li><a href="#4-review-not-final-sign-off">4. Review, not final sign-off</a></li><li><a href="#5-fees-billing-and-cancellation">5. Fees, billing and cancellation</a></li><li><a href="#6-using-the-service">6. Using the service</a></li><li><a href="#7-intellectual-property-and-confidentiality">7. Intellectual property and confidentiality</a></li><li><a href="#8-suspension-and-ending-the-service">8. Suspension and ending the service</a></li><li><a href="#9-liability">9. Liability</a></li><li><a href="#10-general">10. General</a></li></ul>
+        </details>
+        <div class="doc mt-8">
+<h2 id="1-about-these-terms">1. About these terms</h2>
+<p class="clause">1.1 These terms govern your access to and use of B&amp;A Essentials (the "Platform") at bandaessentials.com and the services we provide through it (the "Services"). They form a contract between you and B&amp;A Essential Services, a company registered in Nigeria with registration number <mark title="Registration number to be confirmed">BN 74100773</mark> and registered office at Plot 136 Alake Onile-Ere Crescent, Gbagada, Lagos ("B&amp;A Essentials", "we", "us"). In these terms, "you" means the business or person that opens an account.</p>
+<p class="clause">1.2 Your order (the plan you choose, its price and its allowances) and the scope of any task you accept form part of this contract. If they conflict with these terms, the order or accepted task scope applies to that plan or task.</p>
+<p class="clause">1.3 You accept these terms by ticking the acceptance box when you open your account, or by using the Platform after we have notified you of an update. We keep a record of the version you accepted and the time. Please read our <a href="privacy.html">Privacy Policy</a> and <a href="cookies.html">Cookie Notice</a> too. They explain how we handle personal data and are not part of these terms, but we refer to them below.</p>
+<p class="clause">1.4 The Services are for business and professional use. If you buy as a consumer, nothing in these terms limits your statutory consumer rights, including under the Federal Competition and Consumer Protection Act 2018.</p>
+<h2 id="2-your-account">2. Your account</h2>
+<p class="clause">2.1 Accounts are for one owner per business. During the pilot, an account cannot be shared between several users. You must be at least 18 and have authority to bind the business you register.</p>
+<p class="clause">2.2 You sign in with a one-time code sent to the WhatsApp number, phone number or email address you gave us. You must keep that channel secure. We will never ask you for a one-time code, a password or card details, whether by phone, message or email. Do not share a code with anyone, including someone who says they work for us.</p>
+<p class="clause">2.3 Give us accurate and current information, and tell us promptly if it changes. You are responsible for everything done through your account unless you told us it was compromised.</p>
+<p class="clause">2.4 If you think someone else has used your account or your sign-in channel, contact <a href="mailto:support@bandaessentials.com">support@bandaessentials.com</a> straight away.</p>
+<h2 id="3-what-the-service-includes">3. What the service includes</h2>
+<p class="clause">3.1 <strong>Plans and allowances.</strong> Your plan gives you the number of tasks and legal reviews shown at purchase. General administrative work and Legal &amp; IP Review are separate services with separate allowances. Your allowance period starts on your activation date, not on the first day of the calendar month. Unused allowance does not carry forward to the next period. Bonus tasks we grant you expire at the end of the period for which they were granted.</p>
+<p class="clause">3.2 <strong>What counts as a task.</strong> One submission uses one task, up to the limits for its category: Proposal and Document Support up to 10 pages; Contract and Legal Document Drafting or Review up to 15 pages (counted against your Legal &amp; IP allowance); Document Filing up to 20 files or records in a batch; Data Entry and Admin Upkeep up to 50 records; Business Registration one registration; Vendor or Event Outreach up to 5 third-party contacts; Travel and Event Logistics one trip or event. A submission under a limit still uses one whole task, so we encourage you to batch related items into one submission. A recurring reminder list of up to 25 entries counts as one task.</p>
+<p class="clause">3.3 <strong>Legal &amp; IP Review.</strong> Where your plan includes Legal &amp; IP Review, this means review by a qualified legal practitioner of the material you submit, within the agreed task scope. Filing work, such as company and trademark filings, counts against your Legal &amp; IP allowance. The Dedicated plan includes up to 4 Legal &amp; IP reviews a month. Further legal reviews are quoted to you before any work starts.</p>
+<p class="clause">3.4 <strong>Tasks outside your plan.</strong> If a request is outside your plan's coverage, we may move it to Scoping, where we tell you what is needed and quote the fee. Work with extra charges begins only after you accept the scope and fee on the Platform. We combine any extra service fee and any related third-party fee in one request to you.</p>
+<p class="clause">3.5 <strong>Staff and availability.</strong> Tasks are carried out by qualified staff and approved service providers. Some services depend on staff being available, and not every task type may be offered at all times. If we cannot take a request on, we tell you and the task does not use your allowance.</p>
+<p class="clause">3.6 <strong>Support hours and timing.</strong> Support runs from 9am to 5pm West Africa Time, Monday to Friday. We give a delivery time for each task in line with the timings in our service catalogue or in your accepted scope. Reminders you set are a convenience and not a service guarantee. If a task depends on a government body, bank or other third party, we cannot control their timing and we do not promise their decisions or outcomes.</p>
+<p class="clause">3.7 <strong>Calling third parties and written correspondence.</strong> We may phone a third party for you only where you explicitly authorise (By clicking the check mark to proceed) that contact for that specific task when you submit it, and confirm that the communication does not need your personal, legal or in-person action and that you are legally allowed to delegate it. We draft written correspondence (email or other persistent written communication) for you, but you send it. We never send written correspondence on your behalf.</p>
+<p class="clause">3.8 <strong>What we do not do.</strong> We do not sign, accept or negotiate contracts for you, send your documents to your customers or counterparties, represent you before a court or regulator, give tax filing services, or give legal advice on matters outside the task you submitted. Tax Readiness support means organising your records and documents for your own tax adviser. Statutory filings are made only where the task is explicitly scoped to include them and you have given the authority they need.</p>
+<h2 id="4-review-not-final-sign-off">4. Review, not final sign-off</h2>
+<p class="clause">4.1 <strong>What review means.</strong> Our review is intended to identify and reduce risk in your own decisions. It is not a warranty, a guarantee or a final legal opinion. Each deliverable shows who reviewed it and the scope that was agreed.</p>
+<p class="clause">4.2 <strong>Your responsibility.</strong> You keep sole responsibility for any decision to act on, rely on or forward any reviewed material to a third party. Please read each deliverable before you rely on it or send it on, and tell us promptly if you have a question or think something is wrong.</p>
+<p class="clause">4.3 <strong>No agency.</strong> We do not act as your agent, trustee or fiduciary. We do not accept or sign anything for you. Our internal release approval of a deliverable is a quality step and is not your contractual sign-off.</p>
+<p class="clause">4.4 <strong>Legal work.</strong> Legal work is reviewed and approved by a qualified person who may be different from the person who drafted it.</p>
+<p class="clause">4.5 <strong>Registrations and filings.</strong> Our registration and filing agent is accredited for company registration filings and is not an enrolled legal practitioner. We prepare and submit filings you have asked for where they are in scope, but approval or registration is decided by the relevant authority, and we cannot promise the result.</p>
+<p class="clause">4.6 <strong>Use of AI.</strong> AI-assisted features are optional and off by default. We use them only if you separately give consent, and a human professional decides every conclusion, Scoping outcome, extra charge and release.</p>
+<p class="clause">4.7 <strong>Third-party material.</strong> If your material contains information about other people, such as staff, customers or counterparties, you confirm that you are allowed to give it to us for the task. Where you can, remove details we do not need.</p>
+<h2 id="5-fees-billing-and-cancellation">5. Fees, billing and cancellation</h2>
+<p class="clause">5.1 <strong>Prices.</strong> Prices are in Nigerian naira and are shown at purchase before you pay. Current list prices are: Starter ₦65,000 a month, Growth ₦97,500 a month and Dedicated ₦260,000 a month. If you pay yearly, the price shown is the actual annual total (Starter ₦660,000, Growth ₦1,053,000, Dedicated ₦2,808,000). The monthly equivalent shown beside it is for comparison only and is not a monthly charge. If you joined on a founding-member or other pilot price, that price and its lock period are stated in your order.</p>
+<p class="clause">5.2 <strong>Tax.</strong> Each invoice states whether it is VAT inclusive or VAT exclusive. Please confirm the tax treatment with your own tax adviser.</p>
+<p class="clause">5.3 <strong>Statutory and third-party fees.</strong> We never pay statutory or third-party fees for you. Government fees (such as company registration fees) and third-party costs (such as vendor bookings) are shown to you and billed to you directly, separately from our service fee.</p>
+<p class="clause">5.4 <strong>Payments.</strong> We take payment through our payment providers, Paystack and, as a backup, Flutterwave. We do not see or store your full card details.</p>
+<p class="clause">5.5 <strong>Automatic renewal</strong></p>
+<p class="clause">5.5.1 Your plan renews automatically at the end of each billing period, for the same period and at the then-current price, until you cancel. This applies to monthly and yearly plans.</p>
+<p class="clause">5.5.2 Before you pay for the first time, we show you the plan, the price, how often you will be charged, the date of your first renewal, the total amount for a yearly plan, and how to cancel. We renew your plan only if you have ticked the box that says you agree to automatic renewal. We do not tick it for you, and you can still choose to cancel at any time.</p>
+<p class="clause">5.5.3 We record your agreement, including the wording we showed you, the version of these terms, the date and time, and the payment provider’s reference for your saved payment permission. We keep that record with our billing records.</p>
+<p class="clause">5.5.4 We send you a reminder before each renewal by WhatsApp, SMS or email, saying the amount, the renewal date and how to cancel. For monthly plans we send it at least five (5) days before renewal. For yearly plans we send it at least thirty (30) days before renewal, so you still have time to cancel.</p>
+<p class="clause">5.5.5 You can cancel renewal at any time through the Platform or at <a href="mailto:support@bandaessentials.com">support@bandaessentials.com</a>, as set out in clause 5.8. If you cancel before a renewal date, we do not charge that renewal, and your access ends at the end of the period you have already paid for.</p>
+<p class="clause">5.5.6 If a renewal payment fails, clause 5.6 applies. We may change the price of a future renewal only as clause 5.10 allows.</p>
+<p>The checkbox at checkout:</p>
+<p><em><span class="box" aria-hidden="true"></span> I agree that my <span class="var">[Growth]</span> plan renews automatically every <span class="var">[month / year]</span> at <span class="var">[₦97,500 / ₦1,053,000]</span> until I cancel. My first renewal is on <span class="var">[date]</span>. I can cancel with 30 days’ written notice.</em></p>
+<p>The box starts unticked, and payment cannot go ahead until it is ticked.</p>
+<p>The reminder message:</p>
+<p><em>Your B&amp;A Essentials <span class="var">[Growth]</span> plan renews on <span class="var">[date]</span> for <span class="var">[₦97,500]</span>. No action needed to continue. To cancel, tap <span class="var">[link]</span> or email <a href="mailto:support@bandaessentials.com">support@bandaessentials.com</a>.</em></p>
+<p class="clause">5.6 <strong>Payment problems</strong></p>
+<p class="clause">5.6.1 <strong>What this covers.</strong> A “payment problem” is any payment we are owed that does not go through. That includes a declined or expired card, not enough money in the account, a bank transfer that does not arrive, a payment provider error, a lapsed or withdrawn saved-payment permission, and a payment that is reversed or disputed.</p>
+<p class="clause">5.6.2 <strong>Telling you</strong>. If a payment fails, we tell you the same day by WhatsApp, SMS or email, and show a message in your account. You can pay again, or update your payment method, at any time on the Platform. We may retry a failed renewal up to three (3) times during the grace period.</p>
+<p class="clause">5.6.3 <strong>Grace period.</strong> You have a grace period of five (5) business days from the first failed attempt. During it, your service continues as normal. We send a reminder on the first and last day of the grace period.</p>
+<p class="clause">5.6.4 <strong>If it is still unpaid.</strong> After the grace period, we pause your service. While it is paused:</p>
+<ul><li>you cannot submit new tasks;</li><li>tasks already in progress are paused until you pay, and are not cancelled;</li><li>you can still see your records, task history and deliverables in read-only form; and</li><li>your allowance period does not extend for the days the service was paused.</li></ul>
+<p class="clause">5.6.5 <strong>Starting again.</strong> When you pay what is owed, your service resumes. Your new allowance period starts on the day you pay.</p>
+<p class="clause">5.6.6 <strong>If you do not pay.</strong> If the amount is still unpaid thirty (30) days after we paused your service, we may end your plan. The amount you owe stays due, and clause 8.4 and our retention periods continue to apply to your data.</p>
+<p class="clause">5.6.7 <strong>Extra quoted work.</strong> Work with an extra fee starts only after you accept the quote and pay. If the payment fails, the task waits for your payment and lapses after five (5) days. Statutory and third-party fees must be paid before we file or book anything that needs them.</p>
+<p class="clause">5.6.8 <strong>Disputed and reversed payments.</strong> If you think a charge is wrong, contact <a href="mailto:support@bandaessentials.com">support@bandaessentials.com</a> first so we can fix it quickly. If a payment is reversed through your bank or card provider, we treat it as unpaid, and we may pause the service while we look into it. If the reversal was made wrongly, you will cover the provider’s chargeback fee.</p>
+<p class="clause">5.6.9 <strong>Our mistakes and provider outages.</strong> If a payment fails because of an error on our side or an outage of our payment provider, we will not pause your service, and we will retry or fix it at no cost to you. If you are charged twice or by mistake, we refund you in cash promptly (clause 5.9.5).</p>
+<p class="clause">5.6.10 <strong>Saved payment permission.</strong> If the permission you gave for recurring payments lapses or is withdrawn, we will ask you to give it again. We never set up a new recurring payment without your agreement (clause 5.5).</p>
+<p class="clause">5.6.11 <strong>Late charges.</strong> We do not charge late fees. We may charge the reasonable costs of recovering an overdue amount, where the law allows.</p>
+<p class="clause">5.7 <strong>Changing plans.</strong> An upgrade takes effect immediately and is charged pro rata for the rest of the current period. A downgrade takes effect at the start of your next billing period.</p>
+<p class="clause">5.8 <strong>Cancelling.</strong> You may cancel by giving 30 days' written notice, which you can do through the Platform or at <a href="mailto:support@bandaessentials.com">support@bandaessentials.com</a>. You keep access through the notice period.</p>
+<p class="clause">5.9 <strong>Refunds</strong> <strong>and Credits</strong></p>
+<p class="clause">5.9.1 <strong>No refund for unused allowance.</strong> We do not refund unused tasks or legal reviews within a billing period you have paid for.</p>
+<p class="clause">5.9.2 <strong>Task refund.</strong> If we fail to deliver a confirmed, in-scope task by the delivery time we gave you, plus a grace period of two (2) business days, we refund the value of that task and return the task to your allowance. The value of a task is the price you actually paid for your plan period, divided by the number of tasks the plan includes for that period. For a yearly plan, we divide the yearly price by 12 first. For a task you accepted at an extra quoted fee, we refund the full quoted fee. We pay the refund to your original payment method, or as credit if you prefer. This does not apply where the delay was caused by you (for example, you did not give us the information we asked for) or by a government body or other third party outside our control.</p>
+<p><em>Examples at list price per month: Starter ₦65,000 ÷ 7 tasks = about ₦9,286; Growth ₦97,500 ÷ 20 = ₦4,875; Dedicated ₦260,000 ÷ 30 = about ₦8,667.</em></p>
+<p class="clause">5.9.3 <strong>Yearly plans: credit instead of cash.</strong> If you cancel a yearly plan, we give you credit for each full month of the plan that remains unused after your notice period ends. Each month’s credit is the yearly price you paid divided by twelve (12).</p>
+<p class="clause">5.9.4 <strong>How credit works.</strong> Credit stays on your account for twelve (12) months from the date it is given. You can use it to pay for a monthly plan, a new yearly plan, or quoted extra work. It cannot be exchanged for cash or transferred to another person. Unused credit expires at the end of that period.</p>
+<p class="clause">5.9.5 <strong>When we pay cash.</strong> We refund in cash, to your original payment method, if we end the Services other than because of your breach (clause 8.3), if a payment was taken by mistake or twice, or if the law requires.</p>
+<p class="clause">5.9.6 <strong>How refunds are paid.</strong> Refunds go back through Paystack or Flutterwave and may take several days to reach you. We bear payment provider fees on refunds that are our fault. Otherwise the fees are deducted. We keep a record showing each refund as approved, requested from the provider, and completed.</p>
+<p class="clause">5.10 <strong>Price changes.</strong> We may change prices for future periods by giving you at least thirty (30) days' notice. A change does not alter a quote, invoice or delivered task from before the change.</p>
+<h2 id="6-using-the-service">6. Using the service</h2>
+<p class="clause">6.1 <strong>Your content.</strong> "Your Content" means the documents, information and instructions you submit. You confirm that you have the right to provide Your Content and to ask us to work on it, and that doing so does not break any law or anyone else's rights.</p>
+<p class="clause">6.2 <strong>Revisions.</strong> Each delivered task includes one consolidated revision request, made within two (2) days of delivery, that stays within the original scope. If you need changes to the agreed outcome or additional work, we may quote a new task. If we made an error in a delivered task, tell us through the task's support route and we will correct it without counting it against your revision. A revised legal deliverable goes through release review again.</p>
+<p class="clause">6.3 <strong>Acceptable use.</strong> You must not:</p>
+<ul><li>submit requests that are unlawful, or that are meant to deceive, defraud or hide wrongdoing;</li><li>upload malicious files or files you have no right to share;</li><li>use a false identity, or act for someone without their authority;</li><li>try to access another customer's account, records or sign-in channel;</li><li>misuse the one-time code channels, or try to get around our security;</li><li>ask for work that needs your own personal, legal or in-person action; or</li><li>use the Platform in a way that could harm it, our staff or other users.</li></ul>
+<p class="clause">6.4 <strong>What we cannot take on.</strong> We may decline a request that is outside our services, outside the law, or needs specialist cover we do not have. We do not provide urgent court or regulator representation. We handle health-related material only as scheduling, billing and correspondence information and not as clinical notes or diagnoses. If we decline, we tell you why and the task does not use your allowance.</p>
+<p class="clause">6.5 <strong>Complaints.</strong> To make a complaint, use the task's support route or email <a href="mailto:support@bandaessentials.com">support@bandaessentials.com</a>. We acknowledge it within 24 hours. We resolve it, or refer it to a supervisor, within 5 business days, and a named person follows it through to the end.</p>
+<h2 id="7-intellectual-property-and-confidentiality">7. Intellectual property and confidentiality</h2>
+<p class="clause">7.1 <strong>Your material stays yours.</strong> You own Your Content. You give us a limited licence to use, copy and process it only as needed to provide the Services to you, and to meet our legal duties. We do not claim ownership of the agreements, records or other material you upload.</p>
+<p class="clause">7.2 <strong>Deliverables.</strong> When you have paid for a task, you own the deliverable we prepared for you, except for the Excluded Material. “Excluded Material” means our templates, tools, methods and know-how, and third-party material that carries its own licence. We give you a perpetual licence to use any Excluded Material that appears in your deliverable, for your own business.</p>
+<p class="clause">7.3 <strong>The Platform and brand.</strong> The Platform, its software, design, text, and the names "B&amp;A Essentials" and "banda" and any logos belong to us or our licensors. You may not copy, resell or reverse engineer them, or use our names or logos without our written consent.</p>
+<p class="clause">7.4 <strong>Confidentiality.</strong> We keep Your Content confidential. We share it only with staff and approved service providers who need it for the task, and who are bound by confidentiality duties, and where the law requires. We never use Your Content to train AI models. Details of how we handle personal data are in our <a href="privacy.html">Privacy Policy</a>.</p>
+<p class="clause">7.5 <strong>Feedback.</strong> If you give us ideas or suggestions about the Services, we may use them without paying you or crediting you.</p>
+<h2 id="8-suspension-and-ending-the-service">8. Suspension and ending the service</h2>
+<p class="clause">8.1 <strong>Suspension.</strong> We may suspend or limit your account if you break these terms, if a payment is overdue beyond the grace period, or if we reasonably believe your account is being misused or is a security risk. We will tell you why and what you can do, unless telling you would put the Platform, other users or an investigation at risk. We suspend only as far as is needed, and we keep complaint handling and your lawful access to your records in place.</p>
+<p class="clause">8.2 <strong>Ending by you.</strong> You may cancel as set out in clause 5.8.</p>
+<p class="clause">8.3 <strong>Ending by us.</strong> We may end the Services by giving you at least thirty (30) days' written notice. We may end them sooner if you seriously or repeatedly break these terms or the law, or if we are legally required to. If we end the Services other than for your breach, we refund the unused part of any fee you paid for a period or task we did not carry out.</p>
+<p class="clause">8.4 <strong>After your plan ends.</strong> When your plan expires or is refunded, your data and task history stay viewable in read-only form. You cannot submit new tasks until you reactivate your plan. You may export your records and deliverables while you have access.</p>
+<p class="clause">8.5 <strong>Keeping records.</strong> We keep records for the periods set out in our <a href="privacy.html">Privacy Policy</a>, including where we are required to by law or where a legal hold applies. A suspension or ending does not remove your rights or ours that arose before it.</p>
+<h2 id="9-liability">9. Liability</h2>
+<p class="clause">9.1 <strong>What we promise.</strong> We provide the Services with reasonable skill and care. Except as these terms say, we give no other promise or warranty about the Services, including that they will be uninterrupted or error-free, or that a third party will accept anything we prepare. This does not remove any right you have by law.</p>
+<p class="clause">9.2 <strong>Our liability cap.</strong> Subject to clause 9.4, our total liability to you for all claims arising from or connected with the Services is limited to the fees you paid us in the six (6) months before the event that gave rise to the claim.</p>
+<p class="clause">9.3 <strong>Indirect loss.</strong> Subject to clause 9.4, we are not liable for loss of profit, loss of business or goodwill, or any indirect or consequential loss.</p>
+<p class="clause">9.4 <strong>What is not limited.</strong> Nothing in these terms limits or excludes liability for gross negligence, wilful misconduct or fraud, for death or personal injury caused by negligence, or for anything else the law does not allow to be limited or excluded.</p>
+<p class="clause">9.5 <strong>Your responsibility.</strong> Clause 4.2 applies to everything in this clause. We are not liable for loss that comes from you relying on or forwarding reviewed material without checking it, from information you gave us that was wrong or incomplete, or from decisions made by third parties.</p>
+<p class="clause">9.6 <strong>Your indemnity.</strong> You will compensate us for losses, costs and claims that come from your breach of clauses 4.7, 6.1 or 6.3, or from a claim that Your Content or your instructions broke the law or another person's rights.</p>
+<h2 id="10-general">10. General</h2>
+<p class="clause">10.1 <strong>Changes to these terms.</strong> We may update these terms. We will tell you through the Platform or by email at least three (3) days before a change takes effect.</p>
+<p>(a) For most changes, if you keep using the Platform after that date, you accept the updated terms. If you do not agree, you may cancel before the date and we will not charge you for any period after it.</p>
+<p>(b) If a change affects your price, renewal, refunds, our liability, or how we use your personal data, we will ask you to confirm it on the Platform. Until you do, the earlier terms continue to apply to you or: you may not submit new tasks.</p>
+<p>(c) An update does not change a quote, invoice or delivered task from before it.</p>
+<p class="clause">10.2 <strong>Governing law and disputes.</strong> Nigerian law governs these terms. If a dispute arises, the parties will first try to settle it by talking. If that does not work, it will be referred to arbitration in Lagos before either party goes to court, under the Arbitration and Mediation Act 2023. Either party may ask a court for urgent orders to protect confidential information or intellectual property. Nothing here stops you using any complaint route or court that the law gives you.</p>
+<p class="clause">10.3 <strong>Events outside our control.</strong> Neither of us is in breach of these terms to the extent we are prevented from performing by something beyond our reasonable control, as long as we tell the other promptly and resume as soon as we can.</p>
+<p class="clause">10.4 <strong>Other terms.</strong> These terms, your order and any accepted task scope are the whole agreement between us about the Services. If a part is found unenforceable, the rest stays in force. You may not transfer your account or rights to anyone else without our written consent. We may transfer our rights to a successor to our business. A person who is not a party to this agreement has no right to enforce it.</p>
+<p class="clause">10.5 <strong>Contact.</strong> Support: <a href="mailto:support@bandaessentials.com">support@bandaessentials.com</a>. Privacy and data protection: <a href="mailto:dpo@bandaessentials.com">dpo@bandaessentials.com</a>. Website: bandaessentials.com. Postal address: Plot 136 Alake Onile-Ere Crescent, Gbagada, Lagos.</p>
+        </div>
+        <div class="no-print mt-10 flex flex-wrap gap-3 border-t border-cream-line pt-6 text-[14px]">
+          <button type="button" onclick="window.print()" class="rounded-full border-[1.5px] border-brand-navy px-4 py-2 font-semibold text-brand-navy hover:bg-brand-navy hover:text-white">Print or save as PDF</button>
+          <a href="#doc" class="rounded-full px-4 py-2 font-semibold text-ink-muted hover:bg-cream">Back to top</a>
+        </div>
+      </article>
+    </div>
+  </main>
+
+  <footer class="bg-cocoa-deep text-white">
+    <div class="mx-auto flex max-w-[1100px] flex-col gap-3 px-5 py-6 text-[13px] text-white/75 sm:flex-row sm:items-center sm:justify-between">
+      <p>© 2026 B &amp; A Essentials. All rights reserved.</p>
+      <ul class="flex flex-wrap gap-x-5 gap-y-2">
+        <li><a href="terms.html" class="hover:text-white">Terms</a></li>
+        <li><a href="privacy.html" class="hover:text-white">Privacy</a></li>
+        <li><a href="cookies.html" class="hover:text-white">Cookies</a></li>
+        <li><button type="button" data-cookie-settings class="hover:text-white">Cookie settings</button></li>
+      </ul>
+    </div>
+  </footer>
+  <script src="consent.js"></script>
+  <script>
+    // Highlight the section you're reading in the contents list.
+    const links = [...document.querySelectorAll('aside .toc a')];
+    if ('IntersectionObserver' in window && links.length) {
+      const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) links.forEach(a => a.classList.toggle('is-here', a.hash === '#' + e.target.id)); }), { rootMargin: '-90px 0px -70% 0px' });
+      document.querySelectorAll('.doc h2[id]').forEach(h => io.observe(h));
+    }
+  </script>
+</body>
+</html>
