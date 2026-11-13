@@ -471,6 +471,7 @@
               </dl>
             </div>
 
+            <p id="rvQuote" class="mt-5 rounded-xl bg-pill-navyBg px-4 py-2.5 text-[13px] font-medium text-brand-navy" hidden>Your plan&rsquo;s legal reviews for this month are used, so this one will be quoted before any work starts. Nothing is charged unless you accept the quote.</p>
             <label class="mt-5 flex cursor-pointer items-start gap-3 rounded-2xl bg-pill-navyBg px-4 py-3.5 text-[13.5px] leading-relaxed">
               <input id="confirm" type="checkbox" class="mt-0.5 h-[18px] w-[18px] shrink-0 accent-[#33397F]" aria-describedby="confirmErr" />
               <span>I confirm the information is accurate, and I agree to B &amp; A Essentials&rsquo; <a href="terms.html" target="_blank" rel="noopener" class="font-semibold text-brand-navy underline underline-offset-2">Terms of Service</a>.</span>
@@ -489,6 +490,8 @@
               <span class="done-burst relative mx-auto grid h-16 w-16 place-items-center rounded-full bg-pill-greenBg text-pill-greenTx"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-check h-8 w-8"><path d="M20 6 9 17l-5-5"></path></svg></span>
               <h2 id="doneTitle" class="step-title mt-4 font-display text-[24px] font-semibold" tabindex="-1">Request submitted</h2>
               <p class="mt-1 text-[14px] text-ink-muted">Your task is with our team. We&rsquo;ll keep you updated as it moves.</p>
+              <p id="doneQuote" class="mx-auto mt-3 max-w-[520px] rounded-xl bg-pill-navyBg px-4 py-2.5 text-[13px] font-medium text-brand-navy" hidden>Your plan&rsquo;s legal reviews for this month are used, so we&rsquo;ll send a quote before any work starts. Nothing is charged unless you accept it.</p>
+              <p id="doneUrgent" class="mx-auto mt-3 max-w-[520px] rounded-xl bg-pill-orangeBg px-4 py-2.5 text-[13px] font-medium text-brand-orangeDark" hidden>Marked urgent. We&rsquo;ll confirm whether we can meet your timeline before we start.</p>
 
               <div class="mx-auto mt-6 grid max-w-[520px] gap-3 rounded-2xl bg-cream-light p-4 text-left sm:grid-cols-2">
                 <div>
@@ -513,9 +516,10 @@
               </div>
 
               <div class="mx-auto mt-7 flex max-w-[520px] flex-col gap-2.5 sm:flex-row">
-                <a href="my-tasks.html" class="btn-next flex-1">View my tasks <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a>
+                <a href="my-tasks.html" id="viewReq" class="btn-next flex-1">View this request <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a>
                 <button type="button" id="another" class="btn-outline flex-1">Submit another task</button>
               </div>
+              <p class="mt-4 text-[13px]"><a href="my-tasks.html" class="font-semibold text-brand-navy underline underline-offset-2 hover:no-underline">See all my tasks</a></p>
             </div>
           </section>
         </section>
@@ -742,6 +746,8 @@
       $('rvDeadline').textContent = $('deadline').value ? new Date($('deadline').value + 'T12:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) : 'No deadline';
       $('rvDetails').textContent = details.value.trim();
       $('rvCallWrap').hidden = !needsCall();
+      const A = window.BANDA.ACCOUNT;
+      $('rvQuote').hidden = !(state.cat === 'legal' && A.legalUsed >= window.BANDA.PLANS[A.plan].legal);
       $('rvCall').textContent = needsCall() ? `${$('callWho').value.trim()}. You confirmed it needs no personal, legal or in-person action from you.` : '';
       $('rvFiles').innerHTML = state.files.length
         ? state.files.map(f => `<span class="mr-2 mt-1 inline-flex items-center gap-1.5 rounded-lg bg-cream-light px-2 py-1 text-[12.5px]"><i data-lucide="paperclip" class="h-3.5 w-3.5 text-brand-navy"></i>${esc(f.name)} <span class="text-ink-soft">(${fmtSize(f.size)})</span></span>`).join('')
@@ -760,13 +766,23 @@
 
     function submitRequest() {
       const btn = $('submitBtn'); btn.disabled = true;
-      // Design preview: no request is sent. The app will POST the form and files here,
-      // and the server will return the real reference number.
+      // Preview: the request is saved in this browser so it shows in My Tasks, the request page,
+      // Messages and Plan & Usage. The app will POST the form and files, and the server returns the reference.
       setTimeout(() => {
         btn.disabled = false;
         state.submitted = true;
-        const ref = 'REQ-' + new Date().getFullYear() + '-' + String(Math.floor(Math.random() * 9000) + 1000);
-        $('ref').textContent = ref;
+        const task = window.BANDA.add({
+          title: serviceName() || CATS[state.cat].name, cat: state.cat, service: serviceName(),
+          priority: priority(), due: $('deadline').value || null, details: details.value.trim(),
+          purpose: $('purpose').value, audience: $('audience').value.trim(),
+          call: needsCall() ? $('callWho').value.trim() : '',
+          files: state.files.map(f => [f.name, f.size]),
+        });
+        window.BANDA.paintCounts();
+        $('ref').textContent = task.id;
+        $('viewReq').href = 'task.html?id=' + encodeURIComponent(task.id);
+        $('doneUrgent').hidden = task.priority !== 'Urgent';
+        $('doneQuote').hidden = !task.needsQuote;
         $('submittedAt').textContent = new Date().toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' });
         $('copied').textContent = '';
         show(4);

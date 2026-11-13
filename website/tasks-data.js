@@ -1,7 +1,7 @@
 /* Sample task data shared by My Tasks (my-tasks.html) and Request Detail (task.html).
    Design preview only: the Django app will serve real tasks from its API.
-   Changes a viewer makes (cancelling, sending a message) are kept in this browser tab
-   with sessionStorage so the preview flows between pages. */
+   Changes a viewer makes (submitting a request, cancelling, sending a message) are kept in
+   this browser with localStorage, so the preview flows between pages and tabs. */
 (function () {
   const CATS = {
     business: { name: 'Business & Admin', icon: 'briefcase', tone: 'bg-pill-navyBg text-brand-navy' },
@@ -26,21 +26,21 @@
   // A request can be cancelled until a specialist starts on it.
   const CANCELLABLE = ['submitted', 'scoping'];
 
+  // The two choices the Submit a Task form offers.
   const PRIORITY = {
-    High: 'bg-pill-orangeBg text-brand-orangeDark',
-    Medium: 'bg-pill-navyBg text-brand-navy',
-    Low: 'bg-cream text-ink-muted',
+    Urgent: 'bg-pill-orangeBg text-brand-orangeDark',
+    Standard: 'bg-pill-navyBg text-brand-navy',
   };
 
   const TEAM = 'B & A team';
   const TASKS = [
-    { id: 'REQ-2026-0048', title: 'Business proposal document', cat: 'business', service: 'Proposal review and editing', status: 'progress', priority: 'Medium',
+    { id: 'REQ-2026-0048', title: 'Business proposal document', cat: 'business', service: 'Proposal review and editing', status: 'progress', priority: 'Standard',
       submitted: '2026-11-06T10:24', due: '2026-11-13',
       details: 'Review and tighten our proposal for the Lagos State catering tender. Keep it under 12 pages and make the pricing section clearer.',
       files: [['Catering_Tender_Proposal_v3.docx', 1840000], ['Pricing_Sheet.xlsx', 96000]],
       messages: [[TEAM, '2026-11-07T09:10', 'Thanks, Chinedu. We’ve started on the proposal and will send a first draft by Wednesday.'],
         [TEAM, '2026-11-11T16:20', 'Your first draft is in Deliverables. Approve it, or tell us here what you’d like changed.']] },
-    { id: 'REQ-2026-0047', title: 'Social media content calendar', cat: 'addons', service: 'Social media management', status: 'input', priority: 'High',
+    { id: 'REQ-2026-0047', title: 'Social media content calendar', cat: 'addons', service: 'Social media management', status: 'input', priority: 'Urgent',
       submitted: '2026-11-05T15:42', due: '2026-11-15',
       details: 'A 3-month content calendar for Instagram and TikTok for our new snack range, with post ideas and captions.',
       files: [['Brand_Guidelines.pdf', 2310000]],
@@ -50,50 +50,50 @@
         ['You', '2026-11-06T13:05', 'Playful, but no slang. I’ll check the quote today.'],
         [TEAM, '2026-11-07T10:02', 'Great. Once the quote is paid we’ll start. Can you share 3 accounts you like the style of?'],
       ] },
-    { id: 'REQ-2026-0046', title: 'Trademark filing support', cat: 'legal', service: 'Trademark application', status: 'scoping', priority: 'High',
+    { id: 'REQ-2026-0046', title: 'Trademark filing support', cat: 'legal', service: 'Trademark application', status: 'scoping', priority: 'Urgent',
       submitted: '2026-11-04T09:10', due: '2026-11-16',
       details: 'File a trademark for our brand name “Okeke Foods” and the logo, in the class for packaged snacks.',
       files: [['Okeke_Foods_Logo.png', 412000]],
       messages: [[TEAM, '2026-11-05T10:24', 'We’ve received your trademark request and moved it to scoping. A legal reviewer will check the details and may ask for more information.'],
         ['You', '2026-11-05T10:32', 'Thank you. I’ll keep an eye on it.'],
         ['Mr Ayodeji · Legal reviewer', '2026-11-12T09:12', 'We’ve reviewed your name and logo. Please go through the attached checklist and confirm the details, so we can finish scoping.', { files: [['Trademark_Filing_Checklist.pdf', 245000]] }]] },
-    { id: 'REQ-2026-0045', title: 'Monthly bookkeeping', cat: 'addons', service: 'Bookkeeping support', status: 'delivered', priority: 'Medium',
+    { id: 'REQ-2026-0045', title: 'Monthly bookkeeping', cat: 'addons', service: 'Bookkeeping support', status: 'delivered', priority: 'Standard',
       submitted: '2026-10-28T11:12', due: '2026-11-05',
       details: 'Record October sales and expenses from the attached statements and receipts.',
       files: [['October_Statement.pdf', 880000], ['Receipts_October.pdf', 3400000]],
       messages: [[TEAM, '2026-11-04T16:40', 'Your October books are ready. The summary shows a few uncategorised expenses we flagged for you.']] },
-    { id: 'REQ-2026-0044', title: 'Vendor coordination', cat: 'ops', service: 'Schedule and brief a vendor', status: 'input', priority: 'Medium',
+    { id: 'REQ-2026-0044', title: 'Vendor coordination', cat: 'ops', service: 'Schedule and brief a vendor', status: 'input', priority: 'Standard',
       submitted: '2026-11-03T16:36', due: '2026-11-18',
       details: 'Brief our new packaging supplier on the December order and agree a delivery date.',
       files: [],
       messages: [[TEAM, '2026-11-05T12:15', 'Could you share the supplier’s contact person and the order quantities for December?']] },
-    { id: 'REQ-2026-0043', title: 'Company registration', cat: 'legal', service: 'CAC limited company', status: 'progress', priority: 'High',
+    { id: 'REQ-2026-0043', title: 'Company registration', cat: 'legal', service: 'CAC limited company', status: 'progress', priority: 'Urgent',
       submitted: '2026-11-02T14:07', due: '2026-11-20',
       details: 'Register Okeke Foods as a limited company. Two directors; documents attached.',
       files: [['Director_IDs.pdf', 1200000], ['Proposed_Names.docx', 42000]],
       messages: [[TEAM, '2026-11-04T10:30', 'Name search approved. We’re preparing the incorporation documents.']] },
-    { id: 'REQ-2026-0042', title: 'Inventory tracker spreadsheet', cat: 'business', service: 'CRM or spreadsheet updates', status: 'delivered', priority: 'Low',
+    { id: 'REQ-2026-0042', title: 'Inventory tracker spreadsheet', cat: 'business', service: 'CRM or spreadsheet updates', status: 'delivered', priority: 'Standard',
       submitted: '2026-10-27T13:05', due: '2026-11-03',
       details: 'Clean up our inventory sheet and add low-stock alerts.',
       files: [['Inventory_2026.xlsx', 230000]], messages: [] },
-    { id: 'REQ-2026-0041', title: 'NDA review', cat: 'legal', service: 'NDA', status: 'delivered', priority: 'Medium',
+    { id: 'REQ-2026-0041', title: 'NDA review', cat: 'legal', service: 'NDA', status: 'delivered', priority: 'Standard',
       submitted: '2026-10-22T09:45', due: '2026-10-30',
       details: 'Review the NDA from a distributor before we share our recipes.',
       files: [['Distributor_NDA.pdf', 320000]], messages: [] },
-    { id: 'REQ-2026-0040', title: 'Q3 income summary', cat: 'tax', service: 'Income summary', status: 'checking', priority: 'Medium',
+    { id: 'REQ-2026-0040', title: 'Q3 income summary', cat: 'tax', service: 'Income summary', status: 'checking', priority: 'Standard',
       submitted: '2026-11-01T12:20', due: '2026-11-14',
       details: 'Compile July to September income from our invoices for our accountant.',
       files: [['Q3_Invoices.zip', 5600000]],
       messages: [[TEAM, '2026-11-12T09:05', 'Your Q3 income summary is with our quality check. You’ll have it by 14 Nov.']] },
-    { id: 'REQ-2026-0039', title: 'Abuja trip: flights and hotel', cat: 'ops', service: 'Flight and hotel booking', status: 'delivered', priority: 'High',
+    { id: 'REQ-2026-0039', title: 'Abuja trip: flights and hotel', cat: 'ops', service: 'Flight and hotel booking', status: 'delivered', priority: 'Urgent',
       submitted: '2026-10-20T08:30', due: '2026-10-28',
       details: 'Return flights Lagos–Abuja for 2 people, 27–29 Oct, and a hotel near the Wuse 2 office.',
       files: [], messages: [] },
-    { id: 'REQ-2026-0038', title: 'Brand deal contract filing', cat: 'creator', service: 'File brand deal contracts', status: 'submitted', priority: 'Low',
+    { id: 'REQ-2026-0038', title: 'Brand deal contract filing', cat: 'creator', service: 'File brand deal contracts', status: 'submitted', priority: 'Standard',
       submitted: '2026-11-11T17:50', due: '2026-11-22',
       details: 'File the signed brand deal contracts from this quarter and set up a folder for future ones.',
       files: [['Signed_Contracts.zip', 4100000]], messages: [] },
-    { id: 'REQ-2026-0037', title: 'Monthly invoices', cat: 'business', service: 'Create and send invoices', status: 'hold', priority: 'Medium',
+    { id: 'REQ-2026-0037', title: 'Monthly invoices', cat: 'business', service: 'Create and send invoices', status: 'hold', priority: 'Standard',
       submitted: '2026-10-30T10:00', due: '2026-11-25',
       details: 'Create and send November invoices to our 14 retail customers.',
       files: [['Customer_List.xlsx', 54000]],
@@ -133,16 +133,45 @@
 
   // ---------- session overrides (status changes and new messages) ----------
   const KEY = 'banda.tasks.v1';
-  function readStore() { try { return JSON.parse(sessionStorage.getItem(KEY)) || {}; } catch { return {}; } }
-  function writeStore(s) { try { sessionStorage.setItem(KEY, JSON.stringify(s)); } catch { /* storage blocked: changes last until reload */ } }
+  function readStore() {
+    try {
+      const saved = localStorage.getItem(KEY) || sessionStorage.getItem(KEY);
+      return JSON.parse(saved) || {};
+    } catch { return {}; }
+  }
+  function writeStore(s) { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch { /* storage blocked: changes last until reload */ } }
   let store = readStore();
+  // Another tab changed something: pick it up so every open page agrees.
+  addEventListener('storage', e => { if (e.key === KEY) { store = readStore(); if (typeof paintCounts === 'function') paintCounts(); } });
 
   function withOverrides(t) {
     const o = store[t.id] || {};
     return Object.assign({}, t, { status: o.status || t.status, messages: t.messages.concat(o.messages || []), files: t.files.concat(o.files || []) });
   }
-  const all = () => TASKS.map(withOverrides);
-  const find = id => { const t = TASKS.find(x => x.id === id); return t ? withOverrides(t) : null; };
+  // Requests submitted in this preview come first, newest at the top.
+  const source = () => (store.added || []).slice().reverse().concat(TASKS);
+  const all = () => source().map(withOverrides);
+  const find = id => { const t = source().find(x => x.id === id); return t ? withOverrides(t) : null; };
+
+  // Submit a Task creates the request here. The app's API will do this and return the reference.
+  function add(req) {
+    const year = new Date().getFullYear();
+    const next = Math.max(0, ...source().filter(t => t.id.startsWith(`REQ-${year}-`)).map(t => +t.id.slice(9))) + 1;
+    const id = `REQ-${year}-${String(next).padStart(4, '0')}`;
+    // Legal work beyond the plan's legal reviews is quoted before any work starts (Terms 3.3).
+    const needsQuote = req.cat === 'legal' && ACCOUNT.legalUsed >= PLANS[ACCOUNT.plan].legal;
+    const task = {
+      id, needsQuote, title: req.title, cat: req.cat, service: req.service, status: 'submitted', priority: req.priority === 'Urgent' ? 'Urgent' : 'Standard',
+      submitted: nowLocal(), due: req.due || null, details: req.details, purpose: req.purpose || '', audience: req.audience || '',
+      call: req.call || '', files: req.files || [], messages: [],
+    };
+    store.added = (store.added || []).concat(task);
+    if (req.cat === 'legal') { if (needsQuote) ACCOUNT.legalQuoted = (ACCOUNT.legalQuoted || 0) + 1; else ACCOUNT.legalUsed += 1; }
+    else if (req.cat !== 'addons') { ACCOUNT.tasksUsed += 1; ACCOUNT.byCat[req.cat] = (ACCOUNT.byCat[req.cat] || 0) + 1; ACCOUNT.daily[ACCOUNT.daily.length - 1] += 1; }
+    store.nextra = (store.nextra || []).concat({ id: 'N-' + id, kind: 'request', at: task.submitted, title: 'Request received', text: `We’ve received ${id} (${task.title}).${needsQuote ? ' Your plan’s legal reviews are used up, so we’ll send a quote before starting.' : ''}${task.priority === 'Urgent' ? ' You marked it urgent, so we’ll confirm the timeline before starting.' : ''}`, href: 'task.html?id=' + id });
+    writeStore(store);
+    return task;
+  }
   function update(id, change) {
     const o = store[id] || {};
     if (change.status) o.status = change.status;
@@ -173,6 +202,15 @@
     previous: { label: '28 Sep – 27 Oct', used: 17, legalUsed: 1, daily: [0, 1, 2, 2, 3, 4, 4, 5, 6, 7, 7, 8, 8, 9, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16, 16, 16, 17, 17] },
     card: { brand: 'Visa', last4: '4081', expires: '09/2028' },
   };
+  // Requests submitted in this preview count toward this cycle. Legal & IP uses the legal
+  // allowance, Specialized Add-Ons are quoted separately, and cancelled requests don't count.
+  (store.added || []).forEach(t => {
+    if ((store[t.id] || {}).status === 'cancelled' || t.cat === 'addons') return;
+    if (t.cat === 'legal') { if (t.needsQuote) ACCOUNT.legalQuoted = (ACCOUNT.legalQuoted || 0) + 1; else ACCOUNT.legalUsed += 1; return; }
+    ACCOUNT.tasksUsed += 1;
+    ACCOUNT.byCat[t.cat] = (ACCOUNT.byCat[t.cat] || 0) + 1;
+    ACCOUNT.daily[ACCOUNT.daily.length - 1] += 1;
+  });
   // Each invoice states whether it includes VAT (Terms 5.2). Sample values.
   const INVOICES = [
     { id: 'INV-2026-0052', vat: 'VAT exclusive', date: '2026-11-06', due: '2026-11-20', desc: 'Social media management (add-on quote)', task: 'REQ-2026-0047', amount: 120000, status: 'due' },
@@ -276,9 +314,9 @@
     { id: 'N-25', kind: 'account', at: '2026-11-03T08:00', title: 'Planned maintenance', text: 'The app may be unavailable on Sat 21 Nov 2026, 1am–3am WAT. Requests already sent aren’t affected.', read: true },
     { id: 'N-24', kind: 'account', at: '2026-10-28T08:05', title: 'Plan renewed', text: 'Your Growth plan renewed for 28 Oct – 27 Nov. It renews next on 28 Nov 2026.', href: 'plan.html', read: true },
   ];
-  const notes = () => NOTES.map(n => Object.assign({}, n, { read: n.read || (store.nread || []).includes(n.id) })).sort((a, b) => (a.at < b.at ? 1 : -1));
+  const notes = () => NOTES.concat(store.nextra || []).map(n => Object.assign({}, n, { read: n.read || (store.nread || []).includes(n.id) })).sort((a, b) => (a.at < b.at ? 1 : -1));
   function readNote(id) { store.nread = Array.from(new Set((store.nread || []).concat(id))); writeStore(store); }
-  const readAllNotes = () => { store.nread = NOTES.map(n => n.id); writeStore(store); };
+  const readAllNotes = () => { store.nread = NOTES.concat(store.nextra || []).map(n => n.id); writeStore(store); };
   const unreadNotes = () => notes().filter(n => !n.read).length;
 
   // Every page's menu badge, message icon and bell show the live counts.
@@ -309,7 +347,7 @@
   }
   const chip = (cls, text) => `<span class="chip-status ${cls}">${esc(text)}</span>`;
 
-  window.BANDA = { CATS, STATUS, CANCELLABLE, PRIORITY, all, find, update, esc, toDate, fmtDate, fmtDateTime, fmtSize, naira, chip,
+  window.BANDA = { CATS, STATUS, CANCELLABLE, PRIORITY, all, find, add, update, esc, toDate, fmtDate, fmtDateTime, fmtSize, naira, chip,
     DSTATUS, DOWNLOADABLE, REVISION_NOTE, deliverables, deliverablesFor, setDeliverable, fileType, nowLocal, toast,
     PLANS, ACCOUNT, ISTATUS, invoices, payInvoice, invoiceForTask, getPref, setPref,
     SUPPORT, TOPICS, TSTATUS, getList, setList,
