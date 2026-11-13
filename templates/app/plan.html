@@ -9,13 +9,36 @@
       <h2 class="text-sm font-semibold text-navy-900">Current plan</h2>
       {% if subscription %}
         <p class="mt-3 text-lg font-semibold text-navy-900">{{ subscription.plan.name }}</p>
-        <p class="mt-1 text-sm text-slate-500">{{ subscription.plan.monthly_task_allowance }} included tasks per period.</p>
+        <p class="mt-1 text-sm text-slate-500">{{ subscription.plan.monthly_task_allowance }} included tasks per period &middot; {{ subscription.plan.legal_review_label }}.</p>
         <dl class="mt-4 space-y-2 text-sm">
-          <div class="flex justify-between gap-3"><dt class="text-slate-500">Remaining</dt><dd class="font-medium text-navy-900">{{ allowance_remaining }}</dd></div>
+          <div class="flex justify-between gap-3"><dt class="text-slate-500">Tasks remaining</dt><dd class="font-medium tabular-nums text-navy-900">{{ allowance_remaining }}</dd></div>
+          <div class="flex justify-between gap-3"><dt class="text-slate-500">Legal reviews remaining</dt><dd class="text-right font-medium tabular-nums text-navy-900">{{ legal_remaining }}{% if legal_window_start %}<span class="block text-xs font-normal text-slate-400">this {% if subscription.plan.legal_review_period_months == 3 %}quarter{% else %}month{% endif %}, from {{ legal_window_start|date:"j M" }}</span>{% endif %}</dd></div>
           <div class="flex justify-between gap-3"><dt class="text-slate-500">Period</dt><dd class="text-right text-navy-900">{{ subscription.period_start|date:"j M Y" }} – {{ subscription.period_end|date:"j M Y" }}</dd></div>
           <div class="flex justify-between gap-3"><dt class="text-slate-500">Status</dt><dd>{% include "partials/status_badge.html" with status=subscription.status %}</dd></div>
         </dl>
         <a class="btn-secondary btn-sm mt-4" href="{% url 'billing-home' %}">View invoices</a>
+
+        {% if upgrades %}
+          <div class="mt-6 border-t border-slate-100 pt-5 scroll-mt-24" id="upgrade">
+            <h3 class="text-sm font-semibold text-navy-900">Move up</h3>
+            <p class="mt-1 text-xs text-slate-500">A bigger plan starts as soon as Paystack confirms the payment. Today you pay only the difference for the rest of this period; your renewal date stays {{ subscription.period_end|date:"j M Y" }}.</p>
+            <ul class="mt-3 space-y-3">
+              {% for plan, charge in upgrades %}
+                <li class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 p-4">
+                  <div>
+                    <p class="font-semibold text-navy-900">{{ plan.name }}</p>
+                    <p class="text-sm text-slate-500">{{ plan.price_minor|money_minor:plan.currency }} a month &middot; {{ plan.monthly_task_allowance }} tasks &middot; {{ plan.legal_review_label }}</p>
+                    <p class="text-xs text-slate-500">{{ charge|money_minor:plan.currency }} today</p>
+                  </div>
+                  {% if can_buy and payments_enabled %}
+                    <form method="post" action="{% url 'plan-upgrade' plan_slug=plan.slug %}">{% csrf_token %}<button class="btn-primary btn-sm">Upgrade to {{ plan.name }}</button></form>
+                  {% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+            {% if not can_buy %}<p class="mt-3 text-xs text-slate-500">Only the business owner can change the plan.</p>{% elif not payments_enabled %}<p class="mt-3 text-xs text-slate-500">Card payment isn&rsquo;t open yet. Contact support to change your plan.</p>{% endif %}
+          </div>
+        {% endif %}
       {% else %}
         <p class="mt-3 text-sm text-slate-500">No active plan. Each request is quoted and invoiced individually.</p>
         {% if plans %}
@@ -40,6 +63,18 @@
         {% endif %}
         <a class="btn-secondary btn-sm mt-4" href="{% url 'billing-home' %}">View invoices</a>
       {% endif %}
+    </section>
+
+    <section class="card card-pad lg:col-span-2">
+      <h2 class="text-sm font-semibold text-navy-900">Services in your plan</h2>
+      <ul class="mt-3 grid gap-2 sm:grid-cols-2">
+        {% for category, access in categories %}
+          <li class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm">
+            <span class="{% if access.allowed %}text-navy-900{% else %}text-slate-400{% endif %}">{{ category.name }}</span>
+            {% if access.allowed %}<span class="badge bg-brand-50 text-brand-700 ring-brand-200">Included</span>{% else %}<span class="badge bg-slate-100 text-slate-600 ring-slate-300">On {{ access.required_plan.name|default:"a bigger plan" }}</span>{% endif %}
+          </li>
+        {% endfor %}
+      </ul>
     </section>
 
     <section class="card">

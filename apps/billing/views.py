@@ -1,12 +1,15 @@
 from __future__ import annotations
 
+from django.conf import settings
 from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
 
+from apps.billing import plan_rules
 from apps.billing import services as billing
+from apps.catalogue.models import ServiceCategory
 from apps.billing.models import Invoice, PaymentAttempt, Plan, UsageLedger
 from apps.core.exceptions import PermissionFailure, ValidationFailure
 from apps.organizations.access import client_required
@@ -31,6 +34,14 @@ def plan_home(request):
             "usage": usage.order_by("-created_at")[:100],
             "plans": plans if subscription is None else [],
             "can_buy": request.membership.role == "owner",
+            "upgrades": billing.upgrade_options(request.organization),
+            "legal_remaining": plan_rules.legal_reviews_remaining(request.organization),
+            "legal_window_start": plan_rules.legal_window_start(subscription) if subscription else None,
+            "categories": [
+                (category, plan_rules.category_access(request.organization, category))
+                for category in ServiceCategory.objects.filter(is_active=True)
+            ],
+            "payments_enabled": settings.PAYMENTS_ENABLED,
         },
     )
 
@@ -51,6 +62,24 @@ def plan_checkout(request, plan_slug):
         messages.error(request, exc.message)
         return redirect("plan-home")
     # paystack.initialize only returns an https address on Paystack's checkout host.
+    return redirect(checkout_url)
+
+
+@client_required
+@require_POST
+def plan_upgrade(request, plan_slug):
+    """Move up to a bigger plan. Today's price comes from the server; the plan changes only once Paystack confirms."""
+    return_url = request.build_absolute_uri(reverse("plan-checkout-return"))
+    try:
+        checkout_url = billing.start_upgrade_checkout(
+            organization=request.organization,
+            membership=request.membership,
+            plan_slug=plan_slug,
+            return_url=return_url,
+        )
+    except (ValidationFailure, PermissionFailure) as exc:
+        messages.error(request, exc.message)
+        return redirect("plan-home")
     return redirect(checkout_url)
 
 

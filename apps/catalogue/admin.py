@@ -7,7 +7,7 @@ from .models import ServiceCategory, ServiceDefinition, ServiceVersion
 
 @admin.register(ServiceCategory)
 class ServiceCategoryAdmin(admin.ModelAdmin):
-    list_display = ("name", "slug", "sort_order", "is_active")
+    list_display = ("name", "slug", "sort_order", "minimum_plan_rank", "uses_legal_allowance", "is_active")
     list_filter = ("is_active",)
     search_fields = ("name", "slug")
 

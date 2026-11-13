@@ -12,7 +12,7 @@ from django.utils import timezone
 from apps.accounts.permissions import QUOTE_SEND, require_perm
 from apps.audit import services as audit_service
 from apps.billing import services as billing
-from apps.billing.models import Invoice, UsageKind, UsageLedger
+from apps.billing.models import COVERING_USAGE_KINDS, Invoice, UsageLedger
 from apps.core import idempotency
 from apps.core.exceptions import InvalidTransition, ValidationFailure
 from apps.tasks import transitions
@@ -156,7 +156,7 @@ def accept_quote(
         )
         if reserved.replayed:
             covered = UsageLedger.objects.filter(
-                task=task, kind=UsageKind.ALLOWANCE
+                task=task, kind__in=COVERING_USAGE_KINDS
             ).exists()
             invoice = Invoice.objects.filter(task=task, quote_version=version).first()
             return AcceptanceOutcome(
