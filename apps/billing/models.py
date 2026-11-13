@@ -100,6 +100,14 @@ class Invoice(TimeStampedModel):
         blank=True,
         related_name="invoices",
     )
+    # Set for a plan's monthly charge; empty for a quoted request.
+    plan = models.ForeignKey(
+        Plan,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="invoices",
+    )
     amount_minor = models.BigIntegerField()
     currency = models.CharField(max_length=3, default="NGN")
     status = models.CharField(

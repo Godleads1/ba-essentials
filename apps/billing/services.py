@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import calendar
 import hashlib
 import hmac
 import json
 import logging
+import uuid
 from dataclasses import dataclass
 from datetime import timedelta
 
@@ -21,11 +23,13 @@ from apps.core.exceptions import (
 from apps.core.sequences import next_value
 from apps.quotes.models import Quote, QuoteStatus
 
+from . import paystack
 from .models import (
     Invoice,
     InvoiceStatus,
     PaymentAttempt,
     PaymentStatus,
+    Plan,
     ProviderWebhookEvent,
     Subscription,
     SubscriptionStatus,
@@ -270,6 +274,108 @@ def record_offline_payment(
     return attempt
 
 
+class PaymentProviderUnavailable(Exception):
+    """The payment provider couldn't be reached; the caller should retry later."""
+
+
+def add_months(moment, months: int):
+    """Same day and time `months` later, clamped to the end of shorter months."""
+    month_index = moment.month - 1 + months
+    year = moment.year + month_index // 12
+    month = month_index % 12 + 1
+    day = min(moment.day, calendar.monthrange(year, month)[1])
+    return moment.replace(year=year, month=month, day=day)
+
+
+def start_plan_checkout(*, organization, membership, plan_slug: str, return_url: str) -> str:
+    """Create the plan invoice and payment record, then start Paystack checkout.
+
+    Price, currency and customer all come from the server. Returns the hosted
+    checkout address. Nothing is activated here: only a verified payment does
+    that (`process_webhook`).
+    """
+    from apps.organizations.models import MembershipRole
+
+    if not settings.PAYMENTS_ENABLED:
+        raise ValidationFailure("Payments aren't open yet.")
+    if membership.role != MembershipRole.OWNER:
+        raise PermissionFailure("Only the business owner can choose a plan.")
+    plan = Plan.objects.filter(slug=plan_slug, is_active=True).first()
+    if plan is None or plan.price_minor <= 0:
+        raise ValidationFailure("That plan isn't available.")
+    if plan.currency != settings.PAYSTACK_BASE_CURRENCY:
+        raise ValidationFailure("That plan can't be paid with Paystack.")
+    if active_subscription(organization) is not None:
+        raise ValidationFailure("Your business already has an active plan.")
+
+    user = membership.user
+    reference = f"BA-{uuid.uuid4().hex[:24].upper()}"
+    with transaction.atomic():
+        # Trying again reuses the open invoice for this plan and price, so an
+        # abandoned checkout doesn't leave a trail of unpaid invoices. The old
+        # payment reference stays valid: if it's paid late, it pays this invoice.
+        invoice = (
+            Invoice.objects.select_for_update()
+            .filter(
+                organization=organization,
+                plan=plan,
+                status=InvoiceStatus.ISSUED,
+                amount_minor=plan.price_minor,
+                currency=plan.currency,
+            )
+            .order_by("-issued_at")
+            .first()
+        )
+        if invoice is None:
+            number = next_value("invoice.number", start=1000)
+            invoice = Invoice.objects.create(
+                number=f"INV-{timezone.now():%Y}-{number}",
+                organization=organization,
+                plan=plan,
+                amount_minor=plan.price_minor,
+                currency=plan.currency,
+                status=InvoiceStatus.ISSUED,
+                due_at=timezone.now() + timedelta(days=1),
+            )
+        attempt = PaymentAttempt.objects.create(
+            invoice=invoice,
+            provider="paystack",
+            reference=reference,
+            amount_minor=invoice.amount_minor,
+            currency=invoice.currency,
+            status=PaymentStatus.INITIATED,
+        )
+        audit_service.record(
+            action="billing.checkout_started",
+            actor=user,
+            organization_id=organization.pk,
+            resource_type="invoice",
+            resource_id=str(invoice.pk),
+            metadata={"plan": plan.slug, "amount_minor": plan.price_minor, "reference": reference},
+        )
+
+    try:
+        return paystack.initialize(
+            email=user.email,
+            amount_minor=attempt.amount_minor,
+            currency=attempt.currency,
+            reference=reference,
+            callback_url=return_url,
+            metadata={"invoice": invoice.number, "plan": plan.slug},
+        )
+    except paystack.PaystackError as exc:
+        PaymentAttempt.objects.filter(pk=attempt.pk).update(
+            status=PaymentStatus.FAILED, provider_status="initialize failed", updated_at=timezone.now()
+        )
+        # Void the invoice only if no other attempt on it could still be paid.
+        if not invoice.payment_attempts.exclude(pk=attempt.pk).exclude(status=PaymentStatus.FAILED).exists():
+            Invoice.objects.filter(pk=invoice.pk, status=InvoiceStatus.ISSUED).update(
+                status=InvoiceStatus.VOID, updated_at=timezone.now()
+            )
+        logger.warning("Paystack checkout could not start for %s: %s", reference, exc)
+        raise ValidationFailure("We couldn't start the payment. Please try again.") from exc
+
+
 def _verify_signature(raw_body: bytes, signature: str) -> bool:
     secret = settings.PAYSTACK_WEBHOOK_SECRET or settings.PAYSTACK_SECRET_KEY
     if not secret:
@@ -299,6 +405,21 @@ def process_webhook(
         raise ValidationFailure("Webhook is missing an event identifier.")
     payload_hash = hashlib.sha256(raw_body).hexdigest()
 
+    # Ask Paystack directly before applying a payment. Done before any row lock,
+    # so a slow answer never holds the database. A known duplicate skips the call.
+    confirmed = None
+    if event_type == "charge.success" and not ProviderWebhookEvent.objects.filter(
+        provider=provider, event_id=event_id
+    ).exists():
+        reference = str(data.get("reference") or "")
+        try:
+            confirmed = paystack.verify(reference) if reference else None
+        except paystack.PaystackUnavailable as exc:
+            # Nothing is stored, so Paystack's retry is processed in full.
+            raise PaymentProviderUnavailable(str(exc)) from exc
+        except paystack.PaystackError:
+            confirmed = {}
+
     with transaction.atomic():
         try:
             with transaction.atomic():
@@ -318,7 +439,7 @@ def process_webhook(
 
         outcome = "ignored"
         if event_type == "charge.success":
-            outcome = _apply_charge_success(event, data)
+            outcome = _apply_charge_success(event, data, confirmed)
 
         event.processed_at = timezone.now()
         event.outcome = outcome[:64]
@@ -326,7 +447,7 @@ def process_webhook(
     return event, False
 
 
-def _apply_charge_success(event: ProviderWebhookEvent, data: dict) -> str:
+def _apply_charge_success(event: ProviderWebhookEvent, data: dict, confirmed: dict | None) -> str:
     reference = str(data.get("reference") or "")
     amount = data.get("amount")
     currency = data.get("currency")
@@ -356,17 +477,41 @@ def _apply_charge_success(event: ProviderWebhookEvent, data: dict) -> str:
         )
         return "amount_mismatch"
 
+    # Paystack's own answer must agree with the webhook and with our record.
+    confirmed = confirmed or {}
+    if (
+        confirmed.get("status") != "success"
+        or confirmed.get("reference") != reference
+        or confirmed.get("amount") != attempt.amount_minor
+        or confirmed.get("currency") != attempt.currency
+    ):
+        audit_service.record(
+            action="billing.webhook_not_confirmed",
+            actor=None,
+            organization_id=attempt.invoice.organization_id,
+            resource_type="payment_event",
+            resource_id=str(event.pk),
+            result=AuditEvent.Result.DENIED,
+            metadata={"reference": reference, "provider_status": str(confirmed.get("status") or "none")[:32]},
+        )
+        return "not_confirmed"
+
     attempt.status = PaymentStatus.SUCCEEDED
     attempt.provider_status = str(data.get("status") or "")[:64]
     attempt.save(update_fields=["status", "provider_status", "updated_at"])
 
     invoice = attempt.invoice
-    if invoice.status == InvoiceStatus.ISSUED:
-        invoice.status = InvoiceStatus.PAID
-        invoice.paid_at = timezone.now()
-        invoice.save(update_fields=["status", "paid_at", "updated_at"])
+    # Conditional update: only the event that actually moves the invoice from
+    # issued to paid may activate anything, however many events arrive.
+    now = timezone.now()
+    newly_paid = Invoice.objects.filter(pk=invoice.pk, status=InvoiceStatus.ISSUED).update(
+        status=InvoiceStatus.PAID, paid_at=now, updated_at=now
+    )
+    invoice.refresh_from_db()
 
     _advance_task_after_payment(invoice, None, source="Provider webhook confirmed payment")
+    if invoice.plan_id and newly_paid:
+        _activate_subscription(invoice)
 
     audit_service.record(
         action="billing.webhook_paid",
@@ -377,3 +522,41 @@ def _apply_charge_success(event: ProviderWebhookEvent, data: dict) -> str:
         metadata={"reference": reference, "amount_minor": amount},
     )
     return "paid"
+
+
+def _activate_subscription(invoice: Invoice) -> Subscription:
+    """Start (or extend) the plan an invoice paid for. Runs inside the webhook's transaction."""
+    now = timezone.now()
+    subscription = (
+        Subscription.objects.select_for_update()
+        .filter(organization_id=invoice.organization_id)
+        .first()
+    )
+    if subscription is None:
+        subscription = Subscription.objects.create(
+            organization_id=invoice.organization_id,
+            plan_id=invoice.plan_id,
+            period_start=now,
+            period_end=add_months(now, 1),
+            status=SubscriptionStatus.ACTIVE,
+        )
+    else:
+        # A payment made while the current period is still running extends it,
+        # so paying early never loses days.
+        start = subscription.period_end if (
+            subscription.status == SubscriptionStatus.ACTIVE and subscription.period_end > now
+        ) else now
+        subscription.plan_id = invoice.plan_id
+        subscription.period_start = start
+        subscription.period_end = add_months(start, 1)
+        subscription.status = SubscriptionStatus.ACTIVE
+        subscription.save(update_fields=["plan", "period_start", "period_end", "status", "updated_at"])
+    audit_service.record(
+        action="billing.subscription_activated",
+        actor=None,
+        organization_id=invoice.organization_id,
+        resource_type="subscription",
+        resource_id=str(subscription.pk),
+        metadata={"invoice": invoice.number, "period_end": subscription.period_end.isoformat()},
+    )
+    return subscription

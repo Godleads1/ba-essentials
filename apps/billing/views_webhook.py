@@ -32,6 +32,10 @@ def paystack_webhook(request):
     except ValidationFailure as exc:
         logger.warning("Rejected malformed paystack webhook: %s", exc.message)
         return JsonResponse({"detail": "Malformed payload."}, status=400)
+    except services.PaymentProviderUnavailable:
+        # Nothing was stored; Paystack retries the event later.
+        logger.warning("Paystack verify call failed; asking Paystack to retry the webhook")
+        return JsonResponse({"detail": "Try again later."}, status=503)
     except RuntimeError:
         logger.error("Paystack webhook received while payments are disabled")
         return JsonResponse({"detail": "Payments are not enabled."}, status=503)
