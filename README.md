@@ -133,8 +133,9 @@ Implemented controls and deployment requirements are documented in
 
 ## Known limitations (deliberate)
 
-- Paystack checkout initialization is not implemented. Only verified webhooks
-  and manual finance reconciliation change payment state.
+- Paystack plan checkout is implemented; a plan starts only after a signed
+  webhook that Paystack's verify API confirms. Renewals, refunds and
+  Flutterwave are not built yet.
 - Object storage (for example Cloudflare R2) is not implemented; the local
   adapter refuses unknown backends instead of silently falling back.
 - In-app messaging and the website CMS are Phase 5+ and out of scope here.

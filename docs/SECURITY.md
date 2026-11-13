@@ -102,6 +102,20 @@ without authorization and a rollback procedure.
 - Finance verification serialises on a conditional invoice update, so two
   concurrent confirmations cannot both record a successful payment.
 - Redirect parameters from the browser are never treated as proof of payment.
+- Plan checkout is started on the server (`start_plan_checkout`): only the
+  business owner can start it, the price and currency come from the `Plan`
+  row, and the customer is the signed-in owner. The hosted checkout address
+  must be `https://checkout.paystack.com`.
+- Before any `charge.success` is applied, the server calls Paystack's
+  verify-transaction API (`apps/billing/paystack.py`) and requires
+  `status=success` and the same reference, amount and currency as the stored
+  payment attempt. If Paystack can't be reached, nothing is stored and the
+  webhook answers 503 so Paystack retries.
+- A plan starts only when its invoice moves from issued to paid, so repeated
+  or extra events never extend it twice. Paying during an active period
+  extends from the current end date. The return page only shows status.
+- Tests never call the real Paystack API (`fake_paystack` fixture in
+  `tests/conftest.py`).
 - Finance verification requires the exact invoice amount and a unique reference.
 
 ## Files
@@ -200,8 +214,8 @@ migration check, deploy check, and dependency audit.
 
 ## Known gaps and follow-ups
 
-- No Paystack checkout initialization or refund flow; payments are webhook and
-  manual-reconciliation only.
+- Paystack plan checkout exists; refunds, chargebacks, renewals, the
+  cancelling state and Flutterwave are not built yet.
 - No object-storage adapter; local storage must be backed up and is not suitable
   for multi-instance deployments without shared storage.
 - In-app messaging, support tickets, staff queues and the text CMS are

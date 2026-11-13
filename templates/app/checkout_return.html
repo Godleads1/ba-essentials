@@ -1,0 +1,22 @@
+{% extends "app/base.html" %}
+{% block title %}Payment · B &amp; A Essentials{% endblock %}
+{% block page_title %}Payment{% endblock %}
+{% block mobile_title %}Payment{% endblock %}
+{% block content %}
+  <section class="card card-pad max-w-xl">
+    {% if paid and subscription %}
+      <h2 class="text-lg font-semibold text-navy-900">Payment confirmed</h2>
+      <p class="mt-2 text-sm text-slate-600">Your {{ subscription.plan.name }} plan is active until {{ subscription.period_end|date:"j M Y" }}.</p>
+      <a class="btn-primary btn-sm mt-4" href="{% url 'plan-home' %}">See your plan</a>
+    {% elif attempt.status == "failed" %}
+      <h2 class="text-lg font-semibold text-navy-900">Payment not completed</h2>
+      <p class="mt-2 text-sm text-slate-600">Nothing was charged for invoice {{ invoice.number }}. You can try again from your plan page.</p>
+      <a class="btn-secondary btn-sm mt-4" href="{% url 'plan-home' %}">Back to plans</a>
+    {% else %}
+      <h2 class="text-lg font-semibold text-navy-900">Confirming your payment</h2>
+      <p class="mt-2 text-sm text-slate-600">We start your plan as soon as Paystack confirms the payment to us. That usually takes a few seconds.</p>
+      <p class="mt-1 text-xs text-slate-500">Reference {{ attempt.reference }} · invoice {{ invoice.number }}</p>
+      <a class="btn-secondary btn-sm mt-4" href="{{ request.get_full_path }}">Check again</a>
+    {% endif %}
+  </section>
+{% endblock %}

@@ -216,3 +216,47 @@ def other_client(other_owner):
 @pytest.fixture
 def staff_client(ops_user):
     return login_client(ops_user)
+
+
+class FakePaystack:
+    """Stands in for Paystack's API. Tests set `verified` to what Paystack would say."""
+
+    def __init__(self):
+        self.calls = []
+        self.checkout_url = "https://checkout.paystack.com/synthetic-access-code"
+        self.verified = {}
+        self.fail_with = None
+
+    def __call__(self, method, path, payload=None):
+        from apps.billing import paystack
+
+        self.calls.append((method, path, payload))
+        if self.fail_with is not None:
+            raise self.fail_with
+        if path == "/transaction/initialize":
+            return {"authorization_url": self.checkout_url, "reference": payload["reference"]}
+        if path.startswith("/transaction/verify/"):
+            reference = path.rsplit("/", 1)[1]
+            if reference not in self.verified:
+                raise paystack.PaystackError("Transaction not found.")
+            return self.verified[reference]
+        raise AssertionError(f"Unexpected Paystack call {method} {path}")
+
+    def confirm(self, reference, amount_minor, *, currency="NGN", status="success"):
+        self.verified[reference] = {
+            "status": status,
+            "reference": reference,
+            "amount": amount_minor,
+            "currency": currency,
+            "customer": {"email": "owner@example.test"},
+        }
+
+
+@pytest.fixture(autouse=True)
+def fake_paystack(monkeypatch):
+    """No test ever reaches the real Paystack API."""
+    from apps.billing import paystack
+
+    fake = FakePaystack()
+    monkeypatch.setattr(paystack, "_request", fake)
+    return fake

@@ -18,6 +18,26 @@
         <a class="btn-secondary btn-sm mt-4" href="{% url 'billing-home' %}">View invoices</a>
       {% else %}
         <p class="mt-3 text-sm text-slate-500">No active plan. Each request is quoted and invoiced individually.</p>
+        {% if plans %}
+          <ul class="mt-4 space-y-3">
+            {% for plan in plans %}
+              <li class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 p-4">
+                <div>
+                  <p class="font-semibold text-navy-900">{{ plan.name }}</p>
+                  <p class="text-sm text-slate-500">{{ plan.price_minor|money_minor:plan.currency }} a month · {{ plan.monthly_task_allowance }} tasks</p>
+                </div>
+                {% if can_buy %}
+                  <form method="post" action="{% url 'plan-checkout' plan_slug=plan.slug %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-primary btn-sm">Choose {{ plan.name }}</button>
+                  </form>
+                {% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+          {% if not can_buy %}<p class="mt-3 text-xs text-slate-500">Only the business owner can choose a plan.</p>{% endif %}
+          <p class="mt-3 text-xs text-slate-500">You pay on Paystack's secure page. Your plan starts once Paystack confirms the payment to us.</p>
+        {% endif %}
         <a class="btn-secondary btn-sm mt-4" href="{% url 'billing-home' %}">View invoices</a>
       {% endif %}
     </section>
