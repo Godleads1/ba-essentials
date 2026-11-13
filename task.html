@@ -356,6 +356,8 @@
             </div>
             <button type="button" id="cancelBtn" class="btn-ghost border border-[#F3C7C3] py-2 text-[13px] text-[#B42318] hover:bg-[#FDECEC] hover:text-[#B42318]" hidden><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-x h-4 w-4"><circle cx="12" cy="12" r="10"></circle><path d="m15 9-6 6"></path><path d="m9 9 6 6"></path></svg>Cancel request</button>
           </div>
+          <p id="quoteBanner" class="mt-4 rounded-2xl bg-pill-navyBg px-4 py-3 text-[13.5px] text-brand-navy" hidden><span class="font-semibold">Quote first.</span> Your plan&rsquo;s legal reviews for this month are used, so we&rsquo;ll send a quote before any work starts. Nothing is charged unless you accept it.</p>
+          <p id="urgentBanner" class="mt-4 rounded-2xl bg-pill-orangeBg px-4 py-3 text-[13.5px] text-brand-orangeDark" hidden><span class="font-semibold">Marked urgent.</span> We&rsquo;ll confirm whether we can meet your timeline before we start.</p>
           <div id="inputBanner" class="mt-4 flex flex-wrap items-center gap-3 rounded-2xl bg-pill-orangeBg px-4 py-3" hidden>
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-hourglass h-5 w-5 shrink-0 text-brand-orangeDark"><path d="M5 22h14"></path><path d="M5 2h14"></path><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"></path><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"></path></svg>
             <p class="min-w-0 flex-1 text-[13.5px] text-brand-orangeDark"><span class="font-semibold">We need something from you.</span> Read the latest message and reply so we can continue.</p>
@@ -487,8 +489,10 @@
       $('tStatus').innerHTML = chip(s.chip, s.label);
       $('tId').textContent = task.id; $('tService').textContent = task.service; $('tCat').textContent = cat.name;
       $('tSubmitted').textContent = fmtDateTime(task.submitted);
-      $('tDue').textContent = fmtDate(task.due);
+      $('tDue').textContent = task.due ? fmtDate(task.due) : 'No deadline';
       $('tPriority').innerHTML = chip(PRIORITY[task.priority], task.priority);
+      $('quoteBanner').hidden = !(task.needsQuote && ['submitted', 'scoping'].includes(task.status));
+      $('urgentBanner').hidden = !(task.priority === 'Urgent' && ['submitted', 'scoping'].includes(task.status));
       $('cancelBtn').hidden = !CANCELLABLE.includes(task.status);
       $('inputBanner').hidden = task.status !== 'input';
 

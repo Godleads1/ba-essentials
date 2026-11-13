@@ -373,7 +373,7 @@
         <div class="tile">
           <p class="tile-label"><span class="stat-ic bg-pill-orangeBg text-brand-orangeDark"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-scale h-5 w-5"><path d="M12 3v18"></path><path d="m19 8 3 8a5 5 0 0 1-6 0zV7"></path><path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1"></path><path d="m5 8 3 8a5 5 0 0 1-6 0zV7"></path><path d="M7 21h10"></path></svg></span>Legal reviews</p>
           <p class="tile-num"><span data-legal-used></span> <span class="text-[16px] font-medium text-ink-muted">of <span data-legal-total></span></span></p>
-          <p class="tile-sub">Included per <span data-legal-per></span></p>
+          <p class="tile-sub">Included per <span data-legal-per></span><span id="legalQuoted" class="mt-1 block font-medium text-brand-orangeDark" hidden></span></p>
         </div>
       </section>
 
@@ -498,6 +498,7 @@
     setAll('[data-left]', left);
     setAll('[data-days-left]', daysLeft);
     setAll('[data-legal-used]', ACCOUNT.legalUsed);
+    if (ACCOUNT.legalQuoted) { $('legalQuoted').hidden = false; $('legalQuoted').textContent = `+ ${ACCOUNT.legalQuoted} more to be quoted`; }
     setAll('[data-legal-total]', plan.legal);
     setAll('[data-legal-s]', plan.legal === 1 ? '' : 's');
     setAll('[data-legal-per]', plan.legalPer);
@@ -593,7 +594,7 @@
     const alerts = [];
     if (projected > plan.tasks) alerts.push(['triangle-alert', 'bg-pill-orangeBg text-brand-orangeDark', 'You may run out before renewal', `At this pace you'll need about ${projected} tasks this cycle, and your plan includes ${plan.tasks}. We quote any extra tasks before starting, or you can move up a plan, which starts straight away.`]);
     else alerts.push(['circle-check', 'bg-pill-greenBg text-pill-greenTx', 'You’re on track', `${left} tasks left for ${daysLeft} days.`]);
-    if (ACCOUNT.legalUsed >= plan.legal) alerts.push(['scale', 'bg-pill-navyBg text-brand-navy', 'Legal reviews used up', `You've used your ${plan.legal} legal review${plan.legal === 1 ? '' : 's'} this ${plan.legalPer}. Further legal reviews are quoted before any work starts.`]);
+    if (ACCOUNT.legalUsed >= plan.legal) alerts.push(['scale', 'bg-pill-navyBg text-brand-navy', 'Legal reviews used up', `You've used your ${plan.legal} legal review${plan.legal === 1 ? '' : 's'} this ${plan.legalPer}. Further legal reviews are quoted before any work starts.${ACCOUNT.legalQuoted ? ` We’ll send you a quote for the ${ACCOUNT.legalQuoted} waiting.` : ''}`]);
     $('alerts').innerHTML = alerts.map(([ic, tone, title, body]) => `<li class="flex gap-3 rounded-2xl bg-cream-light p-3.5"><span class="grid h-8 w-8 shrink-0 place-items-center rounded-full ${tone}"><i data-lucide="${ic}" class="h-4 w-4"></i></span><span><span class="block text-[13.5px] font-semibold">${esc(title)}</span><span class="block text-[12.5px] text-ink-muted">${esc(body)}</span></span></li>`).join('')
       + `<li><button type="button" class="btn-outline w-full py-2 text-[13px]" data-open-change>Compare plans</button></li>`;
     if (pending && PLANS[pending]) {

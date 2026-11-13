@@ -471,7 +471,8 @@
         (!view.cat || t.cat === view.cat) &&
         matchesStatus(t, view.status) &&
         (!view.days || (NOW - toDate(t.submitted)) / 864e5 <= +view.days));
-      if (view.sortAsc !== null) list = list.slice().sort((a, b) => (a.due < b.due ? -1 : 1) * (view.sortAsc ? 1 : -1));
+      // Requests without a deadline stay at the end either way.
+      if (view.sortAsc !== null) list = list.slice().sort((a, b) => !a.due ? 1 : !b.due ? -1 : (a.due < b.due ? -1 : 1) * (view.sortAsc ? 1 : -1));
       return list;
     }
 
@@ -483,6 +484,7 @@
     }
     const catCell = t => `<span class="flex items-center gap-2.5"><span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg ${CATS[t.cat].tone}"><i data-lucide="${CATS[t.cat].icon}" class="h-4 w-4"></i></span><span class="leading-snug">${esc(CATS[t.cat].name)}</span></span>`;
     const dueCell = t => {
+      if (!t.due) return '<span class="text-ink-muted">No deadline</span>';
       const late = !['delivered', 'cancelled'].includes(t.status) && toDate(t.due) < NOW;
       return `<span class="${late ? 'font-semibold text-[#B42318]' : ''}">${fmtDate(t.due)}</span>${late ? '<span class="block text-[11.5px] text-[#B42318]">Past due</span>' : ''}`;
     };
