@@ -630,16 +630,20 @@
       ivNotice('');
       btn.disabled = true; btn.textContent = 'Opening Paystack…';
       const reset = () => { btn.disabled = false; btn.textContent = `Pay ${naira(inv.amount)}`; };
+      // Paystack's window can't sit above an open dialog, so the invoice closes while it's open
+      // and comes back with a message if the payment doesn't go through.
+      const back = (text, tone) => { reset(); openInvoice(inv.id, dlgOpener, true); ivNotice(text, tone); };
+      dlg.close();
       window.BANDA.payWithPaystack({
         amount: inv.amount, purpose: 'Invoice', ref: inv.id,
         onPaid: reference => {
           payInvoice(inv.id, reference);
           if (inv.task) update(inv.task, { message: ['You', nowLocal(), `Paid invoice ${inv.id} (${naira(inv.amount)}). Paystack reference ${reference}.`] });
-          reset(); dlg.close(); render();
+          reset(); render();
           toast(window.BANDA.PAYSTACK_TEST ? `${inv.id} paid in Paystack test mode (${reference}). No real money moved.` : `${inv.id} paid. Reference ${reference}.`);
         },
-        onCancel: () => { reset(); ivNotice('Payment cancelled. You haven’t been charged.', 'warn'); btn.focus(); },
-        onFail: () => { reset(); ivNotice('We couldn’t reach Paystack. Check your connection and try again.', 'error'); btn.focus(); },
+        onCancel: () => back('Payment cancelled. You haven’t been charged.', 'warn'),
+        onFail: why => back(why === 'load' ? 'We couldn’t reach Paystack. Check your connection and try again.' : 'Paystack couldn’t start this payment. Try again in a moment, or message us if it keeps happening.', 'error'),
       });
     });
     document.addEventListener('click', e => {
