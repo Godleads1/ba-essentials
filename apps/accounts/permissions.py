@@ -24,6 +24,10 @@ FILES_VIEW_ALL = "files.view_all"
 WEBSITE_EDIT = "website.edit"
 WEBSITE_PUBLISH = "website.publish"
 LEADS_VIEW = "leads.view"
+# Third-party fees: one person prepares, a different person approves, finance pays them out.
+FEES_PREPARE = "fees.prepare"
+FEES_APPROVE = "fees.approve"
+FEES_SETTLE = "fees.settle"
 
 ALL_PERMISSIONS = frozenset(
     {
@@ -46,6 +50,9 @@ ALL_PERMISSIONS = frozenset(
         WEBSITE_EDIT,
         WEBSITE_PUBLISH,
         LEADS_VIEW,
+        FEES_PREPARE,
+        FEES_APPROVE,
+        FEES_SETTLE,
     }
 )
 
@@ -63,10 +70,11 @@ ROLE_PERMISSIONS: dict[str, frozenset[str]] = {
             SUPPORT_HANDLE,
             FILES_VIEW_ALL,
             LEADS_VIEW,
+            FEES_PREPARE,
         }
     ),
     StaffRole.QUOTE_APPROVER: frozenset(
-        {TASK_VIEW_ALL, TASK_SCOPE, QUOTE_SEND, CLIENT_VIEW}
+        {TASK_VIEW_ALL, TASK_SCOPE, QUOTE_SEND, CLIENT_VIEW, FEES_PREPARE, FEES_APPROVE}
     ),
     # Specialists only ever see their own assigned case; that is enforced by
     # assignment lookups, not by a broad "view all" permission.
@@ -74,7 +82,7 @@ ROLE_PERMISSIONS: dict[str, frozenset[str]] = {
     StaffRole.REVIEWER: frozenset({TASK_VIEW_ALL, REVIEW_DECIDE, FILES_VIEW_ALL}),
     StaffRole.SUPPORT: frozenset({TASK_VIEW_ALL, CLIENT_VIEW, SUPPORT_HANDLE}),
     StaffRole.FINANCE: frozenset(
-        {FINANCE_VIEW, FINANCE_VERIFY_PAYMENT, CLIENT_VIEW, TASK_VIEW_ALL}
+        {FINANCE_VIEW, FINANCE_VERIFY_PAYMENT, CLIENT_VIEW, TASK_VIEW_ALL, FEES_APPROVE, FEES_SETTLE}
     ),
     StaffRole.ADMIN: ALL_PERMISSIONS,
     StaffRole.WEBSITE_EDITOR: frozenset({WEBSITE_EDIT}),

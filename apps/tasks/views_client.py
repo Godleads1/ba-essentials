@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from django.conf import settings
 from django.contrib import messages
 from django.db.models import Count, Q
 from django.http import Http404
@@ -7,7 +8,12 @@ from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.billing import services as billing
-from apps.billing.models import Invoice, InvoiceStatus
+from apps.billing.models import (
+    CLIENT_VISIBLE_FEE_STATUSES,
+    FeeRequest,
+    Invoice,
+    InvoiceStatus,
+)
 from apps.communications import services as communications
 from apps.core import ratelimit
 from apps.core.exceptions import DomainError
@@ -165,7 +171,12 @@ def task_detail(request, task_id):
         )
 
     invoice = (
-        Invoice.objects.filter(task=task).order_by("-issued_at").first()
+        Invoice.objects.filter(task=task, fee_request__isnull=True).order_by("-issued_at").first()
+    )
+    fee_requests = list(
+        FeeRequest.objects.filter(task=task, status__in=CLIENT_VISIBLE_FEE_STATUSES)
+        .select_related("invoice")
+        .prefetch_related("lines__evidence", "lines__receipt")
     )
     actions = available_actions(task, request.user)
     return render(
@@ -179,6 +190,12 @@ def task_detail(request, task_id):
             "sent_quote": sent_quote,
             "released_version": released_version,
             "invoice": invoice,
+            "fee_requests": fee_requests,
+            "payments_enabled": settings.PAYMENTS_ENABLED,
+            "can_pay": billing.can_pay_invoice(invoice, request.membership) if invoice else False,
+            "can_pay_fees": any(
+                billing.can_pay_invoice(fr.invoice, request.membership) for fr in fee_requests if fr.invoice
+            ),
             "actions": actions,
             "thread": communications.task_thread(task, request.user),
             "can_provide_information": Action.PROVIDE_INFORMATION.value in actions,

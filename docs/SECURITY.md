@@ -117,6 +117,17 @@ without authorization and a rollback procedure.
 - Tests never call the real Paystack API (`fake_paystack` fixture in
   `tests/conftest.py`).
 - Finance verification requires the exact invoice amount and a unique reference.
+- Request invoices (quotes and third-party fees) are paid through the same
+  server-started Paystack checkout as plans. The browser names the invoice;
+  the amount always comes from the stored invoice. Only the business owner
+  can pay.
+- Third-party fees need evidence of the official amount per line and a second
+  staff member's approval before the client sees them; the preparer can't
+  approve their own. Paystack's local charge is added on top and the total is
+  fixed at approval. Fee invoices never count as payment for the work, and a
+  request can't be released while fees are open. Paystack's actual fee is
+  recorded from its own verification, so a foreign-card shortfall is visible
+  to finance.
 
 ## Files
 

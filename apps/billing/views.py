@@ -55,12 +55,41 @@ def plan_checkout(request, plan_slug):
 
 
 @client_required
+@require_POST
+def invoice_checkout(request, invoice_id):
+    """Pay a request invoice (quote or third-party fees) with Paystack.
+
+    The browser says which invoice; the amount comes from the stored invoice only.
+    """
+    invoice = (
+        Invoice.objects.filter(pk=invoice_id, organization=request.organization)
+        .select_related("task")
+        .first()
+    )
+    if invoice is None:
+        raise Http404("Invoice not found.")
+    back = (
+        reverse("task-detail", kwargs={"task_id": invoice.task_id}) if invoice.task_id
+        else reverse("billing-home")
+    )
+    return_url = request.build_absolute_uri(reverse("plan-checkout-return"))
+    try:
+        checkout_url = billing.start_invoice_checkout(
+            invoice=invoice, membership=request.membership, return_url=return_url
+        )
+    except (ValidationFailure, PermissionFailure) as exc:
+        messages.error(request, exc.message)
+        return redirect(back)
+    return redirect(checkout_url)
+
+
+@client_required
 @require_GET
 def plan_checkout_return(request):
     """Where Paystack sends the client back. It shows status; it never activates anything."""
     reference = (request.GET.get("reference") or request.GET.get("trxref") or "")[:64]
     attempt = (
-        PaymentAttempt.objects.select_related("invoice", "invoice__plan")
+        PaymentAttempt.objects.select_related("invoice", "invoice__plan", "invoice__task")
         .filter(reference=reference, invoice__organization=request.organization)
         .first()
     )

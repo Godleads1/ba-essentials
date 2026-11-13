@@ -141,6 +141,8 @@ class PaymentStatus(models.TextChoices):
     PENDING = "pending", "Pending"
     SUCCEEDED = "succeeded", "Succeeded"
     FAILED = "failed", "Failed"
+    # Paystack took the money but the invoice was already paid or withdrawn.
+    REFUND_DUE = "refund_due", "Refund due"
 
 
 class PaymentAttempt(TimeStampedModel):
@@ -188,3 +190,128 @@ class ProviderWebhookEvent(models.Model):
             )
         ]
         indexes = [models.Index(fields=["received_at"])]
+
+
+class FeeRequestStatus(models.TextChoices):
+    DRAFT = "draft", "Draft"
+    PENDING_APPROVAL = "pending_approval", "Awaiting second approval"
+    SENT = "sent", "Sent to client"
+    PAID = "paid", "Paid by client"
+    SETTLED = "settled", "Paid to organisations"
+    VOID = "void", "Withdrawn"
+
+
+# Statuses the client can see. Drafts and unapproved requests stay internal.
+CLIENT_VISIBLE_FEE_STATUSES = (
+    FeeRequestStatus.SENT,
+    FeeRequestStatus.PAID,
+    FeeRequestStatus.SETTLED,
+)
+
+
+class FeeRequest(TimeStampedModel):
+    """Third-party fees (registry, government, institution) found during scoping.
+
+    banda collects them at cost, plus Paystack's charge so the full amount
+    reaches each organisation, and pays them on the client's behalf (Terms 5.3).
+    Nothing is filed or booked until the client has paid.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    task = models.ForeignKey(
+        "tasks.Task", on_delete=models.PROTECT, related_name="fee_requests"
+    )
+    status = models.CharField(
+        max_length=20, choices=FeeRequestStatus.choices, default=FeeRequestStatus.DRAFT
+    )
+    currency = models.CharField(max_length=3, default="NGN")
+    # Fixed when a second staff member approves, so the client pays exactly what was approved.
+    net_minor = models.BigIntegerField(default=0)
+    processing_minor = models.BigIntegerField(default=0)
+    total_minor = models.BigIntegerField(default=0)
+    prepared_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="+"
+    )
+    submitted_at = models.DateTimeField(null=True, blank=True)
+    approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    approved_at = models.DateTimeField(null=True, blank=True)
+    invoice = models.OneToOneField(
+        Invoice,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="fee_request",
+    )
+    paid_at = models.DateTimeField(null=True, blank=True)
+    # What Paystack actually kept, from its own verification. A foreign card can
+    # cost more than the local rate we added; the gap is recorded for finance.
+    provider_fee_minor = models.BigIntegerField(null=True, blank=True)
+    shortfall_minor = models.BigIntegerField(default=0)
+    card_country = models.CharField(max_length=2, blank=True)
+    settled_at = models.DateTimeField(null=True, blank=True)
+    void_reason = models.CharField(max_length=255, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["task", "status"])]
+
+    def __str__(self) -> str:
+        return f"Fees for {self.task.reference} ({self.get_status_display()})"
+
+    @property
+    def is_client_visible(self) -> bool:
+        return self.status in CLIENT_VISIBLE_FEE_STATUSES
+
+    @property
+    def is_open(self) -> bool:
+        return self.status in (
+            FeeRequestStatus.DRAFT, FeeRequestStatus.PENDING_APPROVAL, FeeRequestStatus.SENT
+        )
+
+
+class FeeLine(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    fee_request = models.ForeignKey(
+        FeeRequest, on_delete=models.CASCADE, related_name="lines"
+    )
+    payee = models.CharField(max_length=160)
+    description = models.CharField(max_length=255)
+    amount_minor = models.BigIntegerField()
+    # Proof of the official amount (fee schedule, Remita invoice, etc.).
+    evidence = models.OneToOneField(
+        "files.PrivateFile", on_delete=models.PROTECT, related_name="fee_evidence_for"
+    )
+    receipt = models.OneToOneField(
+        "files.PrivateFile",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="fee_receipt_for",
+    )
+    payee_reference = models.CharField(max_length=64, blank=True)
+    paid_to_payee_at = models.DateTimeField(null=True, blank=True)
+    paid_to_payee_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(amount_minor__gt=0), name="fee_line_amount_positive"
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.payee}: {self.amount_minor}"

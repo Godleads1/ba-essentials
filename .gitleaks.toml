@@ -1,9 +1,17 @@
-# Extends the default gitleaks rules. The only allowlisted value is the public
-# MFA key-derivation context. It is not secret: the key material is
-# DJANGO_SECRET_KEY, and this string is a fixed domain separator.
+# Extends the default gitleaks rules. Only values that are public by design are
+# allowlisted; secret keys (Paystack sk_..., Flutterwave FLWSECK_...) are never.
+#
+# - The MFA key-derivation context is a fixed domain separator, not key
+#   material (the key material is DJANGO_SECRET_KEY).
+# - Paystack public keys (pk_test_/pk_live_) are made to be served in web pages:
+#   they can only open a checkout, never move money or read data. The static
+#   preview site uses the test public key to open Paystack's test window.
 [extend]
 useDefault = true
 
 [allowlist]
-description = "Public MFA derivation context, never secret material"
-regexes = ['''ba-essentials-mfa-v1''']
+description = "Public values: MFA derivation context and Paystack public keys"
+regexes = [
+  '''ba-essentials-mfa-v1''',
+  '''pk_(test|live)_[0-9a-f]{40}''',
+]

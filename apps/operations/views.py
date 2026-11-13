@@ -11,6 +11,9 @@ from apps.accounts.models import StaffRole, User
 from apps.accounts.permissions import (
     AUDIT_VIEW,
     CLIENT_VIEW,
+    FEES_APPROVE,
+    FEES_PREPARE,
+    FEES_SETTLE,
     FILES_VIEW_ALL,
     QUOTE_SEND,
     REVIEW_DECIDE,
@@ -20,7 +23,8 @@ from apps.accounts.permissions import (
     has_perm,
 )
 from apps.audit.models import AuditEvent
-from apps.billing.models import Invoice
+from apps.billing import fees
+from apps.billing.models import FeeRequest, Invoice
 from apps.communications import services as communications
 from apps.core.exceptions import DomainError
 from apps.core.views import handle_domain_error
@@ -151,7 +155,14 @@ def task_detail(request, task_id):
     )
     quote = getattr(task, "quote", None)
     quote_versions = quote.versions.all() if quote is not None else []
-    invoice = Invoice.objects.filter(task=task).order_by("-issued_at").first()
+    invoice = (
+        Invoice.objects.filter(task=task, fee_request__isnull=True).order_by("-issued_at").first()
+    )
+    fee_requests = list(
+        FeeRequest.objects.filter(task=task)
+        .select_related("invoice", "prepared_by", "approved_by")
+        .prefetch_related("lines__evidence", "lines__receipt")
+    )
     pending_versions = [v for v in versions if v.status == DeliverableVersionStatus.PENDING_REVIEW]
     approved_version = next(
         (v for v in versions if v.status == DeliverableVersionStatus.APPROVED), None
@@ -184,6 +195,11 @@ def task_detail(request, task_id):
             "can_quote": can_quote,
             "can_review": can_review,
             "can_release": Action.RELEASE.value in actions,
+            "fee_requests": fee_requests,
+            "fees_open": fees.has_open_fees(task),
+            "can_prepare_fees": has_perm(request.user, FEES_PREPARE) and task.status in fees.FEE_STATUSES,
+            "can_approve_fees": has_perm(request.user, FEES_APPROVE),
+            "can_settle_fees": has_perm(request.user, FEES_SETTLE),
             "is_active_specialist": bool(
                 assignment and assignment.specialist_id == request.user.pk
             ),

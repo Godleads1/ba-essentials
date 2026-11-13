@@ -7,4 +7,5 @@ urlpatterns = [
     path("plan/", views.plan_home, name="plan-home"),
     path("plan/checkout/return/", views.plan_checkout_return, name="plan-checkout-return"),
     path("plan/checkout/<slug:plan_slug>/", views.plan_checkout, name="plan-checkout"),
+    path("billing/invoices/<uuid:invoice_id>/pay/", views.invoice_checkout, name="invoice-checkout"),
 ]

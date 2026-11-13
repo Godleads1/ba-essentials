@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from django.conf import settings
 from django.core import signing
+from django.db import models
 from django.urls import reverse
 
 from .models import PrivateFile
@@ -61,5 +62,21 @@ def can_view_file(user, private_file: PrivateFile) -> bool:
             return False
         # Clients may only download deliverables after controlled release.
         return version.status == DeliverableVersionStatus.RELEASED
+
+    from apps.billing.models import FeeLine
+
+    line = (
+        FeeLine.objects.filter(models.Q(evidence=private_file) | models.Q(receipt=private_file))
+        .select_related("fee_request__task")
+        .first()
+    )
+    if line is not None:
+        task = line.fee_request.task
+        if getattr(user, "staff_role", ""):
+            return can_view_task(user, task)
+        if membership_for(user, task.organization_id) is None:
+            return False
+        # Clients see fee evidence and receipts once a second person has approved the fees.
+        return line.fee_request.is_client_visible
 
     return False
