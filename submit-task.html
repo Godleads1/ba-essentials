@@ -599,18 +599,27 @@
     const state = { cat: '', files: [], step: 1, submitted: false };
 
     // ---------- category cards ----------
+    const { PLANS, planAllows, minPlanFor } = window.BANDA;
+    // Locked: coming soon, or not included in this plan (Growth/Dedicated categories).
+    const locked = key => CATS[key].avail === 'soon' || !planAllows(key);
     $('cats').innerHTML = Object.entries(CATS).filter(([, c]) => !c.hidden).map(([key, c]) => `
-      <label class="cat${c.avail === 'soon' ? ' is-soon' : ''}">
-        <input type="radio" name="cat" value="${key}" class="sr-only"${c.avail === 'soon' ? ' disabled' : ''} />
+      <label class="cat${locked(key) ? ' is-soon' : ''}">
+        <input type="radio" name="cat" value="${key}" class="sr-only"${locked(key) ? ' disabled' : ''} />
         <span class="cat-check" aria-hidden="true"><i data-lucide="check" class="h-3 w-3"></i></span>
         <span class="grid h-10 w-10 place-items-center rounded-xl ${c.tone}"><i data-lucide="${c.icon}" class="h-5 w-5"></i></span>
         <span class="mt-3 block text-[14.5px] font-semibold leading-snug">${esc(c.name)}</span>
         <span class="mt-1 block text-[12.5px] leading-snug text-ink-muted">${esc(c.blurb)}</span>
-        <span class="chip-status mt-3 ${AVAIL[c.avail].chip}">${AVAIL[c.avail].label}</span>
+        ${planAllows(key) ? `<span class="chip-status mt-3 ${AVAIL[c.avail].chip}">${AVAIL[c.avail].label}</span>`
+          : `<span class="chip-status mt-3 bg-pill-navyBg text-brand-navy"><i data-lucide="lock" class="h-3 w-3"></i>On ${esc(PLANS[minPlanFor(key)].name)}</span>`}
       </label>`).join('');
+    const lockedForPlan = Object.keys(CATS).filter(k => !CATS[k].hidden && CATS[k].avail !== 'soon' && !planAllows(k));
+    if (lockedForPlan.length) {
+      const next = minPlanFor(lockedForPlan[0]);
+      $('cats').insertAdjacentHTML('afterend', `<p class="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl bg-pill-navyBg px-3.5 py-2.5 text-[13px] text-brand-navy"><i data-lucide="lock" class="h-4 w-4 shrink-0"></i><span>${esc(lockedForPlan.map(k => CATS[k].name).join(', '))} ${lockedForPlan.length === 1 ? 'isn’t' : 'aren’t'} included in your ${esc(PLANS[window.BANDA.ACCOUNT.plan].name)} plan.</span><a class="font-semibold underline underline-offset-2 hover:no-underline" href="plan.html?upgrade=${next}">Upgrade to ${esc(PLANS[next].name)}</a></p>`);
+    }
 
     function setCategory(key, keepService) {
-      if (!CATS[key] || CATS[key].avail === 'soon') return;
+      if (!CATS[key] || locked(key)) return;
       state.cat = key;
       const c = CATS[key];
       document.querySelectorAll('input[name="cat"]').forEach(r => r.checked = r.value === key);

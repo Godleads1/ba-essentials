@@ -209,6 +209,17 @@
     previous: { label: '28 Sep – 27 Oct', used: 17, legalUsed: 1, daily: [0, 1, 2, 2, 3, 4, 4, 5, 6, 7, 7, 8, 8, 9, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16, 16, 16, 17, 17] },
     card: { brand: 'Visa', last4: '4081', expires: '09/2028' },
   };
+  // Which service categories each plan unlocks (pricing section: Starter has the core
+  // Business & Admin services; Growth adds more categories; Dedicated adds custom packages).
+  // Each plan includes everything in the plans below it. The live app enforces this on
+  // the server; the preview only shows it.
+  const PLAN_ORDER = ['starter', 'growth', 'dedicated'];
+  const CAT_MIN_PLAN = { business: 'starter', legal: 'starter', scoping: 'starter', ops: 'growth', creator: 'growth', tax: 'growth', addons: 'dedicated' };
+  // Design preview only: "Preview as" on the Plan page switches the sample account's plan.
+  const previewPlan = (store.prefs || {}).previewPlan;
+  if (PLANS[previewPlan]) ACCOUNT.plan = previewPlan;
+  const minPlanFor = cat => CAT_MIN_PLAN[cat] || 'starter';
+  const planAllows = (cat, plan = ACCOUNT.plan) => PLAN_ORDER.indexOf(plan) >= PLAN_ORDER.indexOf(minPlanFor(cat));
   // Requests submitted in this preview count toward this cycle. Legal & IP uses the legal
   // allowance, Specialized Add-Ons are quoted separately, and cancelled requests don't count.
   (store.added || []).forEach(t => {
@@ -438,7 +449,7 @@
 
   window.BANDA = { CATS, STATUS, CANCELLABLE, PRIORITY, all, find, add, update, feeBreakdown, grossUp, paystackCharge, esc, toDate, fmtDate, fmtDateTime, fmtSize, naira, chip,
     DSTATUS, DOWNLOADABLE, REVISION_NOTE, deliverables, deliverablesFor, setDeliverable, fileType, nowLocal, toast,
-    PLANS, ACCOUNT, ISTATUS, invoices, payInvoice, invoiceForTask, getPref, setPref, payWithPaystack, PAYSTACK_TEST,
+    PLANS, PLAN_ORDER, CAT_MIN_PLAN, minPlanFor, planAllows, ACCOUNT, ISTATUS, invoices, payInvoice, invoiceForTask, getPref, setPref, payWithPaystack, PAYSTACK_TEST,
     SUPPORT, TOPICS, TSTATUS, getList, setList,
     DESKS, conversations, unreadConversations, markRead, markUnread, NKIND, notes, readNote, readAllNotes, unreadNotes, paintCounts };
 })();
