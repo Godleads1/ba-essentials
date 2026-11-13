@@ -420,6 +420,7 @@
             </label>
             <p id="renewErr" class="err mt-1.5" hidden>Tick the box to agree to automatic renewal before you pay.</p>
             <p id="payMsg" role="status" hidden class="mt-4 rounded-xl px-4 py-3 text-[13.5px] font-medium"></p>
+            <p id="payTestMode" hidden class="mt-3 rounded-xl bg-pill-orangeBg px-4 py-2.5 text-[13px] font-medium text-brand-orangeDark">Test mode: Paystack&rsquo;s window opens with its test cards. No real money moves.</p>
             <div id="payPreview" hidden class="mt-4 rounded-xl border border-brand-lavender bg-pill-navyBg px-4 py-3.5 text-[13.5px] leading-relaxed text-brand-navy">
               <p><span class="font-semibold">Paystack isn&rsquo;t connected in this preview,</span> so no payment window opens and no money is taken.</p>
               <button type="button" id="skipPay" class="mt-1.5 font-semibold underline underline-offset-2">Finish without paying</button>
@@ -618,7 +619,7 @@
     // Paste your Paystack PUBLIC key here (pk_test_... while testing, pk_live_... when live).
     // Never put the secret key (sk_...) in this file. For recurring monthly billing, create
     // the three plans in the Paystack dashboard and paste their plan codes (PLN_...) below.
-    const PAYSTACK = { publicKey: '', planCodes: { starter: '', growth: '', dedicated: '' } };
+    const PAYSTACK = { publicKey: 'pk_test_046585830e2e5761ae7fca14de3ace2247e44fe3', planCodes: { starter: '', growth: '', dedicated: '' } };
     const PRICE = { starter: 65000, growth: 97500, dedicated: 260000 };
     const PLAN_INFO = {
       starter: ['Starter plan', '7 docs or tasks a month · 1 legal review a quarter'],
@@ -640,6 +641,7 @@
       payMsg.hidden = true;
       document.getElementById('payPreview').hidden = true;
       document.querySelector('.pay-note').hidden = false;
+      document.getElementById('payTestMode').hidden = !PAYSTACK.publicKey.startsWith('pk_test_');
       // The checkout wording from the Terms (5.5); the box starts unticked.
       document.getElementById('renewText').textContent = `I agree that my ${PLAN_INFO[plan][0]} renews automatically every month at ${naira(PRICE[plan])} until I cancel. My first renewal is on ${document.getElementById('payNext').textContent}. I can cancel with 30 days’ written notice.`;
     }
@@ -717,8 +719,13 @@
       if (result.paid) {
         // The browser callback is not proof of payment. The server must confirm it with
         // Paystack (webhook or the verify endpoint) before the plan is switched on.
-        document.getElementById('doneMsg').textContent = 'We have received your payment. Your plan starts as soon as Paystack confirms it, usually within a minute.';
-        document.getElementById('doneNote').textContent = 'Paystack reference: ' + result.reference + '. Design preview: no account was created.';
+        if (PAYSTACK.publicKey.startsWith('pk_test_')) {
+          document.getElementById('doneMsg').textContent = 'Test payment completed in Paystack’s test mode. In the live app, your plan starts once our server confirms the payment with Paystack.';
+          document.getElementById('doneNote').textContent = 'Paystack test reference: ' + result.reference + '. No real money moved, and this preview didn’t create an account.';
+        } else {
+          document.getElementById('doneMsg').textContent = 'We have received your payment. Your plan starts as soon as Paystack confirms it, usually within a minute.';
+          document.getElementById('doneNote').textContent = 'Paystack reference: ' + result.reference + '. Design preview: no account was created.';
+        }
       } else {
         document.getElementById('doneNote').textContent = 'This is a design preview, so no account was created and no payment was taken.';
       }
