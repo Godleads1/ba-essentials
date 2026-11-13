@@ -14,6 +14,7 @@ The public marketing site for B & A Essentials, built as three standalone HTML p
 | `tasks-data.js` | Sample data shared by the app pages: tasks, messages, notifications, files, plan and invoices (the app will replace it with its API). It also keeps the menu badge and bell counts live on every page |
 | `catalogue.html` | Service Catalogue: categories, availability, search across services, details panel with request links |
 | `catalogue-data.js` | The service list (from the Task Bank), shared by the Catalogue and Submit a Task |
+| `profile.html` | Profile & security: details, verified phone and email changes, contact choices, sign-in codes, optional authenticator app, devices, activity, data requests and account closure |
 | `messages.html` | Messages & Notifications: one conversation per request with files, unread counts, mark as unread, and account notifications |
 | `deliverables.html` | Deliverables: every file from your requests, with download, approve drafts, archive, bulk actions and upload to a request |
 | `plan.html` | Plan & Usage: tasks and legal reviews used this cycle, usage chart, usage by category, alerts, change plan |
@@ -108,7 +109,7 @@ Edit the files here, then copy them to the `gh-pages` branch:
 
 ```bash
 git checkout gh-pages
-git checkout main -- website/index.html website/login.html website/onboarding.html website/dashboard.html website/submit-task.html website/my-tasks.html website/task.html website/tasks-data.js website/catalogue.html website/catalogue-data.js website/deliverables.html website/plan.html website/billing.html website/help.html website/contact.html website/messages.html website/terms.html website/privacy.html website/cookies.html website/consent.js website/app.css
+git checkout main -- website/index.html website/login.html website/onboarding.html website/dashboard.html website/submit-task.html website/my-tasks.html website/task.html website/tasks-data.js website/catalogue.html website/catalogue-data.js website/deliverables.html website/plan.html website/billing.html website/help.html website/contact.html website/messages.html website/profile.html website/terms.html website/privacy.html website/cookies.html website/consent.js website/app.css
 mv website/*.html website/*.js website/app.css . && rmdir website
 git commit -am "Update website" && git push origin gh-pages
 ```

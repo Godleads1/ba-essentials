@@ -321,6 +321,12 @@
 
   // Every page's menu badge, message icon and bell show the live counts.
   function paintCounts() {
+    // The name saved on Profile & security shows in every page's top bar.
+    const prof = getPref('profile', null);
+    if (prof && prof.name) {
+      document.querySelectorAll('[data-fullname]').forEach(el => { el.textContent = prof.name; });
+      document.querySelectorAll('[data-initials]').forEach(el => { el.textContent = prof.name.trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase(); });
+    }
     const m = unreadConversations(), n = unreadNotes();
     document.querySelectorAll('[data-count="msgs"]').forEach(el => { el.textContent = m; el.hidden = !m; });
     document.querySelectorAll('[data-count-label="msgs"]').forEach(el => el.setAttribute('aria-label', m ? `Messages, ${m} unread` : 'Messages'));
