@@ -301,3 +301,57 @@ def test_staff_add_fee_form_works_end_to_end(scoping_task, ops_user):
     assert response.status_code == 302
     line = FeeRequest.objects.get(task=scoping_task).lines.get()
     assert line.amount_minor == CAC
+
+
+# ---------- money that arrives where it can't count (review follow-up) ----------
+
+def _complete(attempt, fake_paystack, event_id):
+    from django.test import Client
+
+    fake_paystack.confirm(attempt.reference, attempt.amount_minor)
+    _webhook(Client(), {"event": "charge.success", "data": {
+        "id": event_id, "reference": attempt.reference, "amount": attempt.amount_minor,
+        "currency": "NGN", "status": "success"}})
+    attempt.refresh_from_db()
+    return attempt
+
+
+@override_settings(PAYMENTS_ENABLED=True)
+def test_a_second_checkout_paid_for_the_same_invoice_is_flagged_for_refund(sent_fees, owner, fake_paystack, finance):
+    c = login_client(owner)
+    c.post(f"/app/billing/invoices/{sent_fees.invoice_id}/pay/")
+    c.post(f"/app/billing/invoices/{sent_fees.invoice_id}/pay/")
+    first, second = PaymentAttempt.objects.filter(invoice_id=sent_fees.invoice_id).order_by("created_at")
+    assert _complete(first, fake_paystack, 7001).status == "succeeded"
+    assert _complete(second, fake_paystack, 7002).status == "refund_due"
+    assert AuditEvent.objects.filter(action="billing.payment_refund_due").count() == 1
+    sent_fees.refresh_from_db()
+    assert sent_fees.status == FeeRequestStatus.PAID
+    body = login_client(finance).get("/staff/finance/").content.decode()
+    assert "Refunds due" in body and second.reference in body
+
+
+@override_settings(PAYMENTS_ENABLED=True)
+def test_a_payment_completed_after_fees_were_withdrawn_is_flagged_for_refund(sent_fees, owner, fake_paystack, finance):
+    login_client(owner).post(f"/app/billing/invoices/{sent_fees.invoice_id}/pay/")
+    attempt = PaymentAttempt.objects.get(invoice_id=sent_fees.invoice_id)
+    fees.withdraw(sent_fees, finance, "Registry waived the fee")
+    attempt.refresh_from_db()
+    assert attempt.status == "failed"
+    assert _complete(attempt, fake_paystack, 7003).status == "refund_due"
+    sent_fees.refresh_from_db()
+    assert sent_fees.status == FeeRequestStatus.VOID
+    assert Invoice.objects.get(pk=sent_fees.invoice_id).status == InvoiceStatus.VOID
+    # No new checkout can start on withdrawn fees.
+    response = login_client(owner).post(f"/app/billing/invoices/{sent_fees.invoice_id}/pay/")
+    assert "checkout.paystack.com" not in response["Location"]
+
+
+@override_settings(PAYMENTS_ENABLED=True)
+def test_a_replayed_charge_for_the_same_payment_is_not_flagged(sent_fees, owner, fake_paystack):
+    login_client(owner).post(f"/app/billing/invoices/{sent_fees.invoice_id}/pay/")
+    attempt = PaymentAttempt.objects.get(invoice_id=sent_fees.invoice_id)
+    _complete(attempt, fake_paystack, 7004)
+    # Same payment, new event id (Paystack resend): applied once, never refund-due.
+    assert _complete(attempt, fake_paystack, 7005).status == "succeeded"
+    assert not AuditEvent.objects.filter(action="billing.payment_refund_due").exists()

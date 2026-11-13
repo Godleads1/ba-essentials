@@ -19,7 +19,7 @@ from apps.core.exceptions import DomainError
 from apps.core.views import handle_domain_error
 
 from . import fees, services
-from .models import Invoice, InvoiceStatus
+from .models import Invoice, InvoiceStatus, PaymentAttempt, PaymentStatus
 
 
 @staff_permission_required(FINANCE_VIEW)
@@ -35,10 +35,15 @@ def finance_home(request):
         .select_related("organization", "task")
         .order_by("-paid_at")[:20]
     )
+    refunds_due = (
+        PaymentAttempt.objects.filter(status=PaymentStatus.REFUND_DUE)
+        .select_related("invoice", "invoice__organization")
+        .order_by("-updated_at")[:50]
+    )
     return render(
         request,
         "staff/finance.html",
-        {"issued": issued, "recent_paid": recent_paid},
+        {"issued": issued, "recent_paid": recent_paid, "refunds_due": refunds_due},
     )
 
 

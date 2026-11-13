@@ -141,6 +141,8 @@ class PaymentStatus(models.TextChoices):
     PENDING = "pending", "Pending"
     SUCCEEDED = "succeeded", "Succeeded"
     FAILED = "failed", "Failed"
+    # Paystack took the money but the invoice was already paid or withdrawn.
+    REFUND_DUE = "refund_due", "Refund due"
 
 
 class PaymentAttempt(TimeStampedModel):

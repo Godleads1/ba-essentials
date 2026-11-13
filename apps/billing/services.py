@@ -345,10 +345,11 @@ def start_plan_checkout(*, organization, membership, plan_slug: str, return_url:
                 status=InvoiceStatus.ISSUED,
                 due_at=timezone.now() + timedelta(days=1),
             )
-    return _paystack_checkout(
-        invoice, user, return_url=return_url, metadata={"invoice": invoice.number, "plan": plan.slug},
-        void_on_failure=True,
-    )
+        # Created under the invoice lock, so a parallel checkout that fails can't
+        # void this invoice while this attempt is about to use it.
+        metadata = {"invoice": invoice.number, "plan": plan.slug}
+        attempt = _create_attempt(invoice, user, metadata)
+    return _start_checkout(attempt, user, return_url=return_url, metadata=metadata, void_on_failure=True)
 
 
 def can_pay_invoice(invoice: Invoice, membership) -> bool:
@@ -373,62 +374,72 @@ def start_invoice_checkout(*, invoice: Invoice, membership, return_url: str) -> 
         raise PermissionFailure("You can't pay this invoice.")
     if invoice.plan_id is not None:
         raise ValidationFailure("Plan payments are made from the Plan page.")
-    if invoice.status != InvoiceStatus.ISSUED:
-        raise ValidationFailure("This invoice isn't open for payment.")
-    if invoice.currency != settings.PAYSTACK_BASE_CURRENCY:
-        raise ValidationFailure("This invoice can't be paid with Paystack.")
     metadata = {"invoice": invoice.number}
     if invoice.task_id:
         metadata["request"] = invoice.task.reference
-    return _paystack_checkout(
-        invoice, membership.user, return_url=return_url, metadata=metadata, void_on_failure=False
+    with transaction.atomic():
+        locked = Invoice.objects.select_for_update().get(pk=invoice.pk)
+        if locked.status != InvoiceStatus.ISSUED:
+            raise ValidationFailure("This invoice isn't open for payment.")
+        if locked.currency != settings.PAYSTACK_BASE_CURRENCY:
+            raise ValidationFailure("This invoice can't be paid with Paystack.")
+        attempt = _create_attempt(locked, membership.user, metadata)
+    return _start_checkout(
+        attempt, membership.user, return_url=return_url, metadata=metadata, void_on_failure=False
     )
 
 
-def _paystack_checkout(
-    invoice: Invoice, user, *, return_url: str, metadata: dict, void_on_failure: bool
-) -> str:
+def _create_attempt(invoice: Invoice, user, metadata: dict) -> PaymentAttempt:
+    """Record a payment attempt. Call inside the transaction holding the invoice lock."""
     reference = f"BA-{uuid.uuid4().hex[:24].upper()}"
-    with transaction.atomic():
-        attempt = PaymentAttempt.objects.create(
-            invoice=invoice,
-            provider="paystack",
-            reference=reference,
-            amount_minor=invoice.amount_minor,
-            currency=invoice.currency,
-            status=PaymentStatus.INITIATED,
-        )
-        audit_service.record(
-            action="billing.checkout_started",
-            actor=user,
-            organization_id=invoice.organization_id,
-            resource_type="invoice",
-            resource_id=str(invoice.pk),
-            metadata={**metadata, "amount_minor": invoice.amount_minor, "reference": reference},
-        )
+    attempt = PaymentAttempt.objects.create(
+        invoice=invoice,
+        provider="paystack",
+        reference=reference,
+        amount_minor=invoice.amount_minor,
+        currency=invoice.currency,
+        status=PaymentStatus.INITIATED,
+    )
+    audit_service.record(
+        action="billing.checkout_started",
+        actor=user,
+        organization_id=invoice.organization_id,
+        resource_type="invoice",
+        resource_id=str(invoice.pk),
+        metadata={**metadata, "amount_minor": invoice.amount_minor, "reference": reference},
+    )
+    return attempt
 
+
+def _start_checkout(
+    attempt: PaymentAttempt, user, *, return_url: str, metadata: dict, void_on_failure: bool
+) -> str:
+    """Ask Paystack for a checkout. Runs outside any transaction: never hold a lock on a network call."""
+    invoice = attempt.invoice
     try:
         return paystack.initialize(
             email=user.email,
             amount_minor=attempt.amount_minor,
             currency=attempt.currency,
-            reference=reference,
+            reference=attempt.reference,
             callback_url=return_url,
             metadata=metadata,
         )
     except paystack.PaystackError as exc:
-        PaymentAttempt.objects.filter(pk=attempt.pk).update(
-            status=PaymentStatus.FAILED, provider_status="initialize failed", updated_at=timezone.now()
-        )
-        # A plan invoice exists only for this checkout, so it is voided if no other
-        # attempt on it could still be paid. Request invoices stay open to retry.
-        if void_on_failure and not invoice.payment_attempts.exclude(pk=attempt.pk).exclude(
-            status=PaymentStatus.FAILED
-        ).exists():
-            Invoice.objects.filter(pk=invoice.pk, status=InvoiceStatus.ISSUED).update(
-                status=InvoiceStatus.VOID, updated_at=timezone.now()
+        with transaction.atomic():
+            Invoice.objects.select_for_update().filter(pk=invoice.pk).first()
+            PaymentAttempt.objects.filter(pk=attempt.pk).update(
+                status=PaymentStatus.FAILED, provider_status="initialize failed", updated_at=timezone.now()
             )
-        logger.warning("Paystack checkout could not start for %s: %s", reference, exc)
+            # A plan invoice exists only for checkout, so it is voided if no other
+            # attempt on it could still be paid. Request invoices stay open to retry.
+            if void_on_failure and not invoice.payment_attempts.exclude(pk=attempt.pk).exclude(
+                status=PaymentStatus.FAILED
+            ).exists():
+                Invoice.objects.filter(pk=invoice.pk, status=InvoiceStatus.ISSUED).update(
+                    status=InvoiceStatus.VOID, updated_at=timezone.now()
+                )
+        logger.warning("Paystack checkout could not start for %s: %s", attempt.reference, exc)
         raise ValidationFailure("We couldn't start the payment. Please try again.") from exc
 
 
@@ -552,11 +563,10 @@ def _apply_charge_success(event: ProviderWebhookEvent, data: dict, confirmed: di
         )
         return "not_confirmed"
 
-    attempt.status = PaymentStatus.SUCCEEDED
-    attempt.provider_status = str(data.get("status") or "")[:64]
-    attempt.save(update_fields=["status", "provider_status", "updated_at"])
+    if attempt.status in (PaymentStatus.SUCCEEDED, PaymentStatus.REFUND_DUE):
+        return "already_applied"
 
-    invoice = attempt.invoice
+    invoice = Invoice.objects.select_for_update().get(pk=attempt.invoice_id)
     # Conditional update: only the event that actually moves the invoice from
     # issued to paid may activate anything, however many events arrive.
     now = timezone.now()
@@ -564,6 +574,29 @@ def _apply_charge_success(event: ProviderWebhookEvent, data: dict, confirmed: di
         status=InvoiceStatus.PAID, paid_at=now, updated_at=now
     )
     invoice.refresh_from_db()
+
+    if not newly_paid:
+        # Money arrived for an invoice that was already paid (a second checkout)
+        # or withdrawn (fees voided after the client opened Paystack). It must
+        # not count as payment; finance refunds it.
+        attempt.status = PaymentStatus.REFUND_DUE
+        attempt.provider_status = f"paid after invoice was {invoice.status}"[:64]
+        attempt.save(update_fields=["status", "provider_status", "updated_at"])
+        audit_service.record(
+            action="billing.payment_refund_due",
+            actor=None,
+            organization_id=invoice.organization_id,
+            resource_type="invoice",
+            resource_id=str(invoice.pk),
+            result=AuditEvent.Result.DENIED,
+            metadata={"reference": reference, "amount_minor": amount, "invoice_status": invoice.status},
+        )
+        logger.warning("Payment %s arrived for %s invoice %s; refund due", reference, invoice.status, invoice.number)
+        return "refund_due"
+
+    attempt.status = PaymentStatus.SUCCEEDED
+    attempt.provider_status = str(data.get("status") or "")[:64]
+    attempt.save(update_fields=["status", "provider_status", "updated_at"])
 
     _advance_task_after_payment(invoice, None, source="Provider webhook confirmed payment")
     if newly_paid:

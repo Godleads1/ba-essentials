@@ -315,6 +315,14 @@ def withdraw(fee_request: FeeRequest, actor, reason: str) -> FeeRequest:
             ).update(status=InvoiceStatus.VOID, updated_at=timezone.now())
             if not voided:
                 raise ValidationFailure("These fees have already been paid.")
+            # Close checkouts already started. If the client still completes one,
+            # the webhook marks that payment refund-due instead of paid.
+            from .models import PaymentAttempt, PaymentStatus
+
+            PaymentAttempt.objects.filter(
+                invoice_id=fee_request.invoice_id,
+                status__in=(PaymentStatus.INITIATED, PaymentStatus.PENDING),
+            ).update(status=PaymentStatus.FAILED, provider_status="fees withdrawn", updated_at=timezone.now())
         fee_request.status = FeeRequestStatus.VOID
         fee_request.void_reason = reason[:255]
         fee_request.save(update_fields=["status", "void_reason", "updated_at"])
