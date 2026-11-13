@@ -135,6 +135,8 @@ class Invoice(TimeStampedModel):
         blank=True,
         related_name="+",
     )
+    # The end of the period the upgrade was priced for. It applies only within it.
+    upgrade_period_end = models.DateTimeField(null=True, blank=True)
     amount_minor = models.BigIntegerField()
     currency = models.CharField(max_length=3, default="NGN")
     status = models.CharField(

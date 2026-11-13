@@ -156,16 +156,45 @@ def test_starter_gets_one_legal_review_a_quarter_without_using_tasks(plans, serv
     assert billing.reserve_allowance(second) is False  # quoted instead
 
 
-def test_starter_legal_window_resets_after_three_months(plans, organization):
-    sub = _subscribe(organization, plans["starter"], started_days_ago=100, period_days=130)
-    start = plan_rules.legal_window_start(sub)
-    assert timezone.now() - timedelta(days=11) < start <= timezone.now()  # 2nd quarter began ~10 days ago
+def _at(y, m, d):
+    from datetime import UTC, datetime
+
+    return datetime(y, m, d, 10, 0, tzinfo=UTC)
 
 
-def test_growth_legal_window_is_monthly(plans, organization):
-    sub = _subscribe(organization, plans["growth"], started_days_ago=40, period_days=60)
-    start = plan_rules.legal_window_start(sub)
-    assert timezone.now() - timedelta(days=12) < start <= timezone.now()
+@pytest.mark.parametrize("started, now, expected", [
+    (_at(2026, 1, 31), _at(2026, 4, 29), _at(2026, 1, 31)),   # still in the first quarter
+    (_at(2026, 1, 31), _at(2026, 4, 30), _at(2026, 4, 30)),   # Jan 31 + 3 months = Apr 30
+    (_at(2026, 11, 13), _at(2027, 5, 12), _at(2027, 2, 13)),
+    (_at(2026, 11, 13), _at(2027, 5, 13), _at(2027, 5, 13)),
+])
+def test_starter_legal_window_is_each_quarter_from_the_start_date(plans, organization, started, now, expected):
+    sub = _subscribe(organization, plans["starter"])
+    Subscription.objects.filter(pk=sub.pk).update(created_at=started)
+    sub.refresh_from_db()
+    assert plan_rules.legal_window_start(sub, now) == expected
+
+
+@pytest.mark.parametrize("started, now, expected", [
+    (_at(2027, 2, 24), _at(2027, 4, 5), _at(2027, 3, 24)),
+    (_at(2026, 1, 31), _at(2026, 3, 1), _at(2026, 2, 28)),
+])
+def test_growth_legal_window_is_each_month_from_the_start_date(plans, organization, started, now, expected):
+    sub = _subscribe(organization, plans["growth"])
+    Subscription.objects.filter(pk=sub.pk).update(created_at=started)
+    sub.refresh_from_db()
+    assert plan_rules.legal_window_start(sub, now) == expected
+
+
+def test_moving_from_starter_to_growth_does_not_give_an_extra_review(plans, services, organization, owner, make_task):
+    sub = _subscribe(organization, plans["starter"], started_days_ago=50, period_days=60)
+    first = _task_in(services["legal"], organization, owner, make_task)
+    assert billing.reserve_allowance(first) is True  # Starter's review this quarter, used today
+    Subscription.objects.filter(pk=sub.pk).update(plan=plans["growth"])
+    # Growth allows 1 a month; the one used today still counts this month.
+    assert plan_rules.legal_reviews_remaining(organization) == 0
+    second = _task_in(services["legal"], organization, owner, make_task)
+    assert billing.reserve_allowance(second) is False
 
 
 def test_dedicated_gets_four_legal_reviews(plans, services, organization, owner, make_task):
@@ -259,6 +288,19 @@ def test_a_late_payment_for_a_replaced_upgrade_is_refund_due(plans, organization
 
 
 @override_settings(PAYMENTS_ENABLED=True)
+def test_an_upgrade_priced_for_last_period_is_refund_due_after_renewal(plans, organization, owner, fake_paystack):
+    sub = _subscribe(organization, plans["starter"], started_days_ago=29, period_days=30)
+    login_client(owner).post("/app/plan/upgrade/growth/")
+    attempt = PaymentAttempt.objects.get()
+    # The period ends and Starter renews before the old, cheap upgrade is paid.
+    Subscription.objects.filter(pk=sub.pk).update(
+        period_start=sub.period_end, period_end=sub.period_end + timedelta(days=30)
+    )
+    assert _pay(attempt, fake_paystack, 8401).status == "refund_due"
+    assert Subscription.objects.get(pk=sub.pk).plan_id == plans["starter"].pk
+
+
+@override_settings(PAYMENTS_ENABLED=True)
 def test_an_upgrade_paid_after_the_plan_changed_is_refund_due(plans, organization, owner, fake_paystack):
     sub = _subscribe(organization, plans["starter"])
     login_client(owner).post("/app/plan/upgrade/growth/")
@@ -275,3 +317,28 @@ def test_plan_page_shows_legal_allowance_services_and_upgrades(plans, services, 
     assert "Legal reviews remaining" in body and "1 legal review a quarter" in body
     assert "Services in your plan" in body and "On Growth" in body
     assert "Move up" in body and "Growth" in body and "Dedicated" in body
+
+
+# ---------- catalogue manifest ----------
+
+def _manifest(tmp_path, category):
+    path = tmp_path / "catalogue.json"
+    category.setdefault("services", [])
+    path.write_text(json.dumps({"categories": [category]}))
+    return str(path)
+
+
+def test_an_older_manifest_keeps_existing_plan_access(db, tmp_path):
+    call_command("bootstrap_catalogue", _manifest(tmp_path, {
+        "name": "Operations & Logistics", "slug": "operations", "minimum_plan_rank": 2}), stdout=open("/dev/null", "w"))
+    call_command("bootstrap_catalogue", _manifest(tmp_path, {
+        "name": "Operations & Logistics", "slug": "operations"}), stdout=open("/dev/null", "w"))
+    assert ServiceCategory.objects.get(slug="operations").minimum_plan_rank == 2
+
+
+def test_the_manifest_rejects_a_bad_plan_rank(db, tmp_path):
+    from django.core.management.base import CommandError
+
+    with pytest.raises(CommandError):
+        call_command("bootstrap_catalogue", _manifest(tmp_path, {
+            "name": "Ops", "slug": "ops", "minimum_plan_rank": "growth"}), stdout=open("/dev/null", "w"))

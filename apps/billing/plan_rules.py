@@ -74,12 +74,18 @@ def legal_window_start(subscription: Subscription, now=None):
     return start
 
 
-def legal_reviews_used(organization, subscription: Subscription) -> int:
+def legal_reviews_used(organization_id, subscription: Subscription, now=None) -> int:
+    """Reviews reserved since the current window began.
+
+    Counted by when each was reserved, not by its stored window, so moving to a
+    plan with a different window (say Starter's quarter to Growth's month) never
+    hands out an extra review in the same period.
+    """
     return (
         UsageLedger.objects.filter(
-            organization=organization,
+            organization_id=organization_id,
             kind=UsageKind.LEGAL,
-            period_start=legal_window_start(subscription),
+            created_at__gte=legal_window_start(subscription, now),
         ).aggregate(total=Sum("units"))["total"]
         or 0
     )
@@ -89,7 +95,7 @@ def legal_reviews_remaining(organization) -> int:
     subscription = active_subscription(organization)
     if subscription is None:
         return 0
-    return max(0, subscription.plan.legal_review_allowance - legal_reviews_used(organization, subscription))
+    return max(0, subscription.plan.legal_review_allowance - legal_reviews_used(organization.pk, subscription))
 
 
 def uses_legal_allowance(task) -> bool:

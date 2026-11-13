@@ -96,12 +96,15 @@ def reserve_allowance(task) -> bool:
             kind = UsageKind.ALLOWANCE
             limit = subscription.plan.monthly_task_allowance
             window = subscription.period_start
-        used = (
-            UsageLedger.objects.filter(
-                organization_id=task.organization_id, kind=kind, period_start=window
-            ).aggregate(total=Sum("units"))["total"]
-            or 0
-        )
+        if legal:
+            used = plan_rules.legal_reviews_used(task.organization_id, subscription)
+        else:
+            used = (
+                UsageLedger.objects.filter(
+                    organization_id=task.organization_id, kind=kind, period_start=window
+                ).aggregate(total=Sum("units"))["total"]
+                or 0
+            )
         if used + 1 > limit:
             return False
         try:
@@ -400,13 +403,20 @@ def start_upgrade_checkout(*, organization, membership, plan_slug: str, return_u
         raise ValidationFailure("That plan isn't available.")
     user = membership.user
     with transaction.atomic():
+        now = timezone.now()
+        # Older unpaid upgrade invoices are replaced, so only today's price can be paid.
+        # A late payment on one of those is caught by the webhook and marked refund-due.
+        # Invoices are locked before the subscription, the same order as payment
+        # confirmation, so the two can't deadlock.
+        Invoice.objects.filter(
+            organization=organization, status=InvoiceStatus.ISSUED, upgrade_from__isnull=False
+        ).update(status=InvoiceStatus.VOID, updated_at=now)
         subscription = (
             Subscription.objects.select_for_update()
             .filter(organization=organization, status=SubscriptionStatus.ACTIVE)
             .select_related("plan")
             .first()
         )
-        now = timezone.now()
         if subscription is None or not (subscription.period_start <= now <= subscription.period_end):
             raise ValidationFailure("Choose a plan first. Upgrades are for an active plan.")
         current = subscription.plan
@@ -415,17 +425,13 @@ def start_upgrade_checkout(*, organization, membership, plan_slug: str, return_u
         if target.currency != current.currency or target.currency != settings.PAYSTACK_BASE_CURRENCY:
             raise ValidationFailure("That plan can't be paid with Paystack.")
         amount = upgrade_charge_minor(subscription, target, now)
-        # Older unpaid upgrade invoices are replaced, so only today's price can be paid.
-        # A late payment on one of those is caught by the webhook and marked refund-due.
-        Invoice.objects.filter(
-            organization=organization, status=InvoiceStatus.ISSUED, upgrade_from__isnull=False
-        ).update(status=InvoiceStatus.VOID, updated_at=now)
         number = next_value("invoice.number", start=1000)
         invoice = Invoice.objects.create(
             number=f"INV-{now:%Y}-{number}",
             organization=organization,
             plan=target,
             upgrade_from=current,
+            upgrade_period_end=subscription.period_end,
             amount_minor=amount,
             currency=target.currency,
             status=InvoiceStatus.ISSUED,
@@ -731,6 +737,8 @@ def _apply_upgrade(invoice: Invoice) -> bool:
         subscription is None
         or not (subscription.period_start <= now <= subscription.period_end)
         or subscription.plan_id != invoice.upgrade_from_id
+        # Priced for one period: a renewal since then makes it stale.
+        or subscription.period_end != invoice.upgrade_period_end
     ):
         return False
     subscription.plan_id = invoice.plan_id
