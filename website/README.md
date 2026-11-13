@@ -1,0 +1,115 @@
+# banda website (static)
+
+The public marketing site for B & A Essentials, built as three standalone HTML pages:
+
+| File | Page |
+|---|---|
+| `index.html` | One-page website: hero, services, how it works, pricing, about us, real stories, FAQs |
+| `login.html` | Log in |
+| `onboarding.html` | Six-step sign-up: account, email code, business details, plan, review, payment |
+| `dashboard.html` | Client dashboard (sample data) |
+| `submit-task.html` | Submit a Task: service, details and files, review, confirmation |
+| `my-tasks.html` | My Tasks: all requests with search, filters, status guide and a ⋯ menu per request |
+| `task.html?id=…` | Request detail: details, files, quote, messages, progress timeline, deliverables, cancel |
+| `tasks-data.js` | Sample data shared by the app pages: tasks, messages, notifications, files, plan and invoices (the app will replace it with its API). It also keeps the menu badge and bell counts live on every page |
+| `catalogue.html` | Service Catalogue: categories, availability, search across services, details panel with request links |
+| `catalogue-data.js` | The service list (from the Task Bank), shared by the Catalogue and Submit a Task |
+| `profile.html` | Profile & security: details, verified phone and email changes, contact choices, sign-in codes, optional authenticator app, devices, activity, data requests and account closure |
+| `messages.html` | Messages & Notifications: one conversation per request with files, unread counts, mark as unread, and account notifications |
+| `deliverables.html` | Deliverables: every file from your requests, with download, approve drafts, archive, bulk actions and upload to a request |
+| `plan.html` | Plan & Usage: tasks and legal reviews used this cycle, usage chart, usage by category, alerts, change plan |
+| `billing.html` | Billing & Invoices: outstanding, invoices with pay and CSV export, payment method, renewal and cancelling with 30 days’ notice |
+| `help.html` | Help & Support: ways to get help, your support requests, common questions |
+| `contact.html` | Contact support: a support request form with topic, related request and files |
+| `terms.html`, `privacy.html`, `cookies.html` | Terms of Service, Privacy Policy and Cookie Notice (v0.1, 12 Nov 2026), from the legal documents |
+| `consent.js` | Cookie banner and Cookie settings, loaded on every page |
+
+It is published with GitHub Pages from the `gh-pages` branch, which holds a copy of this folder.
+
+## Status
+
+These pages are a design preview. The forms check what people type but send nothing, and
+any six digits pass the email code step. Styling loads from the Tailwind Play CDN, which is
+meant for prototypes; the Django app builds the same classes with the Tailwind CLI.
+
+Before launch:
+
+- Replace the three sample quotes in "Real stories" with real, consented client quotes.
+- Add contact details for "Contact Sales" and "Talk to Our Team", and the social profile links.
+- Confirm the FAQ answers (refunds, going over the task limit, cancelling).
+- Link the Terms of Service and Privacy Policy, and connect login and sign-up to the app.
+- Replace the sample data in `dashboard.html` with the client's real tasks and usage.
+
+## Quality checks
+
+Every change to these pages is checked with:
+
+- the W3C HTML validator (Nu Html Checker): no errors
+- axe-core accessibility rules (WCAG 2.2 AA and best practice): no violations, on laptop and phone widths
+- ESLint on each page's script: no errors or warnings
+- Chromium, Firefox and WebKit (Safari's engine): no script errors, no sideways scrolling, and the
+  full sign-up → payment → dashboard flow completes, at laptop and phone sizes
+
+Styles are compiled ahead of time into `app.css` (no Tailwind script runs in the browser), and icons
+in the page markup are built in as SVG, so pages appear complete on first paint with no flicker.
+The icon script (Lucide 1.60.0, pinned) only draws the few icons created by JavaScript; if it fails
+to load, the pages still work.
+
+## Building
+
+After editing any page, rebuild from `website/build/`:
+
+```bash
+npm install
+npm run build   # bakes icons into the pages, then compiles app.css
+```
+
+The colours and fonts live in `build/tailwind.config.js`.
+
+## Legal documents
+
+The Terms, Privacy Policy and Cookie Notice pages are generated from the legal documents. Wording is
+kept as written, with these agreed changes: account data is kept for 90 days after an account closes,
+"Crescent" spelling, "Lagos" added to the Terms address, and a stray bracket removed. Anything still to
+be confirmed (cookie names, the registration number, the provider list) is highlighted on the page.
+
+The site follows them: sign-in by one-time code (no passwords), one owner per account during the pilot
+(no team page), the sign-up and upload notices, separate unticked marketing choice, the automatic
+renewal checkbox before payment, 30 days' notice to cancel, upgrades immediate and pro rata, extra
+legal reviews quoted, correspondence drafted for you to send, and calls only with your authorisation.
+
+## Support contact details
+
+The support email, phone and hours shown on Help and Contact come from the `SUPPORT` setting in
+`tasks-data.js`. Anything left empty is hidden, so no unconfirmed number appears on the site.
+
+## Payments (Paystack)
+
+Step 6 of `onboarding.html` takes payment with Paystack's popup (Inline JS v2), by card,
+bank transfer or USSD. With no key set, the step shows a preview notice and lets people
+finish without paying. To switch real payments on, edit the `PAYSTACK` object in the
+page's script:
+
+```js
+const PAYSTACK = { publicKey: 'pk_test_...', planCodes: { starter: 'PLN_...', growth: 'PLN_...', dedicated: 'PLN_...' } };
+```
+
+- Use the **public** key only (`pk_test_` while testing, `pk_live_` when live). The secret
+  key never goes in a web page.
+- Create the three monthly plans (₦65,000, ₦97,500, ₦260,000) in the Paystack dashboard and
+  paste their plan codes, so customers are subscribed and charged each month. Without plan
+  codes, Paystack takes a one-off payment.
+- The popup's success message is not proof of payment. The Django app must confirm each
+  payment (the `charge.success` webhook, or the verify endpoint with the reference) before
+  switching a plan on. The page sends the plan name in the transaction metadata for this.
+
+## Updating the live site
+
+Edit the files here, then copy them to the `gh-pages` branch:
+
+```bash
+git checkout gh-pages
+git checkout main -- website/index.html website/login.html website/onboarding.html website/dashboard.html website/submit-task.html website/my-tasks.html website/task.html website/tasks-data.js website/catalogue.html website/catalogue-data.js website/deliverables.html website/plan.html website/billing.html website/help.html website/contact.html website/messages.html website/profile.html website/terms.html website/privacy.html website/cookies.html website/consent.js website/app.css
+mv website/*.html website/*.js website/app.css . && rmdir website
+git commit -am "Update website" && git push origin gh-pages
+```

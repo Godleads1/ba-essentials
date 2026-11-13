@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Log in · banda — B &amp; A Essentials</title>
+  <meta name="description" content="Log in to your B &amp; A Essentials account." />
+  <meta name="theme-color" content="#1C1712" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='14'%20fill='%231C1712'/%3E%3Cpath%20d='M17%209h9v17a13%2013%200%201%201-9%2012z'%20fill='%23FDFBF6'/%3E%3Ccircle%20cx='39'%20cy='39'%20r='7'%20fill='%231C1712'/%3E%3Ccircle%20cx='31'%20cy='40'%20r='5'%20fill='%23D9662E'/%3E%3C/svg%3E" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@500;600;700&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind Play CDN for preview only. In Django, build with the Tailwind CLI using the same config. -->
+  <style>
+    html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { scrollbar-width: none; }
+
+    /* ---------- banda logo (HTML/CSS, crisp at any size) ---------- */
+    .logo { display: inline-flex; flex-direction: column; align-items: flex-start; font-size: 36px; line-height: 1; text-decoration: none; }
+    .logo-word { font-family: Inter, system-ui, sans-serif; font-weight: 800; line-height: .82; letter-spacing: -.035em; color: var(--logo-word, #1C1712); }
+    .logo-b { position: relative; display: inline-block; }
+    .logo-dot { position: absolute; left: .215em; top: .43em; width: .18em; height: .18em; border-radius: 50%; background: #D9662E; transition: transform .35s cubic-bezier(.34,1.56,.64,1); }
+    .logo:hover .logo-dot { transform: scale(1.18); }
+    .logo-tag { font-family: Inter, system-ui, sans-serif; font-weight: 600; font-size: .2em; letter-spacing: .5em; margin-top: .55em; white-space: nowrap; color: var(--logo-tag, #33397F); }
+    .logo-tag .amp { color: #D9662E; letter-spacing: .3em; }
+    .logo--light { --logo-word: #FDFBF6; --logo-tag: #B8BBE6; }
+    /* large lockup (hero/brand use) keeps the original airy tagline */
+    .logo--lg .logo-tag { font-weight: 500; font-size: .172em; letter-spacing: .66em; margin-top: .62em; }
+
+    /* ---------- motion ---------- */
+    .reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s ease, transform .6s ease; }
+    .reveal.in { opacity: 1; transform: none; }
+    .bar { width: 0; transition: width 1.2s cubic-bezier(.22,1,.36,1) .3s; }
+    .float { animation: float 7s ease-in-out infinite; }
+    @keyframes float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-6px) } }
+    .hero-underline path { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .9s cubic-bezier(.22,1,.36,1) .5s; }
+    .reveal.in .hero-underline path { stroke-dashoffset: 0; }
+    /* Log in: on laptop and desktop screens the whole page, quote card included,
+       fits in the window with no scrolling. Every size scales with the window
+       height, so it holds from short laptop windows (about 540px tall) upwards. */
+    @media (min-width: 1024px) {
+      .fit { height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; }
+      .fit > * { min-height: 0; padding-block: clamp(18px, 4.2vh, 48px); }
+      .fit .logo { font-size: clamp(28px, 4.6vh, 44px) !important; }
+      .fit h1 { font-size: clamp(24px, 5vh, 46px); margin-top: clamp(12px, 3.4vh, 40px); }
+      .fit .lede { font-size: clamp(13.5px, 2vh, 18px); margin-top: clamp(6px, 1.6vh, 20px); line-height: 1.45; }
+      .fit .feats { margin-top: clamp(12px, 3vh, 34px); }
+      .fit .feats > li + li { margin-top: clamp(6px, 1.7vh, 20px); }
+      .fit .feats .ico { width: clamp(32px, 5vh, 48px); height: clamp(32px, 5vh, 48px); }
+      .fit .feats .ico svg { width: clamp(15px, 2.1vh, 20px); height: clamp(15px, 2.1vh, 20px); }
+      .fit .feats .t { font-size: clamp(13.5px, 1.95vh, 17px); line-height: 1.25; }
+      .fit .feats .d { font-size: clamp(12px, 1.6vh, 14px); line-height: 1.35; }
+      .fit .quote { padding: clamp(12px, 2.4vh, 24px) clamp(16px, 2.4vh, 24px); margin-top: auto; }
+      .fit .feats { margin-bottom: clamp(12px, 3vh, 40px); }
+      .fit .quote .qi { width: clamp(20px, 3vh, 28px); height: clamp(20px, 3vh, 28px); }
+      .fit .quote blockquote { font-size: clamp(12.5px, 1.75vh, 15px); line-height: 1.5; }
+      .fit .quote figcaption { margin-top: clamp(8px, 1.8vh, 20px); }
+      .fit .quote .av { width: clamp(30px, 4.4vh, 40px); height: clamp(30px, 4.4vh, 40px); font-size: clamp(9.5px, 1.3vh, 11px); }
+      .fit .quote .qn { font-size: clamp(12.5px, 1.7vh, 14px); }
+      .fit .quote .qr { font-size: clamp(11.5px, 1.5vh, 12.5px); }
+      .fit .tagline { margin-bottom: 0; }
+      .fit .formwrap { padding-block: 0; }
+      .fit .formwrap h2 { font-size: clamp(25px, 4.3vh, 38px); }
+      .fit .formwrap .sub { font-size: clamp(13.5px, 1.9vh, 16.5px); }
+      .fit form { margin-top: clamp(14px, 3.4vh, 36px); }
+      .fit form label { font-size: clamp(13px, 1.75vh, 14px); }
+      .fit form input:not([type=checkbox]) { padding-block: clamp(8px, 1.5vh, 14px); font-size: clamp(14px, 1.8vh, 15px); }
+      .fit form .gap { margin-top: clamp(9px, 2vh, 20px); }
+      .fit form .submit { margin-top: clamp(12px, 2.7vh, 28px); padding-block: clamp(10px, 1.8vh, 16px); }
+      .fit .signup { margin-top: clamp(10px, 2.6vh, 32px); }
+    }
+    /* Square grid: thin lines forming squares, faded out towards the edges. */
+    .grid-lines {
+      --gl: rgba(51,57,127,.12);
+      --cell: 64px;
+      background-image:
+        linear-gradient(to right, var(--gl) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--gl) 1px, transparent 1px);
+      background-size: var(--cell) var(--cell);
+      background-position: center top;
+    }
+    .grid-lines--light { --gl: rgba(255,255,255,.085); }
+    .grid-fade {
+      -webkit-mask-image: radial-gradient(ellipse 72% 68% at 50% 42%, #000 35%, transparent 78%);
+              mask-image: radial-gradient(ellipse 72% 68% at 50% 42%, #000 35%, transparent 78%);
+    }
+    /* a few squares filled in, like the reference */
+    .grid-cell { position: absolute; width: var(--cell, 64px); height: var(--cell, 64px); background: rgba(51,57,127,.035); }
+    .chan span { display: block; border-radius: 12px; border: 1.5px solid #ECE5DA; background: #fff; padding: 11px 6px; text-align: center; font-size: 14.5px; font-weight: 500; cursor: pointer; transition: all .15s; }
+    .chan input:checked + span { border-color: #33397F; background: #ECEDF8; color: #33397F; font-weight: 600; }
+    .chan input:focus-visible + span { outline: 2px solid #33397F; outline-offset: 2px; }
+    [hidden] { display: none !important; }
+    .dot-grid { background-image: radial-gradient(rgba(51,57,127,.13) 1px, transparent 1px); background-size: 18px 18px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .reveal { opacity: 1; transform: none; }
+      .hero-underline path { stroke-dashoffset: 0; }
+    }
+  </style>
+  <!-- Built from build/ (npm run build). Loaded last so utilities win, as with the Tailwind CDN. -->
+  <link rel="stylesheet" href="app.css" />
+</head>
+
+<body class="bg-cream-light font-sans text-ink antialiased">
+  <div class="fit grid min-h-screen lg:grid-cols-[1.22fr_1fr]">
+
+    <!-- ===================== BRAND PANEL ===================== -->
+    <aside class="relative overflow-hidden bg-cocoa-deep px-6 py-8 text-white sm:px-10 lg:px-14 lg:py-12">
+      <div aria-hidden="true" class="grid-lines grid-lines--light pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_80%_75%_at_30%_40%,black,transparent_80%)]"></div>
+      <!-- rings and sun, cut off by the panel edge -->
+      <div aria-hidden="true" class="pointer-events-none absolute right-0 top-[38%] hidden translate-x-1/2 -translate-y-1/2 lg:block">
+        <span class="absolute left-1/2 top-1/2 h-[480px] w-[480px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-brand-orange/50"></span>
+        <span class="absolute left-1/2 top-1/2 h-[330px] w-[330px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-brand-orange/50"></span>
+        <span class="absolute left-1/2 top-1/2 h-[112px] w-[112px] -translate-x-[62%] -translate-y-1/2 rounded-full bg-brand-orange"></span>
+      </div>
+
+      <div class="relative flex h-full flex-col">
+        <a href="index.html" class="logo logo--light" style="font-size:44px" aria-label="banda, B and A Essentials, home">
+          <span class="logo-word" aria-hidden="true"><span class="logo-b">b<i class="logo-dot"></i></span>anda</span>
+          <span class="logo-tag" aria-hidden="true">B<span class="amp">&amp;</span>A ESSENTIALS</span>
+        </a>
+
+        <h1 class="mt-8 max-w-[12.6em] font-display text-[30px] font-semibold leading-[1.1] tracking-[-0.02em] sm:text-[40px]">
+          Get your business tasks done &mdash; <span class="whitespace-nowrap text-[#F0A77C]">the easy way.</span>
+        </h1>
+        <p class="lede mt-5 max-w-[340px] text-[16px] leading-relaxed text-white/75">Professional support, real people. Reliable results.</p>
+
+        <ul class="feats hidden lg:block">
+          <li class="flex items-center gap-4">
+            <span class="ico grid h-12 w-12 shrink-0 place-items-center rounded-full bg-brand-navy text-white"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-file-text h-5 w-5"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path><path d="M14 2v5a1 1 0 0 0 1 1h5"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg></span>
+            <span><span class="t block font-display text-[17px] font-semibold text-white">Vetted Specialists</span><span class="d mt-0.5 block text-[14px] text-white/70">Skilled professionals, carefully selected.</span></span>
+          </li>
+          <li class="flex items-center gap-4">
+            <span class="ico grid h-12 w-12 shrink-0 place-items-center rounded-full bg-brand-navy text-white"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-shield h-5 w-5"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path></svg></span>
+            <span><span class="t block font-display text-[17px] font-semibold text-white">Secure &amp; Confidential</span><span class="d mt-0.5 block text-[14px] text-white/70">Stored privately, seen only by your task team.</span></span>
+          </li>
+          <li class="flex items-center gap-4">
+            <span class="ico grid h-12 w-12 shrink-0 place-items-center rounded-full bg-brand-navy text-white"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-clock h-5 w-5"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg></span>
+            <span><span class="t block font-display text-[17px] font-semibold text-white">On-Time Delivery</span><span class="d mt-0.5 block text-[14px] text-white/70">We keep your business moving.</span></span>
+          </li>
+          <li class="flex items-center gap-4">
+            <span class="ico grid h-12 w-12 shrink-0 place-items-center rounded-full bg-brand-navy text-white"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-badge-check h-5 w-5"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"></path><path d="m16 9-5.5 5.5L8 12"></path></svg></span>
+            <span><span class="t block font-display text-[17px] font-semibold text-white">Quality Checked</span><span class="d mt-0.5 block text-[14px] text-white/70">We review before you receive.</span></span>
+          </li>
+        </ul>
+
+        <!-- Message from the team. Swap for a real, consented client quote when you have one. -->
+        <figure class="quote hidden max-w-[470px] rounded-2xl border border-white/15 bg-white/[.06] p-6 lg:mt-auto lg:block">
+          <div class="flex gap-4">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote qi h-7 w-7 shrink-0 text-[#F0A77C]" aria-hidden="true"><path d="M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"></path><path d="M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"></path></svg>
+            <blockquote class="text-[15px] leading-relaxed text-white/90">Tell us what you need. A real person does the work, and a second person checks it before it reaches you.</blockquote>
+          </div>
+          <figcaption class="mt-5 flex items-center gap-3">
+            <span class="av grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand-navy text-[11px] font-bold text-white">B&amp;A</span>
+            <span><span class="qn block text-[14px] font-semibold text-white">The B &amp; A Essentials team</span><span class="qr block text-[12.5px] text-white/60">How we work</span></span>
+          </figcaption>
+        </figure>
+      </div>
+    </aside>
+
+    <!-- ===================== LOG IN ===================== -->
+    <main class="flex flex-col px-6 py-8 sm:px-10 lg:px-14 lg:py-12">
+      <p class="tagline hidden items-center gap-3 self-end text-[14px] text-ink-muted lg:flex"><span class="h-4 w-[3px] rounded bg-brand-orange"></span>Your business. Our priority.</p>
+
+      <div class="formwrap mx-auto my-auto w-full max-w-[440px] py-6">
+        <h2 class="font-display text-[34px] font-semibold leading-tight tracking-[-0.02em] sm:text-[38px]">Welcome back</h2>
+        <p class="sub mt-1.5 text-[16.5px] text-ink-muted">Log in to your B &amp; A Essentials account</p>
+
+        <!-- Sign in with a one-time code (Terms of Service 2.2). No passwords. -->
+        <form id="loginForm" class="mt-9" novalidate>
+          <label for="ident" class="block text-[14px] font-semibold">Phone, WhatsApp number or email</label>
+          <div class="relative mt-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-at-sign pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-ink-soft"><circle cx="12" cy="12" r="4"></circle><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"></path></svg>
+            <input id="ident" name="username" type="text" autocomplete="username" required placeholder="0801 234 5678 or you@company.com" aria-describedby="identError" class="w-full rounded-xl border border-cream-line bg-white py-3.5 pl-12 pr-4 text-[15px] text-ink placeholder:text-ink-soft transition focus:border-brand-navy focus:outline-none focus:ring-4 focus:ring-brand-navy/10 aria-[invalid=true]:border-red-600" />
+          </div>
+          <p id="identError" class="mt-1.5 hidden text-[13px] font-medium text-red-700" aria-live="polite"><span id="identMsg">Enter a Nigerian phone number, like 0801 234 5678, or an email address.</span> <button type="button" id="identFix" class="hidden font-semibold text-brand-navy underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy/40 rounded"></button></p>
+
+          <fieldset id="chanSet" class="gap mt-5" hidden>
+            <legend class="block text-[14px] font-semibold">Send my code by</legend>
+            <div class="mt-2 grid grid-cols-2 gap-2">
+              <label class="chan"><input type="radio" name="chan" value="whatsapp" class="sr-only" checked /><span>WhatsApp</span></label>
+              <label class="chan"><input type="radio" name="chan" value="sms" class="sr-only" /><span>SMS</span></label>
+            </div>
+          </fieldset>
+
+          <label class="gap mt-5 flex cursor-pointer items-center gap-2.5 text-[14px] text-ink">
+            <input type="checkbox" name="remember" class="h-[18px] w-[18px] rounded border-cream-line accent-[#33397F]" />
+            Keep me signed in on this device
+          </label>
+
+          <button type="submit" class="submit group mt-7 flex w-full items-center justify-center gap-2.5 rounded-xl bg-brand-cta py-4 text-[15.5px] font-semibold text-white shadow-lg shadow-brand-orange/25 transition hover:bg-brand-ctaDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">
+            Send my code <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-[18px] w-[18px] transition-transform group-hover:translate-x-0.5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+          </button>
+        </form>
+
+        <form id="codeForm" class="mt-9" novalidate hidden>
+          <p class="text-[15px] text-ink-muted">We sent a 6-digit code to <strong id="sentTo" class="text-ink"></strong>.</p>
+          <label for="code" class="gap mt-5 block text-[14px] font-semibold">Your code</label>
+          <input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required aria-describedby="codeError codeWarn" class="mt-2 w-full rounded-xl border border-cream-line bg-white px-4 py-3.5 text-center font-display text-[24px] font-semibold tracking-[.4em] text-ink transition focus:border-brand-navy focus:outline-none focus:ring-4 focus:ring-brand-navy/10 aria-[invalid=true]:border-red-600" />
+          <p id="codeError" class="mt-1.5 hidden text-[13px] font-medium text-red-700">Enter the 6 digits from your message.</p>
+          <p id="codeWarn" class="mt-3 flex items-start gap-2 rounded-xl bg-pill-orangeBg px-3.5 py-2.5 text-[13px] leading-snug text-brand-orangeDark"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-shield-alert mt-px h-4 w-4 shrink-0"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path><path d="M12 8v4"></path><path d="M12 16h.01"></path></svg>We&rsquo;ll never ask you for this code. Don&rsquo;t share it with anyone, even someone who says they work for us.</p>
+          <button type="submit" class="submit group mt-6 flex w-full items-center justify-center gap-2.5 rounded-xl bg-brand-cta py-4 text-[15.5px] font-semibold text-white shadow-lg shadow-brand-orange/25 transition hover:bg-brand-ctaDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">
+            Log in <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-[18px] w-[18px] transition-transform group-hover:translate-x-0.5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+          </button>
+          <p class="mt-4 text-center text-[14px] text-ink-muted"><button type="button" id="resend" class="font-semibold text-brand-navy underline-offset-4 hover:underline disabled:cursor-default disabled:text-ink-soft disabled:no-underline">Send a new code</button><span class="mx-1.5 text-cream-line">|</span><button type="button" id="changeIdent" class="font-semibold text-brand-navy underline-offset-4 hover:underline">Use a different number or email</button></p>
+          <p id="formNote" class="mt-3 rounded-lg bg-pill-navyBg px-4 py-3 text-[13.5px] text-brand-navy" role="status">Design preview: no code is sent. Enter any 6 digits to continue.</p>
+        </form>
+
+        <p class="signup mt-8 text-center text-[14.5px] text-ink-muted">Don't have an account? <a href="onboarding.html" class="font-semibold text-brand-navy underline-offset-4 hover:underline">Sign up</a></p>
+        <p class="legal mt-4 flex flex-wrap justify-center gap-x-4 gap-y-1 text-[12.5px] text-ink-muted"><a href="terms.html" class="hover:text-ink hover:underline">Terms</a><a href="privacy.html" class="hover:text-ink hover:underline">Privacy</a><button type="button" data-cookie-settings class="hover:text-ink hover:underline">Cookie settings</button></p>
+      </div>
+    </main>
+  </div>
+
+  <script src="consent.js"></script>
+  <script src="https://unpkg.com/lucide@1.60.0/dist/umd/lucide.min.js"></script>
+  <script>
+    // Icons are decoration: if the icon library fails to load, everything else still works.
+    if (window.lucide) lucide.createIcons();
+
+    // Preview-only sign-in with a one-time code: validate, but send nothing.
+    // In the app, "Send my code" asks the server to send a code through Termii (WhatsApp, SMS or email).
+    const $ = id => document.getElementById(id);
+    const ident = $('ident');
+    // A Nigerian mobile in any common format: 0801 234 5678, 0801-234-5678, (0801) 234 5678, +234 801 234 5678, +234 (0) 801…, 2348012345678.
+    // Numbers copied from WhatsApp or contacts often carry invisible marks, full-width digits or long dashes; clean them first.
+    const clean = v => v.normalize('NFKC').replace(/\p{Cf}/gu, '').trim();
+    const ngMobile = v => {
+      v = clean(v);
+      if (/[\p{L}@]/u.test(v)) return false;
+      let d = v.replace(/\D/g, '');
+      if (d.startsWith('234')) d = d.slice(3);
+      if (d.startsWith('0')) d = d.slice(1);
+      return /^[2789]\d{9}$/.test(d);
+    };
+    const kind = v => {
+      const t = clean(v);
+      if (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(t)) {
+        const dom = t.split('@')[1].toLowerCase();
+        return TYPOS.has(dom.split('.')[0]) || /\.con$/.test(dom) ? '' : 'email';
+      }
+      return ngMobile(t) ? 'phone' : '';
+    };
+    // Say exactly what is missing, and offer a one-tap fix for common email slips (no ".com", "gmial", ".con").
+    const DOMAINS = { gmail: 'gmail.com', gmial: 'gmail.com', gmai: 'gmail.com', gamil: 'gmail.com', yahoo: 'yahoo.com', yaho: 'yahoo.com', ymail: 'ymail.com', hotmail: 'hotmail.com', outlook: 'outlook.com', icloud: 'icloud.com', live: 'live.com', aol: 'aol.com' };
+    const TYPOS = new Set(['gmial', 'gmai', 'gamil', 'yaho']);
+    function emailHint(t) {
+      const m = t.match(/^([^\s@]+)@([^\s@]*)$/);
+      if (!m) return null;
+      const [, user, dom] = m, low = dom.toLowerCase().replace(/\.+$/, '');
+      if (!low) return { msg: 'Add the rest of your email address after the @, like name@gmail.com.' };
+      const base = low.split('.')[0];
+      if (TYPOS.has(base)) return { msg: 'Check the spelling of your email address.', fix: `${user}@${DOMAINS[base]}` };
+      if (DOMAINS[base] && !low.includes('.')) return { msg: 'Your email address is missing its ending.', fix: `${user}@${DOMAINS[base]}` };
+      if (/\.con$/.test(low)) return { msg: 'Check the ending of your email address.', fix: `${user}@${dom.replace(/\.con$/i, '.com')}` };
+      if (!low.includes('.')) return { msg: `Add the ending of your email address, like @${low}.com.` };
+      return { msg: 'Check your email address. It should look like name@gmail.com.' };
+    }
+    function showIdentError(t) {
+      const h = /@/.test(t) ? emailHint(t) : null;
+      const digits = t.replace(/\D/g, '');
+      $('identMsg').textContent = h ? h.msg
+        : digits.length >= 7 && !/[\p{L}]/u.test(t) ? 'That phone number doesn’t look complete. Nigerian mobile numbers have 11 digits, like 0801 234 5678.'
+        : 'Enter a Nigerian phone number, like 0801 234 5678, or an email address.';
+      const fix = $('identFix');
+      if (h && h.fix) { fix.textContent = `Use ${h.fix}`; fix.dataset.value = h.fix; fix.classList.remove('hidden'); }
+      else fix.classList.add('hidden');
+      $('identError').classList.remove('hidden');
+      ident.setAttribute('aria-invalid', 'true');
+    }
+    function hideIdentError() { $('identError').classList.add('hidden'); ident.removeAttribute('aria-invalid'); }
+    $('identFix').addEventListener('click', () => {
+      ident.value = $('identFix').dataset.value; hideIdentError(); ident.focus();
+      $('chanSet').hidden = kind(ident.value) !== 'phone';
+    });
+    ident.addEventListener('input', () => {
+      $('chanSet').hidden = kind(ident.value) !== 'phone';
+      hideIdentError();
+    });
+    let resendTimer;
+    function startResendWait() {
+      let left = 30; const b = $('resend'); b.disabled = true; b.textContent = `Send a new code in ${left}s`;
+      clearInterval(resendTimer);
+      resendTimer = setInterval(() => { left -= 1; if (left <= 0) { clearInterval(resendTimer); b.disabled = false; b.textContent = 'Send a new code'; } else b.textContent = `Send a new code in ${left}s`; }, 1000);
+    }
+    $('loginForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const k = kind(ident.value);
+      if (!k) { showIdentError(clean(ident.value)); ident.focus(); return; }
+      hideIdentError();
+      const chan = k === 'email' ? 'email' : document.querySelector('input[name="chan"]:checked').value;
+      const shown = k === 'email' ? clean(ident.value) : `your ${chan === 'whatsapp' ? 'WhatsApp' : 'phone'} number ending ${ident.value.replace(/\D/g, '').slice(-4)}`;
+      $('sentTo').textContent = shown;
+      $('loginForm').hidden = true; $('codeForm').hidden = false;
+      $('code').value = ''; $('code').focus();
+      startResendWait();
+    });
+    $('code').addEventListener('input', () => {
+      $('code').value = $('code').value.replace(/\D/g, '').slice(0, 6);
+      if ($('code').value.length === 6) { $('codeError').classList.add('hidden'); $('code').removeAttribute('aria-invalid'); }
+    });
+    $('codeForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const ok = /^\d{6}$/.test($('code').value);
+      $('codeError').classList.toggle('hidden', ok);
+      $('code').setAttribute('aria-invalid', String(!ok));
+      if (!ok) { $('code').focus(); return; }
+      // Preview: any 6 digits open the sample dashboard.
+      window.location.href = 'dashboard.html';
+    });
+    $('resend').addEventListener('click', () => { startResendWait(); $('code').focus(); });
+    $('changeIdent').addEventListener('click', () => { clearInterval(resendTimer); $('codeForm').hidden = true; $('loginForm').hidden = false; ident.focus(); });
+  </script>
+</body>
+</html>

@@ -1,0 +1,739 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Get started · banda — B &amp; A Essentials</title>
+  <meta name="description" content="Set up your B &amp; A Essentials account in a few quick steps." />
+  <meta name="theme-color" content="#1C1712" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='14'%20fill='%231C1712'/%3E%3Cpath%20d='M17%209h9v17a13%2013%200%201%201-9%2012z'%20fill='%23FDFBF6'/%3E%3Ccircle%20cx='39'%20cy='39'%20r='7'%20fill='%231C1712'/%3E%3Ccircle%20cx='31'%20cy='40'%20r='5'%20fill='%23D9662E'/%3E%3C/svg%3E" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@500;600;700&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind Play CDN for preview only. In Django, build with the Tailwind CLI using the same config. -->
+  <style>
+    html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { scrollbar-width: none; }
+
+    /* ---------- banda logo (HTML/CSS, crisp at any size) ---------- */
+    .logo { display: inline-flex; flex-direction: column; align-items: flex-start; font-size: 36px; line-height: 1; text-decoration: none; }
+    .logo-word { font-family: Inter, system-ui, sans-serif; font-weight: 800; line-height: .82; letter-spacing: -.035em; color: var(--logo-word, #1C1712); }
+    .logo-b { position: relative; display: inline-block; }
+    .logo-dot { position: absolute; left: .215em; top: .43em; width: .18em; height: .18em; border-radius: 50%; background: #D9662E; transition: transform .35s cubic-bezier(.34,1.56,.64,1); }
+    .logo:hover .logo-dot { transform: scale(1.18); }
+    .logo-tag { font-family: Inter, system-ui, sans-serif; font-weight: 600; font-size: .2em; letter-spacing: .5em; margin-top: .55em; white-space: nowrap; color: var(--logo-tag, #33397F); }
+    .logo-tag .amp { color: #D9662E; letter-spacing: .3em; }
+    .logo--light { --logo-word: #FDFBF6; --logo-tag: #B8BBE6; }
+    /* large lockup (hero/brand use) keeps the original airy tagline */
+    .logo--lg .logo-tag { font-weight: 500; font-size: .172em; letter-spacing: .66em; margin-top: .62em; }
+
+    /* ---------- motion ---------- */
+    .reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s ease, transform .6s ease; }
+    .reveal.in { opacity: 1; transform: none; }
+    .bar { width: 0; transition: width 1.2s cubic-bezier(.22,1,.36,1) .3s; }
+    .float { animation: float 7s ease-in-out infinite; }
+    @keyframes float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-6px) } }
+    .hero-underline path { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .9s cubic-bezier(.22,1,.36,1) .5s; }
+    .reveal.in .hero-underline path { stroke-dashoffset: 0; }
+    /* Square grid: thin lines forming squares, faded out towards the edges. */
+    .grid-lines {
+      --gl: rgba(51,57,127,.12);
+      --cell: 64px;
+      background-image:
+        linear-gradient(to right, var(--gl) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--gl) 1px, transparent 1px);
+      background-size: var(--cell) var(--cell);
+      background-position: center top;
+    }
+    .grid-lines--light { --gl: rgba(255,255,255,.085); }
+    .grid-fade {
+      -webkit-mask-image: radial-gradient(ellipse 72% 68% at 50% 42%, #000 35%, transparent 78%);
+              mask-image: radial-gradient(ellipse 72% 68% at 50% 42%, #000 35%, transparent 78%);
+    }
+    /* a few squares filled in, like the reference */
+    .grid-cell { position: absolute; width: var(--cell, 64px); height: var(--cell, 64px); background: rgba(51,57,127,.035); }
+    .dot-grid { background-image: radial-gradient(rgba(51,57,127,.13) 1px, transparent 1px); background-size: 18px 18px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .reveal { opacity: 1; transform: none; }
+      .hero-underline path { stroke-dashoffset: 0; }
+    }
+
+    /* ---------- onboarding ---------- */
+    [hidden] { display: none !important; }
+    .sn-more summary { list-style: none; } .sn-more summary::-webkit-details-marker { display: none; }
+    .sn-more summary:focus-visible { outline: 2px solid #33397F; outline-offset: 2px; border-radius: 4px; }
+    .chan span { display: block; border-radius: 12px; border: 1.5px solid #ECE5DA; background: #fff; padding: 11px 4px; text-align: center; font-size: 13.5px; font-weight: 500; cursor: pointer; transition: all .15s; }
+    .chan input:checked + span { border-color: #33397F; background: #ECEDF8; color: #33397F; font-weight: 600; }
+    .chan input:focus-visible + span { outline: 2px solid #33397F; outline-offset: 2px; }
+    .field { width: 100%; border-radius: 12px; border: 1px solid #ECE5DA; background: #fff; padding: 12px 14px; font-size: 15px; color: #241A15; transition: border-color .15s, box-shadow .15s; }
+    .field::placeholder { color: #8A817A; }
+    .field:focus { outline: none; border-color: #33397F; box-shadow: 0 0 0 3px rgba(51,57,127,.18); }
+    .field[aria-invalid="true"] { border-color: #b42318; box-shadow: 0 0 0 3px rgba(180,35,24,.12); }
+    select.field { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235C534D' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px; }
+    .plan:has(input:checked) .radio { border-color: #33397F; }
+    .plan:has(input:checked) .radio > span { opacity: 1; }
+    .err { margin-top: 6px; font-size: 13px; font-weight: 500; color: #b42318; }
+    .code { width: 100%; aspect-ratio: 1 / 1.12; max-width: 58px; text-align: center; font-family: Lexend, sans-serif; font-size: 24px; font-weight: 600; }
+    .step-panel { animation: stepIn .35s ease both; }
+    @keyframes stepIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    /* stepper */
+    .stepper li { position: relative; }
+    .stepper li:not(:last-child)::after { content: ""; position: absolute; left: 17px; top: 40px; bottom: -6px; width: 2px; border-radius: 2px; background: rgba(255,255,255,.12); }
+    .stepper li.is-done:not(:last-child)::after { background: #D9662E; }
+    .stepper .dot { border: 2px solid rgba(255,255,255,.22); color: rgba(255,255,255,.7); }
+    .stepper li.is-current .dot { border-color: #D9662E; background: #D9662E; color: #fff; box-shadow: 0 0 0 5px rgba(217,102,46,.18); }
+    .stepper li.is-done .dot { border-color: #D9662E; background: transparent; color: #F0A77C; }
+    .stepper li.is-current .st { color: #fff; }
+    .stepper li:not(.is-current):not(.is-done) .st { color: rgba(255,255,255,.6); }
+    .stepper .num-done { display: none; }
+    .stepper li.is-done .num-done { display: block; }
+    .stepper li.is-done .num { display: none; }
+
+    /* Laptop and desktop: everything fits in the window; sizes follow its height. */
+    @media (min-width: 1024px) {
+      .fit { height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; }
+      .fit > aside { padding-block: clamp(18px, 4.2vh, 48px); }
+      .fit > main { min-height: 0; overflow-y: auto; padding-block: clamp(16px, 3.4vh, 40px); }
+      .fit .logo { font-size: clamp(28px, 4.6vh, 44px) !important; }
+      .fit aside h1 { font-size: clamp(23px, 4.3vh, 40px); margin-top: clamp(12px, 3.4vh, 40px); }
+      .fit .lede { font-size: clamp(13.5px, 1.9vh, 17px); margin-top: clamp(6px, 1.4vh, 16px); }
+      .fit .stepper { margin-top: clamp(14px, 3.6vh, 40px); }
+      .fit .stepper > li + li { margin-top: clamp(4px, 1.3vh, 16px); }
+      .fit .stepper li:not(:last-child)::after { top: clamp(38px, 5.4vh, 42px); }
+      .fit .stepper .st { font-size: clamp(13.5px, 1.9vh, 16px); }
+      .fit .stepper .sd { font-size: clamp(11.5px, 1.55vh, 13px); }
+      .fit .panel-title { font-size: clamp(24px, 4vh, 34px); }
+      .fit .panel-sub { font-size: clamp(13.5px, 1.85vh, 16px); }
+      .fit .panel-body { margin-top: clamp(14px, 3vh, 30px); }
+      .fit .field { padding-block: clamp(8px, 1.45vh, 12px); font-size: clamp(14px, 1.8vh, 15px); }
+      .fit .gap-y { row-gap: clamp(10px, 2vh, 18px); }
+      .fit .actions { margin-top: clamp(16px, 3.2vh, 32px); }
+      .fit .actions .btn { padding-block: clamp(10px, 1.75vh, 15px); }
+      .fit .plan { padding: clamp(12px, 2vh, 18px) 18px; }
+      .fit .review > div { padding-block: clamp(6px, 1.15vh, 12px); }
+      .fit .review-note { margin-top: clamp(10px, 1.8vh, 16px); padding-block: clamp(8px, 1.3vh, 12px); }
+      .fit .agree { margin-top: clamp(10px, 1.8vh, 16px); }
+      .fit .agree + .err + .agree, .fit .agree + .agree { margin-top: clamp(6px, 1.2vh, 12px); }
+      .fit .pay-rows { padding-block: clamp(8px, 1.6vh, 16px); margin-top: clamp(10px, 1.8vh, 16px); }
+      .fit .pay-rows > div + div { margin-top: clamp(4px, 0.9vh, 8px); }
+      .fit .pay-note { margin-top: clamp(10px, 1.8vh, 16px); }
+      .fit .signup-notice { margin-top: clamp(6px, 1.2vh, 20px); padding-block: clamp(5px, .9vh, 12px); font-size: clamp(11px, 1.6vh, 12.5px); line-height: 1.4; }
+      .fit [data-step="1"] .panel-body { margin-top: clamp(10px, 2.2vh, 30px); }
+      .fit [data-step="1"] .panel-sub { margin-top: 2px; }
+      .fit .signup-notice p + p { margin-top: 2px; }
+      .fit .renew-ok { margin-top: clamp(8px, 1.4vh, 16px); padding-block: clamp(6px, 1vh, 12px); }
+      .fit .chip { padding: clamp(6px, 1.05vh, 8px) clamp(11px, 1.6vh, 14px); font-size: clamp(12.5px, 1.75vh, 13.5px); }
+      .fit .done-icon { width: clamp(56px, 9vh, 80px); height: clamp(56px, 9vh, 80px); }
+      .fit #done h2 { font-size: clamp(24px, 4vh, 32px); margin-top: clamp(12px, 2.4vh, 24px); }
+      .fit .done-list { margin-top: clamp(14px, 2.8vh, 28px); }
+      .fit .done-list > li { padding-block: clamp(7px, 1.3vh, 12px); }
+      .fit .done-list > li + li { margin-top: clamp(7px, 1.3vh, 12px); }
+      .fit .done-cta { margin-top: clamp(16px, 3vh, 32px); padding-block: clamp(10px, 1.75vh, 14px); }
+      .fit .done-note { margin-top: clamp(10px, 2vh, 24px); }
+    }
+  </style>
+  <!-- Built from build/ (npm run build). Loaded last so utilities win, as with the Tailwind CDN. -->
+  <link rel="stylesheet" href="app.css" />
+</head>
+
+<body class="bg-cream-light font-sans text-ink antialiased">
+  <div class="fit grid min-h-screen lg:grid-cols-[0.82fr_1fr]">
+
+    <!-- ===================== PROGRESS PANEL ===================== -->
+    <aside class="relative hidden overflow-hidden bg-cocoa-deep px-10 py-12 text-white lg:block lg:px-14">
+      <div aria-hidden="true" class="grid-lines grid-lines--light pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_80%_75%_at_30%_40%,black,transparent_80%)]"></div>
+      <div aria-hidden="true" class="pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full border border-brand-orange/40"></div>
+      <div aria-hidden="true" class="pointer-events-none absolute -bottom-10 -right-10 h-44 w-44 rounded-full border border-brand-orange/40"></div>
+
+      <div class="relative flex h-full flex-col">
+        <a href="index.html" class="logo logo--light" style="font-size:44px" aria-label="banda, B and A Essentials, home">
+          <span class="logo-word" aria-hidden="true"><span class="logo-b">b<i class="logo-dot"></i></span>anda</span>
+          <span class="logo-tag" aria-hidden="true">B<span class="amp">&amp;</span>A ESSENTIALS</span>
+        </a>
+
+        <h1 class="mt-10 max-w-[13em] font-display text-[38px] font-semibold leading-[1.12] tracking-[-0.02em]">Let&rsquo;s get your business <span class="whitespace-nowrap text-[#F0A77C]">set up.</span></h1>
+        <p class="lede mt-4 max-w-[340px] text-[16px] leading-relaxed text-white/70">Six quick steps. It takes about four minutes.</p>
+
+        <ol class="stepper mt-10" aria-label="Sign-up steps">
+          <li data-step-item="1" class="flex items-start gap-4">
+            <button type="button" data-goto="1" class="dot grid h-9 w-9 shrink-0 place-items-center rounded-full font-display text-[14px] font-semibold transition disabled:cursor-default" disabled aria-label="Go to step 1: Create your account">
+              <span class="num">1</span><span class="num-done"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-check h-4 w-4"><path d="M20 6 9 17l-5-5"></path></svg></span>
+            </button>
+            <span class="pt-1"><span class="st block font-display font-semibold">Create your account</span><span class="sd mt-0.5 block text-white/55">Your name and contact details</span></span>
+          </li>
+          <li data-step-item="2" class="flex items-start gap-4">
+            <button type="button" data-goto="2" class="dot grid h-9 w-9 shrink-0 place-items-center rounded-full font-display text-[14px] font-semibold transition disabled:cursor-default" disabled aria-label="Go to step 2: Verify it’s you">
+              <span class="num">2</span><span class="num-done"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-check h-4 w-4"><path d="M20 6 9 17l-5-5"></path></svg></span>
+            </button>
+            <span class="pt-1"><span class="st block font-display font-semibold">Verify it&rsquo;s you</span><span class="sd mt-0.5 block text-white/55">Confirm it&rsquo;s really you</span></span>
+          </li>
+          <li data-step-item="3" class="flex items-start gap-4">
+            <button type="button" data-goto="3" class="dot grid h-9 w-9 shrink-0 place-items-center rounded-full font-display text-[14px] font-semibold transition disabled:cursor-default" disabled aria-label="Go to step 3: Business details">
+              <span class="num">3</span><span class="num-done"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-check h-4 w-4"><path d="M20 6 9 17l-5-5"></path></svg></span>
+            </button>
+            <span class="pt-1"><span class="st block font-display font-semibold">Business details</span><span class="sd mt-0.5 block text-white/55">Tell us about your business</span></span>
+          </li>
+          <li data-step-item="4" class="flex items-start gap-4">
+            <button type="button" data-goto="4" class="dot grid h-9 w-9 shrink-0 place-items-center rounded-full font-display text-[14px] font-semibold transition disabled:cursor-default" disabled aria-label="Go to step 4: Choose a plan">
+              <span class="num">4</span><span class="num-done"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-check h-4 w-4"><path d="M20 6 9 17l-5-5"></path></svg></span>
+            </button>
+            <span class="pt-1"><span class="st block font-display font-semibold">Choose a plan</span><span class="sd mt-0.5 block text-white/55">Pick what fits you best</span></span>
+          </li>
+          <li data-step-item="5" class="flex items-start gap-4">
+            <button type="button" data-goto="5" class="dot grid h-9 w-9 shrink-0 place-items-center rounded-full font-display text-[14px] font-semibold transition disabled:cursor-default" disabled aria-label="Go to step 5: Review and finish">
+              <span class="num">5</span><span class="num-done"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-check h-4 w-4"><path d="M20 6 9 17l-5-5"></path></svg></span>
+            </button>
+            <span class="pt-1"><span class="st block font-display font-semibold">Review &amp; finish</span><span class="sd mt-0.5 block text-white/55">Agree to the terms and go</span></span>
+          </li>
+          <li data-step-item="6" class="flex items-start gap-4">
+            <button type="button" data-goto="6" class="dot grid h-9 w-9 shrink-0 place-items-center rounded-full font-display text-[14px] font-semibold transition disabled:cursor-default" disabled aria-label="Go to step 6: Payment">
+              <span class="num">6</span><span class="num-done"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-check h-4 w-4"><path d="M20 6 9 17l-5-5"></path></svg></span>
+            </button>
+            <span class="pt-1"><span class="st block font-display font-semibold">Payment</span><span class="sd mt-0.5 block text-white/55">Pay securely with Paystack</span></span>
+          </li>
+        </ol>
+
+        <div class="mt-auto pt-8">
+          <p class="flex items-center gap-2.5 text-[13px] text-white/60"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-lock h-4 w-4 text-[#F0A77C]"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>Your details are private and only used to set up your account.</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ===================== STEPS ===================== -->
+    <main class="flex flex-col px-5 py-6 sm:px-10 lg:px-14">
+      <h1 class="sr-only lg:hidden">Set up your banda account</h1>
+      <!-- top bar -->
+      <div class="flex items-center justify-between gap-4">
+        <a href="index.html" class="logo lg:hidden" style="font-size:30px" aria-label="banda, B and A Essentials, home">
+          <span class="logo-word" aria-hidden="true"><span class="logo-b">b<i class="logo-dot"></i></span>anda</span>
+          <span class="logo-tag" aria-hidden="true">B<span class="amp">&amp;</span>A ESSENTIALS</span>
+        </a>
+        <p class="ml-auto text-[13.5px] text-ink-muted">Already have an account? <a href="login.html" class="font-semibold text-brand-navy underline-offset-4 hover:underline">Log in</a></p>
+      </div>
+
+      <div class="mx-auto my-auto w-full max-w-[520px] py-6">
+        <!-- progress -->
+        <div id="progressWrap">
+          <div class="flex items-center justify-between text-[12.5px] font-semibold">
+            <span id="stepLabel" class="tracking-[0.08em] text-brand-navy" aria-live="polite">STEP 1 OF 6</span>
+            <span id="stepName" class="text-ink-muted lg:hidden">Create your account</span>
+          </div>
+          <div class="mt-2.5 h-1.5 rounded-full bg-cream-line" role="progressbar" aria-label="Sign-up progress" aria-valuemin="1" aria-valuemax="6" aria-valuenow="1">
+            <div id="progressBar" class="h-1.5 rounded-full bg-brand-orange transition-[width] duration-500" style="width:16.7%"></div>
+          </div>
+        </div>
+
+        <!-- STEP 1: account -->
+        <form class="step-panel mt-7" data-step="1" novalidate>
+          <h2 class="panel-title font-display text-[32px] font-semibold leading-tight tracking-[-0.02em]" tabindex="-1">Create your account</h2>
+          <p class="panel-sub mt-1.5 text-[15.5px] text-ink-muted">No password: we&rsquo;ll send you a one-time code each time you sign in.</p>
+          <!-- Sign-up privacy notice (Privacy Notice, section 1): shown before any details are entered -->
+          <section class="signup-notice mt-5 rounded-2xl bg-pill-navyBg px-4 py-3 text-[12.5px] leading-relaxed text-ink" aria-labelledby="snT">
+            <p><span id="snT" class="font-semibold text-brand-navy">How we use your details.</span> B &amp; A Essential Services (&ldquo;B &amp; A Essentials&rdquo;) will use your name, business name, phone or WhatsApp number and email address to create your account, to send you a one-time sign-in code, and to send you service messages such as reminders and billing notices. We do this to provide the service you asked for.</p>
+            <details class="sn-more mt-1">
+              <summary class="cursor-pointer font-semibold text-brand-navy underline underline-offset-2">Who else handles it, how long we keep it, and your rights</summary>
+              <p class="mt-1">Our provider Termii sends the sign-in codes, and Paystack or Flutterwave process payments. Some providers may handle your data outside Nigeria, under safeguards the law requires.</p>
+              <p class="mt-1">We keep your account details while your account is active and for ninety (90) days after it closes. You can ask to see, correct or delete your data, and you can complain to the Nigeria Data Protection Commission. Contact: <a href="mailto:dpo@bandaessentials.com" class="font-semibold text-brand-navy underline">dpo@bandaessentials.com</a>. <a href="privacy.html" target="_blank" rel="noopener" class="font-semibold text-brand-navy underline">Read the full Privacy Policy</a></p>
+            </details>
+          </section>
+          <div class="panel-body gap-y mt-7 grid gap-x-4 gap-y-4 sm:grid-cols-2">
+            <div class="sm:col-span-2">
+              <label for="name" class="block text-[14px] font-semibold">Full name</label>
+              <input id="name" name="name" autocomplete="name" required class="field mt-2" placeholder="e.g. Chioma Okeke" />
+              <p class="err" hidden>Enter your full name.</p>
+            </div>
+            <div class="sm:col-span-2">
+              <label for="email" class="block text-[14px] font-semibold">Work email</label>
+              <input id="email" name="email" type="email" autocomplete="email" required class="field mt-2" placeholder="you@company.com" />
+              <p class="err" hidden>Enter an email address, like you@company.com.</p>
+            </div>
+            <div>
+              <label for="phone" class="block text-[14px] font-semibold">Phone or WhatsApp number</label>
+              <div class="relative mt-2">
+                <span class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[14.5px] font-medium text-ink-muted">+234</span>
+                <input id="phone" name="phone" type="tel" inputmode="numeric" autocomplete="tel" required class="field pl-[58px]" placeholder="801 234 5678" />
+              </div>
+              <p class="err" hidden>Enter a Nigerian number, like 801 234 5678.</p>
+            </div>
+            <fieldset>
+              <legend class="block text-[14px] font-semibold">Send my sign-in code by</legend>
+              <div class="mt-2 grid grid-cols-3 gap-1.5">
+                <label class="chan"><input type="radio" name="channel" value="whatsapp" class="sr-only" checked /><span>WhatsApp</span></label>
+                <label class="chan"><input type="radio" name="channel" value="sms" class="sr-only" /><span>SMS</span></label>
+                <label class="chan"><input type="radio" name="channel" value="email" class="sr-only" /><span>Email</span></label>
+              </div>
+            </fieldset>
+          </div>
+          <div class="actions mt-8 flex items-center justify-between gap-3"><span></span><button type="submit" class="btn group inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand-cta px-6 py-3.5 text-[15px] font-semibold text-white shadow-lg shadow-brand-orange/25 transition hover:bg-brand-ctaDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2 sm:flex-none sm:min-w-[200px]">Continue <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4 transition-transform group-hover:translate-x-0.5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></button></div>
+        </form>
+
+        <!-- STEP 2: verify -->
+        <form class="step-panel mt-7" data-step="2" novalidate hidden>
+          <span class="grid h-12 w-12 place-items-center rounded-full bg-pill-navyBg text-brand-navy"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-mail-check h-5 w-5"><path d="M22 13V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h8"></path><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path><path d="m16 19 2 2 4-4"></path></svg></span>
+          <h2 class="panel-title mt-5 font-display text-[32px] font-semibold leading-tight tracking-[-0.02em]" tabindex="-1">Enter your code</h2>
+          <p class="panel-sub mt-1.5 text-[15.5px] text-ink-muted">We sent a 6-digit code to <strong id="sentTo" class="font-semibold text-ink">your email</strong>. Enter it below to confirm it&rsquo;s you. We&rsquo;ll never ask you to share this code.</p>
+          <div class="panel-body mt-7">
+            <fieldset>
+              <legend class="sr-only">Verification code</legend>
+              <div id="codeBoxes" class="flex justify-between gap-2 sm:gap-3">
+                <input class="field code" inputmode="numeric" autocomplete="one-time-code" maxlength="1" aria-label="Digit 1" />
+                <input class="field code" inputmode="numeric" maxlength="1" aria-label="Digit 2" />
+                <input class="field code" inputmode="numeric" maxlength="1" aria-label="Digit 3" />
+                <input class="field code" inputmode="numeric" maxlength="1" aria-label="Digit 4" />
+                <input class="field code" inputmode="numeric" maxlength="1" aria-label="Digit 5" />
+                <input class="field code" inputmode="numeric" maxlength="1" aria-label="Digit 6" />
+              </div>
+            </fieldset>
+            <p id="codeErr" class="err" hidden>Enter all 6 digits of the code.</p>
+            <p class="mt-5 text-[14px] text-ink-muted">Didn&rsquo;t get it? <button type="button" id="resend" class="font-semibold text-brand-navy underline-offset-4 hover:underline disabled:cursor-default disabled:text-ink-soft disabled:no-underline">Resend code</button>
+              <span class="mx-1.5 text-cream-line">|</span><button type="button" data-goto-step="1" class="font-semibold text-brand-navy underline-offset-4 hover:underline">Change how we send it</button></p>
+          </div>
+          <div class="actions mt-8 flex items-center justify-between gap-3"><button type="button" data-back class="btn inline-flex items-center gap-2 rounded-xl px-4 py-3.5 text-[14.5px] font-semibold text-ink-muted transition hover:bg-cream hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-left h-4 w-4"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>Back</button><button type="submit" class="btn group inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand-cta px-6 py-3.5 text-[15px] font-semibold text-white shadow-lg shadow-brand-orange/25 transition hover:bg-brand-ctaDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2 sm:flex-none sm:min-w-[200px]">Verify email <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4 transition-transform group-hover:translate-x-0.5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></button></div>
+        </form>
+
+        <!-- STEP 3: business -->
+        <form class="step-panel mt-7" data-step="3" novalidate hidden>
+          <h2 class="panel-title font-display text-[32px] font-semibold leading-tight tracking-[-0.02em]" tabindex="-1">About your business</h2>
+          <p class="panel-sub mt-1.5 text-[15.5px] text-ink-muted">This helps us match you with the right people.</p>
+          <div class="panel-body gap-y mt-7 grid gap-x-4 gap-y-4 sm:grid-cols-2">
+            <div>
+              <label for="biz" class="block text-[14px] font-semibold">Business name</label>
+              <input id="biz" name="business" autocomplete="organization" required class="field mt-2" placeholder="e.g. Okeke Foods Ltd" />
+              <p class="err" hidden>Enter your business name.</p>
+            </div>
+            <div>
+              <label for="industry" class="block text-[14px] font-semibold">Industry</label>
+              <select id="industry" name="industry" required class="field mt-2"><option value="">Select one</option><option>Retail &amp; e-commerce</option><option>Food &amp; hospitality</option><option>Professional services</option><option>Tech &amp; startups</option><option>Health &amp; wellness</option><option>Education &amp; training</option><option>Real estate &amp; construction</option><option>Logistics &amp; transport</option><option>Non-profit &amp; faith-based</option><option>Other</option></select>
+              <p class="err" hidden>Choose your industry.</p>
+            </div>
+            <div>
+              <label for="state" class="block text-[14px] font-semibold">Location</label>
+              <select id="state" name="state" required class="field mt-2"><option value="">Select state</option><option>Lagos</option><option>Abuja (FCT)</option><option>Rivers</option><option>Oyo</option><option>Ogun</option><option>Kano</option><option>Enugu</option><option>Delta</option><option>Edo</option><option>Anambra</option><option>Kaduna</option><option>Another state</option><option>Outside Nigeria</option></select>
+              <p class="err" hidden>Choose where you&rsquo;re based.</p>
+            </div>
+            <fieldset>
+              <legend class="block text-[14px] font-semibold">Team size</legend>
+              <div class="mt-2 flex flex-wrap gap-1.5"><label class="chip inline-flex cursor-pointer items-center gap-2 rounded-full border border-cream-line bg-white px-3.5 py-2 text-[13.5px] font-medium text-ink transition hover:border-brand-lavender has-[:checked]:border-brand-navy has-[:checked]:bg-brand-navy has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-navy has-[:focus-visible]:ring-offset-2"><input type="radio" name="size" value="Just me" class="sr-only" />Just me</label><label class="chip inline-flex cursor-pointer items-center gap-2 rounded-full border border-cream-line bg-white px-3.5 py-2 text-[13.5px] font-medium text-ink transition hover:border-brand-lavender has-[:checked]:border-brand-navy has-[:checked]:bg-brand-navy has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-navy has-[:focus-visible]:ring-offset-2"><input type="radio" name="size" value="2–10" class="sr-only" />2–10</label><label class="chip inline-flex cursor-pointer items-center gap-2 rounded-full border border-cream-line bg-white px-3.5 py-2 text-[13.5px] font-medium text-ink transition hover:border-brand-lavender has-[:checked]:border-brand-navy has-[:checked]:bg-brand-navy has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-navy has-[:focus-visible]:ring-offset-2"><input type="radio" name="size" value="11–50" class="sr-only" />11–50</label><label class="chip inline-flex cursor-pointer items-center gap-2 rounded-full border border-cream-line bg-white px-3.5 py-2 text-[13.5px] font-medium text-ink transition hover:border-brand-lavender has-[:checked]:border-brand-navy has-[:checked]:bg-brand-navy has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-navy has-[:focus-visible]:ring-offset-2"><input type="radio" name="size" value="51+" class="sr-only" />51+</label></div>
+              <p class="err" hidden>Choose your team size.</p>
+            </fieldset>
+            <fieldset class="sm:col-span-2">
+              <legend class="block text-[14px] font-semibold">What do you need help with? <span class="font-normal text-ink-muted">Choose any</span></legend>
+              <div class="mt-2 flex flex-wrap gap-1.5"><label class="chip inline-flex cursor-pointer items-center gap-2 rounded-full border border-cream-line bg-white px-3.5 py-2 text-[13.5px] font-medium text-ink transition hover:border-brand-lavender has-[:checked]:border-brand-navy has-[:checked]:bg-brand-navy has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-navy has-[:focus-visible]:ring-offset-2"><input type="checkbox" name="needs" value="Business &amp; Admin" class="sr-only" /><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-briefcase h-3.5 w-3.5"><path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path><rect width="20" height="14" x="2" y="6" rx="2"></rect></svg>Business &amp; Admin</label><label class="chip inline-flex cursor-pointer items-center gap-2 rounded-full border border-cream-line bg-white px-3.5 py-2 text-[13.5px] font-medium text-ink transition hover:border-brand-lavender has-[:checked]:border-brand-navy has-[:checked]:bg-brand-navy has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-navy has-[:focus-visible]:ring-offset-2"><input type="checkbox" name="needs" value="Legal &amp; IP Review" class="sr-only" /><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-scale h-3.5 w-3.5"><path d="M12 3v18"></path><path d="m19 8 3 8a5 5 0 0 1-6 0zV7"></path><path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1"></path><path d="m5 8 3 8a5 5 0 0 1-6 0zV7"></path><path d="M7 21h10"></path></svg>Legal &amp; IP Review</label><label class="chip inline-flex cursor-pointer items-center gap-2 rounded-full border border-cream-line bg-white px-3.5 py-2 text-[13.5px] font-medium text-ink transition hover:border-brand-lavender has-[:checked]:border-brand-navy has-[:checked]:bg-brand-navy has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-navy has-[:focus-visible]:ring-offset-2"><input type="checkbox" name="needs" value="Operations &amp; Logistics" class="sr-only" /><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-truck h-3.5 w-3.5"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path><path d="M15 18H9"></path><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path><circle cx="17" cy="18" r="2"></circle><circle cx="7" cy="18" r="2"></circle></svg>Operations &amp; Logistics</label><label class="chip inline-flex cursor-pointer items-center gap-2 rounded-full border border-cream-line bg-white px-3.5 py-2 text-[13.5px] font-medium text-ink transition hover:border-brand-lavender has-[:checked]:border-brand-navy has-[:checked]:bg-brand-navy has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-navy has-[:focus-visible]:ring-offset-2"><input type="checkbox" name="needs" value="Creator Essentials" class="sr-only" /><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-clapperboard h-3.5 w-3.5"><path d="m12.296 3.464 3.02 3.956"></path><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3z"></path><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><path d="m6.18 5.276 3.1 3.899"></path></svg>Creator Essentials</label><label class="chip inline-flex cursor-pointer items-center gap-2 rounded-full border border-cream-line bg-white px-3.5 py-2 text-[13.5px] font-medium text-ink transition hover:border-brand-lavender has-[:checked]:border-brand-navy has-[:checked]:bg-brand-navy has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-navy has-[:focus-visible]:ring-offset-2"><input type="checkbox" name="needs" value="Tax Readiness" class="sr-only" /><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-receipt-text h-3.5 w-3.5"><path d="M13 16H8"></path><path d="M14 8H8"></path><path d="M16 12H8"></path><path d="M4 3a1 1 0 0 1 1-1 1.3 1.3 0 0 1 .7.2l.933.6a1.3 1.3 0 0 0 1.4 0l.934-.6a1.3 1.3 0 0 1 1.4 0l.933.6a1.3 1.3 0 0 0 1.4 0l.933-.6a1.3 1.3 0 0 1 1.4 0l.934.6a1.3 1.3 0 0 0 1.4 0l.933-.6A1.3 1.3 0 0 1 19 2a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1 1.3 1.3 0 0 1-.7-.2l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.934.6a1.3 1.3 0 0 1-1.4 0l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-1.4 0l-.934-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-.7.2 1 1 0 0 1-1-1z"></path></svg>Tax Readiness</label><label class="chip inline-flex cursor-pointer items-center gap-2 rounded-full border border-cream-line bg-white px-3.5 py-2 text-[13.5px] font-medium text-ink transition hover:border-brand-lavender has-[:checked]:border-brand-navy has-[:checked]:bg-brand-navy has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-navy has-[:focus-visible]:ring-offset-2"><input type="checkbox" name="needs" value="Specialized Add-Ons" class="sr-only" /><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-layers h-3.5 w-3.5"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"></path><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"></path><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"></path></svg>Specialized Add-Ons</label><label class="chip inline-flex cursor-pointer items-center gap-2 rounded-full border border-cream-line bg-white px-3.5 py-2 text-[13.5px] font-medium text-ink transition hover:border-brand-lavender has-[:checked]:border-brand-navy has-[:checked]:bg-brand-navy has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-navy has-[:focus-visible]:ring-offset-2"><input type="checkbox" name="needs" value="Not sure yet" class="sr-only" /><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-help h-3.5 w-3.5"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><path d="M12 17h.01"></path></svg>Not sure yet</label></div>
+            </fieldset>
+          </div>
+          <div class="actions mt-8 flex items-center justify-between gap-3"><button type="button" data-back class="btn inline-flex items-center gap-2 rounded-xl px-4 py-3.5 text-[14.5px] font-semibold text-ink-muted transition hover:bg-cream hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-left h-4 w-4"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>Back</button><button type="submit" class="btn group inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand-cta px-6 py-3.5 text-[15px] font-semibold text-white shadow-lg shadow-brand-orange/25 transition hover:bg-brand-ctaDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2 sm:flex-none sm:min-w-[200px]">Continue <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4 transition-transform group-hover:translate-x-0.5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></button></div>
+        </form>
+
+        <!-- STEP 4: plan -->
+        <form class="step-panel mt-7" data-step="4" novalidate hidden>
+          <h2 class="panel-title font-display text-[32px] font-semibold leading-tight tracking-[-0.02em]" tabindex="-1">Choose your plan</h2>
+          <p class="panel-sub mt-1.5 text-[15.5px] text-ink-muted">You can change it any time.</p>
+          <fieldset class="panel-body mt-7">
+            <legend class="sr-only">Plan</legend>
+            <div class="space-y-3.5">
+              <label class="plan relative flex cursor-pointer items-center gap-4 rounded-2xl border-2 border-cream-line bg-white px-[18px] py-4 transition hover:border-brand-lavender has-[:checked]:border-brand-navy has-[:checked]:shadow-[0_18px_40px_-26px_rgba(51,57,127,.6)] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-navy has-[:focus-visible]:ring-offset-2">
+                <input type="radio" name="plan" value="starter" class="sr-only" />
+                <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-pill-navyBg text-brand-navy"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-send h-5 w-5"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"></path><path d="m21.854 2.147-10.94 10.939"></path></svg></span>
+                <span class="min-w-0 flex-1"><span class="block font-display text-[16px] font-semibold">Starter</span><span class="block text-[13px] text-ink-muted">7 docs or tasks a month</span></span>
+                <span class="text-right"><span class="block font-display text-[19px] font-semibold leading-tight">₦65,000</span><span class="block text-[12px] text-ink-muted">/ month</span></span>
+                <span class="radio grid h-5 w-5 shrink-0 place-items-center rounded-full border-2 border-cream-line"><span class="h-2.5 w-2.5 rounded-full bg-brand-navy opacity-0"></span></span>
+              </label>
+              <label class="plan relative flex cursor-pointer items-center gap-4 rounded-2xl border-2 border-cream-line bg-white px-[18px] py-4 transition hover:border-brand-lavender has-[:checked]:border-brand-navy has-[:checked]:shadow-[0_18px_40px_-26px_rgba(51,57,127,.6)] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-navy has-[:focus-visible]:ring-offset-2">
+                <span class="absolute -top-2.5 left-5 rounded-full bg-brand-cta px-2.5 py-0.5 text-[10.5px] font-bold tracking-[0.12em] text-white">MOST POPULAR</span><input type="radio" name="plan" value="growth" class="sr-only" />
+                <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-pill-orangeBg text-brand-orange"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-trending-up h-5 w-5"><path d="M16 7h6v6"></path><path d="m22 7-8.5 8.5-5-5L2 17"></path></svg></span>
+                <span class="min-w-0 flex-1"><span class="block font-display text-[16px] font-semibold">Growth</span><span class="block text-[13px] text-ink-muted">20 docs or tasks a month</span></span>
+                <span class="text-right"><span class="block font-display text-[19px] font-semibold leading-tight">₦97,500</span><span class="block text-[12px] text-ink-muted">/ month</span></span>
+                <span class="radio grid h-5 w-5 shrink-0 place-items-center rounded-full border-2 border-cream-line"><span class="h-2.5 w-2.5 rounded-full bg-brand-navy opacity-0"></span></span>
+              </label>
+              <label class="plan relative flex cursor-pointer items-center gap-4 rounded-2xl border-2 border-cream-line bg-white px-[18px] py-4 transition hover:border-brand-lavender has-[:checked]:border-brand-navy has-[:checked]:shadow-[0_18px_40px_-26px_rgba(51,57,127,.6)] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-navy has-[:focus-visible]:ring-offset-2">
+                <input type="radio" name="plan" value="dedicated" class="sr-only" />
+                <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-pill-navyBg text-brand-navy"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-building-2 h-5 w-5"><path d="M10 12h4"></path><path d="M10 8h4"></path><path d="M14 21v-3a2 2 0 0 0-4 0v3"></path><path d="M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2"></path><path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"></path></svg></span>
+                <span class="min-w-0 flex-1"><span class="block font-display text-[16px] font-semibold">Dedicated</span><span class="block text-[13px] text-ink-muted">30 docs or tasks a month</span></span>
+                <span class="text-right"><span class="block font-display text-[19px] font-semibold leading-tight">₦260,000</span><span class="block text-[12px] text-ink-muted">/ month</span></span>
+                <span class="radio grid h-5 w-5 shrink-0 place-items-center rounded-full border-2 border-cream-line"><span class="h-2.5 w-2.5 rounded-full bg-brand-navy opacity-0"></span></span>
+              </label>
+            </div>
+          </fieldset>
+          <p id="planErr" class="err" hidden>Choose a plan to continue.</p>
+          <p class="mt-4 flex items-start gap-2 text-[13px] text-ink-muted"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-info mt-0.5 h-4 w-4 shrink-0 text-brand-navy"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>You&rsquo;ll set up payment after your account is ready.</p>
+          <div class="actions mt-8 flex items-center justify-between gap-3"><button type="button" data-back class="btn inline-flex items-center gap-2 rounded-xl px-4 py-3.5 text-[14.5px] font-semibold text-ink-muted transition hover:bg-cream hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-left h-4 w-4"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>Back</button><button type="submit" class="btn group inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand-cta px-6 py-3.5 text-[15px] font-semibold text-white shadow-lg shadow-brand-orange/25 transition hover:bg-brand-ctaDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2 sm:flex-none sm:min-w-[200px]">Continue <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4 transition-transform group-hover:translate-x-0.5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></button></div>
+        </form>
+
+        <!-- STEP 5: review -->
+        <form class="step-panel mt-7" data-step="5" novalidate hidden>
+          <h2 class="panel-title font-display text-[32px] font-semibold leading-tight tracking-[-0.02em]" tabindex="-1">Review and finish</h2>
+          <p class="panel-sub mt-1.5 text-[15.5px] text-ink-muted">Check your details and accept the terms. Payment is next.</p>
+          <div class="panel-body mt-7">
+            <dl class="review divide-y divide-cream-line rounded-2xl border border-cream-line bg-white text-[14px]">
+              <div class="flex items-center gap-4 px-5 py-3"><dt class="w-24 shrink-0 text-ink-muted">Name</dt><dd class="flex min-w-0 flex-1 items-center gap-4"><span id="rvName" class="min-w-0 flex-1 truncate font-semibold"></span><button type="button" data-goto-step="1" class="text-[13px] font-semibold text-brand-navy hover:underline">Edit</button></dd></div>
+              <div class="flex items-center gap-4 px-5 py-3"><dt class="w-24 shrink-0 text-ink-muted">Email</dt><dd class="flex min-w-0 flex-1 items-center gap-4"><span id="rvEmail" class="min-w-0 flex-1 truncate font-semibold"></span><button type="button" data-goto-step="1" class="text-[13px] font-semibold text-brand-navy hover:underline">Edit</button></dd></div>
+              <div class="flex items-center gap-4 px-5 py-3"><dt class="w-24 shrink-0 text-ink-muted">Business</dt><dd class="flex min-w-0 flex-1 items-center gap-4"><span id="rvBiz" class="min-w-0 flex-1 truncate font-semibold"></span><button type="button" data-goto-step="3" class="text-[13px] font-semibold text-brand-navy hover:underline">Edit</button></dd></div>
+              <div class="flex items-center gap-4 px-5 py-3"><dt class="w-24 shrink-0 text-ink-muted">Plan</dt><dd class="flex min-w-0 flex-1 items-center gap-4"><span id="rvPlan" class="min-w-0 flex-1 truncate font-semibold"></span><button type="button" data-goto-step="4" class="text-[13px] font-semibold text-brand-navy hover:underline">Edit</button></dd></div>
+            </dl>
+
+            <p class="review-note mt-4 flex items-start gap-2.5 rounded-xl bg-pill-navyBg px-4 py-3 text-[13px] leading-relaxed text-brand-navy"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-shield-check mt-0.5 h-4 w-4 shrink-0"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path><path d="m9 12 2 2 4-4"></path></svg>Files you share are stored privately and opened only by the people working on your request.</p>
+
+            <label class="agree mt-4 flex cursor-pointer items-start gap-3 text-[14px] leading-snug">
+              <input id="terms" type="checkbox" required class="mt-0.5 h-[18px] w-[18px] shrink-0 accent-[#33397F]" />
+              <span>I accept the <a href="terms.html" target="_blank" rel="noopener" class="font-semibold text-brand-navy underline underline-offset-2">Terms of Service</a>, and I confirm I&rsquo;m 18 or over and allowed to act for this business. <span class="text-ink-soft">(Required)</span> <a href="privacy.html" target="_blank" rel="noopener" class="font-semibold text-brand-navy underline underline-offset-2">Privacy Policy</a></span>
+            </label>
+            <p id="termsErr" class="err" hidden>Please accept the Terms of Service to continue.</p>
+            <!-- Separate, optional, unticked by default (Privacy Notice, section 3) -->
+            <div class="agree mt-3 flex items-start gap-3 text-[14px] leading-snug text-ink-muted">
+              <input id="marketing" type="checkbox" class="mt-0.5 h-[18px] w-[18px] shrink-0 accent-[#33397F]" aria-describedby="mktMore" />
+              <span><label for="marketing" class="cursor-pointer">I&rsquo;d like to receive news and offers from B &amp; A Essentials by</label> <select id="mktChannel" aria-label="How to send news and offers" class="rounded-md border border-cream-line bg-white px-1 py-0.5 text-[13.5px] text-ink"><option value="whatsapp">WhatsApp</option><option value="sms">SMS</option><option value="email">email</option></select>. <span id="mktMore">I can unsubscribe at any time. Service messages such as reminders and billing notices are separate and will still be sent. <span class="text-ink-soft">(Optional)</span></span></span>
+            </div>
+          </div>
+          <div class="actions mt-8 flex items-center justify-between gap-3"><button type="button" data-back class="btn inline-flex items-center gap-2 rounded-xl px-4 py-3.5 text-[14.5px] font-semibold text-ink-muted transition hover:bg-cream hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-left h-4 w-4"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>Back</button><button type="submit" class="btn group inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand-cta px-6 py-3.5 text-[15px] font-semibold text-white shadow-lg shadow-brand-orange/25 transition hover:bg-brand-ctaDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2 sm:flex-none sm:min-w-[200px]">Continue to payment <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4 transition-transform group-hover:translate-x-0.5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></button></div>
+        </form>
+
+        <!-- STEP 6: payment (Paystack) -->
+        <form class="step-panel mt-7" data-step="6" novalidate hidden>
+          <h2 class="panel-title font-display text-[32px] font-semibold leading-tight tracking-[-0.02em]" tabindex="-1">Pay for your plan</h2>
+          <p class="panel-sub mt-1.5 text-[15.5px] text-ink-muted">Your plan starts as soon as your payment is confirmed.</p>
+          <div class="panel-body mt-7">
+            <div class="rounded-2xl border border-cream-line bg-white">
+              <div class="flex items-start justify-between gap-4 px-5 pt-5">
+                <div class="flex items-center gap-3.5">
+                  <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-pill-orangeBg text-brand-orange"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-receipt-text h-5 w-5"><path d="M13 16H8"></path><path d="M14 8H8"></path><path d="M16 12H8"></path><path d="M4 3a1 1 0 0 1 1-1 1.3 1.3 0 0 1 .7.2l.933.6a1.3 1.3 0 0 0 1.4 0l.934-.6a1.3 1.3 0 0 1 1.4 0l.933.6a1.3 1.3 0 0 0 1.4 0l.933-.6a1.3 1.3 0 0 1 1.4 0l.934.6a1.3 1.3 0 0 0 1.4 0l.933-.6A1.3 1.3 0 0 1 19 2a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1 1.3 1.3 0 0 1-.7-.2l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.934.6a1.3 1.3 0 0 1-1.4 0l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-1.4 0l-.934-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-.7.2 1 1 0 0 1-1-1z"></path></svg></span>
+                  <div><p id="payPlan" class="font-display text-[17px] font-semibold leading-tight">Growth plan</p><p id="payAllow" class="mt-0.5 text-[13px] text-ink-muted">20 docs or tasks a month · 1 legal review a month</p></div>
+                </div>
+                <button type="button" data-goto-step="4" class="shrink-0 text-[13px] font-semibold text-brand-navy hover:underline">Change</button>
+              </div>
+              <dl class="pay-rows mt-4 space-y-2 border-t border-dashed border-cream-line px-5 py-4 text-[14px]">
+                <div class="flex justify-between gap-4"><dt class="text-ink-muted">Billed monthly. Next payment</dt><dd id="payNext" class="font-medium"></dd></div>
+              </dl>
+              <div class="flex items-center justify-between rounded-b-2xl bg-cream/70 px-5 py-4">
+                <span class="font-semibold">Due today</span><span id="payTotal" class="font-display text-[24px] font-semibold">₦97,500</span>
+              </div>
+            </div>
+            <p class="pay-note mt-4 flex [&[hidden]]:hidden items-start gap-2 text-[13px] leading-relaxed text-ink-muted"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-lock mt-0.5 h-4 w-4 shrink-0 text-brand-navy"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>You&rsquo;ll pay in a secure Paystack window by card, bank transfer or USSD. We never see or store your card details.</p>
+            <label class="renew-ok mt-4 flex cursor-pointer items-start gap-3 rounded-xl border border-cream-line px-4 py-3 text-[13.5px] leading-snug">
+              <input id="renewOk" type="checkbox" class="mt-0.5 h-[18px] w-[18px] shrink-0 accent-[#33397F]" aria-describedby="renewErr" />
+              <span id="renewText">I agree that my plan renews automatically every month until I cancel.</span>
+            </label>
+            <p id="renewErr" class="err mt-1.5" hidden>Tick the box to agree to automatic renewal before you pay.</p>
+            <p id="payMsg" role="status" hidden class="mt-4 rounded-xl px-4 py-3 text-[13.5px] font-medium"></p>
+            <p id="payTestMode" hidden class="mt-3 rounded-xl bg-pill-orangeBg px-4 py-2.5 text-[13px] font-medium text-brand-orangeDark">Test mode: Paystack&rsquo;s window opens with its test cards. No real money moves.</p>
+            <div id="payPreview" hidden class="mt-4 rounded-xl border border-brand-lavender bg-pill-navyBg px-4 py-3.5 text-[13.5px] leading-relaxed text-brand-navy">
+              <p><span class="font-semibold">Paystack isn&rsquo;t connected in this preview,</span> so no payment window opens and no money is taken.</p>
+              <button type="button" id="skipPay" class="mt-1.5 font-semibold underline underline-offset-2">Finish without paying</button>
+            </div>
+          </div>
+          <div class="actions mt-8 flex items-center justify-between gap-3"><button type="button" data-back class="btn inline-flex items-center gap-2 rounded-xl px-4 py-3.5 text-[14.5px] font-semibold text-ink-muted transition hover:bg-cream hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-left h-4 w-4"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>Back</button><button type="submit" id="payBtn" class="btn group inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand-cta px-6 py-3.5 text-[15px] font-semibold text-white shadow-lg shadow-brand-orange/25 transition hover:bg-brand-ctaDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2 sm:flex-none sm:min-w-[200px] disabled:cursor-wait disabled:opacity-70"><span id="payBtnText">Pay ₦97,500</span> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4 transition-transform group-hover:translate-x-0.5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></button></div>
+        </form>
+
+        <!-- DONE -->
+        <section id="done" class="step-panel mt-2 text-center" hidden aria-labelledby="doneTitle">
+          <span class="done-icon relative mx-auto grid h-20 w-20 place-items-center rounded-full bg-pill-greenBg text-pill-greenTx">
+            <span class="absolute inset-0 animate-ping rounded-full bg-pill-greenBg opacity-60 [animation-iteration-count:2]"></span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-check relative h-9 w-9"><path d="M20 6 9 17l-5-5"></path></svg>
+          </span>
+          <h2 id="doneTitle" class="mt-6 font-display text-[32px] font-semibold leading-tight tracking-[-0.02em]" tabindex="-1">You&rsquo;re all set, <span id="firstName">there</span>!</h2>
+          <p id="doneMsg" class="mx-auto mt-2 max-w-[400px] text-[15.5px] leading-relaxed text-ink-muted">Your account is ready. Send us your first task and the team will take it from there.</p>
+          <ol class="done-list mx-auto mt-7 max-w-[400px] space-y-3 text-left text-[14px]">
+            <li class="flex items-center gap-3 rounded-xl border border-cream-line bg-white px-4 py-3"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-brand-navy text-[12px] font-semibold text-white">1</span>Submit your first task with any files</li>
+            <li class="flex items-center gap-3 rounded-xl border border-cream-line bg-white px-4 py-3"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-brand-navy text-[12px] font-semibold text-white">2</span>We confirm the scope with you</li>
+            <li class="flex items-center gap-3 rounded-xl border border-cream-line bg-white px-4 py-3"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-brand-cta text-[12px] font-semibold text-white">3</span>Your work is done, checked and delivered</li>
+          </ol>
+          <a id="toDashboard" href="dashboard.html" class="done-cta group mt-8 inline-flex items-center justify-center gap-2 rounded-xl bg-brand-cta px-7 py-3.5 text-[15px] font-semibold text-white shadow-lg shadow-brand-orange/25 transition hover:bg-brand-ctaDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">Go to my dashboard <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4 transition-transform group-hover:translate-x-0.5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a>
+          <p class="done-note mx-auto mt-6 max-w-[380px] rounded-lg bg-cream px-4 py-2.5 text-[12.5px] text-ink-muted"><span id="doneNote">This is a design preview, so no account was created.</span></p>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/lucide@1.60.0/dist/umd/lucide.min.js"></script>
+  <script>
+    // Icons are decoration: if the icon library fails to load, everything else still works.
+    if (window.lucide) lucide.createIcons();
+
+    const TOTAL = 6;
+    const NAMES = ['Create your account', 'Verify it’s you', 'Business details', 'Choose a plan', 'Review and finish', 'Payment'];
+    const PLAN_LABEL = { starter: 'Starter · ₦65,000 / month', growth: 'Growth · ₦97,500 / month', dedicated: 'Dedicated · ₦260,000 / month' };
+    const panels = [...document.querySelectorAll('[data-step]')];
+    const items = [...document.querySelectorAll('[data-step-item]')];
+    let current = 1, reached = 1;
+
+    // Pre-select the plan chosen on the pricing section (?plan=growth).
+    const wanted = new URLSearchParams(location.search).get('plan');
+    // Only accept the three known plans from the link; anything else keeps the default.
+    const planRadio = [...document.querySelectorAll('input[name="plan"]')].find(r => r.value === wanted);
+    if (planRadio) planRadio.checked = true;
+
+    function show(n, focus = true) {
+      current = n; reached = Math.max(reached, n);
+      panels.forEach(p => p.hidden = Number(p.dataset.step) !== n);
+      document.getElementById('done').hidden = true;
+      document.getElementById('progressWrap').hidden = false;
+      items.forEach((li, i) => {
+        const s = i + 1, btn = li.querySelector('button');
+        li.classList.toggle('is-current', s === n);
+        li.classList.toggle('is-done', s < reached && s !== n || s < n);
+        btn.disabled = !(s <= reached && s !== n);
+        s === n ? li.setAttribute('aria-current', 'step') : li.removeAttribute('aria-current');
+      });
+      document.getElementById('stepLabel').textContent = `STEP ${n} OF ${TOTAL}`;
+      document.getElementById('stepName').textContent = NAMES[n - 1];
+      document.getElementById('progressBar').style.width = (n / TOTAL * 100) + '%';
+      document.querySelector('[role="progressbar"]').setAttribute('aria-valuenow', n);
+      if (n === 5) fillReview();
+      if (n === 6) fillPayment();
+      if (focus) {
+        const panel = panels[n - 1];
+        (n === 2 ? panel.querySelector('.code') : panel.querySelector('h2')).focus({ preventScroll: true });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    // ---------- validation helpers ----------
+    function flag(input, ok) {
+      const err = input.closest('div, fieldset')?.querySelector('.err') || input.parentElement.parentElement.querySelector('.err');
+      input.setAttribute('aria-invalid', String(!ok));
+      if (err) err.hidden = ok;
+      return ok;
+    }
+    const checks = {
+      1: () => {
+        const name = document.getElementById('name'), email = document.getElementById('email');
+        const phone = document.getElementById('phone');
+        let digits = phone.value.normalize('NFKC').replace(/\p{Cf}/gu, '').trim();
+        if (/[\p{L}@]/u.test(digits)) digits = '';
+        digits = digits.replace(/\D/g, '');
+        if (digits.startsWith('234')) digits = digits.slice(3);
+        if (digits.startsWith('0')) digits = digits.slice(1);
+        const ev = email.value.normalize('NFKC').replace(/\p{Cf}/gu, '').trim();
+        const eErr = email.parentElement.querySelector('.err') || email.closest('div').querySelector('.err');
+        if (eErr) eErr.textContent = /@[^\s@.]+$/.test(ev) ? `Add the ending of your email address, like ${ev}.com.` : /@$/.test(ev) ? 'Add the rest of your email address after the @, like name@gmail.com.' : 'Enter an email address, like you@company.com.';
+        const r = [
+          flag(name, name.value.trim().split(/\s+/).length >= 1 && name.value.trim().length > 1),
+          flag(email, /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.normalize('NFKC').replace(/\p{Cf}/gu, '').trim())),
+          flag(phone, /^[2789]\d{9}$/.test(digits)),
+        ];
+        return r.every(Boolean);
+      },
+      2: () => {
+        const ok = [...document.querySelectorAll('.code')].every(i => /^\d$/.test(i.value));
+        document.getElementById('codeErr').hidden = ok;
+        document.querySelectorAll('.code').forEach(i => i.setAttribute('aria-invalid', String(!ok && !/^\d$/.test(i.value))));
+        return ok;
+      },
+      3: () => {
+        const biz = document.getElementById('biz'), ind = document.getElementById('industry'), st = document.getElementById('state');
+        const sizeOk = !!document.querySelector('input[name="size"]:checked');
+        const sizeSet = document.querySelector('input[name="size"]').closest('fieldset');
+        sizeSet.querySelector('.err').hidden = sizeOk;
+        return [flag(biz, biz.value.trim().length > 1), flag(ind, !!ind.value), flag(st, !!st.value), sizeOk].every(Boolean);
+      },
+      4: () => {
+        const ok = !!document.querySelector('input[name="plan"]:checked');
+        document.getElementById('planErr').hidden = ok; return ok;
+      },
+      6: () => true,
+      5: () => {
+        const ok = document.getElementById('terms').checked;
+        document.getElementById('termsErr').hidden = ok; return ok;
+      },
+    };
+
+    panels.forEach(form => form.addEventListener('submit', e => {
+      e.preventDefault();
+      const n = Number(form.dataset.step);
+      if (!checks[n]()) {
+        const bad = form.querySelector('[aria-invalid="true"]');
+        if (bad) bad.focus();
+        return;
+      }
+      if (n === 1) {
+        const ch = (document.querySelector('input[name="channel"]:checked') || {}).value || 'email';
+        const ph = document.getElementById('phone').value.replace(/\D/g, '').replace(/^0/, '');
+        document.getElementById('sentTo').textContent = ch === 'email' ? document.getElementById('email').value.trim() : `your ${ch === 'whatsapp' ? 'WhatsApp' : 'phone'} number ending ${ph.slice(-4)}`;
+      }
+      if (n === TOTAL) { startPayment(); return; }
+      show(n + 1);
+    }));
+    // Clear an error as soon as the field is fixed.
+    document.addEventListener('input', e => {
+      const t = e.target;
+      if (t.getAttribute && t.getAttribute('aria-invalid') === 'true' && !t.classList.contains('code')) {
+        const panel = t.closest('[data-step]'); checks[panel.dataset.step] && checks[panel.dataset.step]();
+      }
+    });
+    document.addEventListener('change', e => {
+      if (e.target.name === 'size') document.querySelector('input[name="size"]').closest('fieldset').querySelector('.err').hidden = true;
+      if (e.target.name === 'plan') document.getElementById('planErr').hidden = true;
+      if (e.target.id === 'terms' && e.target.checked) document.getElementById('termsErr').hidden = true;
+    });
+
+    document.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', () => show(current - 1)));
+    document.querySelectorAll('[data-goto]').forEach(b => b.addEventListener('click', () => show(Number(b.dataset.goto))));
+    document.querySelectorAll('[data-goto-step]').forEach(b => b.addEventListener('click', () => show(Number(b.dataset.gotoStep))));
+
+
+    // ---------- 6-digit code boxes ----------
+    const boxes = [...document.querySelectorAll('.code')];
+    boxes.forEach((box, i) => {
+      box.addEventListener('input', () => {
+        box.value = box.value.replace(/\D/g, '').slice(-1);
+        if (box.value && i < boxes.length - 1) boxes[i + 1].focus();
+        document.getElementById('codeErr').hidden = true; box.removeAttribute('aria-invalid');
+      });
+      box.addEventListener('keydown', e => {
+        if (e.key === 'Backspace' && !box.value && i > 0) boxes[i - 1].focus();
+        if (e.key === 'ArrowLeft' && i > 0) boxes[i - 1].focus();
+        if (e.key === 'ArrowRight' && i < boxes.length - 1) boxes[i + 1].focus();
+      });
+      box.addEventListener('paste', e => {
+        const digits = (e.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 6);
+        if (!digits) return; e.preventDefault();
+        digits.split('').forEach((d, k) => { if (boxes[k]) boxes[k].value = d; });
+        boxes[Math.min(digits.length, 6) - 1].focus();
+      });
+    });
+    const resend = document.getElementById('resend');
+    resend.addEventListener('click', () => {
+      let left = 30; resend.disabled = true;
+      resend.textContent = `Code sent. Resend in ${left}s`;
+      const t = setInterval(() => {
+        left -= 1; resend.textContent = `Code sent. Resend in ${left}s`;
+        if (left <= 0) { clearInterval(t); resend.disabled = false; resend.textContent = 'Resend code'; }
+      }, 1000);
+    });
+
+    // ---------- review ----------
+    function fillReview() {
+      const plan = document.querySelector('input[name="plan"]:checked');
+      document.getElementById('rvName').textContent = document.getElementById('name').value.trim();
+      document.getElementById('rvEmail').textContent = document.getElementById('email').value.trim();
+      document.getElementById('rvBiz').textContent = document.getElementById('biz').value.trim();
+      document.getElementById('rvPlan').textContent = plan ? PLAN_LABEL[plan.value] : '';
+    }
+
+    // ---------- payment (Paystack) ----------
+    // Paste your Paystack PUBLIC key here (pk_test_... while testing, pk_live_... when live).
+    // Never put the secret key (sk_...) in this file. For recurring monthly billing, create
+    // the three plans in the Paystack dashboard and paste their plan codes (PLN_...) below.
+    const PAYSTACK = { publicKey: 'pk_test_046585830e2e5761ae7fca14de3ace2247e44fe3', planCodes: { starter: '', growth: '', dedicated: '' } };
+    const PRICE = { starter: 65000, growth: 97500, dedicated: 260000 };
+    const PLAN_INFO = {
+      starter: ['Starter plan', '7 docs or tasks a month · 1 legal review a quarter'],
+      growth: ['Growth plan', '20 docs or tasks a month · 1 legal review a month'],
+      dedicated: ['Dedicated plan', '30 docs or tasks a month · up to 4 legal reviews a month'],
+    };
+    const naira = n => '₦' + n.toLocaleString('en-NG');
+    const selectedPlan = () => { const v = (document.querySelector('input[name="plan"]:checked') || {}).value; return v in PRICE ? v : 'growth'; };
+    const payBtn = document.getElementById('payBtn'), payMsg = document.getElementById('payMsg');
+
+    function fillPayment() {
+      const plan = selectedPlan();
+      document.getElementById('payPlan').textContent = PLAN_INFO[plan][0];
+      document.getElementById('payAllow').textContent = PLAN_INFO[plan][1];
+      document.getElementById('payTotal').textContent = naira(PRICE[plan]);
+      document.getElementById('payBtnText').textContent = 'Pay ' + naira(PRICE[plan]);
+      const next = new Date(); next.setMonth(next.getMonth() + 1);
+      document.getElementById('payNext').textContent = next.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+      payMsg.hidden = true;
+      document.getElementById('payPreview').hidden = true;
+      document.querySelector('.pay-note').hidden = false;
+      document.getElementById('payTestMode').hidden = !PAYSTACK.publicKey.startsWith('pk_test_');
+      // The checkout wording from the Terms (5.5); the box starts unticked.
+      document.getElementById('renewText').textContent = `I agree that my ${PLAN_INFO[plan][0]} renews automatically every month at ${naira(PRICE[plan])} until I cancel. My first renewal is on ${document.getElementById('payNext').textContent}. I can cancel with 30 days’ written notice.`;
+    }
+    document.getElementById('renewOk').addEventListener('change', e => { if (e.target.checked) document.getElementById('renewErr').hidden = true; });
+    function payNotice(text, tone) {
+      payMsg.textContent = text;
+      payMsg.className = 'mt-4 rounded-xl px-4 py-3 text-[13.5px] font-medium ' +
+        (tone === 'error' ? 'bg-red-50 text-red-800' : 'bg-pill-orangeBg text-brand-orangeDark');
+      payMsg.hidden = false;
+    }
+    function busy(on) {
+      payBtn.disabled = on;
+      document.getElementById('payBtnText').textContent = on ? 'Opening Paystack…' : 'Pay ' + naira(PRICE[selectedPlan()]);
+    }
+    let paystackScript;
+    function loadPaystack() {
+      return paystackScript ||= new Promise((resolve, reject) => {
+        const tag = document.createElement('script');
+        tag.src = 'https://js.paystack.co/v2/inline.js';
+        tag.onload = resolve;
+        tag.onerror = () => { paystackScript = null; reject(new Error('Paystack did not load')); };
+        document.head.appendChild(tag);
+      });
+    }
+    function startPayment() {
+      payMsg.hidden = true;
+      // Payment can't go ahead until automatic renewal is agreed (Terms 5.5.2).
+      if (!document.getElementById('renewOk').checked) {
+        document.getElementById('renewErr').hidden = false;
+        document.getElementById('renewOk').focus();
+        return;
+      }
+      if (!PAYSTACK.publicKey) {
+        document.getElementById('payPreview').hidden = false;
+        document.querySelector('.pay-note').hidden = true;
+        document.getElementById('skipPay').focus();
+        return;
+      }
+      const plan = selectedPlan();
+      const email = document.getElementById('email').value.trim();
+      const business = document.getElementById('biz').value.trim();
+      busy(true);
+      loadPaystack().then(() => {
+        const options = {
+          key: PAYSTACK.publicKey,
+          email,
+          amount: PRICE[plan] * 100, // Paystack takes the amount in kobo
+          currency: 'NGN',
+          reference: 'BA-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).slice(2, 6).toUpperCase(),
+          metadata: {
+            plan,
+            custom_fields: [
+              { display_name: 'Business', variable_name: 'business', value: business },
+              { display_name: 'Plan', variable_name: 'plan', value: PLAN_INFO[plan][0] },
+            ],
+          },
+          onSuccess: tx => { busy(false); finish({ paid: true, reference: tx.reference }); },
+          onCancel: () => { busy(false); payNotice('Payment cancelled. You have not been charged. Try again when you are ready.', 'warn'); },
+          onError: () => { busy(false); payNotice('Paystack could not start the payment. Check your connection and try again.', 'error'); },
+        };
+        if (PAYSTACK.planCodes[plan]) options.planCode = PAYSTACK.planCodes[plan];
+        new PaystackPop().newTransaction(options);
+        busy(false);
+      }).catch(() => { busy(false); payNotice('We could not reach Paystack. Check your connection and try again.', 'error'); });
+    }
+    document.getElementById('skipPay').addEventListener('click', () => finish({ paid: false }));
+
+    function finish(result = { paid: false }) {
+      panels.forEach(p => p.hidden = true);
+      document.getElementById('progressWrap').hidden = true;
+      items.forEach(li => { li.classList.remove('is-current'); li.classList.add('is-done'); li.querySelector('button').disabled = true; li.removeAttribute('aria-current'); });
+      const fullName = document.getElementById('name').value.trim();
+      document.getElementById('firstName').textContent = fullName.split(/\s+/)[0] || 'there';
+      document.getElementById('toDashboard').href = 'dashboard.html?' + new URLSearchParams({ name: fullName, plan: selectedPlan() });
+      if (result.paid) {
+        // The browser callback is not proof of payment. The server must confirm it with
+        // Paystack (webhook or the verify endpoint) before the plan is switched on.
+        if (PAYSTACK.publicKey.startsWith('pk_test_')) {
+          document.getElementById('doneMsg').textContent = 'Test payment completed in Paystack’s test mode. In the live app, your plan starts once our server confirms the payment with Paystack.';
+          document.getElementById('doneNote').textContent = 'Paystack test reference: ' + result.reference + '. No real money moved, and this preview didn’t create an account.';
+        } else {
+          document.getElementById('doneMsg').textContent = 'We have received your payment. Your plan starts as soon as Paystack confirms it, usually within a minute.';
+          document.getElementById('doneNote').textContent = 'Paystack reference: ' + result.reference + '. Design preview: no account was created.';
+        }
+      } else {
+        document.getElementById('doneNote').textContent = 'This is a design preview, so no account was created and no payment was taken.';
+      }
+      const done = document.getElementById('done'); done.hidden = false;
+      document.getElementById('doneTitle').focus({ preventScroll: true });
+    }
+
+    show(1, false);
+  </script>
+</body>
+</html>

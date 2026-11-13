@@ -1,0 +1,731 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Request · My Tasks · banda — B &amp; A Essentials</title>
+  <meta name="description" content="Your B &amp; A Essentials client dashboard." />
+  <meta name="theme-color" content="#1C1712" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='14'%20fill='%231C1712'/%3E%3Cpath%20d='M17%209h9v17a13%2013%200%201%201-9%2012z'%20fill='%23FDFBF6'/%3E%3Ccircle%20cx='39'%20cy='39'%20r='7'%20fill='%231C1712'/%3E%3Ccircle%20cx='31'%20cy='40'%20r='5'%20fill='%23D9662E'/%3E%3C/svg%3E" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@500;600;700&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind Play CDN for preview only. In Django, build with the Tailwind CLI using the same config. -->
+  <style>
+    html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { scrollbar-width: none; }
+
+    /* ---------- banda logo (HTML/CSS, crisp at any size) ---------- */
+    .logo { display: inline-flex; flex-direction: column; align-items: flex-start; font-size: 36px; line-height: 1; text-decoration: none; }
+    .logo-word { font-family: Inter, system-ui, sans-serif; font-weight: 800; line-height: .82; letter-spacing: -.035em; color: var(--logo-word, #1C1712); }
+    .logo-b { position: relative; display: inline-block; }
+    .logo-dot { position: absolute; left: .215em; top: .43em; width: .18em; height: .18em; border-radius: 50%; background: #D9662E; transition: transform .35s cubic-bezier(.34,1.56,.64,1); }
+    .logo:hover .logo-dot { transform: scale(1.18); }
+    .logo-tag { font-family: Inter, system-ui, sans-serif; font-weight: 600; font-size: .2em; letter-spacing: .5em; margin-top: .55em; white-space: nowrap; color: var(--logo-tag, #33397F); }
+    .logo-tag .amp { color: #D9662E; letter-spacing: .3em; }
+    .logo--light { --logo-word: #FDFBF6; --logo-tag: #B8BBE6; }
+    /* large lockup (hero/brand use) keeps the original airy tagline */
+    .logo--lg .logo-tag { font-weight: 500; font-size: .172em; letter-spacing: .66em; margin-top: .62em; }
+
+    /* ---------- motion ---------- */
+    .reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s ease, transform .6s ease; }
+    .reveal.in { opacity: 1; transform: none; }
+    .bar { width: 0; transition: width 1.2s cubic-bezier(.22,1,.36,1) .3s; }
+    .float { animation: float 7s ease-in-out infinite; }
+    @keyframes float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-6px) } }
+    .hero-underline path { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .9s cubic-bezier(.22,1,.36,1) .5s; }
+    .reveal.in .hero-underline path { stroke-dashoffset: 0; }
+    details > summary { list-style: none; cursor: pointer; }
+    details > summary::-webkit-details-marker { display: none; }
+    details[open] .faq-plus { transform: rotate(45deg); }
+    /* Square grid: thin lines forming squares, faded out towards the edges. */
+    .grid-lines {
+      --gl: rgba(51,57,127,.12);
+      --cell: 64px;
+      background-image:
+        linear-gradient(to right, var(--gl) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--gl) 1px, transparent 1px);
+      background-size: var(--cell) var(--cell);
+      background-position: center top;
+    }
+    .grid-lines--light { --gl: rgba(255,255,255,.085); }
+    .grid-fade {
+      -webkit-mask-image: radial-gradient(ellipse 72% 68% at 50% 42%, #000 35%, transparent 78%);
+              mask-image: radial-gradient(ellipse 72% 68% at 50% 42%, #000 35%, transparent 78%);
+    }
+    /* a few squares filled in, like the reference */
+    .grid-cell { position: absolute; width: var(--cell, 64px); height: var(--cell, 64px); background: rgba(51,57,127,.035); }
+    .dot-grid { background-image: radial-gradient(rgba(51,57,127,.13) 1px, transparent 1px); background-size: 18px 18px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .reveal { opacity: 1; transform: none; }
+      .hero-underline path { stroke-dashoffset: 0; }
+    }
+
+    /* ---------- dashboard ---------- */
+    [hidden] { display: none !important; }
+    body { background: #EFEAE1; }
+    .panel { background: #fff; border-radius: 22px; }
+    .side-link:focus-visible { outline: 2px solid #F0A77C; outline-offset: -2px; }
+    .ring-focus:focus-visible, .btn:focus-visible { outline: 2px solid #33397F; outline-offset: 2px; }
+
+    /* sidebar: a light card that always fits the screen height */
+    #sidebar { top: 12px; bottom: 12px; background: linear-gradient(140deg, #3A41935e 0%, transparent 60%), linear-gradient(160deg, #33397F, #22265A); color: #fff; }
+    .side-label { font-size: 11.5px; font-weight: 600; letter-spacing: .14em; color: rgba(184,187,230,.75); padding: 0 22px; margin-bottom: clamp(2px, .6vh, 6px); }
+    .side-link { position: relative; display: flex; align-items: center; gap: 13px; height: clamp(34px, 4.7vh, 44px); padding: 0 22px; font-size: 15px; font-weight: 500; color: rgba(255,255,255,.68); transition: color .15s, background .15s; }
+    .side-link svg { width: 20px; height: 20px; flex-shrink: 0; }
+    .side-link:hover { color: #fff; background: rgba(255,255,255,.06); }
+    .side-link[aria-current="page"] { color: #fff; font-weight: 600; background: rgba(255,255,255,.1); }
+    .side-link[aria-current="page"] svg { color: #F0A77C; }
+    .side-link[aria-current="page"]::before { content: ""; position: absolute; left: 0; top: 18%; bottom: 18%; width: 5px; border-radius: 0 6px 6px 0; background: #D9662E; }
+    .side-badge { margin-left: auto; border-radius: 6px; background: rgba(255,255,255,.16); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; }
+    .side-group + .side-group { margin-top: clamp(12px, 3vh, 34px); }
+    /* the help card steps aside on short screens so the menu never scrolls */
+    /* the help card lives in the phone menu only */
+    @media (min-width: 1024px) { .side-help { display: none !important; } }
+    .side-help.is-compact .help-extra { display: none; }
+    .side-help.is-compact { padding: 12px 14px; }
+    .side-help.is-compact .help-title { margin-top: 0; }
+
+    /* stat cards */
+    .stat { position: relative; display: block; border-radius: 20px; background: #fff; padding: 18px 20px; transition: transform .2s, box-shadow .2s; }
+    .stat:hover { transform: translateY(-2px); box-shadow: 0 18px 34px -26px rgba(51,57,127,.55); }
+    .stat-go { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 999px; border: 1.5px solid #241A15; transition: background .2s, color .2s; }
+    .stat:hover .stat-go { background: #241A15; color: #fff; }
+    .stat--hero { background: linear-gradient(140deg, #3A41935e 0%, transparent 60%), linear-gradient(160deg, #33397F, #22265A); color: #fff; }
+    .stat--hero .stat-go { border: 0; background: #fff; color: #33397F; }
+    .trend { display: inline-flex; align-items: center; gap: 3px; border: 1px solid currentColor; border-radius: 6px; padding: 0 5px; font-size: 11px; font-weight: 700; line-height: 17px; }
+
+    .chip-status { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; border-radius: 6px; padding: 2px 8px; font-size: 11.5px; font-weight: 600; }
+    .stripes { background: repeating-linear-gradient(135deg, #A5A8CF 0 3px, transparent 3px 9px); box-shadow: inset 0 0 0 1px #DADCEE; }
+    .day-bar { transition: height .9s cubic-bezier(.22,1,.36,1); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 999px; font-weight: 600; transition: background .15s, color .15s, border-color .15s; }
+    .rings { background: repeating-radial-gradient(circle at 115% 120%, transparent 0 16px, rgba(240,167,124,.16) 16px 17px); }
+
+    @media (max-width: 639px) {
+      .stat { padding: 14px 15px; }
+      .stat > span:first-child > span:first-child { font-size: 14px; }
+      .stat-go { width: 30px; height: 30px; }
+    }
+    @media (max-width: 1023px) {
+      #sidebar { transform: translateX(-110%); transition: transform .25s ease; }
+      #sidebar.is-open { transform: none; }
+    }
+    /* ---------- motion ---------- */
+    .js-anim .anim { opacity: 0; transform: translateY(18px) scale(.985); }
+    .js-anim .anim.in { animation: rise .75s cubic-bezier(.22,1,.36,1) var(--d, 0ms) both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(18px) scale(.985); } to { opacity: 1; transform: none; } }
+    /* bars grow from the floor, the busiest day bounces, its label pops */
+    .day-bar { clip-path: inset(100% 0 0 0); transition: clip-path 1s cubic-bezier(.22,1,.36,1) var(--d, 0ms); }
+    .week-in .day-bar { clip-path: inset(-40px 0 0 0); }
+    .day-tip { opacity: 0; transform: translate(-50%, 6px) scale(.8); transition: opacity .35s ease 1.2s, transform .45s cubic-bezier(.34,1.56,.64,1) 1.2s; }
+    .week-in .day-tip { opacity: 1; transform: translate(-50%, 0) scale(1); }
+    .stripes { background-size: 12.7px 12.7px; }
+    .week-in .stripes { animation: drift 1.6s linear infinite; }
+    @keyframes drift { to { background-position: 12.7px 0; } }
+    /* the active menu bar and notification dot */
+    .ping::after { content: ""; position: absolute; inset: -3px; border-radius: 999px; background: #D9662E; animation: ping 2.2s cubic-bezier(0,0,.2,1) infinite; }
+    @keyframes ping { 0% { transform: scale(.6); opacity: .7; } 70%, 100% { transform: scale(2.4); opacity: 0; } }
+    /* dark cards: slow ripple of rings */
+    .rings { background-size: 100% 100%; animation: ripple 9s ease-in-out infinite alternate; }
+    @keyframes ripple { from { background-position: 0 0; } to { background-position: -26px -18px; } }
+    /* hero stat: a light sweep once it lands */
+    .stat--hero { overflow: hidden; }
+    .stat--hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.18) 50%, transparent 65%); transform: translateX(-120%); pointer-events: none; }
+    .stat--hero.in::after { animation: sweep 1.4s ease .9s; }
+    @keyframes sweep { to { transform: translateX(120%); } }
+    .stat-go svg { transition: transform .3s cubic-bezier(.34,1.56,.64,1); }
+    .stat:hover .stat-go svg { transform: rotate(45deg); }
+    /* main call to action breathes every few seconds */
+    .nudge { position: relative; }
+    .nudge::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: 0 0 0 0 rgba(51,57,127,.45); animation: nudge 3.2s ease-out 2s infinite; }
+    @keyframes nudge { 0% { box-shadow: 0 0 0 0 rgba(51,57,127,.45); } 45%, 100% { box-shadow: 0 0 0 12px rgba(51,57,127,0); } }
+    /* list rows lift on hover; icons tilt */
+    .row-hover { transition: background .2s, transform .25s cubic-bezier(.22,1,.36,1); }
+    .row-hover:hover { transform: translateX(4px); }
+    .row-hover:hover > span:first-child { transform: rotate(-8deg) scale(1.06); }
+    .row-hover > span:first-child { transition: transform .3s cubic-bezier(.34,1.56,.64,1); }
+    .panel-lift { transition: box-shadow .3s, transform .3s cubic-bezier(.22,1,.36,1); }
+    @media (hover: hover) { .panel-lift:hover { transform: translateY(-3px); box-shadow: 0 22px 40px -30px rgba(36,26,21,.45); } }
+    #gaugeSvg path + path { transition: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .js-anim .anim { opacity: 1 !important; transform: none !important; animation: none !important; }
+      .day-bar { clip-path: none !important; }
+      .day-bar, .stat, .row-hover, .panel-lift, .day-tip { transition: none !important; }
+      .rings, .ping::after, .nudge::after, .stat--hero::after, .stripes { animation: none !important; }
+      .day-tip { opacity: 1; transform: translate(-50%, 0); }
+    }
+    /* ---------- submit a task ---------- */
+    .step-item { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; font-size: 12.5px; color: #736C66; }
+    .step-item:not(:last-child)::after { content: ""; position: absolute; top: 15px; left: calc(50% + 22px); right: calc(-50% + 22px); height: 2px; border-radius: 2px; background: #ECE5DA; }
+    .step-item.is-done:not(:last-child)::after { background: #33397F; }
+    .step-dot { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 999px; border: 1.5px solid #D9D2C6; background: #fff; font-weight: 600; font-size: 13px; transition: background .25s, border-color .25s, color .25s; }
+    .step-item.is-current { color: #241A15; font-weight: 600; }
+    .step-item.is-current .step-dot { border-color: #33397F; background: #33397F; color: #fff; box-shadow: 0 0 0 5px #ECEDF8; }
+    .step-item.is-done .step-dot { border-color: #33397F; background: #33397F; color: transparent; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E"); background-size: 15px; background-repeat: no-repeat; background-position: center; }
+    .step-item.is-done { color: #33397F; }
+
+    .cat { position: relative; display: block; cursor: pointer; border-radius: 18px; border: 1.5px solid #ECE5DA; background: #fff; padding: 16px; transition: border-color .2s, box-shadow .2s, transform .2s; }
+    .cat:hover { border-color: #B8BBE6; transform: translateY(-1px); }
+    .cat:has(input:checked) { border-color: #33397F; box-shadow: 0 0 0 3px #ECEDF8; }
+    .cat:has(input:focus-visible) { outline: 2px solid #33397F; outline-offset: 2px; }
+    .cat-check { position: absolute; right: 14px; top: 14px; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 999px; border: 1.5px solid #D9D2C6; color: transparent; transition: all .2s; }
+    .cat:has(input:checked) .cat-check { border-color: #33397F; background: #33397F; color: #fff; }
+
+    .lbl { display: block; font-size: 13.5px; font-weight: 600; }
+    .field { display: block; width: 100%; border-radius: 12px; border: 1.5px solid #ECE5DA; background: #fff; padding: 11px 14px; font-size: 14.5px; color: #241A15; transition: border-color .15s, box-shadow .15s; }
+    .field::placeholder { color: #8A817A; }
+    .field:focus { outline: none; border-color: #33397F; box-shadow: 0 0 0 3px #ECEDF8; }
+    .field:disabled { background: #FBF9F5; color: #736C66; cursor: not-allowed; }
+    .field[aria-invalid="true"] { border-color: #C2410C; }
+    .err { font-size: 12.5px; font-weight: 500; color: #B42318; }
+    .choice { display: block; cursor: pointer; }
+    .choice span { display: block; border-radius: 12px; border: 1.5px solid #ECE5DA; background: #fff; padding: 10px; text-align: center; font-size: 14px; font-weight: 500; transition: all .15s; }
+    .choice input:checked + span { border-color: #33397F; background: #ECEDF8; color: #33397F; font-weight: 600; }
+    .choice input:focus-visible + span { outline: 2px solid #33397F; outline-offset: 2px; }
+    @media (max-width: 639px) {
+      .cat { display: grid; grid-template-columns: 40px 1fr; column-gap: 12px; padding: 12px 40px 12px 12px; }
+      .cat > :nth-child(3) { grid-row: 1 / 3; }
+      .cat > :nth-child(4) { margin-top: 0; }
+      .cat > :nth-child(5) { margin-top: 2px; }
+      .cat > :nth-child(6) { display: none; }
+      .cat-check { top: 50%; transform: translateY(-50%); }
+    }
+    #drop.is-over { border-color: #33397F; background: #ECEDF8; }
+
+    .btn-next, .btn-ghost, .btn-outline { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 999px; font-size: 14px; font-weight: 600; transition: background .15s, color .15s, border-color .15s; }
+    .btn-next { background: #33397F; color: #fff; padding: 12px 22px; }
+    .btn-next:hover { background: #282D68; }
+    .btn-ghost { padding: 12px 16px; color: #736C66; }
+    .btn-ghost:hover { background: #F5F0E8; color: #241A15; }
+    .btn-outline { border: 1.5px solid #33397F; color: #33397F; padding: 10.5px 20px; }
+    .btn-outline:hover { background: #33397F; color: #fff; }
+    .btn-next:focus-visible, .btn-ghost:focus-visible, .btn-outline:focus-visible { outline: 2px solid #33397F; outline-offset: 2px; }
+    .rv-k { font-size: 12px; color: #736C66; }
+    .rv-v { margin-top: 2px; font-weight: 600; }
+    .step-title:focus { outline: none; }
+
+    .js-steps .step:not([hidden]) { animation: stepIn .45s cubic-bezier(.22,1,.36,1); }
+    @keyframes stepIn { from { opacity: 0; transform: translateY(10px); } }
+    .done-burst::before { content: ""; position: absolute; inset: 0; border-radius: 999px; box-shadow: 0 0 0 0 rgba(30,119,97,.35); animation: burst 1.4s ease-out .2s 2; }
+    @keyframes burst { to { box-shadow: 0 0 0 22px rgba(30,119,97,0); } }
+    .step:not([hidden]) .done-burst { animation: pop .6s cubic-bezier(.34,1.56,.64,1); }
+    @keyframes pop { from { transform: scale(.4); opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { .js-steps .step, .done-burst, .done-burst::before { animation: none !important; } .cat, .step-dot { transition: none; } }
+    /* ---------- my tasks / request detail ---------- */
+    .stat-f { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 12px; row-gap: 2px; border-radius: 20px; background: #fff; padding: 16px 18px; text-align: left; border: 1.5px solid transparent; transition: border-color .2s, transform .2s, box-shadow .2s; }
+    .stat-f:hover { transform: translateY(-2px); box-shadow: 0 18px 34px -26px rgba(51,57,127,.5); }
+    .stat-f[aria-pressed="true"] { border-color: #33397F; }
+    .stat-f:focus-visible { outline: 2px solid #33397F; outline-offset: 2px; }
+    .stat-ic { grid-row: span 1; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 999px; }
+    .stat-label { font-size: 14.5px; font-weight: 500; }
+    .stat-num { grid-column: 1 / -1; margin-top: 10px; font-family: Lexend, system-ui, sans-serif; font-size: 32px; font-weight: 600; line-height: 1; }
+    .stat-sub { grid-column: 1 / -1; margin-top: 6px; font-size: 12.5px; color: #736C66; }
+    .th { border-bottom: 1px solid #ECE5DA; padding: 10px 12px; font-weight: 600; white-space: nowrap; }
+    .td { border-bottom: 1px solid #F1ECE3; padding: 12px; vertical-align: middle; }
+    .row:last-child .td { border-bottom: 0; }
+    .row:hover .td { background: #FBF9F5; }
+    .page-b { display: grid; place-items: center; min-width: 36px; height: 36px; padding: 0 8px; border-radius: 10px; border: 1px solid #ECE5DA; background: #fff; font-size: 13.5px; font-weight: 600; }
+    .page-b:hover:not(:disabled) { border-color: #33397F; }
+    .page-b[aria-current="page"] { background: #33397F; border-color: #33397F; color: #fff; }
+    .page-b:disabled { opacity: .4; cursor: not-allowed; }
+    .page-b:focus-visible { outline: 2px solid #33397F; outline-offset: 2px; }
+    .qa { display: flex; flex-direction: column; gap: 2px; border-radius: 16px; border: 1px solid #ECE5DA; padding: 12px; transition: border-color .2s, background .2s; }
+    .qa:hover { border-color: #B8BBE6; background: #FBF9F5; }
+    .qa:focus-visible { outline: 2px solid #33397F; outline-offset: 2px; }
+    .qa-ic { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 999px; margin-bottom: 8px; }
+    .qa-t { font-size: 13.5px; font-weight: 600; line-height: 1.25; }
+    .qa-s { font-size: 11.5px; color: #736C66; }
+    .menu-i { display: flex; align-items: center; gap: 10px; padding: 9px 14px; text-align: left; }
+    .menu-i:hover, .menu-i:focus-visible { background: #F5F0E8; outline: none; }
+    .toast { position: fixed; left: 50%; bottom: 20px; z-index: 70; max-width: min(92vw, 460px); transform: translateX(-50%); border-radius: 14px; background: #1C1712; color: #fff; padding: 12px 16px; font-size: 13.5px; box-shadow: 0 18px 40px -18px rgba(0,0,0,.5); animation: toastIn .3s cubic-bezier(.22,1,.36,1); }
+    @keyframes toastIn { from { opacity: 0; transform: translate(-50%, 10px); } }
+    dialog[open] { animation: dlgIn .25s cubic-bezier(.22,1,.36,1); }
+    @keyframes dlgIn { from { opacity: 0; transform: translateY(8px) scale(.98); } }
+    @media (prefers-reduced-motion: reduce) { dialog[open], .stat-f { animation: none; transition: none; } }
+  </style>
+  <!-- Built from build/ (npm run build). Loaded last so utilities win, as with the Tailwind CDN. -->
+  <link rel="stylesheet" href="app.css" />
+  <script>
+    // Paint the saved profile photo before the first frame, so avatars don't flash initials first.
+    try {
+      var bandaSaved = JSON.parse(localStorage.getItem('banda.tasks.v1') || '{}'), bandaMe = bandaSaved.prefs && bandaSaved.prefs.profile;
+      if (bandaMe && /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(bandaMe.photo || '')) {
+        var bandaStyle = document.createElement('style'); bandaStyle.id = 'bandaEarlyPhoto';
+        bandaStyle.textContent = '[data-initials],#pfInitials,#phPreview{background-image:url("' + bandaMe.photo + '");background-size:cover;background-position:center;color:transparent}';
+        document.head.appendChild(bandaStyle);
+      }
+    } catch { /* storage blocked: initials show instead */ }
+  </script>
+</head>
+
+<body class="font-sans text-ink antialiased">
+  <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-md focus:bg-white focus:px-4 focus:py-2">Skip to content</a>
+  <div id="scrim" class="fixed inset-0 z-40 bg-cocoa-deep/50 lg:hidden" hidden></div>
+
+  <!-- ===================== SIDEBAR ===================== -->
+  <aside id="sidebar" class="panel fixed left-3 z-50 flex w-[256px] flex-col overflow-hidden pb-4" style="padding-top:clamp(18px,3.4vh,30px)" aria-label="Main menu">
+    <div class="flex items-center justify-between px-[22px]">
+      <a href="index.html" class="logo logo--light ring-focus rounded" style="font-size:34px" aria-label="banda, B and A Essentials, home">
+        <span class="logo-word" aria-hidden="true"><span class="logo-b">b<i class="logo-dot"></i></span>anda</span>
+        <span class="logo-tag" aria-hidden="true" style="--logo-tag:#F0A77C">B<span class="amp" style="color:#F0A77C">&amp;</span>A ESSENTIALS</span>
+      </a>
+      <button type="button" id="closeMenu" class="grid h-9 w-9 place-items-center rounded-lg text-white/80 hover:bg-white/10 lg:hidden" aria-label="Close menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-x h-5 w-5"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button>
+    </div>
+
+    <nav class="no-scrollbar min-h-0 flex-1 overflow-y-auto" style="margin-top:clamp(16px,4vh,40px)" aria-label="Client">
+      <div class="side-group">
+        <p class="side-label">MENU</p>
+        <ul>
+          <li><a href="dashboard.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-house"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Dashboard</a></li>
+          <li><a href="submit-task.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-plus"><circle cx="12" cy="12" r="10"></circle><path d="M8 12h8"></path><path d="M12 8v8"></path></svg>Submit a Task</a></li>
+          <li><a href="my-tasks.html" class="side-link" aria-current="page"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-square-check"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="m16 9-5.5 5.5L8 12"></path></svg>My Tasks<span class="side-badge">5</span></a></li>
+          <li><a href="catalogue.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-layout-grid"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>Service Catalogue</a></li>
+          <li><a href="deliverables.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-folder"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path></svg>Deliverables</a></li>
+          <li><a href="messages.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-message-square"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"></path></svg>Messages<span class="side-badge bg-brand-orange" data-count="msgs">3</span></a></li>
+        </ul>
+      </div>
+      <div class="side-group">
+        <p class="side-label">ACCOUNT</p>
+        <ul>
+          <li><a href="plan.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-gauge"><path d="m12 14 4-4"></path><path d="M3.34 19a10 10 0 1 1 17.32 0"></path></svg>Plan &amp; Usage</a></li>
+          <li><a href="billing.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-receipt-text"><path d="M13 16H8"></path><path d="M14 8H8"></path><path d="M16 12H8"></path><path d="M4 3a1 1 0 0 1 1-1 1.3 1.3 0 0 1 .7.2l.933.6a1.3 1.3 0 0 0 1.4 0l.934-.6a1.3 1.3 0 0 1 1.4 0l.933.6a1.3 1.3 0 0 0 1.4 0l.933-.6a1.3 1.3 0 0 1 1.4 0l.934.6a1.3 1.3 0 0 0 1.4 0l.933-.6A1.3 1.3 0 0 1 19 2a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1 1.3 1.3 0 0 1-.7-.2l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.934.6a1.3 1.3 0 0 1-1.4 0l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-1.4 0l-.934-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-.7.2 1 1 0 0 1-1-1z"></path></svg>Billing</a></li>
+          <li><a href="help.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-life-buoy"><circle cx="12" cy="12" r="10"></circle><path d="m4.93 4.93 4.24 4.24"></path><path d="m14.83 9.17 4.24-4.24"></path><path d="m14.83 14.83 4.24 4.24"></path><path d="m9.17 14.83-4.24 4.24"></path><circle cx="12" cy="12" r="4"></circle></svg>Help</a></li>
+          <li><a href="index.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-log-out"><path d="m16 17 5-5-5-5"></path><path d="M21 12H9"></path><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg>Log out</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="side-help relative mx-3 mt-4 shrink-0 overflow-hidden rounded-[18px] border border-white/15 bg-white/[.07] p-4 text-white">
+      <span aria-hidden="true" class="rings pointer-events-none absolute inset-0"></span>
+      <span class="help-extra relative grid h-8 w-8 place-items-center rounded-full bg-white text-brand-navy"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-headset h-4 w-4"><path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 1 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3Z"></path><path d="M21 16v2a4 4 0 0 1-4 4h-5"></path></svg></span>
+      <p class="help-title relative mt-3 font-display text-[16px] font-semibold leading-snug">Need a hand?</p>
+      <p class="help-extra relative mt-0.5 text-[12.5px] leading-snug text-white/75">Message the team about a request or a payment.</p>
+      <a href="contact.html" class="btn relative mt-3 w-full bg-brand-cta py-2 text-[13px] hover:bg-brand-ctaDark">Contact support</a>
+    </div>
+  </aside>
+
+  <div class="min-h-screen p-3 lg:pl-[280px]">
+    <!-- ===================== TOP BAR ===================== -->
+    <header class="panel flex h-[68px] items-center gap-3 px-3 sm:px-4">
+      <button type="button" id="openMenu" class="grid h-10 w-10 shrink-0 place-items-center rounded-full text-ink hover:bg-cream lg:hidden" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-menu h-5 w-5"><path d="M4 5h16"></path><path d="M4 12h16"></path><path d="M4 19h16"></path></svg></button>
+      <form class="relative min-w-0 flex-1 md:max-w-[400px]" role="search" onsubmit="return false">
+        <label for="q" class="sr-only">Search</label>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-search pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-ink-muted"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></svg>
+        <input id="q" type="search" placeholder="Search requests or services" class="w-full rounded-full bg-cream-light py-2.5 pl-11 pr-14 text-[14px] ring-1 ring-cream-line placeholder:text-ink-soft focus:outline-none focus:ring-2 focus:ring-brand-navy/40" />
+        <kbd class="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-md bg-cream px-1.5 py-0.5 font-sans text-[11px] font-semibold text-ink-muted sm:block">Ctrl K</kbd>
+      </form>
+      <div class="ml-auto flex items-center gap-2">
+        <a href="messages.html" class="hidden h-10 w-10 place-items-center rounded-full bg-cream-light text-ink ring-1 ring-cream-line hover:bg-cream sm:grid" data-count-label="msgs" aria-label="Messages, 3 unread"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-mail h-[18px] w-[18px]"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"></path><rect x="2" y="4" width="20" height="16" rx="2"></rect></svg></a>
+        <a href="messages.html#notifications" class="relative grid h-10 w-10 place-items-center rounded-full bg-cream-light text-ink ring-1 ring-cream-line hover:bg-cream" data-count-label="notes" aria-label="Notifications, 3 unread"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-bell h-[18px] w-[18px]"><path d="M10.268 21a2 2 0 0 0 3.464 0"></path><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"></path></svg><span data-dot="notes" class="ping absolute right-2 top-2 h-2 w-2 rounded-full bg-brand-orange ring-2 ring-white"></span></a>
+        <div class="relative ml-1">
+          <button type="button" id="userBtn" class="flex items-center gap-2.5 rounded-full py-1 pl-1 pr-1 hover:bg-cream sm:pr-3" aria-haspopup="menu" aria-expanded="false" aria-controls="userMenu">
+            <span class="grid h-10 w-10 place-items-center rounded-full bg-brand-cta text-[13.5px] font-bold text-white" data-initials>CE</span>
+            <span class="hidden text-left md:block"><span class="block max-w-[180px] truncate text-[14px] font-semibold leading-tight" data-fullname>Chinedu Egbuchulam</span><span class="block text-[12px] text-ink-muted">Business owner</span></span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-chevron-down hidden h-4 w-4 text-ink-muted md:block"><path d="m6 9 6 6 6-6"></path></svg>
+          </button>
+          <div id="userMenu" role="menu" hidden class="absolute right-0 z-30 mt-2 w-52 overflow-hidden rounded-xl border border-cream-line bg-white py-1.5 text-[14px] shadow-[0_20px_40px_-20px_rgba(28,23,18,.35)]">
+            <a href="profile.html" role="menuitem" class="flex items-center gap-2.5 px-4 py-2.5 hover:bg-cream"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-user h-4 w-4 text-ink-muted"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Profile &amp; security</a>
+            <a href="index.html" role="menuitem" class="flex items-center gap-2.5 border-t border-cream-line px-4 py-2.5 hover:bg-cream"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-log-out h-4 w-4 text-ink-muted"><path d="m16 17 5-5-5-5"></path><path d="M21 12H9"></path><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg>Log out</a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main id="main" class="mt-3 rounded-[22px] bg-cream-light p-4 sm:p-6">
+      <a href="my-tasks.html" class="inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-brand-navy hover:underline"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-left h-4 w-4"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>Back to My Tasks</a>
+
+      <!-- not found -->
+      <section id="missing" class="panel mt-3 flex flex-col items-center gap-2 px-6 py-14 text-center" hidden>
+        <span class="grid h-12 w-12 place-items-center rounded-full bg-cream text-ink-muted"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-file-question h-6 w-6"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path><path d="M12 17h.01"></path><path d="M9.1 9a3 3 0 0 1 5.82 1c0 2-3 3-3 3"></path></svg></span>
+        <h1 class="mt-1 font-display text-[22px] font-semibold">We couldn&rsquo;t find that request</h1>
+        <p class="max-w-[420px] text-[14px] text-ink-muted">The link may be incomplete, or the request may belong to another account.</p>
+        <a href="my-tasks.html" class="btn-next mt-3">Go to My Tasks</a>
+      </section>
+
+      <div id="detail" hidden>
+        <!-- header -->
+        <section class="panel mt-3 px-5 py-5 sm:px-6">
+          <div class="flex flex-wrap items-start gap-x-4 gap-y-3">
+            <div class="min-w-0 flex-1">
+              <div class="flex flex-wrap items-center gap-2.5">
+                <h1 id="tTitle" class="font-display text-[22px] font-semibold leading-tight tracking-[-0.01em] sm:text-[26px]"></h1>
+                <span id="tStatus"></span>
+              </div>
+              <p class="mt-1.5 text-[13.5px] text-ink-muted"><span id="tId" class="font-semibold text-brand-navy"></span> · <span id="tService"></span> · <span id="tCat"></span></p>
+              <p class="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-[13px] text-ink-muted">
+                <span class="inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-calendar h-4 w-4"><path d="M8 2v3"></path><path d="M16 2v3"></path><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M3 9h18"></path></svg>Submitted <span id="tSubmitted" class="font-medium text-ink"></span></span>
+                <span class="inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-flag h-4 w-4"><path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528"></path></svg>Deadline <span id="tDue" class="font-medium text-ink"></span></span>
+                <span class="inline-flex items-center gap-1.5">Priority <span id="tPriority"></span></span>
+              </p>
+            </div>
+            <button type="button" id="cancelBtn" class="btn-ghost border border-[#F3C7C3] py-2 text-[13px] text-[#B42318] hover:bg-[#FDECEC] hover:text-[#B42318]" hidden><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-x h-4 w-4"><circle cx="12" cy="12" r="10"></circle><path d="m15 9-6 6"></path><path d="m9 9 6 6"></path></svg>Cancel request</button>
+          </div>
+          <p id="quoteBanner" class="mt-4 rounded-2xl bg-pill-navyBg px-4 py-3 text-[13.5px] text-brand-navy" hidden><span class="font-semibold">Quote first.</span> Your plan&rsquo;s legal reviews for this month are used, so we&rsquo;ll send a quote before any work starts. Nothing is charged unless you accept it.</p>
+          <p id="urgentBanner" class="mt-4 rounded-2xl bg-pill-orangeBg px-4 py-3 text-[13.5px] text-brand-orangeDark" hidden><span class="font-semibold">Marked urgent.</span> We&rsquo;ll confirm whether we can meet your timeline before we start.</p>
+          <div id="inputBanner" class="mt-4 flex flex-wrap items-center gap-3 rounded-2xl bg-pill-orangeBg px-4 py-3" hidden>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-hourglass h-5 w-5 shrink-0 text-brand-orangeDark"><path d="M5 22h14"></path><path d="M5 2h14"></path><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"></path><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"></path></svg>
+            <p class="min-w-0 flex-1 text-[13.5px] text-brand-orangeDark"><span class="font-semibold">We need something from you.</span> Read the latest message and reply so we can continue.</p>
+            <a href="#reply" class="btn-next bg-brand-cta py-2 text-[13px] hover:bg-brand-ctaDark" data-jump-reply>Reply now</a>
+          </div>
+        </section>
+
+        <div class="mt-3 grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1fr)_330px]">
+          <div class="min-w-0 space-y-3">
+            <!-- request details -->
+            <section class="panel p-5 sm:p-6" aria-labelledby="rdT">
+              <h2 id="rdT" class="font-display text-[17px] font-semibold">Request details</h2>
+              <dl class="mt-4 grid grid-cols-1 gap-4 text-[14px] sm:grid-cols-[150px_minmax(0,1fr)] [&>*]:min-w-0">
+                <dt class="text-ink-muted">Category</dt><dd id="dCat" class="font-medium"></dd>
+                <dt class="text-ink-muted">Service</dt><dd id="dService" class="font-medium"></dd>
+                <dt class="text-ink-muted">Description</dt><dd id="dDetails" class="whitespace-pre-line break-words leading-relaxed"></dd>
+                <dt class="text-ink-muted">Your files</dt><dd id="dFiles"></dd>
+              </dl>
+            </section>
+
+            <!-- quote -->
+            <section id="quote" class="panel p-5 sm:p-6" aria-labelledby="qT" hidden>
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <h2 id="qT" class="font-display text-[17px] font-semibold">Quote &amp; payment</h2>
+                <span id="qState"></span>
+              </div>
+              <p class="mt-1 text-[13.5px] text-ink-muted">This service is priced separately from your plan, so we&rsquo;ve sent a quote.</p>
+              <div class="mt-4 flex flex-wrap items-end justify-between gap-4 rounded-2xl bg-cream-light px-4 py-4">
+                <div><p class="text-[12px] text-ink-muted">Quoted cost</p><p id="qAmount" class="font-display text-[26px] font-semibold leading-tight"></p></div>
+                <button type="button" id="payQuote" class="btn-next">Review quote and pay <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></button>
+              </div>
+              <div id="feesBlock" class="mt-4" hidden>
+                <h3 class="text-[14px] font-semibold">Third-party fees</h3>
+                <p class="mt-0.5 text-[13px] text-ink-muted">Paid to the organisations below, at cost. We don&rsquo;t file or book anything until they&rsquo;re paid.</p>
+                <div class="mt-3 overflow-hidden rounded-2xl border border-cream-line">
+                  <table class="w-full text-left text-[13.5px]">
+                    <caption class="sr-only">Third-party fees for this request</caption>
+                    <thead class="bg-cream-light text-[12px] text-ink-muted"><tr><th scope="col" class="px-4 py-2.5 font-medium">Paid to</th><th scope="col" class="px-4 py-2.5 text-right font-medium">Amount</th></tr></thead>
+                    <tbody id="feeRows" class="divide-y divide-cream-line"></tbody>
+                    <tfoot class="border-t border-cream-line">
+                      <tr><th scope="row" class="px-4 py-2.5 text-left font-medium">Payment processing (Paystack)<span class="block text-[12px] font-normal text-ink-muted">Paystack&rsquo;s charge, added so the full fees reach the organisations above</span></th><td id="feeProc" class="whitespace-nowrap px-4 py-2.5 text-right align-top tabular-nums"></td></tr>
+                      <tr class="bg-cream-light"><th scope="row" class="px-4 py-3 text-left font-semibold">Total to pay</th><td id="feeTotal" class="whitespace-nowrap px-4 py-3 text-right font-display text-[17px] font-semibold tabular-nums"></td></tr>
+                    </tfoot>
+                  </table>
+                </div>
+                <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
+                  <p id="feeState" class="text-[13px]" tabindex="-1"></p>
+                  <button type="button" id="payFees" class="btn-next">Approve and pay</button>
+                </div>
+                <p id="feeTest" class="mt-2 text-[12.5px] text-ink-muted" hidden>Paystack test mode: use a Paystack test card. No real money moves.</p>
+                <p id="feePayMsg" role="status" hidden></p>
+              </div>
+              <p id="payNote" class="mt-3 rounded-xl bg-pill-navyBg px-3.5 py-2.5 text-[13px] text-brand-navy" role="status" hidden>Payment opens in Paystack once it&rsquo;s connected. In this preview, nothing is charged.</p>
+            </section>
+
+            <!-- messages -->
+            <section id="messages" class="panel p-5 sm:p-6" aria-labelledby="mT" tabindex="-1">
+              <h2 id="mT" class="font-display text-[17px] font-semibold">Messages</h2>
+              <ol id="thread" class="mt-4 space-y-4" aria-live="polite"></ol>
+              <p id="noMsgs" class="mt-3 rounded-2xl bg-cream-light px-4 py-5 text-center text-[13.5px] text-ink-muted" hidden>No messages yet. Questions about this request go here.</p>
+              <form id="reply" class="mt-5" novalidate>
+                <label for="msg" class="lbl">Send information or a question</label>
+                <textarea id="msg" rows="3" maxlength="2000" class="field mt-1.5 resize-y leading-relaxed" placeholder="Type your message to the team" aria-describedby="msgErr"></textarea>
+                <p id="msgErr" class="err mt-1.5" hidden>Write a message before sending.</p>
+                <div class="mt-2.5 flex items-center justify-between gap-3">
+                  <p class="text-[12px] text-ink-soft">The team usually replies within one business day.</p>
+                  <button type="submit" class="btn-next py-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-send h-4 w-4"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"></path><path d="m21.854 2.147-10.94 10.939"></path></svg>Send</button>
+                </div>
+              </form>
+              <p id="closedNote" class="mt-5 rounded-2xl bg-cream-light px-4 py-3 text-[13px] text-ink-muted" hidden>This request was cancelled, so messaging is closed. Submit a new task if you still need help.</p>
+            </section>
+          </div>
+
+          <aside class="space-y-3 xl:self-start" aria-label="Progress and files">
+            <section class="panel p-5" aria-labelledby="tlT">
+              <h2 id="tlT" class="font-display text-[17px] font-semibold">Progress</h2>
+              <ol id="timeline" class="mt-4"></ol>
+            </section>
+            <section class="panel p-5" aria-labelledby="dvT">
+              <div class="flex items-center justify-between gap-3"><h2 id="dvT" class="font-display text-[17px] font-semibold">Deliverables</h2><a href="deliverables.html" class="text-[13px] font-semibold text-brand-navy hover:underline">All files</a></div>
+              <ul id="deliv" class="mt-3 space-y-2"></ul>
+              <p id="revNote" class="mt-3 rounded-xl bg-cream-light px-3 py-2.5 text-[12px] text-ink-muted" hidden></p>
+              <div id="noDeliv" class="mt-3 flex flex-col items-center gap-1.5 rounded-2xl bg-cream-light px-4 py-6 text-center">
+                <span class="grid h-10 w-10 place-items-center rounded-full bg-white text-ink-soft"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-file-check h-5 w-5"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path><path d="M14 2v5a1 1 0 0 0 1 1h5"></path><path d="m9 15 2 2 4-4"></path></svg></span>
+                <p class="text-[13px] font-medium">No deliverables yet</p>
+                <p class="text-[12px] text-ink-muted">Finished files appear here once they&rsquo;ve been checked.</p>
+              </div>
+            </section>
+            <section class="relative overflow-hidden rounded-[22px] bg-brand-navy p-5 text-white" aria-labelledby="hT">
+              <span aria-hidden="true" class="rings pointer-events-none absolute inset-0"></span>
+              <h2 id="hT" class="relative font-display text-[17px] font-semibold">Need help with this request?</h2>
+              <p class="relative mt-1 text-[13px] text-white/75">Message the team above, or contact support for anything about your account.</p>
+              <a href="contact.html?topic=tasks" class="btn relative mt-3 bg-brand-cta px-4 py-2 text-[13px] text-white hover:bg-brand-ctaDark">Contact support <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a>
+            </section>
+          </aside>
+        </div>
+      </div>
+      <p class="pt-5 text-center text-[12px] text-ink-soft">Design preview with sample data.</p>
+    </main>
+    <footer class="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 px-2 pb-1 pt-4 text-[12.5px] text-ink-muted">
+      <span>© 2026 B &amp; A Essentials</span>
+      <a href="terms.html" class="hover:text-ink hover:underline">Terms</a>
+      <a href="privacy.html" class="hover:text-ink hover:underline">Privacy</a>
+      <a href="cookies.html" class="hover:text-ink hover:underline">Cookies</a>
+      <button type="button" data-cookie-settings class="hover:text-ink hover:underline">Cookie settings</button>
+    </footer>
+  </div>
+
+  <div id="toast" role="status" hidden class="toast"></div>
+
+  <dialog id="cancelDlg" class="w-[min(92vw,420px)] rounded-2xl p-0 text-ink backdrop:bg-cocoa-deep/50" aria-labelledby="cdTitle">
+    <form method="dialog" class="p-6">
+      <span class="grid h-11 w-11 place-items-center rounded-full bg-[#FDECEC] text-[#B42318]"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-x h-5 w-5"><circle cx="12" cy="12" r="10"></circle><path d="m15 9-6 6"></path><path d="m9 9 6 6"></path></svg></span>
+      <h2 id="cdTitle" class="mt-3 font-display text-[19px] font-semibold">Cancel this request?</h2>
+      <p class="mt-1.5 text-[14px] leading-relaxed text-ink-muted">Work will stop and it won&rsquo;t use a task from your plan.</p>
+      <div class="mt-6 flex justify-end gap-2.5">
+        <button value="keep" class="btn-ghost py-2.5">Keep request</button>
+        <button value="cancel" class="btn-next bg-[#B42318] py-2.5 hover:bg-[#912018]">Cancel request</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="consent.js"></script>
+  <script src="https://unpkg.com/lucide@1.60.0/dist/umd/lucide.min.js"></script>
+  <script src="tasks-data.js"></script>
+  <script>
+    const { CATS, STATUS, CANCELLABLE, PRIORITY, find: findTask, update, esc, toDate, fmtDate, fmtDateTime, fmtSize, naira, chip, DSTATUS, DOWNLOADABLE, deliverablesFor, setDeliverable, fileType, nowLocal, toast, invoiceForTask, REVISION_NOTE } = window.BANDA;
+    const $ = id => document.getElementById(id);
+    const icons = () => { if (window.lucide) lucide.createIcons(); };
+    const id = new URLSearchParams(location.search).get('id') || '';
+    let task = findTask(id);
+
+    // Steps every request moves through. "Needs your info" and "On hold" pause the step they happen in.
+    const FLOW = [['submitted', 'Request submitted'], ['scoping', 'Reviewed and scoped'], ['progress', 'Work in progress'], ['checking', 'Quality check'], ['delivered', 'Delivered']];
+    const STEP_OF = { submitted: 0, scoping: 1, progress: 2, input: 2, hold: 2, checking: 3, delivered: 4 };
+
+    const fileRow = ([name, size], action) => `
+      <li class="flex items-center gap-3 rounded-xl border border-cream-line bg-white px-3 py-2.5 text-[13px]">
+        <span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#FDECEC] text-[#B42318]"><i data-lucide="${/\.(png|jpe?g)$/i.test(name) ? 'image' : /\.(xlsx?|csv)$/i.test(name) ? 'file-spreadsheet' : /\.zip$/i.test(name) ? 'file-archive' : 'file-text'}" class="h-4 w-4"></i></span>
+        <span class="min-w-0 flex-1"><span class="block truncate font-medium">${esc(name)}</span><span class="block text-[11.5px] text-ink-soft">${fmtSize(size)}</span></span>
+        <a href="#" class="shrink-0 text-[12.5px] font-semibold text-brand-navy hover:underline" data-preview-file>${action}<span class="sr-only"> ${esc(name)}</span></a>
+      </li>`;
+
+    function render() {
+      if (!task) { $('missing').hidden = false; document.title = 'Request not found · banda'; icons(); return; }
+      $('detail').hidden = false;
+      const s = STATUS[task.status], cat = CATS[task.cat];
+      document.title = `${task.id} · ${task.title} · banda`;
+      $('tTitle').textContent = task.title;
+      $('tStatus').innerHTML = chip(s.chip, s.label);
+      $('tId').textContent = task.id; $('tService').textContent = task.service; $('tCat').textContent = cat.name;
+      $('tSubmitted').textContent = fmtDateTime(task.submitted);
+      $('tDue').textContent = task.due ? fmtDate(task.due) : 'No deadline';
+      $('tPriority').innerHTML = chip(PRIORITY[task.priority], task.priority);
+      $('quoteBanner').hidden = !(task.needsQuote && ['submitted', 'scoping'].includes(task.status));
+      $('urgentBanner').hidden = !(task.priority === 'Urgent' && ['submitted', 'scoping'].includes(task.status));
+      $('cancelBtn').hidden = !CANCELLABLE.includes(task.status);
+      $('inputBanner').hidden = task.status !== 'input';
+
+      $('dCat').innerHTML = `<span class="inline-flex items-center gap-2"><span class="grid h-7 w-7 place-items-center rounded-lg ${cat.tone}"><i data-lucide="${cat.icon}" class="h-4 w-4"></i></span>${esc(cat.name)}</span>`;
+      $('dService').textContent = task.service;
+      $('dDetails').textContent = task.details;
+      $('dFiles').innerHTML = task.files.length ? `<ul class="space-y-2">${task.files.map(f => fileRow(f, 'Download')).join('')}</ul>` : '<span class="text-ink-muted">None attached</span>';
+
+      $('quote').hidden = !task.quote && !task.fees;
+      // A request may carry third-party fees with or without a service quote.
+      const quoteIntro = $('quote').querySelector('p');
+      quoteIntro.textContent = task.quote ? 'This service is priced separately from your plan, so we’ve sent a quote.' : 'Your plan covers our work on this request. These fees are owed to other organisations.';
+      quoteIntro.nextElementSibling.hidden = !task.quote;
+      $('feesBlock').hidden = !task.fees;
+      if (task.fees) {
+        const fb = window.BANDA.feeBreakdown(task), paidFees = !!task.feesPaid;
+        $('feeRows').innerHTML = fb.fees.map(f => `<tr><td class="px-4 py-2.5"><span class="font-medium">${esc(f.payee)}</span><span class="block text-[12px] text-ink-muted">${esc(f.what)}</span><button type="button" class="mt-1 break-all text-left text-[12.5px] font-medium text-brand-navy underline underline-offset-2 hover:no-underline" data-preview-file>Evidence: ${esc(f.evidence)}</button></td><td class="whitespace-nowrap px-4 py-2.5 text-right align-top tabular-nums">${naira(f.amount)}</td></tr>`).join('');
+        $('feeProc').textContent = naira(fb.processing);
+        $('feeTotal').textContent = naira(fb.total);
+        $('feeState').innerHTML = paidFees
+          ? `${chip('bg-pill-greenBg text-pill-greenTx', 'Paid')} <span class="text-ink-muted">${typeof task.feesPaid === 'string' ? `Paystack reference ${esc(task.feesPaid)}. ` : ''}We’ll upload the official receipts here once we’ve paid the organisations.</span>`
+          : chip('bg-pill-orangeBg text-brand-orangeDark', 'Payment needed');
+        $('payFees').hidden = paidFees || task.status === 'cancelled';
+        if (!$('payFees').disabled) $('payFees').textContent = `Approve and pay ${naira(fb.total)}`;
+        $('feeTest').hidden = paidFees || task.status === 'cancelled' || !window.BANDA.PAYSTACK_TEST;
+        if (!task.quote) $('qState').innerHTML = paidFees ? chip('bg-pill-greenBg text-pill-greenTx', 'Paid') : chip('bg-pill-orangeBg text-brand-orangeDark', 'Fees to approve');
+      }
+      if (task.quote) {
+        $('qAmount').textContent = naira(task.quote.amount);
+        // The quote's invoice decides whether it's paid.
+        const inv = invoiceForTask(task.id), paid = inv && inv.status === 'paid';
+        $('qState').innerHTML = paid ? chip('bg-pill-greenBg text-pill-greenTx', 'Paid') : chip('bg-pill-orangeBg text-brand-orangeDark', task.quote.state);
+        $('payQuote').hidden = task.status === 'cancelled' || paid;
+        $('payQuote').dataset.invoice = inv ? inv.id : '';
+      }
+
+      $('thread').innerHTML = task.messages.map(([who, when, text, extra]) => {
+        const me = who === 'You';
+        return `<li class="flex gap-3 ${me ? 'flex-row-reverse text-right' : ''}">
+          <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[12px] font-bold ${me ? 'bg-brand-cta text-white' : 'bg-brand-navy text-white'}" aria-hidden="true">${me ? (document.querySelector('[data-initials]') || {}).textContent || 'You' : 'BA'}</span>
+          <div class="min-w-0 max-w-[85%]">
+            <p class="text-[12px] text-ink-muted"><span class="font-semibold text-ink">${esc(who)}</span> · <time datetime="${esc(when)}">${fmtDateTime(when)}</time></p>
+            <p class="mt-1 inline-block whitespace-pre-line break-words rounded-2xl px-3.5 py-2.5 text-left text-[13.5px] leading-relaxed ${me ? 'rounded-tr-md bg-pill-navyBg' : 'rounded-tl-md bg-cream-light'}">${esc(text)}</p>
+            ${((extra || {}).files || []).map(([n, sz]) => `<span class="mt-1.5 flex items-center gap-2 rounded-xl border border-cream-line bg-white px-3 py-2 text-left text-[12.5px]"><i data-lucide="paperclip" class="h-4 w-4 shrink-0 text-ink-muted"></i><span class="min-w-0 flex-1 truncate font-medium">${esc(n)}</span><span class="shrink-0 text-ink-muted">${fmtSize(sz)}</span></span>`).join('')}
+          </div></li>`;
+      }).join('');
+      $('noMsgs').hidden = task.messages.length > 0;
+      // Seeing the conversation here counts as reading it in Messages too.
+      window.BANDA.markRead(task.id); window.BANDA.paintCounts();
+      const closed = task.status === 'cancelled';
+      $('reply').hidden = closed; $('closedNote').hidden = !closed;
+
+      // timeline
+      const at = STEP_OF[task.status];
+      // Sample step dates: two days apart, in local time (toISOString would shift them to UTC).
+      const pad = n => String(n).padStart(2, '0');
+      const local = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      const stepDate = i => { const d = toDate(task.submitted); d.setDate(d.getDate() + i * 2); return local(d); };
+      const lastTeamMsg = [...task.messages].reverse().find(m => m[0] !== 'You');
+      let steps = FLOW.map(([, label], i) => ({ label, state: i < at ? 'done' : i === at ? 'now' : 'next', date: i <= at ? stepDate(i) : '' }));
+      if (task.status === 'delivered') steps[4].state = 'done';
+      if (task.status === 'input' || task.status === 'hold') steps.splice(3, 0, { label: STATUS[task.status].label, state: 'wait', date: lastTeamMsg ? lastTeamMsg[1] : stepDate(2) });
+      if (task.status === 'cancelled') steps = [{ label: 'Request submitted', state: 'done', date: task.submitted }, { label: 'Cancelled', state: 'stop', date: '' }];
+      const dot = { done: 'bg-brand-navy text-white', now: 'bg-white text-brand-navy ring-2 ring-brand-navy', next: 'bg-white text-ink-soft ring-1 ring-cream-line', wait: 'bg-brand-orange text-white', stop: 'bg-[#B42318] text-white' };
+      const ic = { done: 'check', now: 'loader', next: 'circle', wait: 'hourglass', stop: 'x' };
+      $('timeline').innerHTML = steps.map((st, i) => `
+        <li class="relative flex gap-3 pb-5 last:pb-0" ${st.state === 'now' || st.state === 'wait' ? 'aria-current="step"' : ''}>
+          ${i < steps.length - 1 ? `<span class="absolute left-[13px] top-7 h-[calc(100%-24px)] w-0.5 ${st.state === 'done' ? 'bg-brand-navy' : 'bg-cream-line'}" aria-hidden="true"></span>` : ''}
+          <span class="grid h-7 w-7 shrink-0 place-items-center rounded-full ${dot[st.state]}"><i data-lucide="${ic[st.state]}" class="h-3.5 w-3.5"></i></span>
+          <span class="pt-0.5"><span class="block text-[13.5px] ${st.state === 'next' ? 'text-ink-muted' : 'font-semibold'}">${esc(st.label)}<span class="sr-only">, ${{ done: 'done', now: 'current step', next: 'not started', wait: 'waiting', stop: 'stopped' }[st.state]}</span></span>
+          ${st.date ? `<span class="block text-[12px] text-ink-soft">${fmtDateTime(st.date)}</span>` : ''}</span>
+        </li>`).join('');
+
+      const deliv = deliverablesFor(task.id);
+      $('deliv').innerHTML = deliv.map(d => {
+        const ft = fileType(d.name);
+        const actions = DOWNLOADABLE.includes(d.status)
+          ? `<button type="button" class="text-[12.5px] font-semibold text-brand-navy hover:underline" data-dl="${d.id}">Download<span class="sr-only"> ${esc(d.name)}</span></button>`
+          : d.status === 'approval'
+            ? `<button type="button" class="text-[12.5px] font-semibold text-brand-navy hover:underline" data-approve="${d.id}">Approve<span class="sr-only"> ${esc(d.name)}</span></button><a href="#reply" class="text-[12.5px] font-semibold text-ink-muted hover:underline" data-jump-reply>Ask for changes</a>`
+            : '';
+        return `<li class="rounded-xl border border-cream-line bg-white px-3 py-2.5 text-[13px]">
+          <div class="flex items-center gap-3">
+            <span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg ${ft.tone}"><i data-lucide="${ft.icon}" class="h-4 w-4"></i></span>
+            <span class="min-w-0 flex-1"><span class="block truncate font-medium">${esc(d.name)}</span><span class="block text-[11.5px] text-ink-soft">${fmtSize(d.size)} · ${fmtDate(d.at)}</span>${d.status !== 'review' && d.reviewer ? `<span class="block text-[11.5px] text-ink-muted">Reviewed by ${esc(d.reviewer)}, within the scope agreed on this request</span>` : ''}</span>
+          </div>
+          <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5">${chip(DSTATUS[d.status].chip, DSTATUS[d.status].label)}<span class="ml-auto flex gap-3">${actions}</span></div>
+        </li>`;
+      }).join('');
+      $('noDeliv').hidden = deliv.length > 0;
+      $('revNote').hidden = !deliv.some(d => d.status !== 'review');
+      icons();
+    }
+
+    // ---------- reply ----------
+    $('reply').addEventListener('submit', e => {
+      e.preventDefault();
+      const text = $('msg').value.trim();
+      if (!text) { $('msgErr').hidden = false; $('msg').setAttribute('aria-invalid', 'true'); $('msg').focus(); return; }
+      $('msgErr').hidden = true; $('msg').removeAttribute('aria-invalid');
+      update(task.id, { message: ['You', nowLocal(), text] });
+      task = findTask(id); $('msg').value = ''; render();
+      $('msg').focus();
+    });
+    $('msg').addEventListener('input', () => { if ($('msg').value.trim()) { $('msgErr').hidden = true; $('msg').removeAttribute('aria-invalid'); } });
+    function jumpToReply() { $('messages').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); $('msg').focus({ preventScroll: true }); }
+    document.addEventListener('click', e => { if (e.target.closest('[data-jump-reply]')) { e.preventDefault(); jumpToReply(); } });
+
+    // ---------- third-party fees: paid in Paystack before we file anything ----------
+    function feeNotice(text, tone) {
+      const n = $('feePayMsg');
+      n.className = 'mt-3 rounded-xl px-3.5 py-2.5 text-[13px] ' + (tone === 'error' ? 'bg-red-50 text-red-800' : tone === 'ok' ? 'bg-pill-greenBg text-pill-greenTx' : 'bg-pill-orangeBg text-brand-orangeDark');
+      n.textContent = text; n.hidden = !text;
+    }
+    $('payFees').addEventListener('click', () => {
+      const fb = window.BANDA.feeBreakdown(task), btn = $('payFees');
+      feeNotice('');
+      btn.disabled = true; btn.textContent = 'Opening Paystack…';
+      const done = () => { btn.disabled = false; btn.textContent = `Approve and pay ${naira(fb.total)}`; };
+      window.BANDA.payWithPaystack({
+        amount: fb.total, purpose: 'Third-party fees', ref: task.id,
+        onPaid: reference => {
+          update(task.id, { feesPaid: reference, message: ['You', nowLocal(), `Paid the third-party fees: ${naira(fb.total)}, including ${naira(fb.processing)} payment processing. Paystack reference ${reference}.`] });
+          task = findTask(id); done(); render();
+          feeNotice(window.BANDA.PAYSTACK_TEST
+            ? `Test payment completed (reference ${reference}). No real money moved. In the live app, the fees show as paid once our server confirms the payment with Paystack.`
+            : `Payment received (reference ${reference}). We’ll confirm it with Paystack and then pay the organisations.`, 'ok');
+          $('feeState').focus();
+        },
+        onCancel: () => { done(); feeNotice('Payment cancelled. You haven’t been charged, and the fees still need paying before we can file.', 'warn'); btn.focus(); },
+        onFail: why => { done(); feeNotice(why === 'load' ? 'We couldn’t reach Paystack. Check your connection and try again.' : 'Paystack couldn’t start this payment. Try again in a moment, or message us if it keeps happening.', 'error'); btn.focus(); },
+      });
+    });
+
+    // ---------- quote, files (preview only) ----------
+    $('payQuote').addEventListener('click', e => { const id = e.currentTarget.dataset.invoice; if (id) location.href = 'billing.html?pay=' + encodeURIComponent(id); else $('payNote').hidden = false; });
+    document.addEventListener('click', e => {
+      if (e.target.closest('[data-preview-file]')) { e.preventDefault(); toast('Preview only: files download here once storage is connected.'); }
+      const dl = e.target.closest('[data-dl]');
+      if (dl) {
+        const d = deliverablesFor(task.id).find(x => x.id === dl.dataset.dl);
+        if (d && d.status === 'ready') setDeliverable(d.id, 'downloaded');
+        render(); toast('Preview only: no file is downloaded yet. It’s now marked as downloaded.');
+      }
+      const ap = e.target.closest('[data-approve]');
+      if (ap) {
+        const d = deliverablesFor(task.id).find(x => x.id === ap.dataset.approve);
+        setDeliverable(d.id, 'ready');
+        update(task.id, { message: ['You', nowLocal(), `Approved ${d.name}.`] });
+        task = findTask(id); render(); toast(`${d.name} approved. It’s ready to download.`);
+      }
+    });
+
+    // ---------- cancel ----------
+    const dlg = $('cancelDlg');
+    $('cancelBtn').addEventListener('click', () => {
+      if (typeof dlg.showModal === 'function') dlg.showModal();
+      else if (confirm('Cancel this request?')) { update(task.id, { status: 'cancelled' }); task = findTask(id); render(); }
+    });
+    dlg.addEventListener('close', () => {
+      if (dlg.returnValue === 'cancel') { update(task.id, { status: 'cancelled' }); task = findTask(id); render(); $('tTitle').focus(); }
+      else $('cancelBtn').focus();
+    });
+    $('tTitle').tabIndex = -1;
+
+    $('revNote').textContent = REVISION_NOTE;
+    render();
+    // Arriving from "Send information" (#reply) or "View messages" (#messages)
+    // (after load, so the browser's own jump to the #anchor doesn't take focus back)
+    addEventListener('load', () => setTimeout(() => {
+      if (task && location.hash === '#reply' && !$('reply').hidden) jumpToReply();
+      else if (task && location.hash === '#messages') $('messages').focus();
+    }, 0));
+
+    // Sidebar: if the window is too short for the whole menu, the help card steps aside.
+    const helpCard = document.querySelector('.side-help'), sideNav = document.querySelector('#sidebar nav');
+    const overflows = () => sideNav.scrollHeight > sideNav.clientHeight + 1;
+    function fitSidebar() {
+      helpCard.style.display = ''; helpCard.classList.remove('is-compact');
+      if (overflows()) helpCard.classList.add('is-compact');
+      if (overflows()) helpCard.style.display = 'none';
+    }
+    fitSidebar();
+    // Re-check whenever the sidebar changes size (window resize, zoom, full-page capture).
+    if ('ResizeObserver' in window) new ResizeObserver(fitSidebar).observe(document.getElementById('sidebar'));
+    addEventListener('resize', fitSidebar);
+    addEventListener('load', fitSidebar);
+    document.fonts && document.fonts.ready.then(fitSidebar);
+
+    // Mobile menu
+    const sidebar = document.getElementById('sidebar'), scrim = document.getElementById('scrim'), openBtn = document.getElementById('openMenu');
+    const setMenu = open => { sidebar.classList.toggle('is-open', open); scrim.hidden = !open; openBtn.setAttribute('aria-expanded', String(open)); if (open) sidebar.querySelector('a').focus(); };
+    openBtn.addEventListener('click', () => setMenu(true));
+    document.getElementById('closeMenu').addEventListener('click', () => setMenu(false));
+    scrim.addEventListener('click', () => setMenu(false));
+
+    // User menu
+    const userBtn = document.getElementById('userBtn'), userMenu = document.getElementById('userMenu');
+    userBtn.addEventListener('click', e => { e.stopPropagation(); const open = userMenu.hidden; userMenu.hidden = !open; userBtn.setAttribute('aria-expanded', String(open)); });
+    document.addEventListener('click', () => { userMenu.hidden = true; userBtn.setAttribute('aria-expanded', 'false'); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { userMenu.hidden = true; userBtn.setAttribute('aria-expanded', 'false'); setMenu(false); } });
+  </script>
+</body>
+</html>

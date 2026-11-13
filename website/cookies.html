@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cookie Notice · banda — B &amp; A Essentials</title>
+  <meta name="description" content="B&amp;A Essentials — Cookie Notice. Version 0.1 · Effective date: 12th of November, 2026." />
+  <meta name="theme-color" content="#1C1712" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='14'%20fill='%231C1712'/%3E%3Cpath%20d='M17%209h9v17a13%2013%200%201%201-9%2012z'%20fill='%23FDFBF6'/%3E%3Ccircle%20cx='39'%20cy='39'%20r='7'%20fill='%231C1712'/%3E%3Ccircle%20cx='31'%20cy='40'%20r='5'%20fill='%23D9662E'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@500;600;700&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet" />
+  <style>
+    html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { scrollbar-width: none; }
+
+    /* ---------- banda logo (HTML/CSS, crisp at any size) ---------- */
+    .logo { display: inline-flex; flex-direction: column; align-items: flex-start; font-size: 36px; line-height: 1; text-decoration: none; }
+    .logo-word { font-family: Inter, system-ui, sans-serif; font-weight: 800; line-height: .82; letter-spacing: -.035em; color: var(--logo-word, #1C1712); }
+    .logo-b { position: relative; display: inline-block; }
+    .logo-dot { position: absolute; left: .215em; top: .43em; width: .18em; height: .18em; border-radius: 50%; background: #D9662E; transition: transform .35s cubic-bezier(.34,1.56,.64,1); }
+    .logo:hover .logo-dot { transform: scale(1.18); }
+    .logo-tag { font-family: Inter, system-ui, sans-serif; font-weight: 600; font-size: .2em; letter-spacing: .5em; margin-top: .55em; white-space: nowrap; color: var(--logo-tag, #33397F); }
+    .logo-tag .amp { color: #D9662E; letter-spacing: .3em; }
+    .logo--light { --logo-word: #FDFBF6; --logo-tag: #B8BBE6; }
+    /* large lockup (hero/brand use) keeps the original airy tagline */
+    .logo--lg .logo-tag { font-weight: 500; font-size: .172em; letter-spacing: .66em; margin-top: .62em; }
+
+    /* ---------- motion ---------- */
+    .reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s ease, transform .6s ease; }
+    .reveal.in { opacity: 1; transform: none; }
+    .bar { width: 0; transition: width 1.2s cubic-bezier(.22,1,.36,1) .3s; }
+    .float { animation: float 7s ease-in-out infinite; }
+    @keyframes float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-6px) } }
+    .hero-underline path { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .9s cubic-bezier(.22,1,.36,1) .5s; }
+    .reveal.in .hero-underline path { stroke-dashoffset: 0; }
+    details > summary { list-style: none; cursor: pointer; }
+    details > summary::-webkit-details-marker { display: none; }
+    details[open] .faq-plus { transform: rotate(45deg); }
+    /* Square grid: thin lines forming squares, faded out towards the edges. */
+    .grid-lines {
+      --gl: rgba(51,57,127,.12);
+      --cell: 64px;
+      background-image:
+        linear-gradient(to right, var(--gl) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--gl) 1px, transparent 1px);
+      background-size: var(--cell) var(--cell);
+      background-position: center top;
+    }
+    .grid-lines--light { --gl: rgba(255,255,255,.085); }
+    .grid-fade {
+      -webkit-mask-image: radial-gradient(ellipse 72% 68% at 50% 42%, #000 35%, transparent 78%);
+              mask-image: radial-gradient(ellipse 72% 68% at 50% 42%, #000 35%, transparent 78%);
+    }
+    /* a few squares filled in, like the reference */
+    .grid-cell { position: absolute; width: var(--cell, 64px); height: var(--cell, 64px); background: rgba(51,57,127,.035); }
+    .dot-grid { background-image: radial-gradient(rgba(51,57,127,.13) 1px, transparent 1px); background-size: 18px 18px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .reveal { opacity: 1; transform: none; }
+      .hero-underline path { stroke-dashoffset: 0; }
+    }
+  </style>
+  <style>
+    .doc h2 { margin: 40px 0 12px; scroll-margin-top: 90px; font-family: Lexend, system-ui, sans-serif; font-size: 21px; font-weight: 600; letter-spacing: -.01em; color: #241A15; }
+    .doc h2:first-child { margin-top: 0; }
+    .doc p, .doc li { font-size: 15.5px; line-height: 1.75; color: #3D332D; }
+    .doc p { margin: 12px 0; }
+    .doc p.clause { padding-left: 0; }
+    .doc ul { margin: 10px 0 14px; padding-left: 22px; list-style: disc; }
+    .doc li { margin: 4px 0; }
+    .doc strong { color: #241A15; font-weight: 600; }
+    .doc a { color: #33397F; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+    .doc .var { color: #5C534D; font-weight: 600; }
+    .doc mark { background: #FBE6DA; color: #AD4C1D; border-radius: 4px; padding: 0 3px; }
+    .doc .box { display: inline-block; width: 14px; height: 14px; border: 1.5px solid #736C66; border-radius: 3px; vertical-align: -2px; margin-right: 2px; }
+    .doc .tbl { margin: 16px 0; overflow-x: auto; border: 1px solid #ECE5DA; border-radius: 14px; position: relative; }
+    .doc .tbl:focus-visible { outline: 2px solid #33397F; outline-offset: 2px; }
+    .doc table { width: 100%; min-width: 560px; border-collapse: collapse; font-size: 14px; }
+    .doc th { background: #F5F0E8; text-align: left; font-weight: 600; padding: 10px 14px; color: #241A15; }
+    .doc td { border-top: 1px solid #ECE5DA; padding: 10px 14px; vertical-align: top; line-height: 1.55; color: #3D332D; }
+    .toc a { display: block; border-radius: 8px; padding: 6px 10px; font-size: 13.5px; color: #5C534D; }
+    .toc a:hover { background: #F5F0E8; color: #241A15; }
+    .toc a.is-here { background: #ECEDF8; color: #33397F; font-weight: 600; }
+    .doc-tab { border-radius: 999px; border: 1.5px solid #ECE5DA; background: #fff; padding: 7px 14px; font-size: 13px; font-weight: 600; color: #5C534D; white-space: nowrap; }
+    .doc-tab:hover { border-color: #B8BBE6; }
+    .doc-tab[aria-current="page"] { border-color: #33397F; background: #33397F; color: #fff; }
+    a:focus-visible, .doc-tab:focus-visible { outline: 2px solid #33397F; outline-offset: 2px; }
+    @media print { header, aside, footer, .no-print { display: none !important; } body { background: #fff; } }
+  </style>
+  <link rel="stylesheet" href="app.css" />
+</head>
+<body class="bg-cream-light font-sans text-ink antialiased">
+  <a href="#doc" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-md focus:bg-white focus:px-4 focus:py-2">Skip to content</a>
+  <header class="sticky top-0 z-40 border-b border-cream-line bg-cream-light/95 backdrop-blur">
+    <div class="mx-auto flex h-[68px] max-w-[1100px] items-center justify-between gap-4 px-5">
+      <a href="index.html" class="logo" aria-label="banda, B and A Essentials, home">
+        <span class="logo-word" aria-hidden="true"><span class="logo-b">b<i class="logo-dot"></i></span>anda</span>
+        <span class="logo-tag" aria-hidden="true">B<span class="amp">&amp;</span>A ESSENTIALS</span>
+      </a>
+      <a href="index.html" class="text-[14px] font-semibold text-brand-navy hover:underline">Back to home</a>
+    </div>
+  </header>
+
+  <main id="doc" class="mx-auto max-w-[1100px] px-5 pb-16 pt-8">
+    <nav class="no-scrollbar no-print -mx-1 flex gap-2 overflow-x-auto px-1 pb-1" aria-label="Legal documents"><a href="terms.html" class="doc-tab">Terms of Service</a><a href="privacy.html" class="doc-tab">Privacy Policy</a><a href="cookies.html" class="doc-tab" aria-current="page">Cookie Notice</a></nav>
+    <div class="mt-6 grid gap-10 lg:grid-cols-[240px_minmax(0,1fr)]">
+      <aside class="hidden lg:block">
+        <nav class="toc sticky top-[92px]" aria-label="On this page">
+          <p class="mb-2 px-2.5 text-[11.5px] font-semibold uppercase tracking-[.12em] text-ink-soft">On this page</p>
+          <ul><li><a href="#1-what-cookies-are-and-how-we-use-them">1. What cookies are and how we use them</a></li><li><a href="#2-the-cookies-we-use">2. The cookies we use</a></li><li><a href="#3-your-choices-and-contact">3. Your choices and contact</a></li></ul>
+        </nav>
+      </aside>
+      <article class="min-w-0">
+        <h1 class="font-display text-[30px] font-semibold leading-tight tracking-[-0.02em] sm:text-[38px]">B&amp;A Essentials — Cookie Notice</h1>
+        <p class="mt-2 text-[14px] text-ink-muted">Version 0.1 · Effective date: 12th of November, 2026</p>
+        <details class="no-print mt-5 rounded-2xl border border-cream-line bg-white p-4 lg:hidden">
+          <summary class="cursor-pointer text-[14px] font-semibold">On this page</summary>
+          <ul class="toc mt-2"><li><a href="#1-what-cookies-are-and-how-we-use-them">1. What cookies are and how we use them</a></li><li><a href="#2-the-cookies-we-use">2. The cookies we use</a></li><li><a href="#3-your-choices-and-contact">3. Your choices and contact</a></li></ul>
+        </details>
+        <div class="doc mt-8">
+<h2 id="1-what-cookies-are-and-how-we-use-them">1. What cookies are and how we use them</h2>
+<p>Cookies are small text files that a website saves on your device. We use as few as we can. B&amp;A Essential services ("B&amp;A Essentials") uses cookies on bandaessentials.com and the B&amp;A Essentials platform to keep you signed in, protect the site and remember simple choices.</p>
+<p>We do not use advertising cookies, and we do not sell data collected through cookies. We do not use analytics cookies at launch. If we add them, we will ask for your consent first and update this notice.</p>
+<p>Cookies that are strictly necessary for the site to work or to keep it secure do not need your consent. For every other cookie, we ask you first.</p>
+<h2 id="2-the-cookies-we-use">2. The cookies we use</h2>
+<div class="tbl" tabindex="0" role="region" aria-label="2. The cookies we use"><table><thead><tr><th scope="col">Cookie</th><th scope="col">Type</th><th scope="col">What it does</th><th scope="col">How long</th><th scope="col">Consent needed</th></tr></thead><tbody><tr><td>sessionid <mark title="To be confirmed">[confirm name]</mark></td><td>Strictly necessary</td><td>Keeps you signed in while you use the platform</td><td>Until you sign out.</td><td>No</td></tr><tr><td>csrftoken <mark title="To be confirmed">[confirm name]</mark></td><td>Strictly necessary</td><td>Protects forms against forged requests</td><td>Up to one (1) year</td><td>No</td></tr><tr><td>__cf_bm <span class="var">[Cloudflare]</span></td><td>Strictly necessary</td><td>Helps tell real visitors from automated bots and keeps the site secure</td><td>About 30 minutes</td><td>No</td></tr><tr><td>cf_clearance <span class="var">[Cloudflare, if a security check is shown]</span></td><td>Strictly necessary</td><td>Remembers that you passed a security check</td><td>Until you sign out.</td><td>No</td></tr><tr><td>cookie_choices <mark title="To be confirmed">[name to confirm]</mark></td><td>Strictly necessary</td><td>Remembers your cookie choices</td><td>6 to 12 months</td><td>No</td></tr><tr><td>theme <mark title="To be confirmed">[name to confirm]</mark></td><td>Preference</td><td>Remembers whether you chose light or dark mode</td><td></td><td>Yes, unless stored only in your account</td></tr><tr><td><span class="var">[Analytics cookie, if ever added]</span></td><td>Analytics</td><td>Counts visits and shows which pages are used</td><td>Until you sign out.</td><td>Yes</td></tr></tbody></table></div>
+<p><strong>Payment pages.</strong> When you pay, you go to a page run by our payment provider, Paystack or Flutterwave. They set their own cookies, which we do not control. Please read their cookie notices.</p>
+<p><strong>Messaging.</strong> Messages we send you through providers such as Termii do not use cookies on our site.</p>
+<h2 id="3-your-choices-and-contact">3. Your choices and contact</h2>
+<p><strong>Choosing.</strong> The first time you visit, a banner asks you to accept or reject non-essential cookies. The choices are equal, and nothing non-essential is switched on before you choose. You can change your mind at any time through "Cookie settings" in the footer of every page.</p>
+<p><strong>Your browser.</strong> You can also block or delete cookies in your browser settings. If you block strictly necessary cookies, you will not be able to sign in or use the platform.</p>
+<p><strong>Changes.</strong> We may update this notice. We will post the new version here with its date, and ask for your choices again if we add a new kind of non-essential cookie.</p>
+<p><strong>Contact.</strong> Questions about cookies: <a href="mailto:dpo@bandaessentials.com">dpo@bandaessentials.com</a>. Support: <a href="mailto:support@bandaessentials.com">support@bandaessentials.com</a>. See also our <a href="privacy.html">Privacy Policy</a>.</p>
+        </div>
+        <div class="no-print mt-10 flex flex-wrap gap-3 border-t border-cream-line pt-6 text-[14px]">
+          <button type="button" onclick="window.print()" class="rounded-full border-[1.5px] border-brand-navy px-4 py-2 font-semibold text-brand-navy hover:bg-brand-navy hover:text-white">Print or save as PDF</button>
+          <a href="#doc" class="rounded-full px-4 py-2 font-semibold text-ink-muted hover:bg-cream">Back to top</a>
+        </div>
+      </article>
+    </div>
+  </main>
+
+  <footer class="bg-cocoa-deep text-white">
+    <div class="mx-auto flex max-w-[1100px] flex-col gap-3 px-5 py-6 text-[13px] text-white/75 sm:flex-row sm:items-center sm:justify-between">
+      <p>© 2026 B &amp; A Essentials. All rights reserved.</p>
+      <ul class="flex flex-wrap gap-x-5 gap-y-2">
+        <li><a href="terms.html" class="hover:text-white">Terms</a></li>
+        <li><a href="privacy.html" class="hover:text-white">Privacy</a></li>
+        <li><a href="cookies.html" class="hover:text-white">Cookies</a></li>
+        <li><button type="button" data-cookie-settings class="hover:text-white">Cookie settings</button></li>
+      </ul>
+    </div>
+  </footer>
+  <script src="consent.js"></script>
+  <script>
+    // Highlight the section you're reading in the contents list.
+    const links = [...document.querySelectorAll('aside .toc a')];
+    if ('IntersectionObserver' in window && links.length) {
+      const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) links.forEach(a => a.classList.toggle('is-here', a.hash === '#' + e.target.id)); }), { rootMargin: '-90px 0px -70% 0px' });
+      document.querySelectorAll('.doc h2[id]').forEach(h => io.observe(h));
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard · banda — B &amp; A Essentials</title>
+  <meta name="description" content="Your B &amp; A Essentials client dashboard." />
+  <meta name="theme-color" content="#1C1712" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='14'%20fill='%231C1712'/%3E%3Cpath%20d='M17%209h9v17a13%2013%200%201%201-9%2012z'%20fill='%23FDFBF6'/%3E%3Ccircle%20cx='39'%20cy='39'%20r='7'%20fill='%231C1712'/%3E%3Ccircle%20cx='31'%20cy='40'%20r='5'%20fill='%23D9662E'/%3E%3C/svg%3E" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@500;600;700&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind Play CDN for preview only. In Django, build with the Tailwind CLI using the same config. -->
+  <style>
+    html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { scrollbar-width: none; }
+
+    /* ---------- banda logo (HTML/CSS, crisp at any size) ---------- */
+    .logo { display: inline-flex; flex-direction: column; align-items: flex-start; font-size: 36px; line-height: 1; text-decoration: none; }
+    .logo-word { font-family: Inter, system-ui, sans-serif; font-weight: 800; line-height: .82; letter-spacing: -.035em; color: var(--logo-word, #1C1712); }
+    .logo-b { position: relative; display: inline-block; }
+    .logo-dot { position: absolute; left: .215em; top: .43em; width: .18em; height: .18em; border-radius: 50%; background: #D9662E; transition: transform .35s cubic-bezier(.34,1.56,.64,1); }
+    .logo:hover .logo-dot { transform: scale(1.18); }
+    .logo-tag { font-family: Inter, system-ui, sans-serif; font-weight: 600; font-size: .2em; letter-spacing: .5em; margin-top: .55em; white-space: nowrap; color: var(--logo-tag, #33397F); }
+    .logo-tag .amp { color: #D9662E; letter-spacing: .3em; }
+    .logo--light { --logo-word: #FDFBF6; --logo-tag: #B8BBE6; }
+    /* large lockup (hero/brand use) keeps the original airy tagline */
+    .logo--lg .logo-tag { font-weight: 500; font-size: .172em; letter-spacing: .66em; margin-top: .62em; }
+
+    /* ---------- motion ---------- */
+    .reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s ease, transform .6s ease; }
+    .reveal.in { opacity: 1; transform: none; }
+    .bar { width: 0; transition: width 1.2s cubic-bezier(.22,1,.36,1) .3s; }
+    .float { animation: float 7s ease-in-out infinite; }
+    @keyframes float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-6px) } }
+    .hero-underline path { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .9s cubic-bezier(.22,1,.36,1) .5s; }
+    .reveal.in .hero-underline path { stroke-dashoffset: 0; }
+    details > summary { list-style: none; cursor: pointer; }
+    details > summary::-webkit-details-marker { display: none; }
+    details[open] .faq-plus { transform: rotate(45deg); }
+    /* Square grid: thin lines forming squares, faded out towards the edges. */
+    .grid-lines {
+      --gl: rgba(51,57,127,.12);
+      --cell: 64px;
+      background-image:
+        linear-gradient(to right, var(--gl) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--gl) 1px, transparent 1px);
+      background-size: var(--cell) var(--cell);
+      background-position: center top;
+    }
+    .grid-lines--light { --gl: rgba(255,255,255,.085); }
+    .grid-fade {
+      -webkit-mask-image: radial-gradient(ellipse 72% 68% at 50% 42%, #000 35%, transparent 78%);
+              mask-image: radial-gradient(ellipse 72% 68% at 50% 42%, #000 35%, transparent 78%);
+    }
+    /* a few squares filled in, like the reference */
+    .grid-cell { position: absolute; width: var(--cell, 64px); height: var(--cell, 64px); background: rgba(51,57,127,.035); }
+    .dot-grid { background-image: radial-gradient(rgba(51,57,127,.13) 1px, transparent 1px); background-size: 18px 18px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .reveal { opacity: 1; transform: none; }
+      .hero-underline path { stroke-dashoffset: 0; }
+    }
+
+    /* ---------- dashboard ---------- */
+    [hidden] { display: none !important; }
+    body { background: #EFEAE1; }
+    .panel { background: #fff; border-radius: 22px; }
+    .side-link:focus-visible { outline: 2px solid #F0A77C; outline-offset: -2px; }
+    .ring-focus:focus-visible, .btn:focus-visible { outline: 2px solid #33397F; outline-offset: 2px; }
+
+    /* sidebar: a light card that always fits the screen height */
+    #sidebar { top: 12px; bottom: 12px; background: linear-gradient(140deg, #3A41935e 0%, transparent 60%), linear-gradient(160deg, #33397F, #22265A); color: #fff; }
+    .side-label { font-size: 11.5px; font-weight: 600; letter-spacing: .14em; color: rgba(184,187,230,.75); padding: 0 22px; margin-bottom: clamp(2px, .6vh, 6px); }
+    .side-link { position: relative; display: flex; align-items: center; gap: 13px; height: clamp(34px, 4.7vh, 44px); padding: 0 22px; font-size: 15px; font-weight: 500; color: rgba(255,255,255,.68); transition: color .15s, background .15s; }
+    .side-link svg { width: 20px; height: 20px; flex-shrink: 0; }
+    .side-link:hover { color: #fff; background: rgba(255,255,255,.06); }
+    .side-link[aria-current="page"] { color: #fff; font-weight: 600; background: rgba(255,255,255,.1); }
+    .side-link[aria-current="page"] svg { color: #F0A77C; }
+    .side-link[aria-current="page"]::before { content: ""; position: absolute; left: 0; top: 18%; bottom: 18%; width: 5px; border-radius: 0 6px 6px 0; background: #D9662E; }
+    .side-badge { margin-left: auto; border-radius: 6px; background: rgba(255,255,255,.16); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; }
+    .side-group + .side-group { margin-top: clamp(12px, 3vh, 34px); }
+    /* the help card steps aside on short screens so the menu never scrolls */
+    /* the help card lives in the phone menu only */
+    @media (min-width: 1024px) { .side-help { display: none !important; } }
+    .side-help.is-compact .help-extra { display: none; }
+    .side-help.is-compact { padding: 12px 14px; }
+    .side-help.is-compact .help-title { margin-top: 0; }
+
+    /* stat cards */
+    .stat { position: relative; display: block; border-radius: 20px; background: #fff; padding: 18px 20px; transition: transform .2s, box-shadow .2s; }
+    .stat:hover { transform: translateY(-2px); box-shadow: 0 18px 34px -26px rgba(51,57,127,.55); }
+    .stat-go { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 999px; border: 1.5px solid #241A15; transition: background .2s, color .2s; }
+    .stat:hover .stat-go { background: #241A15; color: #fff; }
+    .stat--hero { background: linear-gradient(140deg, #3A41935e 0%, transparent 60%), linear-gradient(160deg, #33397F, #22265A); color: #fff; }
+    .stat--hero .stat-go { border: 0; background: #fff; color: #33397F; }
+    .trend { display: inline-flex; align-items: center; gap: 3px; border: 1px solid currentColor; border-radius: 6px; padding: 0 5px; font-size: 11px; font-weight: 700; line-height: 17px; }
+
+    .chip-status { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; border-radius: 6px; padding: 2px 8px; font-size: 11.5px; font-weight: 600; }
+    .stripes { background: repeating-linear-gradient(135deg, #A5A8CF 0 3px, transparent 3px 9px); box-shadow: inset 0 0 0 1px #DADCEE; }
+    .day-bar { transition: height .9s cubic-bezier(.22,1,.36,1); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 999px; font-weight: 600; transition: background .15s, color .15s, border-color .15s; }
+    .rings { background: repeating-radial-gradient(circle at 115% 120%, transparent 0 16px, rgba(240,167,124,.16) 16px 17px); }
+
+    @media (max-width: 639px) {
+      .stat { padding: 14px 15px; }
+      .stat > span:first-child > span:first-child { font-size: 14px; }
+      .stat-go { width: 30px; height: 30px; }
+    }
+    @media (max-width: 1023px) {
+      #sidebar { transform: translateX(-110%); transition: transform .25s ease; }
+      #sidebar.is-open { transform: none; }
+    }
+    /* ---------- motion ---------- */
+    .js-anim .anim { opacity: 0; transform: translateY(18px) scale(.985); }
+    .js-anim .anim.in { animation: rise .75s cubic-bezier(.22,1,.36,1) var(--d, 0ms) both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(18px) scale(.985); } to { opacity: 1; transform: none; } }
+    /* bars grow from the floor, the busiest day bounces, its label pops */
+    .day-bar { clip-path: inset(100% 0 0 0); transition: clip-path 1s cubic-bezier(.22,1,.36,1) var(--d, 0ms); }
+    .week-in .day-bar { clip-path: inset(-40px 0 0 0); }
+    .day-tip { opacity: 0; transform: translate(-50%, 6px) scale(.8); transition: opacity .35s ease 1.2s, transform .45s cubic-bezier(.34,1.56,.64,1) 1.2s; }
+    .week-in .day-tip { opacity: 1; transform: translate(-50%, 0) scale(1); }
+    .stripes { background-size: 12.7px 12.7px; }
+    .week-in .stripes { animation: drift 1.6s linear infinite; }
+    @keyframes drift { to { background-position: 12.7px 0; } }
+    /* the active menu bar and notification dot */
+    .ping::after { content: ""; position: absolute; inset: -3px; border-radius: 999px; background: #D9662E; animation: ping 2.2s cubic-bezier(0,0,.2,1) infinite; }
+    @keyframes ping { 0% { transform: scale(.6); opacity: .7; } 70%, 100% { transform: scale(2.4); opacity: 0; } }
+    /* dark cards: slow ripple of rings */
+    .rings { background-size: 100% 100%; animation: ripple 9s ease-in-out infinite alternate; }
+    @keyframes ripple { from { background-position: 0 0; } to { background-position: -26px -18px; } }
+    /* hero stat: a light sweep once it lands */
+    .stat--hero { overflow: hidden; }
+    .stat--hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.18) 50%, transparent 65%); transform: translateX(-120%); pointer-events: none; }
+    .stat--hero.in::after { animation: sweep 1.4s ease .9s; }
+    @keyframes sweep { to { transform: translateX(120%); } }
+    .stat-go svg { transition: transform .3s cubic-bezier(.34,1.56,.64,1); }
+    .stat:hover .stat-go svg { transform: rotate(45deg); }
+    /* main call to action breathes every few seconds */
+    .nudge { position: relative; }
+    .nudge::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: 0 0 0 0 rgba(51,57,127,.45); animation: nudge 3.2s ease-out 2s infinite; }
+    @keyframes nudge { 0% { box-shadow: 0 0 0 0 rgba(51,57,127,.45); } 45%, 100% { box-shadow: 0 0 0 12px rgba(51,57,127,0); } }
+    /* list rows lift on hover; icons tilt */
+    .row-hover { transition: background .2s, transform .25s cubic-bezier(.22,1,.36,1); }
+    .row-hover:hover { transform: translateX(4px); }
+    .row-hover:hover > span:first-child { transform: rotate(-8deg) scale(1.06); }
+    .row-hover > span:first-child { transition: transform .3s cubic-bezier(.34,1.56,.64,1); }
+    .panel-lift { transition: box-shadow .3s, transform .3s cubic-bezier(.22,1,.36,1); }
+    @media (hover: hover) { .panel-lift:hover { transform: translateY(-3px); box-shadow: 0 22px 40px -30px rgba(36,26,21,.45); } }
+    #gaugeSvg path + path { transition: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .js-anim .anim { opacity: 1 !important; transform: none !important; animation: none !important; }
+      .day-bar { clip-path: none !important; }
+      .day-bar, .stat, .row-hover, .panel-lift, .day-tip { transition: none !important; }
+      .rings, .ping::after, .nudge::after, .stat--hero::after, .stripes { animation: none !important; }
+      .day-tip { opacity: 1; transform: translate(-50%, 0); }
+    }
+  </style>
+  <!-- Built from build/ (npm run build). Loaded last so utilities win, as with the Tailwind CDN. -->
+  <link rel="stylesheet" href="app.css" />
+  <script>
+    // Paint the saved profile photo before the first frame, so avatars don't flash initials first.
+    try {
+      var bandaSaved = JSON.parse(localStorage.getItem('banda.tasks.v1') || '{}'), bandaMe = bandaSaved.prefs && bandaSaved.prefs.profile;
+      if (bandaMe && /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(bandaMe.photo || '')) {
+        var bandaStyle = document.createElement('style'); bandaStyle.id = 'bandaEarlyPhoto';
+        bandaStyle.textContent = '[data-initials],#pfInitials,#phPreview{background-image:url("' + bandaMe.photo + '");background-size:cover;background-position:center;color:transparent}';
+        document.head.appendChild(bandaStyle);
+      }
+    } catch { /* storage blocked: initials show instead */ }
+  </script>
+</head>
+
+<body class="font-sans text-ink antialiased">
+  <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-md focus:bg-white focus:px-4 focus:py-2">Skip to content</a>
+  <div id="scrim" class="fixed inset-0 z-40 bg-cocoa-deep/50 lg:hidden" hidden></div>
+
+  <!-- ===================== SIDEBAR ===================== -->
+  <aside id="sidebar" class="panel fixed left-3 z-50 flex w-[256px] flex-col overflow-hidden pb-4" style="padding-top:clamp(18px,3.4vh,30px)" aria-label="Main menu">
+    <div class="flex items-center justify-between px-[22px]">
+      <a href="index.html" class="logo logo--light ring-focus rounded" style="font-size:34px" aria-label="banda, B and A Essentials, home">
+        <span class="logo-word" aria-hidden="true"><span class="logo-b">b<i class="logo-dot"></i></span>anda</span>
+        <span class="logo-tag" aria-hidden="true" style="--logo-tag:#F0A77C">B<span class="amp" style="color:#F0A77C">&amp;</span>A ESSENTIALS</span>
+      </a>
+      <button type="button" id="closeMenu" class="grid h-9 w-9 place-items-center rounded-lg text-white/80 hover:bg-white/10 lg:hidden" aria-label="Close menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-x h-5 w-5"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button>
+    </div>
+
+    <nav class="no-scrollbar min-h-0 flex-1 overflow-y-auto" style="margin-top:clamp(16px,4vh,40px)" aria-label="Client">
+      <div class="side-group">
+        <p class="side-label">MENU</p>
+        <ul>
+          <li><a href="dashboard.html" class="side-link" aria-current="page"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-house"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Dashboard</a></li>
+          <li><a href="submit-task.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-plus"><circle cx="12" cy="12" r="10"></circle><path d="M8 12h8"></path><path d="M12 8v8"></path></svg>Submit a Task</a></li>
+          <li><a href="my-tasks.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-square-check"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="m16 9-5.5 5.5L8 12"></path></svg>My Tasks<span class="side-badge">5</span></a></li>
+          <li><a href="catalogue.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-layout-grid"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>Service Catalogue</a></li>
+          <li><a href="deliverables.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-folder"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path></svg>Deliverables</a></li>
+          <li><a href="messages.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-message-square"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"></path></svg>Messages<span class="side-badge bg-brand-orange" data-count="msgs">3</span></a></li>
+        </ul>
+      </div>
+      <div class="side-group">
+        <p class="side-label">ACCOUNT</p>
+        <ul>
+          <li><a href="plan.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-gauge"><path d="m12 14 4-4"></path><path d="M3.34 19a10 10 0 1 1 17.32 0"></path></svg>Plan &amp; Usage</a></li>
+          <li><a href="billing.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-receipt-text"><path d="M13 16H8"></path><path d="M14 8H8"></path><path d="M16 12H8"></path><path d="M4 3a1 1 0 0 1 1-1 1.3 1.3 0 0 1 .7.2l.933.6a1.3 1.3 0 0 0 1.4 0l.934-.6a1.3 1.3 0 0 1 1.4 0l.933.6a1.3 1.3 0 0 0 1.4 0l.933-.6a1.3 1.3 0 0 1 1.4 0l.934.6a1.3 1.3 0 0 0 1.4 0l.933-.6A1.3 1.3 0 0 1 19 2a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1 1.3 1.3 0 0 1-.7-.2l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.934.6a1.3 1.3 0 0 1-1.4 0l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-1.4 0l-.934-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-.7.2 1 1 0 0 1-1-1z"></path></svg>Billing</a></li>
+          <li><a href="help.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-life-buoy"><circle cx="12" cy="12" r="10"></circle><path d="m4.93 4.93 4.24 4.24"></path><path d="m14.83 9.17 4.24-4.24"></path><path d="m14.83 14.83 4.24 4.24"></path><path d="m9.17 14.83-4.24 4.24"></path><circle cx="12" cy="12" r="4"></circle></svg>Help</a></li>
+          <li><a href="index.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-log-out"><path d="m16 17 5-5-5-5"></path><path d="M21 12H9"></path><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg>Log out</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="side-help relative mx-3 mt-4 shrink-0 overflow-hidden rounded-[18px] border border-white/15 bg-white/[.07] p-4 text-white">
+      <span aria-hidden="true" class="rings pointer-events-none absolute inset-0"></span>
+      <span class="help-extra relative grid h-8 w-8 place-items-center rounded-full bg-white text-brand-navy"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-headset h-4 w-4"><path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 1 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3Z"></path><path d="M21 16v2a4 4 0 0 1-4 4h-5"></path></svg></span>
+      <p class="help-title relative mt-3 font-display text-[16px] font-semibold leading-snug">Need a hand?</p>
+      <p class="help-extra relative mt-0.5 text-[12.5px] leading-snug text-white/75">Message the team about a request or a payment.</p>
+      <a href="contact.html" class="btn relative mt-3 w-full bg-brand-cta py-2 text-[13px] hover:bg-brand-ctaDark">Contact support</a>
+    </div>
+  </aside>
+
+  <div class="min-h-screen p-3 lg:pl-[280px]">
+    <!-- ===================== TOP BAR ===================== -->
+    <header class="panel flex h-[68px] items-center gap-3 px-3 sm:px-4">
+      <button type="button" id="openMenu" class="grid h-10 w-10 shrink-0 place-items-center rounded-full text-ink hover:bg-cream lg:hidden" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-menu h-5 w-5"><path d="M4 5h16"></path><path d="M4 12h16"></path><path d="M4 19h16"></path></svg></button>
+      <form class="relative min-w-0 flex-1 md:max-w-[400px]" role="search" onsubmit="return false">
+        <label for="q" class="sr-only">Search</label>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-search pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-ink-muted"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></svg>
+        <input id="q" type="search" placeholder="Search requests or services" class="w-full rounded-full bg-cream-light py-2.5 pl-11 pr-14 text-[14px] ring-1 ring-cream-line placeholder:text-ink-soft focus:outline-none focus:ring-2 focus:ring-brand-navy/40" />
+        <kbd class="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-md bg-cream px-1.5 py-0.5 font-sans text-[11px] font-semibold text-ink-muted sm:block">Ctrl K</kbd>
+      </form>
+      <div class="ml-auto flex items-center gap-2">
+        <a href="messages.html" class="hidden h-10 w-10 place-items-center rounded-full bg-cream-light text-ink ring-1 ring-cream-line hover:bg-cream sm:grid" data-count-label="msgs" aria-label="Messages, 3 unread"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-mail h-[18px] w-[18px]"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"></path><rect x="2" y="4" width="20" height="16" rx="2"></rect></svg></a>
+        <a href="messages.html#notifications" class="relative grid h-10 w-10 place-items-center rounded-full bg-cream-light text-ink ring-1 ring-cream-line hover:bg-cream" data-count-label="notes" aria-label="Notifications, 3 unread"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-bell h-[18px] w-[18px]"><path d="M10.268 21a2 2 0 0 0 3.464 0"></path><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"></path></svg><span data-dot="notes" class="ping absolute right-2 top-2 h-2 w-2 rounded-full bg-brand-orange ring-2 ring-white"></span></a>
+        <div class="relative ml-1">
+          <button type="button" id="userBtn" class="flex items-center gap-2.5 rounded-full py-1 pl-1 pr-1 hover:bg-cream sm:pr-3" aria-haspopup="menu" aria-expanded="false" aria-controls="userMenu">
+            <span class="grid h-10 w-10 place-items-center rounded-full bg-brand-cta text-[13.5px] font-bold text-white" data-initials>CE</span>
+            <span class="hidden text-left md:block"><span class="block max-w-[180px] truncate text-[14px] font-semibold leading-tight" data-fullname>Chinedu Egbuchulam</span><span class="block text-[12px] text-ink-muted">Business owner</span></span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-chevron-down hidden h-4 w-4 text-ink-muted md:block"><path d="m6 9 6 6 6-6"></path></svg>
+          </button>
+          <div id="userMenu" role="menu" hidden class="absolute right-0 z-30 mt-2 w-52 overflow-hidden rounded-xl border border-cream-line bg-white py-1.5 text-[14px] shadow-[0_20px_40px_-20px_rgba(28,23,18,.35)]">
+            <a href="profile.html" role="menuitem" class="flex items-center gap-2.5 px-4 py-2.5 hover:bg-cream"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-user h-4 w-4 text-ink-muted"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Profile &amp; security</a>
+            <a href="index.html" role="menuitem" class="flex items-center gap-2.5 border-t border-cream-line px-4 py-2.5 hover:bg-cream"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-log-out h-4 w-4 text-ink-muted"><path d="m16 17 5-5-5-5"></path><path d="M21 12H9"></path><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg>Log out</a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main id="main" class="mt-3 rounded-[22px] bg-cream-light p-4 sm:p-6">
+      <!-- title -->
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 class="font-display text-[26px] font-semibold leading-tight tracking-[-0.02em] sm:text-[30px]"><span id="greeting">Good morning</span>, <span data-firstname>Chinedu</span></h1>
+          <p class="mt-1 text-[14.5px] text-ink-muted">Here&rsquo;s what&rsquo;s happening with your business today.</p>
+        </div>
+        <div class="flex flex-wrap gap-2.5 [&>a]:whitespace-nowrap max-sm:[&>a]:flex-1 max-sm:[&>a]:px-3 max-sm:[&>a]:text-[13.5px]">
+          <a href="submit-task.html" class="btn bg-brand-navy px-5 py-2.5 text-[14px] text-white hover:bg-[#282D68]"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-plus h-4 w-4"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>Submit a Task</a>
+          <a href="catalogue.html" class="btn border-[1.5px] border-brand-navy px-5 py-2.5 text-[14px] text-brand-navy hover:bg-brand-navy hover:text-white">Service Catalogue</a>
+        </div>
+      </div>
+
+      <!-- stats -->
+      <section class="mt-5 grid grid-cols-2 gap-3 xl:grid-cols-4" aria-label="Request summary">
+        <a href="my-tasks.html" class="stat stat--hero">
+          <span class="flex items-start justify-between gap-2"><span class="text-[15px] font-medium">Total requests</span><span class="stat-go"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-up-right h-4 w-4"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></span></span>
+          <span class="mt-3 block font-display text-[38px] font-semibold leading-none">5</span>
+          <span class="mt-3 flex items-center gap-2 text-[12.5px] text-brand-lavender"><span class="trend">2<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-chevron-up h-3 w-3"><path d="m18 15-6-6-6 6"></path></svg></span>More than last month</span>
+        </a>
+        <a href="my-tasks.html?status=active" class="stat">
+          <span class="flex items-start justify-between gap-2"><span class="text-[15px] font-medium">In progress</span><span class="stat-go"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-up-right h-4 w-4"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></span></span>
+          <span class="mt-3 block font-display text-[38px] font-semibold leading-none">2</span>
+          <span class="mt-3 flex items-center gap-2 text-[12.5px] text-brand-navy"><span class="trend">1<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-chevron-up h-3 w-3"><path d="m18 15-6-6-6 6"></path></svg></span>More than last month</span>
+        </a>
+        <a href="my-tasks.html?status=checking" class="stat">
+          <span class="flex items-start justify-between gap-2"><span class="text-[15px] font-medium">Being checked</span><span class="stat-go"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-up-right h-4 w-4"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></span></span>
+          <span class="mt-3 block font-display text-[38px] font-semibold leading-none">1</span>
+          <span class="mt-3 block text-[12.5px] text-brand-navy">Quality check before delivery</span>
+        </a>
+        <a href="my-tasks.html?status=delivered" class="stat">
+          <span class="flex items-start justify-between gap-2"><span class="text-[15px] font-medium">Delivered</span><span class="stat-go"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-up-right h-4 w-4"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></span></span>
+          <span class="mt-3 block font-display text-[38px] font-semibold leading-none">2</span>
+          <span class="mt-3 flex items-center gap-2 text-[12.5px] text-pill-greenTx"><span class="trend">1<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-chevron-up h-3 w-3"><path d="m18 15-6-6-6 6"></path></svg></span>More than last month</span>
+        </a>
+      </section>
+
+      <div class="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-12 [&>*]:min-w-0">
+        <!-- tasks this week -->
+        <section class="panel panel-lift p-5 md:col-span-2 xl:col-span-5" aria-labelledby="tw">
+          <div class="flex items-center justify-between">
+            <h2 id="tw" class="font-display text-[18px] font-semibold">Tasks sent this week</h2>
+            <span class="text-[12.5px] text-ink-muted"><strong id="weekTotal" class="font-semibold text-ink">10</strong> so far</span>
+          </div>
+          <div id="week" class="mt-9 grid h-[160px] grid-cols-7 items-end gap-2.5 sm:gap-4" role="img" aria-label="Tasks sent each day this week"></div>
+        </section>
+
+        <!-- next for you -->
+        <section class="panel panel-lift flex flex-col p-5 xl:col-span-3" aria-labelledby="nx">
+          <h2 id="nx" class="font-display text-[18px] font-semibold">Waiting on you</h2>
+          <p class="mt-4 font-display text-[22px] font-semibold leading-tight text-brand-navy">Approve the business proposal</p>
+          <p class="mt-2 text-[13.5px] text-ink-muted">Due Nov 13, 2026 · Business &amp; Admin</p>
+          <a href="task.html?id=REQ-2026-0048" class="btn nudge mt-5 bg-brand-navy py-3 text-[14px] text-white hover:bg-[#282D68] xl:mt-auto"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-file-check h-[18px] w-[18px]"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path><path d="M14 2v5a1 1 0 0 0 1 1h5"></path><path d="m9 15 2 2 4-4"></path></svg>Review and approve</a>
+        </section>
+
+        <!-- deadlines (spans two rows on wide screens) -->
+        <section class="panel panel-lift p-5 xl:col-span-4" aria-labelledby="dl">
+          <div class="flex items-center justify-between">
+            <h2 id="dl" class="font-display text-[18px] font-semibold">Deadlines</h2>
+            <a href="submit-task.html" class="btn border-[1.5px] border-brand-navy px-3.5 py-1.5 text-[13px] text-brand-navy hover:bg-brand-navy hover:text-white"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-plus h-3.5 w-3.5"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>New task</a>
+          </div>
+          <ul class="mt-2">
+            <li><a href="my-tasks.html" class="row-hover flex items-center gap-3.5 rounded-xl px-2 py-2.5 hover:bg-cream-light"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#EFE9FB] text-[#5B3FA8]"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-megaphone h-[18px] w-[18px]"><path d="M11 6a13 13 0 0 0 8.4-2.8A1 1 0 0 1 21 4v12a1 1 0 0 1-1.6.8A13 13 0 0 0 11 14H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"></path><path d="M6 14a12 12 0 0 0 2.4 7.2 2 2 0 0 0 3.2-2.4A8 8 0 0 1 10 14"></path><path d="M8 6v8"></path></svg></span><span class="min-w-0"><span class="block text-[14.5px] font-medium leading-snug">Review content draft</span><span class="block text-[12px] text-ink-soft">Due: Nov 12, 2026</span></span></a></li>
+            <li><a href="task.html?id=REQ-2026-0048" class="row-hover flex items-center gap-3.5 rounded-xl px-2 py-2.5 hover:bg-cream-light"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-pill-navyBg text-brand-navy"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-file-text h-[18px] w-[18px]"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path><path d="M14 2v5a1 1 0 0 0 1 1h5"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg></span><span class="min-w-0"><span class="block text-[14.5px] font-medium leading-snug">Business proposal document</span><span class="block text-[12px] text-ink-soft">Due: Nov 13, 2026</span></span></a></li>
+            <li><a href="task.html?id=REQ-2026-0045" class="row-hover flex items-center gap-3.5 rounded-xl px-2 py-2.5 hover:bg-cream-light"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-pill-greenBg text-pill-greenTx"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-book-open-check h-[18px] w-[18px]"><path d="M12 5v16"></path><path d="m16 12 2 2 4-4"></path><path d="M22 6V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2h4.001A2 2 0 0022 17v-1.344"></path></svg></span><span class="min-w-0"><span class="block text-[14.5px] font-medium leading-snug">Confirm October bookkeeping</span><span class="block text-[12px] text-ink-soft">Due: Nov 14, 2026</span></span></a></li>
+            <li><a href="task.html?id=REQ-2026-0046" class="row-hover flex items-center gap-3.5 rounded-xl px-2 py-2.5 hover:bg-cream-light"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-pill-orangeBg text-brand-orange"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-shield h-[18px] w-[18px]"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path></svg></span><span class="min-w-0"><span class="block text-[14.5px] font-medium leading-snug">Trademark filing support</span><span class="block text-[12px] text-ink-soft">Due: Nov 16, 2026</span></span></a></li>
+          </ul>
+        </section>
+
+        <!-- recent requests -->
+        <section class="panel panel-lift p-5 md:col-span-2 xl:col-span-5" aria-labelledby="rr">
+          <div class="flex items-center justify-between">
+            <h2 id="rr" class="font-display text-[18px] font-semibold">Recent requests</h2>
+            <a href="my-tasks.html" class="btn border-[1.5px] border-brand-navy px-3.5 py-1.5 text-[13px] text-brand-navy hover:bg-brand-navy hover:text-white">View all</a>
+          </div>
+          <ul id="recentList" class="mt-3 space-y-1">
+            <li><a href="task.html?id=REQ-2026-0048" class="row-hover flex items-center gap-3.5 rounded-xl px-2 py-2 hover:bg-cream-light"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-pill-orangeBg text-brand-orange"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-file-text h-[18px] w-[18px]"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path><path d="M14 2v5a1 1 0 0 0 1 1h5"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg></span><span class="min-w-0 flex-1"><span class="block text-[14.5px] font-medium leading-snug">Business proposal document</span><span class="block text-[12px] leading-snug text-ink-soft">Business &amp; Admin · <span class="font-medium text-ink-muted">REQ-2026-0048</span></span><span class="chip-status mt-1.5 bg-pill-navyBg text-brand-navy sm:max-xl:hidden 2xl:hidden">In progress</span></span><span class="chip-status shrink-0 max-sm:hidden xl:max-2xl:hidden bg-pill-navyBg text-brand-navy">In progress</span></a></li>
+            <li><a href="task.html?id=REQ-2026-0047" class="row-hover flex items-center gap-3.5 rounded-xl px-2 py-2 hover:bg-cream-light"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-pill-orangeBg text-brand-orange"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-megaphone h-[18px] w-[18px]"><path d="M11 6a13 13 0 0 0 8.4-2.8A1 1 0 0 1 21 4v12a1 1 0 0 1-1.6.8A13 13 0 0 0 11 14H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"></path><path d="M6 14a12 12 0 0 0 2.4 7.2 2 2 0 0 0 3.2-2.4A8 8 0 0 1 10 14"></path><path d="M8 6v8"></path></svg></span><span class="min-w-0 flex-1"><span class="block text-[14.5px] font-medium leading-snug">Social media content calendar</span><span class="block text-[12px] leading-snug text-ink-soft">Specialized Add-Ons · <span class="font-medium text-ink-muted">REQ-2026-0047</span></span><span class="chip-status mt-1.5 bg-pill-orangeBg text-brand-orangeDark sm:max-xl:hidden 2xl:hidden">Needs your info</span></span><span class="chip-status shrink-0 max-sm:hidden xl:max-2xl:hidden bg-pill-orangeBg text-brand-orangeDark">Needs your info</span></a></li>
+            <li><a href="task.html?id=REQ-2026-0046" class="row-hover flex items-center gap-3.5 rounded-xl px-2 py-2 hover:bg-cream-light"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-pill-orangeBg text-brand-orange"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-shield h-[18px] w-[18px]"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path></svg></span><span class="min-w-0 flex-1"><span class="block text-[14.5px] font-medium leading-snug">Trademark filing support</span><span class="block text-[12px] leading-snug text-ink-soft">Legal &amp; IP Review · <span class="font-medium text-ink-muted">REQ-2026-0046</span></span><span class="chip-status mt-1.5 border border-brand-navy/40 text-brand-navy sm:max-xl:hidden 2xl:hidden">Being scoped</span></span><span class="chip-status shrink-0 max-sm:hidden xl:max-2xl:hidden border border-brand-navy/40 text-brand-navy">Being scoped</span></a></li>
+            <li><a href="task.html?id=REQ-2026-0044" class="row-hover flex items-center gap-3.5 rounded-xl px-2 py-2 hover:bg-cream-light"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-pill-orangeBg text-brand-orange"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-truck h-[18px] w-[18px]"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path><path d="M15 18H9"></path><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path><circle cx="17" cy="18" r="2"></circle><circle cx="7" cy="18" r="2"></circle></svg></span><span class="min-w-0 flex-1"><span class="block text-[14.5px] font-medium leading-snug">Vendor coordination</span><span class="block text-[12px] leading-snug text-ink-soft">Operations &amp; Logistics · <span class="font-medium text-ink-muted">REQ-2026-0044</span></span><span class="chip-status mt-1.5 bg-pill-orangeBg text-brand-orangeDark sm:max-xl:hidden 2xl:hidden">Needs your info</span></span><span class="chip-status shrink-0 max-sm:hidden xl:max-2xl:hidden bg-pill-orangeBg text-brand-orangeDark">Needs your info</span></a></li>
+          </ul>
+        </section>
+
+        <!-- plan usage -->
+        <section class="panel panel-lift p-5 xl:col-span-3" aria-labelledby="pu">
+          <h2 id="pu" class="font-display text-[18px] font-semibold">Plan usage</h2>
+          <div class="relative mx-auto mt-3 max-w-[230px]">
+            <svg id="gaugeSvg" viewBox="0 0 220 122" class="w-full" role="img" aria-labelledby="gaugeText">
+              <defs><pattern id="hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="7" fill="#fff"/><rect width="3" height="7" fill="#A5A8CF"/></pattern></defs>
+              <path d="M 22 110 A 88 88 0 0 1 198 110" fill="none" stroke="url(#hatch)" stroke-width="26" pathLength="100"/>
+              <path id="gDone" d="M 22 110 A 88 88 0 0 1 198 110" fill="none" stroke="#33397F" stroke-width="26" pathLength="100" stroke-dasharray="45 100"/>
+              <path id="gProg" d="M 22 110 A 88 88 0 0 1 198 110" fill="none" stroke="#D9662E" stroke-width="26" pathLength="100" stroke-dasharray="25 100" stroke-dashoffset="-45"/>
+            </svg>
+            <p id="gaugeText" class="absolute inset-x-0 bottom-0 text-center"><span id="gaugePct" class="block font-display text-[34px] font-semibold leading-none">70%</span><span class="mt-1 block text-[12px] text-ink-muted"><span data-tasks-used>14</span> of <span data-tasks-total>20</span> tasks used</span></p>
+          </div>
+          <ul class="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-1 text-[12px] text-ink-muted">
+            <li class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-brand-navy"></span>Delivered</li>
+            <li class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-brand-orange"></span>In progress</li>
+            <li class="flex items-center gap-1.5"><span class="stripes h-2.5 w-2.5 rounded-full"></span>Left this month</li>
+          </ul>
+          <p class="mt-3 flex items-center justify-between rounded-xl bg-cream-light px-3 py-2 text-[12.5px]"><span class="flex items-center gap-1.5 font-medium"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-scale h-3.5 w-3.5 shrink-0 text-brand-navy"><path d="M12 3v18"></path><path d="m19 8 3 8a5 5 0 0 1-6 0zV7"></path><path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1"></path><path d="m5 8 3 8a5 5 0 0 1-6 0zV7"></path><path d="M7 21h10"></path></svg>Legal reviews</span><span data-legal class="whitespace-nowrap text-ink-muted">0 of 1</span></p>
+        </section>
+
+        <!-- your plan -->
+        <section class="relative flex flex-col overflow-hidden rounded-[22px] bg-cocoa-deep p-5 text-white md:col-span-2 xl:col-span-4" aria-labelledby="yp">
+          <span aria-hidden="true" class="rings pointer-events-none absolute inset-0"></span>
+          <div class="relative flex items-center justify-between">
+            <h2 id="yp" class="font-display text-[18px] font-semibold">Your plan</h2>
+            <span class="chip-status bg-pill-greenBg text-pill-greenTx">Active</span>
+          </div>
+          <p class="relative mt-4 font-display text-[30px] font-semibold leading-none"><span data-plan-name>Growth</span></p>
+          <p class="relative mt-2 text-[14px] text-white/75"><span data-plan-price>₦97,500</span> a month · next payment <span id="nextPay">12 Dec 2026</span></p>
+          <div class="relative mt-5 flex gap-2.5 xl:mt-auto">
+            <a href="plan.html" class="btn bg-white px-4 py-2 text-[13.5px] text-cocoa-deep hover:bg-cream">Manage plan</a>
+            <a href="billing.html" class="btn border border-white/40 px-4 py-2 text-[13.5px] hover:bg-white/10">Invoices</a>
+          </div>
+        </section>
+      </div>
+      <p class="pt-5 text-center text-[12px] text-ink-soft">Design preview with sample data.</p>
+    </main>
+    <footer class="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 px-2 pb-1 pt-4 text-[12.5px] text-ink-muted">
+      <span>© 2026 B &amp; A Essentials</span>
+      <a href="terms.html" class="hover:text-ink hover:underline">Terms</a>
+      <a href="privacy.html" class="hover:text-ink hover:underline">Privacy</a>
+      <a href="cookies.html" class="hover:text-ink hover:underline">Cookies</a>
+      <button type="button" data-cookie-settings class="hover:text-ink hover:underline">Cookie settings</button>
+    </footer>
+  </div>
+
+  <script src="consent.js"></script>
+  <script src="tasks-data.js"></script>
+  <script src="https://unpkg.com/lucide@1.60.0/dist/umd/lucide.min.js"></script>
+  <script>
+    // Tasks this week (sample): Monday first; today is highlighted, days ahead are striped.
+    const SENT = [2, 3, 1, 4, 2, 0, 0];
+    const today = (new Date().getDay() + 6) % 7;
+    const max = Math.max(...SENT, 4);
+    let total = 0;
+    document.getElementById('week').innerHTML = ['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => {
+      const n = i <= today ? SENT[i] : 0; total += n;
+      const future = i > today;
+      const h = future ? 62 : Math.max(18, n / max * 100);
+      const cls = i === today ? 'bg-brand-orange' : future || n === 0 ? 'stripes' : 'bg-brand-navy';
+      const tip = i === today ? `<span class="day-tip absolute -top-7 left-1/2 whitespace-nowrap rounded-md border border-brand-orange/40 bg-white px-1.5 py-0.5 text-[10.5px] font-semibold text-brand-orangeDark">${n} today</span>` : '';
+      return `<div class="flex h-full flex-col items-center justify-end gap-2"><div class="relative w-full max-w-[46px] flex-1"><div class="day-bar absolute inset-x-0 bottom-0 rounded-full ${cls}" style="height:${h}%;--d:${i * 80}ms" title="${n} task${n === 1 ? '' : 's'}">${tip}</div></div><span class="text-[12px] ${i === today ? 'font-semibold text-ink' : 'text-ink-muted'}">${d}</span></div>`;
+    }).join('');
+    const weekTotal = total;
+    // Icons are decoration: if the icon library fails to load, everything else still works.
+    if (window.lucide) lucide.createIcons();
+
+    // Greeting by time of day
+    const hr = new Date().getHours();
+    document.getElementById('greeting').textContent = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
+    const next = new Date('2026-11-28T12:00');
+    if (new URLSearchParams(location.search).get('name')) { next.setTime(Date.now()); next.setMonth(next.getMonth() + 1); }
+    document.getElementById('nextPay').textContent = next.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+    // Name and plan carried over from onboarding (?name=...&plan=...)
+    const params = new URLSearchParams(location.search);
+    const userName = (params.get('name') || '').replace(/\s+/g, ' ').slice(0, 60).trim();
+    if (userName) {
+      const parts = userName.split(' ');
+      const firstChar = word => Array.from(word)[0] || '';
+      const initials = (firstChar(parts[0]) + (parts.length > 1 ? firstChar(parts[parts.length - 1]) : '')).toUpperCase();
+      document.querySelectorAll('[data-fullname]').forEach(el => el.textContent = userName);
+      document.querySelectorAll('[data-firstname]').forEach(el => el.textContent = parts[0]);
+      document.querySelectorAll('[data-initials]').forEach(el => el.textContent = initials);
+    }
+    const PLANS = { starter: ['Starter', '₦65,000', 7, '1 a quarter'], growth: ['Growth', '₦97,500', 20, '1'], dedicated: ['Dedicated', '₦260,000', 30, '4'] };
+    const plan = PLANS[params.get('plan')] || PLANS.growth;
+    document.querySelector('[data-plan-name]').textContent = plan[0];
+    document.querySelector('[data-plan-price]').textContent = plan[1];
+    document.querySelector('[data-tasks-total]').textContent = plan[2];
+    document.querySelector('[data-legal]').textContent = (new URLSearchParams(location.search).get('name') ? '0' : '1') + ' of ' + plan[3];
+    const used = Math.min(14, plan[2]), delivered = Math.round(used * 0.64);
+    document.querySelector('[data-tasks-used]').textContent = used;
+    const pD = delivered / plan[2] * 100, pP = (used - delivered) / plan[2] * 100;
+    const pct = Math.round(used / plan[2] * 100);
+    function drawGauge(t) {
+      document.getElementById('gDone').setAttribute('stroke-dasharray', `${pD * t} 100`);
+      document.getElementById('gProg').setAttribute('stroke-dasharray', `${pP * t} 100`);
+      document.getElementById('gProg').setAttribute('stroke-dashoffset', -pD * t);
+      document.getElementById('gaugePct').textContent = Math.round(pct * t) + '%';
+    }
+
+    // ---------- motion ----------
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const ease = t => 1 - Math.pow(1 - t, 3);
+    function tween(ms, step, delay = 0) {
+      if (reduce) { step(1); return; }
+      setTimeout(() => { const t0 = performance.now(); const tick = now => { const t = Math.min(1, (now - t0) / ms); step(ease(t)); if (t < 1) requestAnimationFrame(tick); }; requestAnimationFrame(tick); }, delay);
+    }
+    const countUp = (el, to, ms, delay, suffix = '') => tween(ms, t => el.textContent = Math.round(to * t) + suffix, delay);
+
+    // What happens when each part comes into view (on load, or when scrolled to on phones).
+    const ON_SHOW = {
+      week(el) {
+        el.classList.add('week-in');
+        countUp(document.getElementById('weekTotal'), weekTotal, 1100, 200);
+      },
+      gauge() { tween(1300, drawGauge, 250); },
+    };
+    document.querySelectorAll('.stat').forEach(st => {
+      const big = st.querySelector('.font-display'); big.dataset.count = big.textContent.trim();
+    });
+
+    document.documentElement.classList.add('js-anim');
+    // stagger: header, stat cards, then the grid of panels; sidebar links slide in
+    const groups = [
+      [...document.querySelectorAll('main > div:first-child')],
+      [...document.querySelectorAll('.stat')],
+      [...document.querySelectorAll('main > div.grid > section')],
+    ];
+    let order = 0;
+    groups.forEach(list => list.forEach(el => { el.classList.add('anim'); el.style.setProperty('--d', (order++ * 70) + 'ms'); }));
+
+    function reveal(el) {
+      if (el.classList.contains('in')) return;
+      el.classList.add('in');
+      const delay = parseInt(getComputedStyle(el).getPropertyValue('--d')) || 0;
+      if (el.classList.contains('stat')) { const big = el.querySelector('[data-count]'); countUp(big, +big.dataset.count, 900, delay + 150); }
+      if (el.querySelector('#week')) setTimeout(() => ON_SHOW.week(el.querySelector('#week')), reduce ? 0 : delay + 200);
+      if (el.querySelector('#gaugeSvg')) setTimeout(ON_SHOW.gauge, reduce ? 0 : delay);
+    }
+    drawGauge(0);
+    if (reduce || !('IntersectionObserver' in window)) {
+      document.querySelectorAll('.anim').forEach(reveal);
+    } else {
+      // On tall screens everything in view reveals in sequence; further down reveals on scroll.
+      const io = new IntersectionObserver(entries => entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        // items revealed by scrolling start right away rather than waiting their turn
+        if (performance.now() > 2500) e.target.style.setProperty('--d', '0ms');
+        reveal(e.target); io.unobserve(e.target);
+      }), { threshold: 0.12 });
+      document.querySelectorAll('.anim').forEach(el => io.observe(el));
+      // a fast flick can skip past a card; anything already above the fold still gets revealed
+      let queued = false;
+      addEventListener('scroll', () => {
+        if (queued) return; queued = true;
+        requestAnimationFrame(() => {
+          queued = false;
+          document.querySelectorAll('.anim:not(.in)').forEach(el => { if (el.getBoundingClientRect().top < innerHeight) { el.style.setProperty('--d', '0ms'); reveal(el); io.unobserve(el); } });
+        });
+      }, { passive: true });
+    }
+
+    // Sidebar: if the window is too short for the whole menu, the help card steps aside.
+    const helpCard = document.querySelector('.side-help'), sideNav = document.querySelector('#sidebar nav');
+    const overflows = () => sideNav.scrollHeight > sideNav.clientHeight + 1;
+    function fitSidebar() {
+      helpCard.style.display = ''; helpCard.classList.remove('is-compact');
+      if (overflows()) helpCard.classList.add('is-compact');
+      if (overflows()) helpCard.style.display = 'none';
+    }
+    fitSidebar();
+    // Re-check whenever the sidebar changes size (window resize, zoom, full-page capture).
+    if ('ResizeObserver' in window) new ResizeObserver(fitSidebar).observe(document.getElementById('sidebar'));
+    addEventListener('resize', fitSidebar);
+    addEventListener('load', fitSidebar);
+    document.fonts && document.fonts.ready.then(fitSidebar);
+
+    // Mobile menu
+    const sidebar = document.getElementById('sidebar'), scrim = document.getElementById('scrim'), openBtn = document.getElementById('openMenu');
+    const setMenu = open => { sidebar.classList.toggle('is-open', open); scrim.hidden = !open; openBtn.setAttribute('aria-expanded', String(open)); if (open) sidebar.querySelector('a').focus(); };
+    openBtn.addEventListener('click', () => setMenu(true));
+    document.getElementById('closeMenu').addEventListener('click', () => setMenu(false));
+    scrim.addEventListener('click', () => setMenu(false));
+
+    // User menu
+    const userBtn = document.getElementById('userBtn'), userMenu = document.getElementById('userMenu');
+    userBtn.addEventListener('click', e => { e.stopPropagation(); const open = userMenu.hidden; userMenu.hidden = !open; userBtn.setAttribute('aria-expanded', String(open)); });
+    document.addEventListener('click', () => { userMenu.hidden = true; userBtn.setAttribute('aria-expanded', 'false'); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { userMenu.hidden = true; userBtn.setAttribute('aria-expanded', 'false'); setMenu(false); } });
+  </script>
+  <script>
+    // Recent requests come from the same data as My Tasks, so a newly submitted request shows here first.
+    (function () {
+      const B = window.BANDA; if (!B) return;
+      const list = document.getElementById('recentList'); if (!list) return;
+      list.innerHTML = B.all().slice(0, 4).map(t => {
+        const c = B.CATS[t.cat], st = B.STATUS[t.status];
+        return `<li><a href="task.html?id=${encodeURIComponent(t.id)}" class="row-hover flex items-center gap-3.5 rounded-xl px-2 py-2 hover:bg-cream-light"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-full ${c.tone}"><i data-lucide="${c.icon}" class="h-[18px] w-[18px]"></i></span><span class="min-w-0 flex-1"><span class="block text-[14.5px] font-medium leading-snug">${B.esc(t.title)}</span><span class="block text-[12px] leading-snug text-ink-soft">${B.esc(c.name)} · <span class="font-medium text-ink-muted">${t.id}</span>${t.priority === 'Urgent' ? ' · <span class="font-semibold text-brand-orangeDark">Urgent</span>' : ''}</span><span class="chip-status mt-1.5 ${st.chip} sm:max-xl:hidden 2xl:hidden">${st.label}</span></span><span class="chip-status shrink-0 max-sm:hidden xl:max-2xl:hidden ${st.chip}">${st.label}</span></a></li>`;
+      }).join('');
+      if (window.lucide) lucide.createIcons();
+    })();
+  </script>
+</body>
+</html>

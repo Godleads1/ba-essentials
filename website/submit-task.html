@@ -1,0 +1,876 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Submit a Task · banda — B &amp; A Essentials</title>
+  <meta name="description" content="Your B &amp; A Essentials client dashboard." />
+  <meta name="theme-color" content="#1C1712" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='14'%20fill='%231C1712'/%3E%3Cpath%20d='M17%209h9v17a13%2013%200%201%201-9%2012z'%20fill='%23FDFBF6'/%3E%3Ccircle%20cx='39'%20cy='39'%20r='7'%20fill='%231C1712'/%3E%3Ccircle%20cx='31'%20cy='40'%20r='5'%20fill='%23D9662E'/%3E%3C/svg%3E" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@500;600;700&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind Play CDN for preview only. In Django, build with the Tailwind CLI using the same config. -->
+  <style>
+    html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { scrollbar-width: none; }
+
+    /* ---------- banda logo (HTML/CSS, crisp at any size) ---------- */
+    .logo { display: inline-flex; flex-direction: column; align-items: flex-start; font-size: 36px; line-height: 1; text-decoration: none; }
+    .logo-word { font-family: Inter, system-ui, sans-serif; font-weight: 800; line-height: .82; letter-spacing: -.035em; color: var(--logo-word, #1C1712); }
+    .logo-b { position: relative; display: inline-block; }
+    .logo-dot { position: absolute; left: .215em; top: .43em; width: .18em; height: .18em; border-radius: 50%; background: #D9662E; transition: transform .35s cubic-bezier(.34,1.56,.64,1); }
+    .logo:hover .logo-dot { transform: scale(1.18); }
+    .logo-tag { font-family: Inter, system-ui, sans-serif; font-weight: 600; font-size: .2em; letter-spacing: .5em; margin-top: .55em; white-space: nowrap; color: var(--logo-tag, #33397F); }
+    .logo-tag .amp { color: #D9662E; letter-spacing: .3em; }
+    .logo--light { --logo-word: #FDFBF6; --logo-tag: #B8BBE6; }
+    /* large lockup (hero/brand use) keeps the original airy tagline */
+    .logo--lg .logo-tag { font-weight: 500; font-size: .172em; letter-spacing: .66em; margin-top: .62em; }
+
+    /* ---------- motion ---------- */
+    .reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s ease, transform .6s ease; }
+    .reveal.in { opacity: 1; transform: none; }
+    .bar { width: 0; transition: width 1.2s cubic-bezier(.22,1,.36,1) .3s; }
+    .float { animation: float 7s ease-in-out infinite; }
+    @keyframes float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-6px) } }
+    .hero-underline path { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .9s cubic-bezier(.22,1,.36,1) .5s; }
+    .reveal.in .hero-underline path { stroke-dashoffset: 0; }
+    details > summary { list-style: none; cursor: pointer; }
+    details > summary::-webkit-details-marker { display: none; }
+    details[open] .faq-plus { transform: rotate(45deg); }
+    /* Square grid: thin lines forming squares, faded out towards the edges. */
+    .grid-lines {
+      --gl: rgba(51,57,127,.12);
+      --cell: 64px;
+      background-image:
+        linear-gradient(to right, var(--gl) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--gl) 1px, transparent 1px);
+      background-size: var(--cell) var(--cell);
+      background-position: center top;
+    }
+    .grid-lines--light { --gl: rgba(255,255,255,.085); }
+    .grid-fade {
+      -webkit-mask-image: radial-gradient(ellipse 72% 68% at 50% 42%, #000 35%, transparent 78%);
+              mask-image: radial-gradient(ellipse 72% 68% at 50% 42%, #000 35%, transparent 78%);
+    }
+    /* a few squares filled in, like the reference */
+    .grid-cell { position: absolute; width: var(--cell, 64px); height: var(--cell, 64px); background: rgba(51,57,127,.035); }
+    .dot-grid { background-image: radial-gradient(rgba(51,57,127,.13) 1px, transparent 1px); background-size: 18px 18px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .reveal { opacity: 1; transform: none; }
+      .hero-underline path { stroke-dashoffset: 0; }
+    }
+
+    /* ---------- dashboard ---------- */
+    [hidden] { display: none !important; }
+    body { background: #EFEAE1; }
+    .panel { background: #fff; border-radius: 22px; }
+    .side-link:focus-visible { outline: 2px solid #F0A77C; outline-offset: -2px; }
+    .ring-focus:focus-visible, .btn:focus-visible { outline: 2px solid #33397F; outline-offset: 2px; }
+
+    /* sidebar: a light card that always fits the screen height */
+    #sidebar { top: 12px; bottom: 12px; background: linear-gradient(140deg, #3A41935e 0%, transparent 60%), linear-gradient(160deg, #33397F, #22265A); color: #fff; }
+    .side-label { font-size: 11.5px; font-weight: 600; letter-spacing: .14em; color: rgba(184,187,230,.75); padding: 0 22px; margin-bottom: clamp(2px, .6vh, 6px); }
+    .side-link { position: relative; display: flex; align-items: center; gap: 13px; height: clamp(34px, 4.7vh, 44px); padding: 0 22px; font-size: 15px; font-weight: 500; color: rgba(255,255,255,.68); transition: color .15s, background .15s; }
+    .side-link svg { width: 20px; height: 20px; flex-shrink: 0; }
+    .side-link:hover { color: #fff; background: rgba(255,255,255,.06); }
+    .side-link[aria-current="page"] { color: #fff; font-weight: 600; background: rgba(255,255,255,.1); }
+    .side-link[aria-current="page"] svg { color: #F0A77C; }
+    .side-link[aria-current="page"]::before { content: ""; position: absolute; left: 0; top: 18%; bottom: 18%; width: 5px; border-radius: 0 6px 6px 0; background: #D9662E; }
+    .side-badge { margin-left: auto; border-radius: 6px; background: rgba(255,255,255,.16); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; }
+    .side-group + .side-group { margin-top: clamp(12px, 3vh, 34px); }
+    /* the help card steps aside on short screens so the menu never scrolls */
+    /* the help card lives in the phone menu only */
+    @media (min-width: 1024px) { .side-help { display: none !important; } }
+    .side-help.is-compact .help-extra { display: none; }
+    .side-help.is-compact { padding: 12px 14px; }
+    .side-help.is-compact .help-title { margin-top: 0; }
+
+    /* stat cards */
+    .stat { position: relative; display: block; border-radius: 20px; background: #fff; padding: 18px 20px; transition: transform .2s, box-shadow .2s; }
+    .stat:hover { transform: translateY(-2px); box-shadow: 0 18px 34px -26px rgba(51,57,127,.55); }
+    .stat-go { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 999px; border: 1.5px solid #241A15; transition: background .2s, color .2s; }
+    .stat:hover .stat-go { background: #241A15; color: #fff; }
+    .stat--hero { background: linear-gradient(140deg, #3A41935e 0%, transparent 60%), linear-gradient(160deg, #33397F, #22265A); color: #fff; }
+    .stat--hero .stat-go { border: 0; background: #fff; color: #33397F; }
+    .trend { display: inline-flex; align-items: center; gap: 3px; border: 1px solid currentColor; border-radius: 6px; padding: 0 5px; font-size: 11px; font-weight: 700; line-height: 17px; }
+
+    .chip-status { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; border-radius: 6px; padding: 2px 8px; font-size: 11.5px; font-weight: 600; }
+    .stripes { background: repeating-linear-gradient(135deg, #A5A8CF 0 3px, transparent 3px 9px); box-shadow: inset 0 0 0 1px #DADCEE; }
+    .day-bar { transition: height .9s cubic-bezier(.22,1,.36,1); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 999px; font-weight: 600; transition: background .15s, color .15s, border-color .15s; }
+    .rings { background: repeating-radial-gradient(circle at 115% 120%, transparent 0 16px, rgba(240,167,124,.16) 16px 17px); }
+
+    @media (max-width: 639px) {
+      .stat { padding: 14px 15px; }
+      .stat > span:first-child > span:first-child { font-size: 14px; }
+      .stat-go { width: 30px; height: 30px; }
+    }
+    @media (max-width: 1023px) {
+      #sidebar { transform: translateX(-110%); transition: transform .25s ease; }
+      #sidebar.is-open { transform: none; }
+    }
+    /* ---------- motion ---------- */
+    .js-anim .anim { opacity: 0; transform: translateY(18px) scale(.985); }
+    .js-anim .anim.in { animation: rise .75s cubic-bezier(.22,1,.36,1) var(--d, 0ms) both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(18px) scale(.985); } to { opacity: 1; transform: none; } }
+    /* bars grow from the floor, the busiest day bounces, its label pops */
+    .day-bar { clip-path: inset(100% 0 0 0); transition: clip-path 1s cubic-bezier(.22,1,.36,1) var(--d, 0ms); }
+    .week-in .day-bar { clip-path: inset(-40px 0 0 0); }
+    .day-tip { opacity: 0; transform: translate(-50%, 6px) scale(.8); transition: opacity .35s ease 1.2s, transform .45s cubic-bezier(.34,1.56,.64,1) 1.2s; }
+    .week-in .day-tip { opacity: 1; transform: translate(-50%, 0) scale(1); }
+    .stripes { background-size: 12.7px 12.7px; }
+    .week-in .stripes { animation: drift 1.6s linear infinite; }
+    @keyframes drift { to { background-position: 12.7px 0; } }
+    /* the active menu bar and notification dot */
+    .ping::after { content: ""; position: absolute; inset: -3px; border-radius: 999px; background: #D9662E; animation: ping 2.2s cubic-bezier(0,0,.2,1) infinite; }
+    @keyframes ping { 0% { transform: scale(.6); opacity: .7; } 70%, 100% { transform: scale(2.4); opacity: 0; } }
+    /* dark cards: slow ripple of rings */
+    .rings { background-size: 100% 100%; animation: ripple 9s ease-in-out infinite alternate; }
+    @keyframes ripple { from { background-position: 0 0; } to { background-position: -26px -18px; } }
+    /* hero stat: a light sweep once it lands */
+    .stat--hero { overflow: hidden; }
+    .stat--hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.18) 50%, transparent 65%); transform: translateX(-120%); pointer-events: none; }
+    .stat--hero.in::after { animation: sweep 1.4s ease .9s; }
+    @keyframes sweep { to { transform: translateX(120%); } }
+    .stat-go svg { transition: transform .3s cubic-bezier(.34,1.56,.64,1); }
+    .stat:hover .stat-go svg { transform: rotate(45deg); }
+    /* main call to action breathes every few seconds */
+    .nudge { position: relative; }
+    .nudge::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: 0 0 0 0 rgba(51,57,127,.45); animation: nudge 3.2s ease-out 2s infinite; }
+    @keyframes nudge { 0% { box-shadow: 0 0 0 0 rgba(51,57,127,.45); } 45%, 100% { box-shadow: 0 0 0 12px rgba(51,57,127,0); } }
+    /* list rows lift on hover; icons tilt */
+    .row-hover { transition: background .2s, transform .25s cubic-bezier(.22,1,.36,1); }
+    .row-hover:hover { transform: translateX(4px); }
+    .row-hover:hover > span:first-child { transform: rotate(-8deg) scale(1.06); }
+    .row-hover > span:first-child { transition: transform .3s cubic-bezier(.34,1.56,.64,1); }
+    .panel-lift { transition: box-shadow .3s, transform .3s cubic-bezier(.22,1,.36,1); }
+    @media (hover: hover) { .panel-lift:hover { transform: translateY(-3px); box-shadow: 0 22px 40px -30px rgba(36,26,21,.45); } }
+    #gaugeSvg path + path { transition: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .js-anim .anim { opacity: 1 !important; transform: none !important; animation: none !important; }
+      .day-bar { clip-path: none !important; }
+      .day-bar, .stat, .row-hover, .panel-lift, .day-tip { transition: none !important; }
+      .rings, .ping::after, .nudge::after, .stat--hero::after, .stripes { animation: none !important; }
+      .day-tip { opacity: 1; transform: translate(-50%, 0); }
+    }
+    /* ---------- submit a task ---------- */
+    .step-item { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; font-size: 12.5px; color: #736C66; }
+    .step-item:not(:last-child)::after { content: ""; position: absolute; top: 15px; left: calc(50% + 22px); right: calc(-50% + 22px); height: 2px; border-radius: 2px; background: #ECE5DA; }
+    .step-item.is-done:not(:last-child)::after { background: #33397F; }
+    .step-dot { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 999px; border: 1.5px solid #D9D2C6; background: #fff; font-weight: 600; font-size: 13px; transition: background .25s, border-color .25s, color .25s; }
+    .step-item.is-current { color: #241A15; font-weight: 600; }
+    .step-item.is-current .step-dot { border-color: #33397F; background: #33397F; color: #fff; box-shadow: 0 0 0 5px #ECEDF8; }
+    .step-item.is-done .step-dot { border-color: #33397F; background: #33397F; color: transparent; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E"); background-size: 15px; background-repeat: no-repeat; background-position: center; }
+    .step-item.is-done { color: #33397F; }
+
+    .cat { position: relative; display: block; cursor: pointer; border-radius: 18px; border: 1.5px solid #ECE5DA; background: #fff; padding: 16px; transition: border-color .2s, box-shadow .2s, transform .2s; }
+    .cat:hover { border-color: #B8BBE6; transform: translateY(-1px); }
+    .cat:has(input:checked) { border-color: #33397F; box-shadow: 0 0 0 3px #ECEDF8; }
+    .cat.is-soon { cursor: not-allowed; background: #FBF9F5; }
+    .cat.is-soon:hover { border-color: #ECE5DA; transform: none; }
+    .cat.is-soon > :not(.chip-status) { opacity: .55; }
+    .cat:has(input:focus-visible) { outline: 2px solid #33397F; outline-offset: 2px; }
+    .cat-check { position: absolute; right: 14px; top: 14px; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 999px; border: 1.5px solid #D9D2C6; color: transparent; transition: all .2s; }
+    .cat:has(input:checked) .cat-check { border-color: #33397F; background: #33397F; color: #fff; }
+
+    .lbl { display: block; font-size: 13.5px; font-weight: 600; }
+    .field { display: block; width: 100%; border-radius: 12px; border: 1.5px solid #ECE5DA; background: #fff; padding: 11px 14px; font-size: 14.5px; color: #241A15; transition: border-color .15s, box-shadow .15s; }
+    .field::placeholder { color: #8A817A; }
+    .field:focus { outline: none; border-color: #33397F; box-shadow: 0 0 0 3px #ECEDF8; }
+    .field:disabled { background: #FBF9F5; color: #736C66; cursor: not-allowed; }
+    .field[aria-invalid="true"] { border-color: #C2410C; }
+    .err { font-size: 12.5px; font-weight: 500; color: #B42318; }
+    .choice { display: block; cursor: pointer; }
+    .choice span { display: block; border-radius: 12px; border: 1.5px solid #ECE5DA; background: #fff; padding: 10px; text-align: center; font-size: 14px; font-weight: 500; transition: all .15s; }
+    .choice input:checked + span { border-color: #33397F; background: #ECEDF8; color: #33397F; font-weight: 600; }
+    .choice input:focus-visible + span { outline: 2px solid #33397F; outline-offset: 2px; }
+    @media (max-width: 639px) {
+      .cat { display: grid; grid-template-columns: 40px 1fr; column-gap: 12px; padding: 12px 40px 12px 12px; }
+      .cat > :nth-child(3) { grid-row: 1 / 3; }
+      .cat > :nth-child(4) { margin-top: 0; }
+      .cat > :nth-child(5) { margin-top: 2px; }
+      .cat > :nth-child(6) { display: none; }
+      .cat-check { top: 50%; transform: translateY(-50%); }
+    }
+    #drop.is-over { border-color: #33397F; background: #ECEDF8; }
+
+    .btn-next, .btn-ghost, .btn-outline { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 999px; font-size: 14px; font-weight: 600; transition: background .15s, color .15s, border-color .15s; }
+    .btn-next { background: #33397F; color: #fff; padding: 12px 22px; }
+    .btn-next:hover { background: #282D68; }
+    .btn-ghost { padding: 12px 16px; color: #736C66; }
+    .btn-ghost:hover { background: #F5F0E8; color: #241A15; }
+    .btn-outline { border: 1.5px solid #33397F; color: #33397F; padding: 10.5px 20px; }
+    .btn-outline:hover { background: #33397F; color: #fff; }
+    .btn-next:focus-visible, .btn-ghost:focus-visible, .btn-outline:focus-visible { outline: 2px solid #33397F; outline-offset: 2px; }
+    .rv-k { font-size: 12px; color: #736C66; }
+    .rv-v { margin-top: 2px; font-weight: 600; }
+    .step-title:focus { outline: none; }
+
+    .js-steps .step:not([hidden]) { animation: stepIn .45s cubic-bezier(.22,1,.36,1); }
+    @keyframes stepIn { from { opacity: 0; transform: translateY(10px); } }
+    .done-burst::before { content: ""; position: absolute; inset: 0; border-radius: 999px; box-shadow: 0 0 0 0 rgba(30,119,97,.35); animation: burst 1.4s ease-out .2s 2; }
+    @keyframes burst { to { box-shadow: 0 0 0 22px rgba(30,119,97,0); } }
+    .step:not([hidden]) .done-burst { animation: pop .6s cubic-bezier(.34,1.56,.64,1); }
+    @keyframes pop { from { transform: scale(.4); opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { .js-steps .step, .done-burst, .done-burst::before { animation: none !important; } .cat, .step-dot { transition: none; } }
+  </style>
+  <!-- Built from build/ (npm run build). Loaded last so utilities win, as with the Tailwind CDN. -->
+  <link rel="stylesheet" href="app.css" />
+  <script>
+    // Paint the saved profile photo before the first frame, so avatars don't flash initials first.
+    try {
+      var bandaSaved = JSON.parse(localStorage.getItem('banda.tasks.v1') || '{}'), bandaMe = bandaSaved.prefs && bandaSaved.prefs.profile;
+      if (bandaMe && /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(bandaMe.photo || '')) {
+        var bandaStyle = document.createElement('style'); bandaStyle.id = 'bandaEarlyPhoto';
+        bandaStyle.textContent = '[data-initials],#pfInitials,#phPreview{background-image:url("' + bandaMe.photo + '");background-size:cover;background-position:center;color:transparent}';
+        document.head.appendChild(bandaStyle);
+      }
+    } catch { /* storage blocked: initials show instead */ }
+  </script>
+</head>
+
+<body class="font-sans text-ink antialiased">
+  <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-md focus:bg-white focus:px-4 focus:py-2">Skip to content</a>
+  <div id="scrim" class="fixed inset-0 z-40 bg-cocoa-deep/50 lg:hidden" hidden></div>
+
+  <!-- ===================== SIDEBAR ===================== -->
+  <aside id="sidebar" class="panel fixed left-3 z-50 flex w-[256px] flex-col overflow-hidden pb-4" style="padding-top:clamp(18px,3.4vh,30px)" aria-label="Main menu">
+    <div class="flex items-center justify-between px-[22px]">
+      <a href="index.html" class="logo logo--light ring-focus rounded" style="font-size:34px" aria-label="banda, B and A Essentials, home">
+        <span class="logo-word" aria-hidden="true"><span class="logo-b">b<i class="logo-dot"></i></span>anda</span>
+        <span class="logo-tag" aria-hidden="true" style="--logo-tag:#F0A77C">B<span class="amp" style="color:#F0A77C">&amp;</span>A ESSENTIALS</span>
+      </a>
+      <button type="button" id="closeMenu" class="grid h-9 w-9 place-items-center rounded-lg text-white/80 hover:bg-white/10 lg:hidden" aria-label="Close menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-x h-5 w-5"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button>
+    </div>
+
+    <nav class="no-scrollbar min-h-0 flex-1 overflow-y-auto" style="margin-top:clamp(16px,4vh,40px)" aria-label="Client">
+      <div class="side-group">
+        <p class="side-label">MENU</p>
+        <ul>
+          <li><a href="dashboard.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-house"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Dashboard</a></li>
+          <li><a href="submit-task.html" class="side-link" aria-current="page"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-plus"><circle cx="12" cy="12" r="10"></circle><path d="M8 12h8"></path><path d="M12 8v8"></path></svg>Submit a Task</a></li>
+          <li><a href="my-tasks.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-square-check"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="m16 9-5.5 5.5L8 12"></path></svg>My Tasks<span class="side-badge">5</span></a></li>
+          <li><a href="catalogue.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-layout-grid"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>Service Catalogue</a></li>
+          <li><a href="deliverables.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-folder"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path></svg>Deliverables</a></li>
+          <li><a href="messages.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-message-square"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"></path></svg>Messages<span class="side-badge bg-brand-orange" data-count="msgs">3</span></a></li>
+        </ul>
+      </div>
+      <div class="side-group">
+        <p class="side-label">ACCOUNT</p>
+        <ul>
+          <li><a href="plan.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-gauge"><path d="m12 14 4-4"></path><path d="M3.34 19a10 10 0 1 1 17.32 0"></path></svg>Plan &amp; Usage</a></li>
+          <li><a href="billing.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-receipt-text"><path d="M13 16H8"></path><path d="M14 8H8"></path><path d="M16 12H8"></path><path d="M4 3a1 1 0 0 1 1-1 1.3 1.3 0 0 1 .7.2l.933.6a1.3 1.3 0 0 0 1.4 0l.934-.6a1.3 1.3 0 0 1 1.4 0l.933.6a1.3 1.3 0 0 0 1.4 0l.933-.6a1.3 1.3 0 0 1 1.4 0l.934.6a1.3 1.3 0 0 0 1.4 0l.933-.6A1.3 1.3 0 0 1 19 2a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1 1.3 1.3 0 0 1-.7-.2l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.934.6a1.3 1.3 0 0 1-1.4 0l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-1.4 0l-.934-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-.7.2 1 1 0 0 1-1-1z"></path></svg>Billing</a></li>
+          <li><a href="help.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-life-buoy"><circle cx="12" cy="12" r="10"></circle><path d="m4.93 4.93 4.24 4.24"></path><path d="m14.83 9.17 4.24-4.24"></path><path d="m14.83 14.83 4.24 4.24"></path><path d="m9.17 14.83-4.24 4.24"></path><circle cx="12" cy="12" r="4"></circle></svg>Help</a></li>
+          <li><a href="index.html" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-log-out"><path d="m16 17 5-5-5-5"></path><path d="M21 12H9"></path><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg>Log out</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="side-help relative mx-3 mt-4 shrink-0 overflow-hidden rounded-[18px] border border-white/15 bg-white/[.07] p-4 text-white">
+      <span aria-hidden="true" class="rings pointer-events-none absolute inset-0"></span>
+      <span class="help-extra relative grid h-8 w-8 place-items-center rounded-full bg-white text-brand-navy"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-headset h-4 w-4"><path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 1 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3Z"></path><path d="M21 16v2a4 4 0 0 1-4 4h-5"></path></svg></span>
+      <p class="help-title relative mt-3 font-display text-[16px] font-semibold leading-snug">Need a hand?</p>
+      <p class="help-extra relative mt-0.5 text-[12.5px] leading-snug text-white/75">Message the team about a request or a payment.</p>
+      <a href="contact.html" class="btn relative mt-3 w-full bg-brand-cta py-2 text-[13px] hover:bg-brand-ctaDark">Contact support</a>
+    </div>
+  </aside>
+
+  <div class="min-h-screen p-3 lg:pl-[280px]">
+    <!-- ===================== TOP BAR ===================== -->
+    <header class="panel flex h-[68px] items-center gap-3 px-3 sm:px-4">
+      <button type="button" id="openMenu" class="grid h-10 w-10 shrink-0 place-items-center rounded-full text-ink hover:bg-cream lg:hidden" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-menu h-5 w-5"><path d="M4 5h16"></path><path d="M4 12h16"></path><path d="M4 19h16"></path></svg></button>
+      <form class="relative min-w-0 flex-1 md:max-w-[400px]" role="search" onsubmit="return false">
+        <label for="q" class="sr-only">Search</label>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-search pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-ink-muted"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></svg>
+        <input id="q" type="search" placeholder="Search requests or services" class="w-full rounded-full bg-cream-light py-2.5 pl-11 pr-14 text-[14px] ring-1 ring-cream-line placeholder:text-ink-soft focus:outline-none focus:ring-2 focus:ring-brand-navy/40" />
+        <kbd class="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-md bg-cream px-1.5 py-0.5 font-sans text-[11px] font-semibold text-ink-muted sm:block">Ctrl K</kbd>
+      </form>
+      <div class="ml-auto flex items-center gap-2">
+        <a href="messages.html" class="hidden h-10 w-10 place-items-center rounded-full bg-cream-light text-ink ring-1 ring-cream-line hover:bg-cream sm:grid" data-count-label="msgs" aria-label="Messages, 3 unread"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-mail h-[18px] w-[18px]"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"></path><rect x="2" y="4" width="20" height="16" rx="2"></rect></svg></a>
+        <a href="messages.html#notifications" class="relative grid h-10 w-10 place-items-center rounded-full bg-cream-light text-ink ring-1 ring-cream-line hover:bg-cream" data-count-label="notes" aria-label="Notifications, 3 unread"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-bell h-[18px] w-[18px]"><path d="M10.268 21a2 2 0 0 0 3.464 0"></path><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"></path></svg><span data-dot="notes" class="ping absolute right-2 top-2 h-2 w-2 rounded-full bg-brand-orange ring-2 ring-white"></span></a>
+        <div class="relative ml-1">
+          <button type="button" id="userBtn" class="flex items-center gap-2.5 rounded-full py-1 pl-1 pr-1 hover:bg-cream sm:pr-3" aria-haspopup="menu" aria-expanded="false" aria-controls="userMenu">
+            <span class="grid h-10 w-10 place-items-center rounded-full bg-brand-cta text-[13.5px] font-bold text-white" data-initials>CE</span>
+            <span class="hidden text-left md:block"><span class="block max-w-[180px] truncate text-[14px] font-semibold leading-tight" data-fullname>Chinedu Egbuchulam</span><span class="block text-[12px] text-ink-muted">Business owner</span></span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-chevron-down hidden h-4 w-4 text-ink-muted md:block"><path d="m6 9 6 6 6-6"></path></svg>
+          </button>
+          <div id="userMenu" role="menu" hidden class="absolute right-0 z-30 mt-2 w-52 overflow-hidden rounded-xl border border-cream-line bg-white py-1.5 text-[14px] shadow-[0_20px_40px_-20px_rgba(28,23,18,.35)]">
+            <a href="profile.html" role="menuitem" class="flex items-center gap-2.5 px-4 py-2.5 hover:bg-cream"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-user h-4 w-4 text-ink-muted"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Profile &amp; security</a>
+            <a href="index.html" role="menuitem" class="flex items-center gap-2.5 border-t border-cream-line px-4 py-2.5 hover:bg-cream"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-log-out h-4 w-4 text-ink-muted"><path d="m16 17 5-5-5-5"></path><path d="M21 12H9"></path><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg>Log out</a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main id="main" class="mt-3 rounded-[22px] bg-cream-light p-4 sm:p-6">
+      <!-- page header -->
+      <section class="panel flex items-center gap-4 px-5 py-4 sm:px-6">
+        <span class="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-brand-navy text-white"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-send h-5 w-5"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"></path><path d="m21.854 2.147-10.94 10.939"></path></svg></span>
+        <div class="min-w-0 flex-1">
+          <h1 class="font-display text-[22px] font-semibold leading-tight tracking-[-0.01em] sm:text-[24px]">Submit a Task</h1>
+          <p class="mt-0.5 text-[14px] text-ink-muted">Tell us what you need and we&rsquo;ll match you with the right specialist.</p>
+        </div>
+        <div class="hidden items-center gap-3 rounded-2xl bg-pill-navyBg px-4 py-2.5 md:flex">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-shield-check h-5 w-5 shrink-0 text-brand-navy"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path><path d="m9 12 2 2 4-4"></path></svg>
+          <p class="text-[12.5px] leading-snug"><span class="block font-semibold text-brand-navy">Trusted. Professional. Secure.</span><span class="text-ink-muted">Your details are kept private.</span></p>
+        </div>
+      </section>
+
+      <div class="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_300px] 2xl:grid-cols-[minmax(0,1fr)_340px]">
+        <!-- ================= FORM ================= -->
+        <section class="panel min-w-0 p-5 sm:p-7" aria-label="Task form">
+          <!-- stepper -->
+          <ol id="stepper" class="grid grid-cols-4 gap-2" aria-label="Progress">
+            <li data-step-item="1" class="step-item"><span class="step-dot">1</span><span class="step-name">Service <span class="max-sm:hidden">&amp; details</span></span></li>
+            <li data-step-item="2" class="step-item"><span class="step-dot">2</span><span class="step-name">Details<span class="max-sm:hidden"> &amp; files</span></span></li>
+            <li data-step-item="3" class="step-item"><span class="step-dot">3</span><span class="step-name">Review</span></li>
+            <li data-step-item="4" class="step-item"><span class="step-dot">4</span><span class="step-name">Done</span></li>
+          </ol>
+          <p id="stepStatus" class="sr-only" aria-live="polite"></p>
+
+          <!-- STEP 1 -->
+          <form class="step mt-7" data-step="1" novalidate>
+            <h2 class="step-title font-display text-[19px] font-semibold" tabindex="-1">1. Choose a service category</h2>
+            <p class="mt-1 text-[13.5px] text-ink-muted">Pick the kind of help you need. One category per request.</p>
+            <fieldset class="mt-4">
+              <legend class="sr-only">Service category</legend>
+              <div id="cats" class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3"></div>
+            </fieldset>
+            <button type="button" id="notSure" class="mt-3 inline-flex items-start gap-1.5 text-left text-[13px] font-semibold text-brand-navy hover:underline"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-help mt-px h-4 w-4 shrink-0"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><path d="M12 17h.01"></path></svg>Not sure which to pick? Describe it and we&rsquo;ll scope it.</button>
+            <p id="catErr" class="err mt-2" hidden>Choose a service category to continue.</p>
+
+            <h2 class="mt-7 font-display text-[19px] font-semibold"><label for="service">2. Choose the specific service</label></h2>
+            <p class="mt-1 text-[13.5px] text-ink-muted">The exact task you need from this category.</p>
+            <div class="relative mt-3">
+              <select id="service" class="field appearance-none pr-10" disabled aria-describedby="serviceErr">
+                <option value="">Choose a category first</option>
+              </select>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-chevron-down pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted"><path d="m6 9 6 6 6-6"></path></svg>
+            </div>
+            <p id="serviceErr" class="err mt-2" hidden>Choose the service you need.</p>
+
+            <div class="mt-8 flex items-center justify-between gap-3">
+              <a href="dashboard.html" class="btn-ghost">Cancel</a>
+              <button type="submit" class="btn-next">Next: add details <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></button>
+            </div>
+          </form>
+
+          <!-- STEP 2 -->
+          <form class="step mt-7" data-step="2" novalidate hidden>
+            <h2 class="step-title font-display text-[19px] font-semibold" tabindex="-1">2. Tell us the details</h2>
+            <p class="mt-1 text-[13.5px] text-ink-muted">The more you share, the faster we can start.</p>
+
+            <div class="mt-5 grid gap-5 sm:grid-cols-2">
+              <div>
+                <label for="purpose" class="lbl">What do you need us to do? <span class="text-brand-orange" aria-hidden="true">*</span></label>
+                <div class="relative mt-1.5">
+                  <select id="purpose" class="field appearance-none pr-10" required aria-describedby="purposeErr">
+                    <option value="">Choose one</option>
+                    <option>Create something new</option>
+                    <option>Review or edit something I have</option>
+                    <option>Fix a problem</option>
+                    <option>Set up something that repeats</option>
+                    <option>Get advice or guidance</option>
+                    <option>Something else</option>
+                  </select>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-chevron-down pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted"><path d="m6 9 6 6 6-6"></path></svg>
+                </div>
+                <p id="purposeErr" class="err mt-1.5" hidden>Choose what you need us to do.</p>
+              </div>
+              <div>
+                <label for="audience" class="lbl">Who is it for? <span class="font-normal text-ink-soft">(optional)</span></label>
+                <input id="audience" class="field mt-1.5" maxlength="120" placeholder="e.g. a client, our team, a bank" autocomplete="off" />
+              </div>
+            </div>
+
+            <div class="mt-5">
+              <div class="flex items-baseline justify-between gap-3">
+                <label for="details" class="lbl">Describe the task <span class="text-brand-orange" aria-hidden="true">*</span></label>
+                <span id="count" class="text-[12px] text-ink-soft" aria-live="off">0 / 2000</span>
+              </div>
+              <textarea id="details" rows="5" maxlength="2000" class="field mt-1.5 resize-y leading-relaxed" required aria-describedby="detailsHint detailsErr" placeholder="What should we do, what does good look like, and anything we should know (names, amounts, links, references)."></textarea>
+              <p id="detailsHint" class="mt-1.5 text-[12px] text-ink-soft">At least 20 characters. Don&rsquo;t include card numbers or passwords.</p>
+              <p id="detailsErr" class="err mt-1" hidden>Describe the task in at least 20 characters.</p>
+            </div>
+
+            <div class="mt-5 grid gap-5 sm:grid-cols-2">
+              <fieldset>
+                <legend class="lbl">Priority</legend>
+                <div class="mt-1.5 grid grid-cols-2 gap-2">
+                  <label class="choice"><input type="radio" name="priority" value="Standard" class="sr-only" checked /><span>Standard</span></label>
+                  <label class="choice"><input type="radio" name="priority" value="Urgent" class="sr-only" /><span>Urgent</span></label>
+                </div>
+                <p id="urgentNote" class="mt-1.5 text-[12px] text-brand-orangeDark" hidden>We&rsquo;ll confirm whether we can meet an urgent timeline before starting.</p>
+              </fieldset>
+              <div>
+                <label for="deadline" class="lbl">Deadline <span class="font-normal text-ink-soft">(optional)</span></label>
+                <input id="deadline" type="date" class="field mt-1.5" aria-describedby="deadlineErr" />
+                <p id="deadlineErr" class="err mt-1.5" hidden>Choose a date after today.</p>
+              </div>
+            </div>
+
+            <fieldset id="callBlock" class="mt-5 rounded-2xl border border-cream-line p-4" hidden>
+              <legend class="px-1 text-[13.5px] font-semibold">Phoning someone for you</legend>
+              <p class="text-[13px] text-ink-muted">This service involves us phoning a third party. We only call when you authorise it here, for this task.</p>
+              <label for="callWho" class="lbl mt-3">Who should we call? <span class="text-brand-orange" aria-hidden="true">*</span></label>
+              <input id="callWho" class="field mt-1.5" maxlength="120" placeholder="Name and organisation, e.g. Musa Ali, Lagos Prints Ltd" aria-describedby="callErr" autocomplete="off" />
+              <label class="mt-3 flex items-start gap-2.5 text-[13.5px]"><input type="checkbox" id="callAuth" class="mt-0.5 h-[18px] w-[18px] shrink-0 accent-[#33397F]" aria-describedby="callErr" /><span>I authorise B &amp; A Essentials to phone <span id="callName" class="font-semibold">this person or organisation</span> for this task.</span></label>
+              <label class="mt-2 flex items-start gap-2.5 text-[13.5px]"><input type="checkbox" id="callOk" class="mt-0.5 h-[18px] w-[18px] shrink-0 accent-[#33397F]" aria-describedby="callErr" /><span>I confirm this communication does not require my personal, legal or in-person action, and that I am legally permitted to delegate it to a third party.</span></label>
+              <p id="callErr" class="err mt-2" hidden>Add who we should call and tick both boxes, or choose a different service.</p>
+            </fieldset>
+
+            <div class="mt-5">
+              <!-- Shown before any upload (Privacy Notice, section 2) -->
+              <div class="mb-3 rounded-2xl bg-pill-navyBg px-4 py-3 text-[13px] leading-relaxed text-ink">
+                <p class="font-semibold text-brand-navy">Before you upload</p>
+                <p class="mt-1">Please send only what this task needs. If a document contains details about other people, such as staff, customers or counterparties, you confirm that you are allowed to share it with us. Remove anything we do not need.</p>
+                <p class="mt-1">Only the staff assigned to your task, and the qualified reviewer where the task needs one, can see it. Files are stored privately, scanned for safety and logged. We do not send your documents to anyone outside B &amp; A Essentials unless you ask us to or the law requires.</p>
+                <p id="idDocsNote" class="mt-1 font-medium" hidden>This task needs identity and registration details, for example director ID and address details. We use them only to prepare and submit your filing, and only our accredited filing agent and legal reviewer will see them.</p>
+                <a href="privacy.html#4-who-sees-your-data-and-where-it-goes" class="mt-1 inline-block font-semibold text-brand-navy underline">Read how we handle your documents</a>
+              </div>
+              <p class="lbl" id="filesLabel">Attachments <span class="font-normal text-ink-soft">(optional)</span></p>
+              <label id="drop" for="files" class="mt-1.5 flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-2xl border-[1.5px] border-dashed border-[#D9D2C6] bg-cream-light px-4 py-6 text-center transition hover:border-brand-navy/50 focus-within:border-brand-navy">
+                <span class="grid h-10 w-10 place-items-center rounded-full bg-pill-navyBg text-brand-navy"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-cloud-upload h-5 w-5"><path d="M12 13v8"></path><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="m8 17 4-4 4 4"></path></svg></span>
+                <span class="text-[14px]">Drag files here, or <span class="font-semibold text-brand-navy underline underline-offset-2">browse</span></span>
+                <span class="text-[12px] text-ink-soft">PDF, Word, Excel, JPG or PNG · up to 20 MB each · 5 files max</span>
+                <input id="files" type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" class="sr-only" aria-labelledby="filesLabel" aria-describedby="fileErr" />
+              </label>
+              <p id="fileErr" class="err mt-1.5" hidden></p>
+              <ul id="fileList" class="mt-2 space-y-1.5"></ul>
+            </div>
+
+            <div class="mt-8 flex items-center justify-between gap-3">
+              <button type="button" data-back class="btn-ghost"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-left h-4 w-4"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>Back</button>
+              <button type="submit" class="btn-next">Next: review <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></button>
+            </div>
+          </form>
+
+          <!-- STEP 3 -->
+          <form class="step mt-7" data-step="3" novalidate hidden>
+            <h2 class="step-title font-display text-[19px] font-semibold" tabindex="-1">3. Review and submit</h2>
+            <p class="mt-1 text-[13.5px] text-ink-muted">Check everything looks right. You can go back and change anything.</p>
+
+            <div class="mt-5 rounded-2xl border border-cream-line">
+              <div class="flex items-center justify-between border-b border-cream-line px-5 py-3">
+                <h3 class="text-[14.5px] font-semibold">Service</h3>
+                <button type="button" data-edit="1" class="inline-flex items-center gap-1 text-[13px] font-semibold text-brand-navy hover:underline"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-pencil h-3.5 w-3.5"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path><path d="m15 5 4 4"></path></svg>Edit<span class="sr-only"> service</span></button>
+              </div>
+              <dl class="grid gap-4 px-5 py-4 text-[14px] sm:grid-cols-2">
+                <div><dt class="rv-k">Category</dt><dd id="rvCat" class="rv-v"></dd></div>
+                <div><dt class="rv-k">Service</dt><dd id="rvService" class="rv-v"></dd></div>
+              </dl>
+              <div class="flex items-center justify-between border-y border-cream-line px-5 py-3">
+                <h3 class="text-[14.5px] font-semibold">Details</h3>
+                <button type="button" data-edit="2" class="inline-flex items-center gap-1 text-[13px] font-semibold text-brand-navy hover:underline"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-pencil h-3.5 w-3.5"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path><path d="m15 5 4 4"></path></svg>Edit<span class="sr-only"> details</span></button>
+              </div>
+              <dl class="grid gap-4 px-5 py-4 text-[14px] sm:grid-cols-2">
+                <div><dt class="rv-k">What you need</dt><dd id="rvPurpose" class="rv-v"></dd></div>
+                <div><dt class="rv-k">Priority</dt><dd class="rv-v"><span id="rvPriority" class="chip-status"></span></dd></div>
+                <div><dt class="rv-k">Who it&rsquo;s for</dt><dd id="rvAudience" class="rv-v"></dd></div>
+                <div><dt class="rv-k">Deadline</dt><dd id="rvDeadline" class="rv-v"></dd></div>
+                <div class="sm:col-span-2"><dt class="rv-k">Description</dt><dd id="rvDetails" class="rv-v whitespace-pre-line break-words font-normal leading-relaxed"></dd></div>
+                <div class="sm:col-span-2"><dt class="rv-k">Attachments</dt><dd id="rvFiles" class="rv-v"></dd></div>
+                <div class="sm:col-span-2" id="rvCallWrap" hidden><dt class="rv-k">Phone call you authorised</dt><dd id="rvCall" class="rv-v"></dd></div>
+              </dl>
+            </div>
+
+            <p id="rvQuote" class="mt-5 rounded-xl bg-pill-navyBg px-4 py-2.5 text-[13px] font-medium text-brand-navy" hidden>Your plan&rsquo;s legal reviews for this month are used, so this one will be quoted before any work starts. Nothing is charged unless you accept the quote.</p>
+            <label class="mt-5 flex cursor-pointer items-start gap-3 rounded-2xl bg-pill-navyBg px-4 py-3.5 text-[13.5px] leading-relaxed">
+              <input id="confirm" type="checkbox" class="mt-0.5 h-[18px] w-[18px] shrink-0 accent-[#33397F]" aria-describedby="confirmErr" />
+              <span>I confirm the information is accurate, and I agree to B &amp; A Essentials&rsquo; <a href="terms.html" target="_blank" rel="noopener" class="font-semibold text-brand-navy underline underline-offset-2">Terms of Service</a>.</span>
+            </label>
+            <p id="confirmErr" class="err mt-1.5" hidden>Tick the box to confirm before you submit.</p>
+
+            <div class="mt-8 flex items-center justify-between gap-3">
+              <button type="button" data-back class="btn-ghost"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-left h-4 w-4"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>Back</button>
+              <button type="submit" id="submitBtn" class="btn-next disabled:cursor-wait disabled:opacity-70">Submit request <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-send h-4 w-4"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"></path><path d="m21.854 2.147-10.94 10.939"></path></svg></button>
+            </div>
+          </form>
+
+          <!-- STEP 4: confirmation -->
+          <section class="step mt-7" data-step="4" hidden aria-labelledby="doneTitle">
+            <div class="rounded-2xl border border-cream-line px-5 py-8 text-center sm:px-8">
+              <span class="done-burst relative mx-auto grid h-16 w-16 place-items-center rounded-full bg-pill-greenBg text-pill-greenTx"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-check h-8 w-8"><path d="M20 6 9 17l-5-5"></path></svg></span>
+              <h2 id="doneTitle" class="step-title mt-4 font-display text-[24px] font-semibold" tabindex="-1">Request submitted</h2>
+              <p class="mt-1 text-[14px] text-ink-muted">Your task is with our team. We&rsquo;ll keep you updated as it moves.</p>
+              <p id="doneQuote" class="mx-auto mt-3 max-w-[520px] rounded-xl bg-pill-navyBg px-4 py-2.5 text-[13px] font-medium text-brand-navy" hidden>Your plan&rsquo;s legal reviews for this month are used, so we&rsquo;ll send a quote before any work starts. Nothing is charged unless you accept it.</p>
+              <p id="doneUrgent" class="mx-auto mt-3 max-w-[520px] rounded-xl bg-pill-orangeBg px-4 py-2.5 text-[13px] font-medium text-brand-orangeDark" hidden>Marked urgent. We&rsquo;ll confirm whether we can meet your timeline before we start.</p>
+
+              <div class="mx-auto mt-6 grid max-w-[520px] gap-3 rounded-2xl bg-cream-light p-4 text-left sm:grid-cols-2">
+                <div>
+                  <p class="text-[12px] text-ink-soft">Request reference</p>
+                  <p class="mt-0.5 flex items-center gap-2 font-display text-[18px] font-semibold"><span id="ref"></span>
+                    <button type="button" id="copyRef" class="grid h-8 w-8 place-items-center rounded-lg text-brand-navy hover:bg-white" aria-label="Copy reference"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-copy h-4 w-4"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg></button></p>
+                  <p id="copied" class="text-[12px] text-pill-greenTx" role="status"></p>
+                </div>
+                <div>
+                  <p class="text-[12px] text-ink-soft">Submitted</p>
+                  <p id="submittedAt" class="mt-0.5 text-[14.5px] font-semibold"></p>
+                </div>
+              </div>
+
+              <div class="mx-auto mt-6 max-w-[520px] text-left">
+                <h3 class="text-[14.5px] font-semibold">What happens next</h3>
+                <ol class="mt-3 space-y-2.5 text-[13.5px] text-ink-muted">
+                  <li class="flex gap-3"><span class="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-brand-navy text-[12px] font-semibold text-white">1</span>We review your request and confirm the details, usually within one business day.</li>
+                  <li class="flex gap-3"><span class="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-brand-navy text-[12px] font-semibold text-white">2</span>A specialist does the work, and someone checks it before it reaches you.</li>
+                  <li class="flex gap-3"><span class="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-brand-navy text-[12px] font-semibold text-white">3</span>Follow progress and get your files in My Tasks.</li>
+                </ol>
+              </div>
+
+              <div class="mx-auto mt-7 flex max-w-[520px] flex-col gap-2.5 sm:flex-row">
+                <a href="my-tasks.html" id="viewReq" class="btn-next flex-1">View this request <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a>
+                <button type="button" id="another" class="btn-outline flex-1">Submit another task</button>
+              </div>
+              <p class="mt-4 text-[13px]"><a href="my-tasks.html" class="font-semibold text-brand-navy underline underline-offset-2 hover:no-underline">See all my tasks</a></p>
+            </div>
+          </section>
+        </section>
+
+        <!-- ================= SIDE PANEL ================= -->
+        <aside class="space-y-3 lg:sticky lg:top-3 lg:self-start" aria-label="About this service">
+          <section id="summary" class="panel p-5" aria-live="polite">
+            <h2 class="text-[14.5px] font-semibold">Selected service</h2>
+            <div id="sumEmpty" class="mt-4 flex flex-col items-center gap-2 rounded-2xl bg-cream-light px-4 py-7 text-center">
+              <span class="grid h-10 w-10 place-items-center rounded-full bg-white text-ink-soft"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-mouse-pointer-click h-5 w-5"><path d="M14 4.1 12 6"></path><path d="m5.1 8-2.9-.8"></path><path d="m6 12-1.9 2"></path><path d="M7.2 2.2 8 5.1"></path><path d="M9.037 9.69a.498.498 0 0 1 .653-.653l11 4.5a.5.5 0 0 1-.074.949l-4.349 1.041a1 1 0 0 0-.74.739l-1.04 4.35a.5.5 0 0 1-.95.074z"></path></svg></span>
+              <p class="text-[13px] text-ink-muted">Choose a category to see what&rsquo;s included.</p>
+            </div>
+            <div id="sumBody" hidden>
+              <div class="mt-3 flex items-center gap-3">
+                <span id="sumIcon" class="grid h-11 w-11 shrink-0 place-items-center rounded-xl"></span>
+                <div class="min-w-0"><p id="sumName" class="font-semibold leading-snug"></p><span id="sumAvail" class="chip-status mt-1"></span></div>
+              </div>
+              <p id="sumService" class="mt-3 rounded-xl bg-pill-navyBg px-3 py-2 text-[13px] font-medium text-brand-navy" hidden></p>
+              <h3 class="mt-5 text-[13px] font-semibold">What&rsquo;s included</h3>
+              <ul id="sumIncl" class="mt-2 space-y-1.5 text-[13px] text-ink-muted"></ul>
+              <h3 class="mt-5 text-[13px] font-semibold">Good to know</h3>
+              <ul id="sumFacts" class="mt-2 space-y-3 text-[13px]"></ul>
+              <p class="mt-5 flex gap-2.5 rounded-xl bg-pill-orangeBg px-3 py-2.5 text-[12px] leading-relaxed text-brand-orangeDark"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-info mt-0.5 h-4 w-4 shrink-0"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg><span>Delivery time depends on how complex the request is. If anything costs extra, we&rsquo;ll tell you and wait for your go-ahead before we start.</span></p>
+            </div>
+          </section>
+
+          <section id="helpPanel" class="panel p-5" hidden>
+            <h2 class="text-[14.5px] font-semibold">Need help?</h2>
+            <p class="mt-1 text-[13px] text-ink-muted">Our team can help with this request or anything else.</p>
+            <a href="contact.html?topic=tasks" class="btn-outline mt-3 w-full">Contact support</a>
+            <h3 class="mt-5 text-[13px] font-semibold">Quick links</h3>
+            <ul class="mt-2 space-y-1 text-[13.5px]">
+              <li><a href="my-tasks.html" class="flex items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-cream-light"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-square-check h-4 w-4 text-brand-navy"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="m16 9-5.5 5.5L8 12"></path></svg>My tasks</a></li>
+              <li><a href="catalogue.html" class="flex items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-cream-light"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-layout-grid h-4 w-4 text-brand-navy"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>Service catalogue</a></li>
+              <li><a href="index.html#faqs" class="flex items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-cream-light"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-help h-4 w-4 text-brand-navy"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><path d="M12 17h.01"></path></svg>FAQs</a></li>
+            </ul>
+          </section>
+        </aside>
+      </div>
+      <p class="pt-5 text-center text-[12px] text-ink-soft">Design preview: requests are not sent anywhere yet.</p>
+    </main>
+    <footer class="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 px-2 pb-1 pt-4 text-[12.5px] text-ink-muted">
+      <span>© 2026 B &amp; A Essentials</span>
+      <a href="terms.html" class="hover:text-ink hover:underline">Terms</a>
+      <a href="privacy.html" class="hover:text-ink hover:underline">Privacy</a>
+      <a href="cookies.html" class="hover:text-ink hover:underline">Cookies</a>
+      <button type="button" data-cookie-settings class="hover:text-ink hover:underline">Cookie settings</button>
+    </footer>
+  </div>
+
+  <script src="consent.js"></script>
+  <script src="tasks-data.js"></script>
+  <script src="https://unpkg.com/lucide@1.60.0/dist/umd/lucide.min.js"></script>
+  <script src="catalogue-data.js"></script>
+  <script>
+    // ---------- Service catalogue (from the Task Bank) ----------
+    const { AVAIL, CATS, CALLS, ID_DOCS } = window.CATALOGUE;
+    // The service select keeps the group in its value ("Group: Service"); these read the service name.
+    const serviceName = () => { const v = $('service').value; return v.includes(': ') ? v.slice(v.indexOf(': ') + 2) : v; };
+    const needsCall = () => CALLS.includes(serviceName());
+    const MAX_FILES = 5, MAX_MB = 20, OK_EXT = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png'];
+
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const icons = () => { if (window.lucide) lucide.createIcons(); };
+    const state = { cat: '', files: [], step: 1, submitted: false };
+
+    // ---------- category cards ----------
+    const { PLANS, planAllows, minPlanFor } = window.BANDA;
+    // Locked: coming soon, or not included in this plan (Growth/Dedicated categories).
+    const locked = key => CATS[key].avail === 'soon' || !planAllows(key);
+    $('cats').innerHTML = Object.entries(CATS).filter(([, c]) => !c.hidden).map(([key, c]) => `
+      <label class="cat${locked(key) ? ' is-soon' : ''}">
+        <input type="radio" name="cat" value="${key}" class="sr-only"${locked(key) ? ' disabled' : ''} />
+        <span class="cat-check" aria-hidden="true"><i data-lucide="check" class="h-3 w-3"></i></span>
+        <span class="grid h-10 w-10 place-items-center rounded-xl ${c.tone}"><i data-lucide="${c.icon}" class="h-5 w-5"></i></span>
+        <span class="mt-3 block text-[14.5px] font-semibold leading-snug">${esc(c.name)}</span>
+        <span class="mt-1 block text-[12.5px] leading-snug text-ink-muted">${esc(c.blurb)}</span>
+        ${planAllows(key) ? `<span class="chip-status mt-3 ${AVAIL[c.avail].chip}">${AVAIL[c.avail].label}</span>`
+          : `<span class="chip-status mt-3 bg-pill-navyBg text-brand-navy"><i data-lucide="lock" class="h-3 w-3"></i>On ${esc(PLANS[minPlanFor(key)].name)}</span>`}
+      </label>`).join('');
+    const lockedForPlan = Object.keys(CATS).filter(k => !CATS[k].hidden && CATS[k].avail !== 'soon' && !planAllows(k));
+    if (lockedForPlan.length) {
+      const next = minPlanFor(lockedForPlan[0]);
+      $('cats').insertAdjacentHTML('afterend', `<p class="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl bg-pill-navyBg px-3.5 py-2.5 text-[13px] text-brand-navy"><i data-lucide="lock" class="h-4 w-4 shrink-0"></i><span>${esc(lockedForPlan.map(k => CATS[k].name).join(', '))} ${lockedForPlan.length === 1 ? 'isn’t' : 'aren’t'} included in your ${esc(PLANS[window.BANDA.ACCOUNT.plan].name)} plan.</span><a class="font-semibold underline underline-offset-2 hover:no-underline" href="plan.html?upgrade=${next}">Upgrade to ${esc(PLANS[next].name)}</a></p>`);
+    }
+
+    function setCategory(key, keepService) {
+      if (!CATS[key] || locked(key)) return;
+      state.cat = key;
+      const c = CATS[key];
+      document.querySelectorAll('input[name="cat"]').forEach(r => r.checked = r.value === key);
+      const sel = $('service'), prev = sel.value;
+      sel.disabled = false;
+      sel.innerHTML = '<option value="">Choose a service</option>' + Object.entries(c.services).map(([group, items]) =>
+        `<optgroup label="${esc(group)}">${items.map(i => `<option value="${esc(group + ': ' + i)}">${esc(i)}</option>`).join('')}</optgroup>`).join('');
+      if (keepService && [...sel.options].some(o => o.value === prev)) sel.value = prev;
+      if (key === 'scoping') sel.selectedIndex = 1;
+      $('catErr').hidden = true;
+      renderSummary();
+    }
+    $('cats').addEventListener('change', e => { if (e.target.name === 'cat') { setCategory(e.target.value); $('service').focus({ preventScroll: true }); } });
+    $('notSure').addEventListener('click', () => { setCategory('scoping'); setErr($('service'), 'serviceErr', false); });
+    function serviceNotes() {
+      $('callBlock').hidden = !needsCall();
+      $('idDocsNote').hidden = !ID_DOCS.includes(serviceName());
+    }
+    $('service').addEventListener('change', () => { setErr($('service'), 'serviceErr', !$('service').value); renderSummary(); });
+    $('callWho').addEventListener('input', () => { $('callName').textContent = $('callWho').value.trim() || 'this person or organisation'; });
+
+    function renderSummary() {
+      serviceNotes();
+      const c = CATS[state.cat];
+      $('sumEmpty').hidden = !!c; $('sumBody').hidden = !c;
+      if (!c) return;
+      $('sumIcon').className = 'grid h-11 w-11 shrink-0 place-items-center rounded-xl ' + c.tone;
+      $('sumIcon').innerHTML = `<i data-lucide="${c.icon}" class="h-5 w-5"></i>`;
+      $('sumName').textContent = c.name;
+      $('sumAvail').className = 'chip-status mt-1 ' + AVAIL[c.avail].chip; $('sumAvail').textContent = AVAIL[c.avail].label;
+      const svc = $('service').value;
+      $('sumService').hidden = !svc; $('sumService').textContent = svc;
+      $('sumIncl').innerHTML = c.incl.map(i => `<li class="flex gap-2"><i data-lucide="check" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-pill-greenTx"></i>${esc(i)}</li>`).join('');
+      $('sumFacts').innerHTML = c.facts.map(([ic, k, v]) => `<li class="flex gap-2.5"><i data-lucide="${ic}" class="mt-0.5 h-4 w-4 shrink-0 text-brand-navy"></i><p><span class="block font-medium">${esc(k)}</span><span class="block text-ink-muted">${esc(v)}</span></p></li>`).join('');
+      icons();
+    }
+
+    // ---------- step 2 fields ----------
+    const details = $('details');
+    details.addEventListener('input', () => { $('count').textContent = details.value.length + ' / 2000'; if (details.value.trim().length >= 20) setErr(details, 'detailsErr', false); });
+    $('purpose').addEventListener('change', () => setErr($('purpose'), 'purposeErr', !$('purpose').value));
+    document.querySelectorAll('input[name="priority"]').forEach(r => r.addEventListener('change', () => $('urgentNote').hidden = priority() !== 'Urgent'));
+    const priority = () => document.querySelector('input[name="priority"]:checked').value;
+    const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+    const isoDay = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    $('deadline').min = isoDay(tomorrow);
+    $('deadline').addEventListener('change', () => setErr($('deadline'), 'deadlineErr', !deadlineOk()));
+    const deadlineOk = () => !$('deadline').value || $('deadline').value >= $('deadline').min;
+    function setErr(field, errId, on, msg) {
+      const e = $(errId); if (msg) e.textContent = msg;
+      e.hidden = !on; if (field) field.setAttribute('aria-invalid', String(on));
+    }
+
+    // ---------- attachments ----------
+    const fmtSize = b => b < 1048576 ? Math.max(1, Math.round(b / 1024)) + ' KB' : (b / 1048576).toFixed(1) + ' MB';
+    function addFiles(list) {
+      const problems = [];
+      for (const f of list) {
+        const ext = (f.name.split('.').pop() || '').toLowerCase();
+        if (!OK_EXT.includes(ext)) { problems.push(`${f.name} isn’t a supported file type.`); continue; }
+        if (f.size > MAX_MB * 1048576) { problems.push(`${f.name} is larger than ${MAX_MB} MB.`); continue; }
+        if (state.files.some(x => x.name === f.name && x.size === f.size)) continue;
+        if (state.files.length >= MAX_FILES) { problems.push(`You can attach up to ${MAX_FILES} files.`); break; }
+        state.files.push(f);
+      }
+      setErr(null, 'fileErr', problems.length > 0, problems.join(' '));
+      renderFiles();
+    }
+    function renderFiles() {
+      $('fileList').innerHTML = state.files.map((f, i) => `
+        <li class="flex items-center gap-3 rounded-xl border border-cream-line bg-white px-3 py-2 text-[13px]">
+          <i data-lucide="${/\.(jpe?g|png)$/i.test(f.name) ? 'image' : 'file-text'}" class="h-4 w-4 shrink-0 text-brand-navy"></i>
+          <span class="min-w-0 flex-1 truncate font-medium">${esc(f.name)}</span>
+          <span class="shrink-0 text-ink-soft">${fmtSize(f.size)}</span>
+          <button type="button" data-remove="${i}" class="grid h-7 w-7 shrink-0 place-items-center rounded-lg text-ink-muted hover:bg-cream hover:text-ink" aria-label="Remove ${esc(f.name)}"><i data-lucide="x" class="h-4 w-4"></i></button>
+        </li>`).join('');
+      icons();
+    }
+    $('files').addEventListener('change', e => { addFiles(e.target.files); e.target.value = ''; });
+    $('fileList').addEventListener('click', e => {
+      const b = e.target.closest('[data-remove]'); if (!b) return;
+      state.files.splice(+b.dataset.remove, 1); renderFiles(); $('files').focus();
+    });
+    const drop = $('drop');
+    ['dragenter', 'dragover'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('is-over'); }));
+    ['dragleave', 'drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('is-over'); }));
+    drop.addEventListener('drop', e => { if (e.dataTransfer && e.dataTransfer.files.length) addFiles(e.dataTransfer.files); });
+
+    // ---------- steps ----------
+    const NAMES = ['Choose a service', 'Add details', 'Review and submit', 'Request submitted'];
+    function show(n, focus = true) {
+      state.step = n;
+      document.querySelectorAll('.step').forEach(s => s.hidden = +s.dataset.step !== n);
+      document.querySelectorAll('[data-step-item]').forEach(li => {
+        const i = +li.dataset.stepItem;
+        li.classList.toggle('is-current', i === n); li.classList.toggle('is-done', i < n || (n === 4 && i === 4));
+        if (i === n) li.setAttribute('aria-current', 'step'); else li.removeAttribute('aria-current');
+      });
+      $('stepStatus').textContent = `Step ${n} of 4: ${NAMES[n - 1]}`;
+      $('summary').hidden = n === 4; $('helpPanel').hidden = n !== 4;
+      if (n === 3) fillReview();
+      const panel = document.querySelector(`.step[data-step="${n}"]`);
+      if (focus) panel.querySelector('.step-title').focus({ preventScroll: true });
+      const top = document.getElementById('main').getBoundingClientRect().top + scrollY - 12;
+      if (scrollY > top) scrollTo({ top, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    }
+    const checks = {
+      1() {
+        let ok = true;
+        if (!state.cat) { $('catErr').hidden = false; ok = false; }
+        if (!$('service').value) { setErr($('service'), 'serviceErr', true); ok = false; }
+        if (!ok) (state.cat ? $('service') : document.querySelector('input[name="cat"]')).focus();
+        return ok;
+      },
+      2() {
+        const bad = [];
+        if (!$('purpose').value) { setErr($('purpose'), 'purposeErr', true); bad.push($('purpose')); }
+        if (details.value.trim().length < 20) { setErr(details, 'detailsErr', true); bad.push(details); }
+        if (!deadlineOk()) { setErr($('deadline'), 'deadlineErr', true); bad.push($('deadline')); }
+        if (needsCall()) {
+          const callOk = $('callWho').value.trim() && $('callAuth').checked && $('callOk').checked;
+          $('callErr').hidden = !!callOk;
+          if (!callOk) bad.push(!$('callWho').value.trim() ? $('callWho') : !$('callAuth').checked ? $('callAuth') : $('callOk'));
+        }
+        if (bad.length) bad[0].focus();
+        return !bad.length;
+      },
+      3() {
+        const ok = $('confirm').checked;
+        setErr($('confirm'), 'confirmErr', !ok); if (!ok) $('confirm').focus();
+        return ok;
+      },
+    };
+    $('confirm').addEventListener('change', () => { if ($('confirm').checked) setErr($('confirm'), 'confirmErr', false); });
+
+    function fillReview() {
+      $('rvCat').textContent = CATS[state.cat].name;
+      $('rvService').textContent = $('service').value;
+      $('rvPurpose').textContent = $('purpose').value;
+      const p = priority();
+      $('rvPriority').textContent = p;
+      $('rvPriority').className = 'chip-status ' + (p === 'Urgent' ? 'bg-pill-orangeBg text-brand-orangeDark' : 'bg-pill-navyBg text-brand-navy');
+      $('rvAudience').textContent = $('audience').value.trim() || 'Not specified';
+      $('rvDeadline').textContent = $('deadline').value ? new Date($('deadline').value + 'T12:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) : 'No deadline';
+      $('rvDetails').textContent = details.value.trim();
+      $('rvCallWrap').hidden = !needsCall();
+      const A = window.BANDA.ACCOUNT;
+      $('rvQuote').hidden = !(state.cat === 'legal' && A.legalUsed >= window.BANDA.PLANS[A.plan].legal);
+      $('rvCall').textContent = needsCall() ? `${$('callWho').value.trim()}. You confirmed it needs no personal, legal or in-person action from you.` : '';
+      $('rvFiles').innerHTML = state.files.length
+        ? state.files.map(f => `<span class="mr-2 mt-1 inline-flex items-center gap-1.5 rounded-lg bg-cream-light px-2 py-1 text-[12.5px]"><i data-lucide="paperclip" class="h-3.5 w-3.5 text-brand-navy"></i>${esc(f.name)} <span class="text-ink-soft">(${fmtSize(f.size)})</span></span>`).join('')
+        : 'None';
+      icons();
+    }
+
+    document.querySelectorAll('form.step').forEach(form => form.addEventListener('submit', e => {
+      e.preventDefault();
+      const n = +form.dataset.step;
+      if (!checks[n]()) return;
+      if (n < 3) show(n + 1); else submitRequest();
+    }));
+    document.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', () => show(state.step - 1)));
+    document.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => show(+b.dataset.edit)));
+
+    function submitRequest() {
+      const btn = $('submitBtn'); btn.disabled = true;
+      // Preview: the request is saved in this browser so it shows in My Tasks, the request page,
+      // Messages and Plan & Usage. The app will POST the form and files, and the server returns the reference.
+      setTimeout(() => {
+        btn.disabled = false;
+        state.submitted = true;
+        const task = window.BANDA.add({
+          title: serviceName() || CATS[state.cat].name, cat: state.cat, service: serviceName(),
+          priority: priority(), due: $('deadline').value || null, details: details.value.trim(),
+          purpose: $('purpose').value, audience: $('audience').value.trim(),
+          call: needsCall() ? $('callWho').value.trim() : '',
+          files: state.files.map(f => [f.name, f.size]),
+        });
+        window.BANDA.paintCounts();
+        $('ref').textContent = task.id;
+        $('viewReq').href = 'task.html?id=' + encodeURIComponent(task.id);
+        $('doneUrgent').hidden = task.priority !== 'Urgent';
+        $('doneQuote').hidden = !task.needsQuote;
+        $('submittedAt').textContent = new Date().toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+        $('copied').textContent = '';
+        show(4);
+      }, 600);
+    }
+    $('copyRef').addEventListener('click', () => {
+      const text = $('ref').textContent;
+      const done = () => { $('copied').textContent = 'Copied'; setTimeout(() => $('copied').textContent = '', 2000); };
+      if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(done, () => { $('copied').textContent = 'Couldn’t copy. Select the reference instead.'; });
+      else { const r = document.createRange(); r.selectNodeContents($('ref')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); $('copied').textContent = 'Reference selected. Press Ctrl+C to copy.'; }
+    });
+    $('another').addEventListener('click', () => {
+      document.querySelectorAll('form.step').forEach(f => f.reset());
+      state.cat = ''; state.files = []; state.submitted = false;
+      $('service').innerHTML = '<option value="">Choose a category first</option>'; $('service').disabled = true;
+      $('count').textContent = '0 / 2000'; $('urgentNote').hidden = true;
+      document.querySelectorAll('.err').forEach(e => e.hidden = true);
+      document.querySelectorAll('[aria-invalid]').forEach(e => e.removeAttribute('aria-invalid'));
+      renderFiles(); renderSummary(); show(1);
+    });
+
+    // Warn before leaving with an unsent request.
+    addEventListener('beforeunload', e => {
+      const started = state.cat || details.value.trim() || state.files.length;
+      if (started && !state.submitted) { e.preventDefault(); e.returnValue = ''; }
+    });
+
+    // A link can open a category directly: submit-task.html?category=legal
+    const wanted = new URLSearchParams(location.search).get('category');
+    if (Object.prototype.hasOwnProperty.call(CATS, wanted)) {
+      setCategory(wanted);
+      // ...and a service: submit-task.html?category=legal&service=NDA (only if it's in that category)
+      const svc = new URLSearchParams(location.search).get('service');
+      if (svc && [...$('service').options].some(o => o.value === svc)) { $('service').value = svc; renderSummary(); }
+    }
+
+    icons();
+    show(1, false);
+
+    document.documentElement.classList.add('js-steps');
+
+    // Sidebar: if the window is too short for the whole menu, the help card steps aside.
+    const helpCard = document.querySelector('.side-help'), sideNav = document.querySelector('#sidebar nav');
+    const overflows = () => sideNav.scrollHeight > sideNav.clientHeight + 1;
+    function fitSidebar() {
+      helpCard.style.display = ''; helpCard.classList.remove('is-compact');
+      if (overflows()) helpCard.classList.add('is-compact');
+      if (overflows()) helpCard.style.display = 'none';
+    }
+    fitSidebar();
+    // Re-check whenever the sidebar changes size (window resize, zoom, full-page capture).
+    if ('ResizeObserver' in window) new ResizeObserver(fitSidebar).observe(document.getElementById('sidebar'));
+    addEventListener('resize', fitSidebar);
+    addEventListener('load', fitSidebar);
+    document.fonts && document.fonts.ready.then(fitSidebar);
+
+    // Mobile menu
+    const sidebar = document.getElementById('sidebar'), scrim = document.getElementById('scrim'), openBtn = document.getElementById('openMenu');
+    const setMenu = open => { sidebar.classList.toggle('is-open', open); scrim.hidden = !open; openBtn.setAttribute('aria-expanded', String(open)); if (open) sidebar.querySelector('a').focus(); };
+    openBtn.addEventListener('click', () => setMenu(true));
+    document.getElementById('closeMenu').addEventListener('click', () => setMenu(false));
+    scrim.addEventListener('click', () => setMenu(false));
+
+    // User menu
+    const userBtn = document.getElementById('userBtn'), userMenu = document.getElementById('userMenu');
+    userBtn.addEventListener('click', e => { e.stopPropagation(); const open = userMenu.hidden; userMenu.hidden = !open; userBtn.setAttribute('aria-expanded', String(open)); });
+    document.addEventListener('click', () => { userMenu.hidden = true; userBtn.setAttribute('aria-expanded', 'false'); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { userMenu.hidden = true; userBtn.setAttribute('aria-expanded', 'false'); setMenu(false); } });
+  </script>
+</body>
+</html>
