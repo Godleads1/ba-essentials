@@ -69,6 +69,11 @@ def create_request(
         raise ValidationFailure("That service is not accepting new requests.")
     if priority not in Priority.values:
         raise ValidationFailure("Choose a valid priority.")
+    # The plan decides which service categories can be requested (Growth and
+    # Dedicated categories stay locked on smaller plans).
+    from apps.billing.plan_rules import require_category
+
+    require_category(organization, version.definition.category)
 
     task = Task.objects.create(
         reference=_task_reference(),

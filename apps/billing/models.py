@@ -13,6 +13,14 @@ class Plan(TimeStampedModel):
     name = models.CharField(max_length=120)
     slug = models.SlugField(max_length=80, unique=True)
     monthly_task_allowance = models.PositiveSmallIntegerField(default=0)
+    # Higher rank = bigger plan. A plan includes every service category whose
+    # minimum rank is at or below its own (Starter 1, Growth 2, Dedicated 3).
+    rank = models.PositiveSmallIntegerField(default=0)
+    # Legal & IP reviews included per window, e.g. 1 every 3 months on Starter.
+    legal_review_allowance = models.PositiveSmallIntegerField(default=0)
+    legal_review_period_months = models.PositiveSmallIntegerField(
+        default=1, choices=[(1, "Every month"), (3, "Every quarter")]
+    )
     price_minor = models.BigIntegerField(default=0)
     currency = models.CharField(max_length=3, default="NGN")
     is_active = models.BooleanField(default=True)
@@ -22,6 +30,12 @@ class Plan(TimeStampedModel):
 
     def __str__(self) -> str:
         return self.name
+
+    @property
+    def legal_review_label(self) -> str:
+        n = self.legal_review_allowance
+        per = "quarter" if self.legal_review_period_months == 3 else "month"
+        return f"{n} legal review{'' if n == 1 else 's'} a {per}"
 
 
 class SubscriptionStatus(models.TextChoices):
@@ -48,6 +62,10 @@ class Subscription(TimeStampedModel):
 
 class UsageKind(models.TextChoices):
     ALLOWANCE = "allowance", "Plan allowance"
+    LEGAL = "legal", "Legal review allowance"
+
+
+COVERING_USAGE_KINDS = (UsageKind.ALLOWANCE, UsageKind.LEGAL)
 
 
 class UsageLedger(models.Model):
@@ -107,6 +125,15 @@ class Invoice(TimeStampedModel):
         null=True,
         blank=True,
         related_name="invoices",
+    )
+    # Set for a mid-cycle upgrade: the plan being left. The invoice then charges
+    # only the difference for the rest of the current period.
+    upgrade_from = models.ForeignKey(
+        Plan,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
     )
     amount_minor = models.BigIntegerField()
     currency = models.CharField(max_length=3, default="NGN")

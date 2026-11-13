@@ -72,6 +72,8 @@ class Command(BaseCommand):
                 "summary": (data.get("summary") or "").strip()[:255],
                 "sort_order": int(data.get("sort_order") or 0),
                 "is_active": bool(data.get("is_active", True)),
+                "minimum_plan_rank": int(data.get("minimum_plan_rank") or 0),
+                "uses_legal_allowance": bool(data.get("uses_legal_allowance", False)),
             },
         )
         changed = 1

@@ -118,7 +118,7 @@ def task_submit(request):
     service_id = request.GET.get("service", "").strip()
     if service_id:
         initial["service_version"] = service_id
-    form = SubmitTaskForm(request.POST or None, initial=initial)
+    form = SubmitTaskForm(request.POST or None, initial=initial, organization=request.organization)
     if request.method == "POST":
         if not ratelimit.hit(
             "task-submit", str(request.organization.pk), limit=20, window_seconds=3600
@@ -144,7 +144,16 @@ def task_submit(request):
                 request, f"Request {task.reference} submitted. The team will triage it."
             )
             return redirect("task-detail", task_id=task.pk)
-    return render(request, "app/task_submit.html", {"form": form})
+    from apps.billing import plan_rules
+    from apps.catalogue.models import ServiceCategory
+
+    locked = [
+        (category, access)
+        for category in ServiceCategory.objects.filter(is_active=True, minimum_plan_rank__gt=0)
+        for access in [plan_rules.category_access(request.organization, category)]
+        if not access.allowed
+    ]
+    return render(request, "app/task_submit.html", {"form": form, "locked_categories": locked})
 
 
 @client_required

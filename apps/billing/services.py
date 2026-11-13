@@ -25,6 +25,7 @@ from apps.quotes.models import Quote, QuoteStatus
 
 from . import fees, paystack
 from .models import (
+    COVERING_USAGE_KINDS,
     Invoice,
     InvoiceStatus,
     PaymentAttempt,
@@ -75,41 +76,47 @@ def allowance_remaining(organization) -> int:
 
 
 def reserve_allowance(task) -> bool:
-    """Reserve one plan task under a row lock, or return False if exhausted."""
-    now = timezone.now()
+    """Reserve one plan task, or one legal review for Legal & IP work.
+
+    Runs under a row lock on the subscription. Returns False when the allowance
+    is used up, so the work is quoted instead.
+    """
+    from . import plan_rules
+
+    legal = plan_rules.uses_legal_allowance(task)
     with transaction.atomic():
-        subscription = (
-            Subscription.objects.select_for_update()
-            .filter(organization_id=task.organization_id, status=SubscriptionStatus.ACTIVE)
-            .select_related("plan")
-            .first()
-        )
-        if subscription is None or not (
-            subscription.period_start <= now <= subscription.period_end
-        ):
+        subscription = plan_rules.lock_active_subscription(task.organization_id)
+        if subscription is None:
             return False
+        if legal:
+            kind = UsageKind.LEGAL
+            limit = subscription.plan.legal_review_allowance
+            window = plan_rules.legal_window_start(subscription)
+        else:
+            kind = UsageKind.ALLOWANCE
+            limit = subscription.plan.monthly_task_allowance
+            window = subscription.period_start
         used = (
             UsageLedger.objects.filter(
-                organization_id=task.organization_id,
-                kind=UsageKind.ALLOWANCE,
-                period_start=subscription.period_start,
+                organization_id=task.organization_id, kind=kind, period_start=window
             ).aggregate(total=Sum("units"))["total"]
             or 0
         )
-        if used + 1 > subscription.plan.monthly_task_allowance:
+        if used + 1 > limit:
             return False
         try:
-            UsageLedger.objects.create(
-                organization_id=task.organization_id,
-                task=task,
-                kind=UsageKind.ALLOWANCE,
-                units=1,
-                period_start=subscription.period_start,
-            )
+            with transaction.atomic():
+                UsageLedger.objects.create(
+                    organization_id=task.organization_id,
+                    task=task,
+                    kind=kind,
+                    units=1,
+                    period_start=window,
+                )
         except IntegrityError:
             return True
     audit_service.record(
-        action="billing.allowance_reserved",
+        action="billing.legal_review_reserved" if legal else "billing.allowance_reserved",
         actor=None,
         organization_id=task.organization_id,
         resource_type="task",
@@ -119,7 +126,7 @@ def reserve_allowance(task) -> bool:
 
 
 def release_allowance(task) -> None:
-    UsageLedger.objects.filter(task=task, kind=UsageKind.ALLOWANCE).delete()
+    UsageLedger.objects.filter(task=task, kind__in=COVERING_USAGE_KINDS).delete()
 
 
 def ensure_invoice(task, quote_version) -> Invoice:
@@ -149,7 +156,7 @@ def ensure_invoice(task, quote_version) -> Invoice:
 
 
 def eligibility(task) -> Eligibility:
-    if UsageLedger.objects.filter(task=task, kind=UsageKind.ALLOWANCE).exists():
+    if UsageLedger.objects.filter(task=task, kind__in=COVERING_USAGE_KINDS).exists():
         return Eligibility(True, "Covered by the plan allowance.")
 
     quote = Quote.objects.filter(task=task).first()
@@ -327,6 +334,7 @@ def start_plan_checkout(*, organization, membership, plan_slug: str, return_url:
             .filter(
                 organization=organization,
                 plan=plan,
+                upgrade_from__isnull=True,
                 status=InvoiceStatus.ISSUED,
                 amount_minor=plan.price_minor,
                 currency=plan.currency,
@@ -348,6 +356,82 @@ def start_plan_checkout(*, organization, membership, plan_slug: str, return_url:
         # Created under the invoice lock, so a parallel checkout that fails can't
         # void this invoice while this attempt is about to use it.
         metadata = {"invoice": invoice.number, "plan": plan.slug}
+        attempt = _create_attempt(invoice, user, metadata)
+    return _start_checkout(attempt, user, return_url=return_url, metadata=metadata, void_on_failure=True)
+
+
+def upgrade_charge_minor(subscription: Subscription, target: Plan, now=None) -> int:
+    """The price difference for the time left in the current period, rounded up to ₦1."""
+    now = now or timezone.now()
+    total = (subscription.period_end - subscription.period_start).total_seconds()
+    left = max(0.0, (subscription.period_end - now).total_seconds())
+    if total <= 0:
+        return 0
+    difference = target.price_minor - subscription.plan.price_minor
+    raw = difference * left / total
+    return max(100, -(-int(raw) // 100) * 100)
+
+
+def upgrade_options(organization) -> list[tuple[Plan, int]]:
+    """Bigger plans the business can move up to now, with today's charge for each."""
+    subscription = active_subscription(organization)
+    if subscription is None:
+        return []
+    plans = Plan.objects.filter(
+        is_active=True, rank__gt=subscription.plan.rank, currency=subscription.plan.currency
+    ).order_by("rank")
+    return [(plan, upgrade_charge_minor(subscription, plan)) for plan in plans]
+
+
+def start_upgrade_checkout(*, organization, membership, plan_slug: str, return_url: str) -> str:
+    """Move up to a bigger plan mid-cycle. Today's charge covers the rest of the period.
+
+    The plan changes only when Paystack confirms the payment (webhook + verify);
+    the period and renewal date stay the same.
+    """
+    from apps.organizations.models import MembershipRole
+
+    if not settings.PAYMENTS_ENABLED:
+        raise ValidationFailure("Payments aren't open yet.")
+    if membership.role != MembershipRole.OWNER:
+        raise PermissionFailure("Only the business owner can change the plan.")
+    target = Plan.objects.filter(slug=plan_slug, is_active=True).first()
+    if target is None:
+        raise ValidationFailure("That plan isn't available.")
+    user = membership.user
+    with transaction.atomic():
+        subscription = (
+            Subscription.objects.select_for_update()
+            .filter(organization=organization, status=SubscriptionStatus.ACTIVE)
+            .select_related("plan")
+            .first()
+        )
+        now = timezone.now()
+        if subscription is None or not (subscription.period_start <= now <= subscription.period_end):
+            raise ValidationFailure("Choose a plan first. Upgrades are for an active plan.")
+        current = subscription.plan
+        if target.rank <= current.rank:
+            raise ValidationFailure("Moving to a smaller plan takes effect at renewal, not through an upgrade.")
+        if target.currency != current.currency or target.currency != settings.PAYSTACK_BASE_CURRENCY:
+            raise ValidationFailure("That plan can't be paid with Paystack.")
+        amount = upgrade_charge_minor(subscription, target, now)
+        # Older unpaid upgrade invoices are replaced, so only today's price can be paid.
+        # A late payment on one of those is caught by the webhook and marked refund-due.
+        Invoice.objects.filter(
+            organization=organization, status=InvoiceStatus.ISSUED, upgrade_from__isnull=False
+        ).update(status=InvoiceStatus.VOID, updated_at=now)
+        number = next_value("invoice.number", start=1000)
+        invoice = Invoice.objects.create(
+            number=f"INV-{now:%Y}-{number}",
+            organization=organization,
+            plan=target,
+            upgrade_from=current,
+            amount_minor=amount,
+            currency=target.currency,
+            status=InvoiceStatus.ISSUED,
+            due_at=now + timedelta(days=1),
+        )
+        metadata = {"invoice": invoice.number, "plan": target.slug, "upgrade_from": current.slug}
         attempt = _create_attempt(invoice, user, metadata)
     return _start_checkout(attempt, user, return_url=return_url, metadata=metadata, void_on_failure=True)
 
@@ -602,7 +686,26 @@ def _apply_charge_success(event: ProviderWebhookEvent, data: dict, confirmed: di
     if newly_paid:
         fees.mark_paid(invoice, confirmed=confirmed)
     if invoice.plan_id and newly_paid:
-        _activate_subscription(invoice)
+        if invoice.upgrade_from_id:
+            if not _apply_upgrade(invoice):
+                # The plan changed or ended before this payment arrived, so it can't
+                # count. The invoice is voided and finance refunds the payment.
+                Invoice.objects.filter(pk=invoice.pk).update(status=InvoiceStatus.VOID, updated_at=now)
+                attempt.status = PaymentStatus.REFUND_DUE
+                attempt.provider_status = "upgrade no longer applies"
+                attempt.save(update_fields=["status", "provider_status", "updated_at"])
+                audit_service.record(
+                    action="billing.payment_refund_due",
+                    actor=None,
+                    organization_id=invoice.organization_id,
+                    resource_type="invoice",
+                    resource_id=str(invoice.pk),
+                    result=AuditEvent.Result.DENIED,
+                    metadata={"reference": reference, "amount_minor": amount, "reason": "upgrade_stale"},
+                )
+                return "refund_due"
+        else:
+            _activate_subscription(invoice)
 
     audit_service.record(
         action="billing.webhook_paid",
@@ -613,6 +716,34 @@ def _apply_charge_success(event: ProviderWebhookEvent, data: dict, confirmed: di
         metadata={"reference": reference, "amount_minor": amount},
     )
     return "paid"
+
+
+def _apply_upgrade(invoice: Invoice) -> bool:
+    """Switch an active plan to the paid-for bigger plan, keeping the period. Inside the webhook's transaction."""
+    now = timezone.now()
+    subscription = (
+        Subscription.objects.select_for_update()
+        .filter(organization_id=invoice.organization_id, status=SubscriptionStatus.ACTIVE)
+        .select_related("plan")
+        .first()
+    )
+    if (
+        subscription is None
+        or not (subscription.period_start <= now <= subscription.period_end)
+        or subscription.plan_id != invoice.upgrade_from_id
+    ):
+        return False
+    subscription.plan_id = invoice.plan_id
+    subscription.save(update_fields=["plan", "updated_at"])
+    audit_service.record(
+        action="billing.plan_upgraded",
+        actor=None,
+        organization_id=invoice.organization_id,
+        resource_type="subscription",
+        resource_id=str(subscription.pk),
+        metadata={"invoice": invoice.number, "from": invoice.upgrade_from_id and str(invoice.upgrade_from_id), "to": str(invoice.plan_id)},
+    )
+    return True
 
 
 def _activate_subscription(invoice: Invoice) -> Subscription:
