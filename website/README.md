@@ -17,9 +17,10 @@ The public marketing site for B & A Essentials, built as three standalone HTML p
 | `deliverables.html` | Deliverables: every file from your requests, with download, approve drafts, archive, bulk actions and upload to a request |
 | `plan.html` | Plan & Usage: tasks and legal reviews used this cycle, usage chart, usage by category, alerts, change plan |
 | `billing.html` | Billing & Invoices: outstanding, invoices with pay and CSV export, payment method, automatic payments |
-| `team.html` | Organization & Team: business profile, members, invitations, roles and permissions, activity |
 | `help.html` | Help & Support: ways to get help, your support requests, common questions |
 | `contact.html` | Contact support: a support request form with topic, related request and files |
+| `terms.html`, `privacy.html`, `cookies.html` | Terms of Service, Privacy Policy and Cookie Notice (v0.1, 12 Nov 2026), from the legal documents |
+| `consent.js` | Cookie banner and Cookie settings, loaded on every page |
 
 It is published with GitHub Pages from the `gh-pages` branch, which holds a copy of this folder.
 
@@ -63,6 +64,18 @@ npm run build   # bakes icons into the pages, then compiles app.css
 
 The colours and fonts live in `build/tailwind.config.js`.
 
+## Legal documents
+
+The Terms, Privacy Policy and Cookie Notice pages are generated from the legal documents. Wording is
+kept as written, with these agreed changes: account data is kept for 90 days after an account closes,
+"Crescent" spelling, "Lagos" added to the Terms address, and a stray bracket removed. Anything still to
+be confirmed (cookie names, the registration number, the provider list) is highlighted on the page.
+
+The site follows them: sign-in by one-time code (no passwords), one owner per account during the pilot
+(no team page), the sign-up and upload notices, separate unticked marketing choice, the automatic
+renewal checkbox before payment, 30 days' notice to cancel, upgrades immediate and pro rata, extra
+legal reviews quoted, correspondence drafted for you to send, and calls only with your authorisation.
+
 ## Support contact details
 
 The support email, phone and hours shown on Help and Contact come from the `SUPPORT` setting in
@@ -94,7 +107,7 @@ Edit the files here, then copy them to the `gh-pages` branch:
 
 ```bash
 git checkout gh-pages
-git checkout main -- website/index.html website/login.html website/onboarding.html website/dashboard.html website/submit-task.html website/my-tasks.html website/task.html website/tasks-data.js website/catalogue.html website/catalogue-data.js website/deliverables.html website/plan.html website/billing.html website/team.html website/help.html website/contact.html
+git checkout main -- website/index.html website/login.html website/onboarding.html website/dashboard.html website/submit-task.html website/my-tasks.html website/task.html website/tasks-data.js website/catalogue.html website/catalogue-data.js website/deliverables.html website/plan.html website/billing.html website/help.html website/contact.html
 mv website/*.html . && rmdir website
 git commit -am "Update website" && git push origin gh-pages
 ```
