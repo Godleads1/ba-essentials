@@ -261,7 +261,7 @@
         bandaStyle.textContent = '[data-initials],#pfInitials,#phPreview{background-image:url("' + bandaMe.photo + '");background-size:cover;background-position:center;color:transparent}';
         document.head.appendChild(bandaStyle);
       }
-    } catch (e) { /* storage blocked: initials show instead */ }
+    } catch { /* storage blocked: initials show instead */ }
   </script>
 </head>
 
