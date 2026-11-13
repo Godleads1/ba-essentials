@@ -655,7 +655,7 @@
           $('feeState').focus();
         },
         onCancel: () => { done(); feeNotice('Payment cancelled. You haven’t been charged, and the fees still need paying before we can file.', 'warn'); btn.focus(); },
-        onFail: () => { done(); feeNotice('We couldn’t reach Paystack. Check your connection and try again.', 'error'); btn.focus(); },
+        onFail: why => { done(); feeNotice(why === 'load' ? 'We couldn’t reach Paystack. Check your connection and try again.' : 'Paystack couldn’t start this payment. Try again in a moment, or message us if it keeps happening.', 'error'); btn.focus(); },
       });
     });
 

@@ -420,7 +420,9 @@
   // Opens Paystack's payment window. onPaid runs only when Paystack reports a completed payment.
   function payWithPaystack({ amount, purpose, ref, onPaid, onCancel, onFail }) {
     const prof = getPref('profile', {}) || {};
-    const email = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(prof.email || '') ? prof.email : 'chinedu@okekefoods.example';
+    // Paystack refuses reserved test domains like .example, so the sample account pays as a banda test address.
+    const ok = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(prof.email || '') && !/\.(example|test|invalid|localhost)$/i.test(prof.email);
+    const email = ok ? prof.email : 'payments-test@bandaessentials.com';
     const reference = 'BA-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
     return loadPaystack().then(() => {
       new window.PaystackPop().newTransaction({
