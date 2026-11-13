@@ -228,15 +228,18 @@
     const $ = id => document.getElementById(id);
     const ident = $('ident');
     // A Nigerian mobile in any common format: 0801 234 5678, 0801-234-5678, (0801) 234 5678, +234 801 234 5678, +234 (0) 801…, 2348012345678.
+    // Numbers copied from WhatsApp or contacts often carry invisible marks, full-width digits or long dashes; clean them first.
+    const clean = v => v.normalize('NFKC').replace(/\p{Cf}/gu, '').trim();
     const ngMobile = v => {
-      if (/[^\d\s()+.\-]/.test(v)) return false;
+      v = clean(v);
+      if (/[\p{L}@]/u.test(v)) return false;
       let d = v.replace(/\D/g, '');
       if (d.startsWith('234')) d = d.slice(3);
       if (d.startsWith('0')) d = d.slice(1);
       return /^[2789]\d{9}$/.test(d);
     };
     const kind = v => {
-      const t = v.trim();
+      const t = clean(v);
       if (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(t)) return 'email';
       return ngMobile(t) ? 'phone' : '';
     };
@@ -257,7 +260,7 @@
       ident.setAttribute('aria-invalid', String(!k));
       if (!k) { ident.focus(); return; }
       const chan = k === 'email' ? 'email' : document.querySelector('input[name="chan"]:checked').value;
-      const shown = k === 'email' ? ident.value.trim() : `your ${chan === 'whatsapp' ? 'WhatsApp' : 'phone'} number ending ${ident.value.replace(/\D/g, '').slice(-4)}`;
+      const shown = k === 'email' ? clean(ident.value) : `your ${chan === 'whatsapp' ? 'WhatsApp' : 'phone'} number ending ${ident.value.replace(/\D/g, '').slice(-4)}`;
       $('sentTo').textContent = shown;
       $('loginForm').hidden = true; $('codeForm').hidden = false;
       $('code').value = ''; $('code').focus();

@@ -502,14 +502,14 @@
       1: () => {
         const name = document.getElementById('name'), email = document.getElementById('email');
         const phone = document.getElementById('phone');
-        let digits = phone.value.trim();
-        if (/[^\d\s()+.\-]/.test(digits)) digits = '';
+        let digits = phone.value.normalize('NFKC').replace(/\p{Cf}/gu, '').trim();
+        if (/[\p{L}@]/u.test(digits)) digits = '';
         digits = digits.replace(/\D/g, '');
         if (digits.startsWith('234')) digits = digits.slice(3);
         if (digits.startsWith('0')) digits = digits.slice(1);
         const r = [
           flag(name, name.value.trim().split(/\s+/).length >= 1 && name.value.trim().length > 1),
-          flag(email, /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())),
+          flag(email, /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.normalize('NFKC').replace(/\p{Cf}/gu, '').trim())),
           flag(phone, /^[2789]\d{9}$/.test(digits)),
         ];
         return r.every(Boolean);
