@@ -23,7 +23,7 @@ from apps.core.exceptions import (
 from apps.core.sequences import next_value
 from apps.quotes.models import Quote, QuoteStatus
 
-from . import paystack
+from . import fees, paystack
 from .models import (
     Invoice,
     InvoiceStatus,
@@ -161,8 +161,10 @@ def eligibility(task) -> Eligibility:
     if accepted is not None and accepted.amount_minor == 0:
         return Eligibility(True, "No charge for this request.")
 
+    # Third-party fee invoices pay organisations, not for the work itself.
+    work_invoices = Invoice.objects.filter(task=task, fee_request__isnull=True)
     paid = (
-        Invoice.objects.filter(task=task, status=InvoiceStatus.PAID)
+        work_invoices.filter(status=InvoiceStatus.PAID)
         .order_by("-issued_at")
         .first()
     )
@@ -170,7 +172,7 @@ def eligibility(task) -> Eligibility:
         return Eligibility(True, "Invoice paid.", paid)
 
     outstanding = (
-        Invoice.objects.filter(task=task, status=InvoiceStatus.ISSUED)
+        work_invoices.filter(status=InvoiceStatus.ISSUED)
         .order_by("-issued_at")
         .first()
     )
@@ -180,9 +182,15 @@ def eligibility(task) -> Eligibility:
     return Eligibility(False, "No plan allowance or paid invoice is on record.")
 
 
+def is_fee_invoice(invoice: Invoice) -> bool:
+    from .models import FeeRequest
+
+    return FeeRequest.objects.filter(invoice_id=invoice.pk).exists()
+
+
 def _advance_task_after_payment(invoice: Invoice, actor, *, source: str) -> None:
     """Move a task out of awaiting-payment once the invoice is genuinely paid."""
-    if invoice.task_id is None:
+    if invoice.task_id is None or is_fee_invoice(invoice):
         return
     from apps.tasks import transitions
     from apps.tasks.models import Task, TaskStatus
@@ -262,6 +270,7 @@ def record_offline_payment(
         )
         if not paid:
             raise ValidationFailure("Only unpaid invoices can be marked as paid.")
+        fees.mark_paid(current)
 
         audit_service.record(
             action="billing.payment_verified",
@@ -309,7 +318,6 @@ def start_plan_checkout(*, organization, membership, plan_slug: str, return_url:
         raise ValidationFailure("Your business already has an active plan.")
 
     user = membership.user
-    reference = f"BA-{uuid.uuid4().hex[:24].upper()}"
     with transaction.atomic():
         # Trying again reuses the open invoice for this plan and price, so an
         # abandoned checkout doesn't leave a trail of unpaid invoices. The old
@@ -337,6 +345,51 @@ def start_plan_checkout(*, organization, membership, plan_slug: str, return_url:
                 status=InvoiceStatus.ISSUED,
                 due_at=timezone.now() + timedelta(days=1),
             )
+    return _paystack_checkout(
+        invoice, user, return_url=return_url, metadata={"invoice": invoice.number, "plan": plan.slug},
+        void_on_failure=True,
+    )
+
+
+def can_pay_invoice(invoice: Invoice, membership) -> bool:
+    """Only the business owner pays, as only the owner can accept quotes and choose plans."""
+    from apps.organizations.models import MembershipRole
+
+    return (
+        membership is not None
+        and membership.organization_id == invoice.organization_id
+        and membership.role == MembershipRole.OWNER
+    )
+
+
+def start_invoice_checkout(*, invoice: Invoice, membership, return_url: str) -> str:
+    """Start Paystack checkout for an issued request invoice (quote or third-party fees).
+
+    The amount always comes from the stored invoice; the browser sends only which invoice.
+    """
+    if not settings.PAYMENTS_ENABLED:
+        raise ValidationFailure("Payments aren't open yet.")
+    if not can_pay_invoice(invoice, membership):
+        raise PermissionFailure("You can't pay this invoice.")
+    if invoice.plan_id is not None:
+        raise ValidationFailure("Plan payments are made from the Plan page.")
+    if invoice.status != InvoiceStatus.ISSUED:
+        raise ValidationFailure("This invoice isn't open for payment.")
+    if invoice.currency != settings.PAYSTACK_BASE_CURRENCY:
+        raise ValidationFailure("This invoice can't be paid with Paystack.")
+    metadata = {"invoice": invoice.number}
+    if invoice.task_id:
+        metadata["request"] = invoice.task.reference
+    return _paystack_checkout(
+        invoice, membership.user, return_url=return_url, metadata=metadata, void_on_failure=False
+    )
+
+
+def _paystack_checkout(
+    invoice: Invoice, user, *, return_url: str, metadata: dict, void_on_failure: bool
+) -> str:
+    reference = f"BA-{uuid.uuid4().hex[:24].upper()}"
+    with transaction.atomic():
         attempt = PaymentAttempt.objects.create(
             invoice=invoice,
             provider="paystack",
@@ -348,10 +401,10 @@ def start_plan_checkout(*, organization, membership, plan_slug: str, return_url:
         audit_service.record(
             action="billing.checkout_started",
             actor=user,
-            organization_id=organization.pk,
+            organization_id=invoice.organization_id,
             resource_type="invoice",
             resource_id=str(invoice.pk),
-            metadata={"plan": plan.slug, "amount_minor": plan.price_minor, "reference": reference},
+            metadata={**metadata, "amount_minor": invoice.amount_minor, "reference": reference},
         )
 
     try:
@@ -361,14 +414,17 @@ def start_plan_checkout(*, organization, membership, plan_slug: str, return_url:
             currency=attempt.currency,
             reference=reference,
             callback_url=return_url,
-            metadata={"invoice": invoice.number, "plan": plan.slug},
+            metadata=metadata,
         )
     except paystack.PaystackError as exc:
         PaymentAttempt.objects.filter(pk=attempt.pk).update(
             status=PaymentStatus.FAILED, provider_status="initialize failed", updated_at=timezone.now()
         )
-        # Void the invoice only if no other attempt on it could still be paid.
-        if not invoice.payment_attempts.exclude(pk=attempt.pk).exclude(status=PaymentStatus.FAILED).exists():
+        # A plan invoice exists only for this checkout, so it is voided if no other
+        # attempt on it could still be paid. Request invoices stay open to retry.
+        if void_on_failure and not invoice.payment_attempts.exclude(pk=attempt.pk).exclude(
+            status=PaymentStatus.FAILED
+        ).exists():
             Invoice.objects.filter(pk=invoice.pk, status=InvoiceStatus.ISSUED).update(
                 status=InvoiceStatus.VOID, updated_at=timezone.now()
             )
@@ -510,6 +566,8 @@ def _apply_charge_success(event: ProviderWebhookEvent, data: dict, confirmed: di
     invoice.refresh_from_db()
 
     _advance_task_after_payment(invoice, None, source="Provider webhook confirmed payment")
+    if newly_paid:
+        fees.mark_paid(invoice, confirmed=confirmed)
     if invoice.plan_id and newly_paid:
         _activate_subscription(invoice)
 

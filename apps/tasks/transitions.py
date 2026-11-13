@@ -246,6 +246,17 @@ def transition(
     if rule.requires_reason and not (reason or "").strip():
         raise ValidationFailure("Give a short reason for this action.")
 
+    if action == Action.RELEASE:
+        from apps.billing.fees import has_open_fees
+
+        # Filings and bookings need the third-party fees paid first, so the work
+        # can't be released while any are still being prepared or awaiting payment.
+        if has_open_fees(task):
+            raise ValidationFailure(
+                "Third-party fees on this request are still open. "
+                "They must be paid or withdrawn before release."
+            )
+
     updates: dict = dict(fields or {})
     forbidden = {"status", "id", "reference", "organization", "created_by", "created_at"}
     if forbidden & set(updates):

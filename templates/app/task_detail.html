@@ -119,6 +119,8 @@
         </section>
       {% endif %}
 
+      {% include "app/_fees.html" %}
+
       {% if invoice %}
         <section class="card card-pad">
           <div class="flex flex-wrap items-center justify-between gap-2">
@@ -130,7 +132,15 @@
             {% include "partials/status_badge.html" with status=invoice.status %}
           </div>
           {% if invoice.status == "issued" %}
-            <p class="mt-4 rounded-xl bg-slate-50 p-3 text-xs leading-relaxed text-slate-500">Pay by bank transfer using the invoice number as the reference. Finance reconciles payments manually; the browser never marks an invoice paid.</p>
+            {% if payments_enabled and can_pay %}
+              <form method="post" action="{% url 'invoice-checkout' invoice_id=invoice.pk %}" class="mt-4">
+                {% csrf_token %}
+                <button class="btn-primary btn-sm">Pay {{ invoice.amount_minor|money_minor:invoice.currency }} with Paystack</button>
+              </form>
+              <p class="mt-2 text-xs text-slate-500">The invoice shows as paid once Paystack confirms the payment to us. You can also pay by bank transfer using the invoice number as the reference.</p>
+            {% else %}
+              <p class="mt-4 rounded-xl bg-slate-50 p-3 text-xs leading-relaxed text-slate-500">Pay by bank transfer using the invoice number as the reference. Finance reconciles payments manually; the browser never marks an invoice paid.</p>
+            {% endif %}
           {% endif %}
         </section>
       {% endif %}

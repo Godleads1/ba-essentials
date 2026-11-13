@@ -100,10 +100,17 @@ def verify(reference: str) -> dict:
     """
     result = _request("GET", "/transaction/verify/" + urllib.parse.quote(reference, safe=""))
     customer = result.get("customer") if isinstance(result.get("customer"), dict) else {}
+    authorization = (
+        result.get("authorization") if isinstance(result.get("authorization"), dict) else {}
+    )
+    fee = result.get("fees")
     return {
         "status": str(result.get("status") or ""),
         "reference": str(result.get("reference") or ""),
         "amount": result.get("amount"),
         "currency": str(result.get("currency") or ""),
         "email": str(customer.get("email") or ""),
+        # What Paystack kept, and where the card was issued (foreign cards cost more).
+        "fees": fee if isinstance(fee, int) and not isinstance(fee, bool) else None,
+        "card_country": str(authorization.get("country_code") or "")[:2],
     }

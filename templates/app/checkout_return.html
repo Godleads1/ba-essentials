@@ -4,19 +4,35 @@
 {% block mobile_title %}Payment{% endblock %}
 {% block content %}
   <section class="card card-pad max-w-xl">
-    {% if paid and subscription %}
-      <h2 class="text-lg font-semibold text-navy-900">Payment confirmed</h2>
-      <p class="mt-2 text-sm text-slate-600">Your {{ subscription.plan.name }} plan is active until {{ subscription.period_end|date:"j M Y" }}.</p>
-      <a class="btn-primary btn-sm mt-4" href="{% url 'plan-home' %}">See your plan</a>
-    {% elif attempt.status == "failed" %}
-      <h2 class="text-lg font-semibold text-navy-900">Payment not completed</h2>
-      <p class="mt-2 text-sm text-slate-600">Nothing was charged for invoice {{ invoice.number }}. You can try again from your plan page.</p>
-      <a class="btn-secondary btn-sm mt-4" href="{% url 'plan-home' %}">Back to plans</a>
+    {% if invoice.plan_id %}
+      {% if paid and subscription %}
+        <h2 class="text-lg font-semibold text-navy-900">Payment confirmed</h2>
+        <p class="mt-2 text-sm text-slate-600">Your {{ subscription.plan.name }} plan is active until {{ subscription.period_end|date:"j M Y" }}.</p>
+        <a class="btn-primary btn-sm mt-4" href="{% url 'plan-home' %}">See your plan</a>
+      {% elif attempt.status == "failed" %}
+        <h2 class="text-lg font-semibold text-navy-900">Payment not completed</h2>
+        <p class="mt-2 text-sm text-slate-600">Nothing was charged for invoice {{ invoice.number }}. You can try again from your plan page.</p>
+        <a class="btn-secondary btn-sm mt-4" href="{% url 'plan-home' %}">Back to plans</a>
+      {% else %}
+        <h2 class="text-lg font-semibold text-navy-900">Confirming your payment</h2>
+        <p class="mt-2 text-sm text-slate-600">We start your plan as soon as Paystack confirms the payment to us. That usually takes a few seconds.</p>
+        <p class="mt-1 text-xs text-slate-500">Reference {{ attempt.reference }} · invoice {{ invoice.number }}</p>
+        <a class="btn-secondary btn-sm mt-4" href="{{ request.get_full_path }}">Check again</a>
+      {% endif %}
     {% else %}
-      <h2 class="text-lg font-semibold text-navy-900">Confirming your payment</h2>
-      <p class="mt-2 text-sm text-slate-600">We start your plan as soon as Paystack confirms the payment to us. That usually takes a few seconds.</p>
-      <p class="mt-1 text-xs text-slate-500">Reference {{ attempt.reference }} · invoice {{ invoice.number }}</p>
-      <a class="btn-secondary btn-sm mt-4" href="{{ request.get_full_path }}">Check again</a>
+      {% if paid %}
+        <h2 class="text-lg font-semibold text-navy-900">Payment confirmed</h2>
+        <p class="mt-2 text-sm text-slate-600">Invoice {{ invoice.number }} is paid{% if invoice.task %} for {{ invoice.task.reference }}{% endif %}. Reference {{ attempt.reference }}.</p>
+      {% elif attempt.status == "failed" %}
+        <h2 class="text-lg font-semibold text-navy-900">Payment not completed</h2>
+        <p class="mt-2 text-sm text-slate-600">Nothing was charged for invoice {{ invoice.number }}. You can try again from the request.</p>
+      {% else %}
+        <h2 class="text-lg font-semibold text-navy-900">Confirming your payment</h2>
+        <p class="mt-2 text-sm text-slate-600">The invoice shows as paid as soon as Paystack confirms the payment to us. That usually takes a few seconds.</p>
+        <p class="mt-1 text-xs text-slate-500">Reference {{ attempt.reference }} · invoice {{ invoice.number }}</p>
+        <a class="btn-secondary btn-sm mt-4" href="{{ request.get_full_path }}">Check again</a>
+      {% endif %}
+      {% if invoice.task %}<a class="btn-primary btn-sm mt-4" href="{% url 'task-detail' task_id=invoice.task_id %}">Back to {{ invoice.task.reference }}</a>{% else %}<a class="btn-primary btn-sm mt-4" href="{% url 'billing-home' %}">Back to billing</a>{% endif %}
     {% endif %}
   </section>
 {% endblock %}
