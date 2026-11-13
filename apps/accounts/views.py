@@ -7,6 +7,7 @@ from django.http import Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.http import urlencode
 from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.core import ratelimit
@@ -113,6 +114,21 @@ def resend_verification(request):
 
 
 @require_http_methods(["GET", "POST"])
+@require_http_methods(["GET", "POST"])
+def admin_login_redirect(request):
+    """Django admin has no sign-in form of its own.
+
+    Its built-in form checked passwords without the app's rate limits, lockout or
+    second factor, and answered differently for a right and a wrong password.
+    Every request, GET or POST, is sent to the app's sign-in instead, and a POST
+    is never read. Only an admin path is kept as the destination.
+    """
+    next_url = request.GET.get("next", "")
+    if not next_url.startswith("/admin/") or next_url.startswith("//"):
+        next_url = "/admin/"
+    return redirect(f"{reverse('login')}?{urlencode({'next': next_url})}")
+
+
 def login_view(request):
     if request.user.is_authenticated:
         return redirect("staff-dashboard" if request.user.staff_role else "client-overview")

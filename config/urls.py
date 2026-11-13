@@ -3,6 +3,7 @@ from __future__ import annotations
 from django.contrib import admin
 from django.urls import include, path
 
+from apps.accounts import views as account_views
 from apps.core import views as core_views
 from apps.website import views_public as website_views
 
@@ -29,6 +30,8 @@ urlpatterns = [
     path("staff/", include("apps.billing.urls_staff")),
     path("staff/", include("apps.catalogue.urls")),
     path("staff/", include("apps.website.urls_staff")),
+    # Must come before admin.site.urls so it replaces the built-in admin sign-in.
+    path("admin/login/", account_views.admin_login_redirect, name="admin-login-redirect"),
     path("admin/", admin.site.urls),
     path("<slug:slug>/", website_views.page, name="website-page"),
 ]

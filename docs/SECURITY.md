@@ -12,6 +12,12 @@ certificate and makes no claim that any deployment is "100% secure".
 - The public site, client app, staff app, and Django admin share one backend.
   Django admin is a break-glass support surface and is restricted to accounts
   with `is_staff`; application roles still control the staff app.
+- Django admin requires the same enrolled second factor as the staff app, for
+  every `is_staff` account with or without a staff role. Its built-in sign-in
+  form is replaced by a redirect to the app's sign-in, so admin access always
+  goes through the app's rate limits, lockout and TOTP step; the redirect never
+  reads a submitted password and keeps only `/admin/` destinations
+  (`tests/test_admin_access.py`).
 - Uploaded files and webhook payloads are untrusted input.
 
 ## Configuration fail-closed
