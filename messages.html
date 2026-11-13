@@ -541,6 +541,7 @@
     const icons = () => { if (window.lucide) lucide.createIcons(); };
     const board = $('board');
     const wide = matchMedia('(min-width: 1024px)');
+    const myPhoto = () => { const p = window.BANDA.getPref('profile', null); return p && /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(p.photo || '') ? p.photo : ''; };
     const initials = () => ((document.querySelector('[data-initials]') || {}).textContent || 'You').trim();
 
     // ---------- time labels ----------
@@ -607,7 +608,7 @@
           return `<span class="att"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg ${ft.tone}"><i data-lucide="${ft.icon}" class="h-[18px] w-[18px]"></i></span><span class="min-w-0 flex-1"><span class="block truncate text-[13px] font-semibold">${esc(n)}</span><span class="block text-[11.5px] text-ink-muted">${ft.label} · ${fmtSize(sz)}</span></span><button type="button" class="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-muted hover:bg-cream hover:text-ink" data-dl="${esc(n)}" aria-label="Download ${esc(n)}"><i data-lucide="download" class="h-4 w-4"></i></button></span>`;
         }).join('');
         return `${sep}<li class="msg ${me ? 'msg--me' : ''}">
-          ${me ? `<span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-cta text-[11px] font-bold text-white" aria-hidden="true">${esc(initials())}</span>` : deskIcon(t.cat, 'h-8 w-8')}
+          ${me ? `<span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-cta bg-cover bg-center text-[11px] font-bold text-white" aria-hidden="true"${myPhoto() ? ` style="background-image:url('${myPhoto()}')"` : ''}>${myPhoto() ? '' : esc(initials())}</span>` : deskIcon(t.cat, 'h-8 w-8')}
           <div class="min-w-0 max-w-[min(85%,520px)]">
             <p class="text-[11.5px] text-ink-muted"><span class="font-semibold text-ink">${esc(me ? 'You' : name)}</span>${role ? ` · ${esc(role)}` : ''} · <time datetime="${esc(when)}">${timeOf(when)}</time></p>
             ${text ? `<p class="bubble">${esc(text)}</p>` : ''}

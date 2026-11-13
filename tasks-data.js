@@ -327,6 +327,20 @@
       document.querySelectorAll('[data-fullname]').forEach(el => { el.textContent = prof.name; });
       document.querySelectorAll('[data-initials]').forEach(el => { el.textContent = prof.name.trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase(); });
     }
+    // Only a JPEG the Profile page itself produced is used; anything else falls back to initials.
+    const photoOk = prof && /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(prof.photo || '');
+    if (prof) {
+      if (!photoOk) prof.photo = '';
+      document.querySelectorAll('[data-initials]').forEach(el => {
+        el.style.backgroundImage = prof.photo ? `url("${prof.photo}")` : '';
+        el.style.backgroundSize = 'cover'; el.style.backgroundPosition = 'center';
+        if (prof.photo) {
+          el.textContent = '';
+          // The initials named the menu button on phones, where the name is hidden; the photo takes over that job.
+          el.setAttribute('role', 'img'); el.setAttribute('aria-label', prof.name || 'Your account');
+        } else { el.removeAttribute('role'); el.removeAttribute('aria-label'); }
+      });
+    }
     const m = unreadConversations(), n = unreadNotes();
     document.querySelectorAll('[data-count="msgs"]').forEach(el => { el.textContent = m; el.hidden = !m; });
     document.querySelectorAll('[data-count-label="msgs"]').forEach(el => el.setAttribute('aria-label', m ? `Messages, ${m} unread` : 'Messages'));
