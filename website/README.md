@@ -11,12 +11,13 @@ The public marketing site for B & A Essentials, built as three standalone HTML p
 | `submit-task.html` | Submit a Task: service, details and files, review, confirmation |
 | `my-tasks.html` | My Tasks: all requests with search, filters, status guide and a ⋯ menu per request |
 | `task.html?id=…` | Request detail: details, files, quote, messages, progress timeline, deliverables, cancel |
-| `tasks-data.js` | Sample task data shared by My Tasks and Request detail (the app will replace it with its API) |
+| `tasks-data.js` | Sample data shared by the app pages: tasks, messages, notifications, files, plan and invoices (the app will replace it with its API). It also keeps the menu badge and bell counts live on every page |
 | `catalogue.html` | Service Catalogue: categories, availability, search across services, details panel with request links |
 | `catalogue-data.js` | The service list (from the Task Bank), shared by the Catalogue and Submit a Task |
+| `messages.html` | Messages & Notifications: one conversation per request with files, unread counts, mark as unread, and account notifications |
 | `deliverables.html` | Deliverables: every file from your requests, with download, approve drafts, archive, bulk actions and upload to a request |
 | `plan.html` | Plan & Usage: tasks and legal reviews used this cycle, usage chart, usage by category, alerts, change plan |
-| `billing.html` | Billing & Invoices: outstanding, invoices with pay and CSV export, payment method, automatic payments |
+| `billing.html` | Billing & Invoices: outstanding, invoices with pay and CSV export, payment method, renewal and cancelling with 30 days’ notice |
 | `help.html` | Help & Support: ways to get help, your support requests, common questions |
 | `contact.html` | Contact support: a support request form with topic, related request and files |
 | `terms.html`, `privacy.html`, `cookies.html` | Terms of Service, Privacy Policy and Cookie Notice (v0.1, 12 Nov 2026), from the legal documents |
@@ -107,7 +108,7 @@ Edit the files here, then copy them to the `gh-pages` branch:
 
 ```bash
 git checkout gh-pages
-git checkout main -- website/index.html website/login.html website/onboarding.html website/dashboard.html website/submit-task.html website/my-tasks.html website/task.html website/tasks-data.js website/catalogue.html website/catalogue-data.js website/deliverables.html website/plan.html website/billing.html website/help.html website/contact.html
-mv website/*.html . && rmdir website
+git checkout main -- website/index.html website/login.html website/onboarding.html website/dashboard.html website/submit-task.html website/my-tasks.html website/task.html website/tasks-data.js website/catalogue.html website/catalogue-data.js website/deliverables.html website/plan.html website/billing.html website/help.html website/contact.html website/messages.html website/terms.html website/privacy.html website/cookies.html website/consent.js website/app.css
+mv website/*.html website/*.js website/app.css . && rmdir website
 git commit -am "Update website" && git push origin gh-pages
 ```

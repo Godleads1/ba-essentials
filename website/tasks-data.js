@@ -38,7 +38,8 @@
       submitted: '2026-11-06T10:24', due: '2026-11-13',
       details: 'Review and tighten our proposal for the Lagos State catering tender. Keep it under 12 pages and make the pricing section clearer.',
       files: [['Catering_Tender_Proposal_v3.docx', 1840000], ['Pricing_Sheet.xlsx', 96000]],
-      messages: [[TEAM, '2026-11-07T09:10', 'Thanks, Chinedu. We’ve started on the proposal and will send a first draft by Wednesday.']] },
+      messages: [[TEAM, '2026-11-07T09:10', 'Thanks, Chinedu. We’ve started on the proposal and will send a first draft by Wednesday.'],
+        [TEAM, '2026-11-11T16:20', 'Your first draft is in Deliverables. Approve it, or tell us here what you’d like changed.']] },
     { id: 'REQ-2026-0047', title: 'Social media content calendar', cat: 'addons', service: 'Social media management', status: 'input', priority: 'High',
       submitted: '2026-11-05T15:42', due: '2026-11-15',
       details: 'A 3-month content calendar for Instagram and TikTok for our new snack range, with post ideas and captions.',
@@ -52,7 +53,10 @@
     { id: 'REQ-2026-0046', title: 'Trademark filing support', cat: 'legal', service: 'Trademark application', status: 'scoping', priority: 'High',
       submitted: '2026-11-04T09:10', due: '2026-11-16',
       details: 'File a trademark for our brand name “Okeke Foods” and the logo, in the class for packaged snacks.',
-      files: [['Okeke_Foods_Logo.png', 412000]], messages: [] },
+      files: [['Okeke_Foods_Logo.png', 412000]],
+      messages: [[TEAM, '2026-11-05T10:24', 'We’ve received your trademark request and moved it to scoping. A legal reviewer will check the details and may ask for more information.'],
+        ['You', '2026-11-05T10:32', 'Thank you. I’ll keep an eye on it.'],
+        ['Mr Ayodeji · Legal reviewer', '2026-11-12T09:12', 'We’ve reviewed your name and logo. Please go through the attached checklist and confirm the details, so we can finish scoping.', { files: [['Trademark_Filing_Checklist.pdf', 245000]] }]] },
     { id: 'REQ-2026-0045', title: 'Monthly bookkeeping', cat: 'addons', service: 'Bookkeeping support', status: 'delivered', priority: 'Medium',
       submitted: '2026-10-28T11:12', due: '2026-11-05',
       details: 'Record October sales and expenses from the attached statements and receipts.',
@@ -79,7 +83,8 @@
     { id: 'REQ-2026-0040', title: 'Q3 income summary', cat: 'tax', service: 'Income summary', status: 'checking', priority: 'Medium',
       submitted: '2026-11-01T12:20', due: '2026-11-14',
       details: 'Compile July to September income from our invoices for our accountant.',
-      files: [['Q3_Invoices.zip', 5600000]], messages: [] },
+      files: [['Q3_Invoices.zip', 5600000]],
+      messages: [[TEAM, '2026-11-12T09:05', 'Your Q3 income summary is with our quality check. You’ll have it by 14 Nov.']] },
     { id: 'REQ-2026-0039', title: 'Abuja trip: flights and hotel', cat: 'ops', service: 'Flight and hotel booking', status: 'delivered', priority: 'High',
       submitted: '2026-10-20T08:30', due: '2026-10-28',
       details: 'Return flights Lagos–Abuja for 2 people, 27–29 Oct, and a hotel near the Wuse 2 office.',
@@ -230,6 +235,62 @@
   const getList = key => listOr(key, { tickets: TICKETS }[key] || []);
   function setList(key, arr) { store[key] = arr; writeStore(store); }
 
+  // ---------- messages: one conversation per request, with the team handling it ----------
+  // A message is [who, when, text] with an optional 4th part { files: [[name, size]] }.
+  const DESKS = { business: 'Business support team', legal: 'Legal & IP team', ops: 'Operations team', creator: 'Creator team', tax: 'Tax readiness team', addons: 'Add-ons team' };
+  // What the sample account had already read when the preview starts.
+  const SEED_READ = '2026-11-10T00:00';
+  const lastRead = id => (store.read || {})[id] || SEED_READ;
+  // "Mark as unread" keeps a flag until the conversation is opened again.
+  const flagged = () => store.munread || [];
+  function markRead(id) {
+    const t = find(id); if (!t || !t.messages.length) return;
+    store.read = Object.assign({}, store.read, { [id]: t.messages[t.messages.length - 1][1] });
+    store.munread = flagged().filter(x => x !== id); writeStore(store);
+  }
+  function markUnread(id) { store.munread = Array.from(new Set(flagged().concat(id))); writeStore(store); }
+  function conversations() {
+    return all().filter(t => t.messages.length).map(t => {
+      const last = t.messages[t.messages.length - 1];
+      const unread = t.messages.filter(m => m[0] !== 'You' && m[1] > lastRead(t.id)).length || (flagged().includes(t.id) ? 1 : 0);
+      return { id: t.id, task: t, desk: DESKS[t.cat], last, unread };
+    }).sort((a, b) => (a.last[1] < b.last[1] ? 1 : -1));
+  }
+  const unreadConversations = () => conversations().filter(c => c.unread).length;
+
+  // ---------- notifications ----------
+  const NKIND = {
+    request: { icon: 'list-checks', tone: 'bg-pill-navyBg text-brand-navy', label: 'Request update' },
+    file: { icon: 'file-check', tone: 'bg-pill-greenBg text-pill-greenTx', label: 'File' },
+    invoice: { icon: 'receipt-text', tone: 'bg-pill-orangeBg text-brand-orangeDark', label: 'Invoice' },
+    support: { icon: 'life-buoy', tone: 'bg-[#EFE9FB] text-[#5B3FA8]', label: 'Support' },
+    account: { icon: 'bell', tone: 'bg-cream text-ink', label: 'Account' },
+  };
+  const NOTES = [
+    { id: 'N-31', kind: 'request', at: '2026-11-12T09:12', title: 'Checklist to confirm', text: 'Your legal reviewer sent a checklist for REQ-2026-0046 (Trademark filing support).', href: 'messages.html?c=REQ-2026-0046' },
+    { id: 'N-30', kind: 'file', at: '2026-11-11T16:20', title: 'Draft needs your approval', text: 'Proposal_Draft_v1.docx for REQ-2026-0048 is ready for you to approve or ask for changes.', href: 'task.html?id=REQ-2026-0048' },
+    { id: 'N-29', kind: 'invoice', at: '2026-11-06T11:20', title: 'Invoice to pay', text: 'INV-2026-0052 (₦120,000) for the social media add-on is due on 20 Nov 2026.', href: 'billing.html' },
+    { id: 'N-28', kind: 'support', at: '2026-11-12T09:10', title: 'Support replied', text: 'We answered SUP-2026-0047 (sign-in code not arriving on WhatsApp) and need one detail from you.', href: 'help.html', read: true },
+    { id: 'N-27', kind: 'file', at: '2026-11-04T16:40', title: 'Files ready to download', text: 'Your October books for REQ-2026-0045 (Monthly bookkeeping) are ready.', href: 'deliverables.html', read: true },
+    { id: 'N-26', kind: 'request', at: '2026-11-04T10:30', title: 'Name search approved', text: 'REQ-2026-0043 (Company registration) passed the CAC name search.', href: 'task.html?id=REQ-2026-0043', read: true },
+    { id: 'N-25', kind: 'account', at: '2026-11-03T08:00', title: 'Planned maintenance', text: 'The app may be unavailable on Sat 21 Nov 2026, 1am–3am WAT. Requests already sent aren’t affected.', read: true },
+    { id: 'N-24', kind: 'account', at: '2026-10-28T08:05', title: 'Plan renewed', text: 'Your Growth plan renewed for 28 Oct – 27 Nov. It renews next on 28 Nov 2026.', href: 'plan.html', read: true },
+  ];
+  const notes = () => NOTES.map(n => Object.assign({}, n, { read: n.read || (store.nread || []).includes(n.id) })).sort((a, b) => (a.at < b.at ? 1 : -1));
+  function readNote(id) { store.nread = Array.from(new Set((store.nread || []).concat(id))); writeStore(store); }
+  const readAllNotes = () => { store.nread = NOTES.map(n => n.id); writeStore(store); };
+  const unreadNotes = () => notes().filter(n => !n.read).length;
+
+  // Every page's menu badge, message icon and bell show the live counts.
+  function paintCounts() {
+    const m = unreadConversations(), n = unreadNotes();
+    document.querySelectorAll('[data-count="msgs"]').forEach(el => { el.textContent = m; el.hidden = !m; });
+    document.querySelectorAll('[data-count-label="msgs"]').forEach(el => el.setAttribute('aria-label', m ? `Messages, ${m} unread` : 'Messages'));
+    document.querySelectorAll('[data-count-label="notes"]').forEach(el => el.setAttribute('aria-label', n ? `Notifications, ${n} unread` : 'Notifications'));
+    document.querySelectorAll('[data-dot="notes"]').forEach(el => { el.hidden = !n; });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', paintCounts); else paintCounts();
+
   // ---------- formatting ----------
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const toDate = s => new Date(s.length === 10 ? s + 'T12:00' : s);
@@ -251,5 +312,6 @@
   window.BANDA = { CATS, STATUS, CANCELLABLE, PRIORITY, all, find, update, esc, toDate, fmtDate, fmtDateTime, fmtSize, naira, chip,
     DSTATUS, DOWNLOADABLE, REVISION_NOTE, deliverables, deliverablesFor, setDeliverable, fileType, nowLocal, toast,
     PLANS, ACCOUNT, ISTATUS, invoices, payInvoice, invoiceForTask, getPref, setPref,
-    SUPPORT, TOPICS, TSTATUS, getList, setList };
+    SUPPORT, TOPICS, TSTATUS, getList, setList,
+    DESKS, conversations, unreadConversations, markRead, markUnread, NKIND, notes, readNote, readAllNotes, unreadNotes, paintCounts };
 })();
