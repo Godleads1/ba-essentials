@@ -71,7 +71,13 @@
       submitted: '2026-11-02T14:07', due: '2026-11-20',
       details: 'Register Okeke Foods as a limited company. Two directors; documents attached.',
       files: [['Director_IDs.pdf', 1200000], ['Proposed_Names.docx', 42000]],
-      messages: [[TEAM, '2026-11-04T10:30', 'Name search approved. We’re preparing the incorporation documents.']] },
+      messages: [[TEAM, '2026-11-04T10:30', 'Name search approved. We’re preparing the incorporation documents.'],
+        [TEAM, '2026-11-12T15:10', 'Scoping is done. CAC’s filing fee and stamp duty are needed before we can file. Please review and approve the fees on this request.']],
+      // Third-party fees found at scoping (Terms 3.4, 5.3). Sample amounts, for the preview only.
+      fees: [
+        { payee: 'Corporate Affairs Commission (CAC)', what: 'Incorporation filing fee', amount: 35000, evidence: 'CAC_Fee_Schedule.pdf' },
+        { payee: 'Federal Inland Revenue Service', what: 'Stamp duty on share capital', amount: 7500, evidence: 'Remita_RRR_Invoice.pdf' },
+      ] },
     { id: 'REQ-2026-0042', title: 'Inventory tracker spreadsheet', cat: 'business', service: 'CRM or spreadsheet updates', status: 'delivered', priority: 'Standard',
       submitted: '2026-10-27T13:05', due: '2026-11-03',
       details: 'Clean up our inventory sheet and add low-stock alerts.',
@@ -146,7 +152,7 @@
 
   function withOverrides(t) {
     const o = store[t.id] || {};
-    return Object.assign({}, t, { status: o.status || t.status, messages: t.messages.concat(o.messages || []), files: t.files.concat(o.files || []) });
+    return Object.assign({}, t, { status: o.status || t.status, feesPaid: !!(o.feesPaid || t.feesPaid), messages: t.messages.concat(o.messages || []), files: t.files.concat(o.files || []) });
   }
   // Requests submitted in this preview come first, newest at the top.
   const source = () => (store.added || []).slice().reverse().concat(TASKS);
@@ -177,6 +183,7 @@
     if (change.status) o.status = change.status;
     if (change.message) o.messages = (o.messages || []).concat([change.message]);
     if (change.files) o.files = (o.files || []).concat(change.files);
+    if (change.feesPaid) o.feesPaid = true;
     store[id] = o; writeStore(store);
   }
 
@@ -351,6 +358,32 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', paintCounts); else paintCounts();
 
+  // ---------- third-party fees and the payment provider's charge ----------
+  // Third-party fees are charged at cost. Paystack takes its charge out of the total it
+  // collects, so the total is grossed up until exactly the fee reaches us after that charge.
+  // Paystack, local cards: 1.5% + ₦100 (₦100 waived under ₦2,500), capped at ₦2,000.
+  // Source: https://support.paystack.com/en/articles/2130306 (checked 13 Nov 2026).
+  const PAYSTACK_LOCAL = { pct: 0.015, flat: 100, flatFrom: 2500, cap: 2000 };
+  function paystackCharge(total) {
+    const c = PAYSTACK_LOCAL;
+    return Math.min(total * c.pct + (total >= c.flatFrom ? c.flat : 0), c.cap);
+  }
+  // Smallest whole-naira total whose Paystack charge still leaves `net` for the third party.
+  function grossUp(net) {
+    if (net <= 0) return 0;
+    let total = Math.ceil(net / (1 - PAYSTACK_LOCAL.pct));
+    if (total >= PAYSTACK_LOCAL.flatFrom) total = Math.ceil((net + PAYSTACK_LOCAL.flat) / (1 - PAYSTACK_LOCAL.pct));
+    if (paystackCharge(total) >= PAYSTACK_LOCAL.cap) total = net + PAYSTACK_LOCAL.cap;
+    while (total - paystackCharge(total) < net) total += 1;
+    return total;
+  }
+  function feeBreakdown(task) {
+    const fees = (task && task.fees) || [];
+    const net = fees.reduce((sum, f) => sum + f.amount, 0);
+    const total = grossUp(net);
+    return { fees, net, processing: total - net, total };
+  }
+
   // ---------- formatting ----------
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const toDate = s => new Date(s.length === 10 ? s + 'T12:00' : s);
@@ -369,7 +402,7 @@
   }
   const chip = (cls, text) => `<span class="chip-status ${cls}">${esc(text)}</span>`;
 
-  window.BANDA = { CATS, STATUS, CANCELLABLE, PRIORITY, all, find, add, update, esc, toDate, fmtDate, fmtDateTime, fmtSize, naira, chip,
+  window.BANDA = { CATS, STATUS, CANCELLABLE, PRIORITY, all, find, add, update, feeBreakdown, grossUp, paystackCharge, esc, toDate, fmtDate, fmtDateTime, fmtSize, naira, chip,
     DSTATUS, DOWNLOADABLE, REVISION_NOTE, deliverables, deliverablesFor, setDeliverable, fileType, nowLocal, toast,
     PLANS, ACCOUNT, ISTATUS, invoices, payInvoice, invoiceForTask, getPref, setPref,
     SUPPORT, TOPICS, TSTATUS, getList, setList,

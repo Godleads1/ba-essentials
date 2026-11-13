@@ -261,7 +261,7 @@
         bandaStyle.textContent = '[data-initials],#pfInitials,#phPreview{background-image:url("' + bandaMe.photo + '");background-size:cover;background-position:center;color:transparent}';
         document.head.appendChild(bandaStyle);
       }
-    } catch (e) { /* storage blocked: initials show instead */ }
+    } catch { /* storage blocked: initials show instead */ }
   </script>
 </head>
 
@@ -400,6 +400,25 @@
                 <div><p class="text-[12px] text-ink-muted">Quoted cost</p><p id="qAmount" class="font-display text-[26px] font-semibold leading-tight"></p></div>
                 <button type="button" id="payQuote" class="btn-next">Review quote and pay <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></button>
               </div>
+              <div id="feesBlock" class="mt-4" hidden>
+                <h3 class="text-[14px] font-semibold">Third-party fees</h3>
+                <p class="mt-0.5 text-[13px] text-ink-muted">Paid to the organisations below, at cost. We don&rsquo;t file or book anything until they&rsquo;re paid.</p>
+                <div class="mt-3 overflow-hidden rounded-2xl border border-cream-line">
+                  <table class="w-full text-left text-[13.5px]">
+                    <caption class="sr-only">Third-party fees for this request</caption>
+                    <thead class="bg-cream-light text-[12px] text-ink-muted"><tr><th scope="col" class="px-4 py-2.5 font-medium">Paid to</th><th scope="col" class="px-4 py-2.5 text-right font-medium">Amount</th></tr></thead>
+                    <tbody id="feeRows" class="divide-y divide-cream-line"></tbody>
+                    <tfoot class="border-t border-cream-line">
+                      <tr><th scope="row" class="px-4 py-2.5 text-left font-medium">Payment processing (Paystack)<span class="block text-[12px] font-normal text-ink-muted">Paystack&rsquo;s charge, added so the full fees reach the organisations above</span></th><td id="feeProc" class="whitespace-nowrap px-4 py-2.5 text-right align-top tabular-nums"></td></tr>
+                      <tr class="bg-cream-light"><th scope="row" class="px-4 py-3 text-left font-semibold">Total to pay</th><td id="feeTotal" class="whitespace-nowrap px-4 py-3 text-right font-display text-[17px] font-semibold tabular-nums"></td></tr>
+                    </tfoot>
+                  </table>
+                </div>
+                <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
+                  <p id="feeState" class="text-[13px]" tabindex="-1"></p>
+                  <button type="button" id="payFees" class="btn-next">Approve and pay</button>
+                </div>
+              </div>
               <p id="payNote" class="mt-3 rounded-xl bg-pill-navyBg px-3.5 py-2.5 text-[13px] text-brand-navy" role="status" hidden>Payment opens in Paystack once it&rsquo;s connected. In this preview, nothing is charged.</p>
             </section>
 
@@ -512,7 +531,24 @@
       $('dDetails').textContent = task.details;
       $('dFiles').innerHTML = task.files.length ? `<ul class="space-y-2">${task.files.map(f => fileRow(f, 'Download')).join('')}</ul>` : '<span class="text-ink-muted">None attached</span>';
 
-      $('quote').hidden = !task.quote;
+      $('quote').hidden = !task.quote && !task.fees;
+      // A request may carry third-party fees with or without a service quote.
+      const quoteIntro = $('quote').querySelector('p');
+      quoteIntro.textContent = task.quote ? 'This service is priced separately from your plan, so we’ve sent a quote.' : 'Your plan covers our work on this request. These fees are owed to other organisations.';
+      quoteIntro.nextElementSibling.hidden = !task.quote;
+      $('feesBlock').hidden = !task.fees;
+      if (task.fees) {
+        const fb = window.BANDA.feeBreakdown(task), paidFees = !!task.feesPaid;
+        $('feeRows').innerHTML = fb.fees.map(f => `<tr><td class="px-4 py-2.5"><span class="font-medium">${esc(f.payee)}</span><span class="block text-[12px] text-ink-muted">${esc(f.what)}</span><button type="button" class="mt-1 break-all text-left text-[12.5px] font-medium text-brand-navy underline underline-offset-2 hover:no-underline" data-preview-file>Evidence: ${esc(f.evidence)}</button></td><td class="whitespace-nowrap px-4 py-2.5 text-right align-top tabular-nums">${naira(f.amount)}</td></tr>`).join('');
+        $('feeProc').textContent = naira(fb.processing);
+        $('feeTotal').textContent = naira(fb.total);
+        $('feeState').innerHTML = paidFees
+          ? `${chip('bg-pill-greenBg text-pill-greenTx', 'Approved and paid')} <span class="text-ink-muted">We’ll upload the official receipts here once we’ve paid.</span>`
+          : chip('bg-pill-orangeBg text-brand-orangeDark', 'Needs your approval');
+        $('payFees').hidden = paidFees || task.status === 'cancelled';
+        $('payFees').textContent = `Approve and pay ${naira(fb.total)}`;
+        if (!task.quote) $('qState').innerHTML = paidFees ? chip('bg-pill-greenBg text-pill-greenTx', 'Paid') : chip('bg-pill-orangeBg text-brand-orangeDark', 'Fees to approve');
+      }
       if (task.quote) {
         $('qAmount').textContent = naira(task.quote.amount);
         // The quote's invoice decides whether it's paid.
@@ -593,6 +629,15 @@
     $('msg').addEventListener('input', () => { if ($('msg').value.trim()) { $('msgErr').hidden = true; $('msg').removeAttribute('aria-invalid'); } });
     function jumpToReply() { $('messages').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); $('msg').focus({ preventScroll: true }); }
     document.addEventListener('click', e => { if (e.target.closest('[data-jump-reply]')) { e.preventDefault(); jumpToReply(); } });
+
+    // ---------- third-party fees (preview: no payment is taken) ----------
+    $('payFees').addEventListener('click', () => {
+      const fb = window.BANDA.feeBreakdown(task);
+      update(task.id, { feesPaid: true, message: ['You', nowLocal(), `Approved the third-party fees (${naira(fb.total)}, including ${naira(fb.processing)} payment processing).`] });
+      task = findTask(id); render();
+      toast('Preview: approved. In the live app, Paystack opens to take the payment first.');
+      $('feeState').focus();
+    });
 
     // ---------- quote, files (preview only) ----------
     $('payQuote').addEventListener('click', e => { const id = e.currentTarget.dataset.invoice; if (id) location.href = 'billing.html?pay=' + encodeURIComponent(id); else $('payNote').hidden = false; });
