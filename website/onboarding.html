@@ -507,6 +507,9 @@
         digits = digits.replace(/\D/g, '');
         if (digits.startsWith('234')) digits = digits.slice(3);
         if (digits.startsWith('0')) digits = digits.slice(1);
+        const ev = email.value.normalize('NFKC').replace(/\p{Cf}/gu, '').trim();
+        const eErr = email.parentElement.querySelector('.err') || email.closest('div').querySelector('.err');
+        if (eErr) eErr.textContent = /@[^\s@.]+$/.test(ev) ? `Add the ending of your email address, like ${ev}.com.` : /@$/.test(ev) ? 'Add the rest of your email address after the @, like name@gmail.com.' : 'Enter an email address, like you@company.com.';
         const r = [
           flag(name, name.value.trim().split(/\s+/).length >= 1 && name.value.trim().length > 1),
           flag(email, /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.normalize('NFKC').replace(/\p{Cf}/gu, '').trim())),
