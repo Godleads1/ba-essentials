@@ -418,6 +418,8 @@
                   <p id="feeState" class="text-[13px]" tabindex="-1"></p>
                   <button type="button" id="payFees" class="btn-next">Approve and pay</button>
                 </div>
+                <p id="feeTest" class="mt-2 text-[12.5px] text-ink-muted" hidden>Paystack test mode: use a Paystack test card. No real money moves.</p>
+                <p id="feePayMsg" role="status" hidden></p>
               </div>
               <p id="payNote" class="mt-3 rounded-xl bg-pill-navyBg px-3.5 py-2.5 text-[13px] text-brand-navy" role="status" hidden>Payment opens in Paystack once it&rsquo;s connected. In this preview, nothing is charged.</p>
             </section>
@@ -543,10 +545,11 @@
         $('feeProc').textContent = naira(fb.processing);
         $('feeTotal').textContent = naira(fb.total);
         $('feeState').innerHTML = paidFees
-          ? `${chip('bg-pill-greenBg text-pill-greenTx', 'Approved and paid')} <span class="text-ink-muted">We’ll upload the official receipts here once we’ve paid.</span>`
-          : chip('bg-pill-orangeBg text-brand-orangeDark', 'Needs your approval');
+          ? `${chip('bg-pill-greenBg text-pill-greenTx', 'Paid')} <span class="text-ink-muted">${typeof task.feesPaid === 'string' ? `Paystack reference ${esc(task.feesPaid)}. ` : ''}We’ll upload the official receipts here once we’ve paid the organisations.</span>`
+          : chip('bg-pill-orangeBg text-brand-orangeDark', 'Payment needed');
         $('payFees').hidden = paidFees || task.status === 'cancelled';
-        $('payFees').textContent = `Approve and pay ${naira(fb.total)}`;
+        if (!$('payFees').disabled) $('payFees').textContent = `Approve and pay ${naira(fb.total)}`;
+        $('feeTest').hidden = paidFees || task.status === 'cancelled' || !window.BANDA.PAYSTACK_TEST;
         if (!task.quote) $('qState').innerHTML = paidFees ? chip('bg-pill-greenBg text-pill-greenTx', 'Paid') : chip('bg-pill-orangeBg text-brand-orangeDark', 'Fees to approve');
       }
       if (task.quote) {
@@ -630,13 +633,30 @@
     function jumpToReply() { $('messages').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); $('msg').focus({ preventScroll: true }); }
     document.addEventListener('click', e => { if (e.target.closest('[data-jump-reply]')) { e.preventDefault(); jumpToReply(); } });
 
-    // ---------- third-party fees (preview: no payment is taken) ----------
+    // ---------- third-party fees: paid in Paystack before we file anything ----------
+    function feeNotice(text, tone) {
+      const n = $('feePayMsg');
+      n.className = 'mt-3 rounded-xl px-3.5 py-2.5 text-[13px] ' + (tone === 'error' ? 'bg-red-50 text-red-800' : tone === 'ok' ? 'bg-pill-greenBg text-pill-greenTx' : 'bg-pill-orangeBg text-brand-orangeDark');
+      n.textContent = text; n.hidden = !text;
+    }
     $('payFees').addEventListener('click', () => {
-      const fb = window.BANDA.feeBreakdown(task);
-      update(task.id, { feesPaid: true, message: ['You', nowLocal(), `Approved the third-party fees (${naira(fb.total)}, including ${naira(fb.processing)} payment processing).`] });
-      task = findTask(id); render();
-      toast('Preview: approved. In the live app, Paystack opens to take the payment first.');
-      $('feeState').focus();
+      const fb = window.BANDA.feeBreakdown(task), btn = $('payFees');
+      feeNotice('');
+      btn.disabled = true; btn.textContent = 'Opening Paystack…';
+      const done = () => { btn.disabled = false; btn.textContent = `Approve and pay ${naira(fb.total)}`; };
+      window.BANDA.payWithPaystack({
+        amount: fb.total, purpose: 'Third-party fees', ref: task.id,
+        onPaid: reference => {
+          update(task.id, { feesPaid: reference, message: ['You', nowLocal(), `Paid the third-party fees: ${naira(fb.total)}, including ${naira(fb.processing)} payment processing. Paystack reference ${reference}.`] });
+          task = findTask(id); done(); render();
+          feeNotice(window.BANDA.PAYSTACK_TEST
+            ? `Test payment completed (reference ${reference}). No real money moved. In the live app, the fees show as paid once our server confirms the payment with Paystack.`
+            : `Payment received (reference ${reference}). We’ll confirm it with Paystack and then pay the organisations.`, 'ok');
+          $('feeState').focus();
+        },
+        onCancel: () => { done(); feeNotice('Payment cancelled. You haven’t been charged, and the fees still need paying before we can file.', 'warn'); btn.focus(); },
+        onFail: () => { done(); feeNotice('We couldn’t reach Paystack. Check your connection and try again.', 'error'); btn.focus(); },
+      });
     });
 
     // ---------- quote, files (preview only) ----------

@@ -152,7 +152,7 @@
 
   function withOverrides(t) {
     const o = store[t.id] || {};
-    return Object.assign({}, t, { status: o.status || t.status, feesPaid: !!(o.feesPaid || t.feesPaid), messages: t.messages.concat(o.messages || []), files: t.files.concat(o.files || []) });
+    return Object.assign({}, t, { status: o.status || t.status, feesPaid: o.feesPaid || t.feesPaid || false, messages: t.messages.concat(o.messages || []), files: t.files.concat(o.files || []) });
   }
   // Requests submitted in this preview come first, newest at the top.
   const source = () => (store.added || []).slice().reverse().concat(TASKS);
@@ -183,7 +183,7 @@
     if (change.status) o.status = change.status;
     if (change.message) o.messages = (o.messages || []).concat([change.message]);
     if (change.files) o.files = (o.files || []).concat(change.files);
-    if (change.feesPaid) o.feesPaid = true;
+    if (change.feesPaid) o.feesPaid = typeof change.feesPaid === 'string' ? change.feesPaid : true;
     store[id] = o; writeStore(store);
   }
 
@@ -241,7 +241,7 @@
       return v;
     });
   }
-  function payInvoice(id) { store['i:' + id] = { status: 'paid', paidOn: nowLocal().slice(0, 10) }; writeStore(store); }
+  function payInvoice(id, ref) { store['i:' + id] = { status: 'paid', paidOn: nowLocal().slice(0, 10), ref: ref || '' }; writeStore(store); }
   const invoiceForTask = taskId => invoices().find(i => i.task === taskId);
   const getPref = (k, fallback) => (k in (store.prefs || {}) ? store.prefs[k] : fallback);
   function setPref(k, v) { store.prefs = Object.assign({}, store.prefs, { [k]: v }); writeStore(store); }
@@ -402,9 +402,41 @@
   }
   const chip = (cls, text) => `<span class="chip-status ${cls}">${esc(text)}</span>`;
 
+  // ---------- Paystack (test mode) ----------
+  // Public test key only. The secret key never goes in a page: in the live app the server
+  // starts the payment and confirms it with Paystack before anything is marked as paid.
+  const PAYSTACK_KEY = 'pk_test_046585830e2e5761ae7fca14de3ace2247e44fe3';
+  const PAYSTACK_TEST = PAYSTACK_KEY.startsWith('pk_test_');
+  let paystackScript;
+  function loadPaystack() {
+    return paystackScript ||= new Promise((resolve, reject) => {
+      const tag = document.createElement('script');
+      tag.src = 'https://js.paystack.co/v2/inline.js';
+      tag.onload = resolve;
+      tag.onerror = () => { paystackScript = null; tag.remove(); reject(new Error('Paystack did not load')); };
+      document.head.appendChild(tag);
+    });
+  }
+  // Opens Paystack's payment window. onPaid runs only when Paystack reports a completed payment.
+  function payWithPaystack({ amount, purpose, ref, onPaid, onCancel, onFail }) {
+    const prof = getPref('profile', {}) || {};
+    const email = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(prof.email || '') ? prof.email : 'chinedu@okekefoods.example';
+    const reference = 'BA-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
+    return loadPaystack().then(() => {
+      new window.PaystackPop().newTransaction({
+        key: PAYSTACK_KEY, email, currency: 'NGN', reference,
+        amount: Math.round(amount * 100), // kobo
+        metadata: { purpose, ref, custom_fields: [{ display_name: 'For', variable_name: 'purpose', value: purpose + ' · ' + ref }] },
+        onSuccess: tx => onPaid && onPaid(tx.reference || reference),
+        onCancel: () => onCancel && onCancel(),
+        onError: () => onFail && onFail('start'),
+      });
+    }).catch(() => onFail && onFail('load'));
+  }
+
   window.BANDA = { CATS, STATUS, CANCELLABLE, PRIORITY, all, find, add, update, feeBreakdown, grossUp, paystackCharge, esc, toDate, fmtDate, fmtDateTime, fmtSize, naira, chip,
     DSTATUS, DOWNLOADABLE, REVISION_NOTE, deliverables, deliverablesFor, setDeliverable, fileType, nowLocal, toast,
-    PLANS, ACCOUNT, ISTATUS, invoices, payInvoice, invoiceForTask, getPref, setPref,
+    PLANS, ACCOUNT, ISTATUS, invoices, payInvoice, invoiceForTask, getPref, setPref, payWithPaystack, PAYSTACK_TEST,
     SUPPORT, TOPICS, TSTATUS, getList, setList,
     DESKS, conversations, unreadConversations, markRead, markUnread, NKIND, notes, readNote, readAllNotes, unreadNotes, paintCounts };
 })();
