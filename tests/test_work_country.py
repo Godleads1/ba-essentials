@@ -177,3 +177,13 @@ def test_manifest_sets_a_service_country(db, tmp_path):
         "scope_summary": "Search the USPTO register.", "deliverables_summary": "A report."}]}]}))
     call_command("bootstrap_catalogue", str(path), stdout=open("/dev/null", "w"))
     assert ServiceDefinition.objects.get(slug="us-tm").work_country == "US"
+
+
+def test_resolve_form_with_a_bad_return_address_does_not_crash(organization, quote_approver):
+    flag = AccountFlag.objects.create(organization=organization, kind="card_country", detail="UK card")
+    response = login_client(quote_approver).post(
+        f"/staff/flags/{flag.pk}/resolve/", {"resolution": "Checked with the owner", "task": "not-a-uuid"}
+    )
+    assert response.status_code == 302 and response["Location"].endswith("/staff/clients/")
+    flag.refresh_from_db()
+    assert flag.resolved_at is not None

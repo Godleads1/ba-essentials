@@ -590,7 +590,12 @@ def confirm_work_country(request, task_id):
 @require_POST
 def resolve_account_flag(request, flag_id):
     flag = AccountFlag.objects.filter(pk=flag_id).select_related("organization").first()
-    task_id = request.POST.get("task", "")
+    import uuid
+
+    try:
+        task_id = uuid.UUID(request.POST.get("task", ""))
+    except ValueError:
+        task_id = None
     back = redirect("staff-task-detail", task_id=task_id) if task_id else redirect("staff-clients")
     if flag is None:
         raise Http404("Flag not found")
