@@ -183,6 +183,11 @@ PAYSTACK_SECRET_KEY = env("PAYSTACK_SECRET_KEY", "")
 PAYSTACK_PUBLIC_KEY = env("PAYSTACK_PUBLIC_KEY", "")
 PAYSTACK_WEBHOOK_SECRET = env("PAYSTACK_WEBHOOK_SECRET", "")
 PAYSTACK_BASE_CURRENCY = "NGN"
+# Flutterwave takes US dollar payments from businesses outside Nigeria. The secret
+# key and webhook hash come from the environment and are never sent to the browser.
+FLUTTERWAVE_SECRET_KEY = env("FLUTTERWAVE_SECRET_KEY", "")
+FLUTTERWAVE_PUBLIC_KEY = env("FLUTTERWAVE_PUBLIC_KEY", "")
+FLUTTERWAVE_WEBHOOK_HASH = env("FLUTTERWAVE_WEBHOOK_HASH", "")
 
 # --- Business policy defaults (require founder approval) ------------------
 OTP_TTL_SECONDS = env_int("OTP_TTL_SECONDS", 600)

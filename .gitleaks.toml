@@ -3,15 +3,16 @@
 #
 # - The MFA key-derivation context is a fixed domain separator, not key
 #   material (the key material is DJANGO_SECRET_KEY).
-# - Paystack public keys (pk_test_/pk_live_) are made to be served in web pages:
+# - Paystack (pk_test_/pk_live_) and Flutterwave (FLWPUBK_...) public keys are made to be served in web pages:
 #   they can only open a checkout, never move money or read data. The static
 #   preview site uses the test public key to open Paystack's test window.
 [extend]
 useDefault = true
 
 [allowlist]
-description = "Public values: MFA derivation context and Paystack public keys"
+description = "Public values: MFA derivation context and payment public keys"
 regexes = [
   '''ba-essentials-mfa-v1''',
   '''pk_(test|live)_[0-9a-f]{40}''',
+  '''FLWPUBK(_TEST)?-[0-9a-f]{32}-X''',
 ]

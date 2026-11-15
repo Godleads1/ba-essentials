@@ -5,6 +5,7 @@ import uuid
 from django.conf import settings
 from django.db import models
 
+from apps.core.countries import choices as country_choices
 from apps.core.models import TimeStampedModel
 
 
@@ -20,6 +21,9 @@ class Organization(TimeStampedModel):
     status = models.CharField(
         max_length=16, choices=OrganizationStatus.choices, default=OrganizationStatus.ACTIVE
     )
+    # Where the business is based. It sets the pricing region and currency, so the
+    # client can't change it after sign-up; staff can, from admin, with a record.
+    country = models.CharField(max_length=2, blank=True, choices=country_choices)
 
     class Meta:
         ordering = ["name"]
@@ -30,6 +34,12 @@ class Organization(TimeStampedModel):
     @property
     def is_active(self) -> bool:
         return self.status == OrganizationStatus.ACTIVE
+
+    @property
+    def region(self) -> str:
+        from apps.core.countries import region_for
+
+        return region_for(self.country)
 
 
 class MembershipRole(models.TextChoices):

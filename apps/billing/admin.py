@@ -2,7 +2,10 @@ from __future__ import annotations
 
 from django.contrib import admin
 
+from apps.audit import services as audit_service
+
 from .models import (
+    BillingSettings,
     Invoice,
     PaymentAttempt,
     Plan,
@@ -16,7 +19,7 @@ from .models import (
 class PlanAdmin(admin.ModelAdmin):
     list_display = (
         "name", "slug", "rank", "monthly_task_allowance", "legal_review_allowance",
-        "legal_review_period_months", "price_minor", "is_active",
+        "legal_review_period_months", "price_minor", "price_usd_minor", "is_active",
     )
     list_filter = ("is_active", "currency")
     search_fields = ("name", "slug")
@@ -133,3 +136,62 @@ class ProviderWebhookEventAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+@admin.register(BillingSettings)
+class BillingSettingsAdmin(admin.ModelAdmin):
+    """Yearly discount, extra legal review fees and the rest-of-Africa amount.
+
+    Only super admins can see or change these, there is only ever one row, and
+    every change is written to the audit log with the old and new values.
+    """
+
+    fields = (
+        "yearly_discount_pct",
+        "extra_legal_fee_ngn_minor",
+        "extra_legal_fee_usd_minor",
+        "africa_surcharge_ngn_minor",
+        "fallback_ngn_per_usd",
+        "updated_at",
+        "updated_by",
+    )
+    readonly_fields = ("updated_at", "updated_by")
+
+    def _super(self, request):
+        return request.user.is_active and request.user.is_superuser
+
+    def has_module_permission(self, request):
+        return self._super(request)
+
+    def has_view_permission(self, request, obj=None):
+        return self._super(request)
+
+    def has_change_permission(self, request, obj=None):
+        return self._super(request)
+
+    def has_add_permission(self, request):
+        return self._super(request) and not BillingSettings.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def save_model(self, request, obj, form, change):
+        before = {}
+        if change:
+            old = BillingSettings.objects.get(pk=obj.pk)
+            before = {f: str(getattr(old, f)) for f in form.changed_data}
+        obj.pk = 1
+        obj.updated_by = request.user
+        super().save_model(request, obj, form, change)
+        from django.core.cache import cache
+
+        from .pricing import RATE_CACHE_KEY
+
+        cache.delete(RATE_CACHE_KEY)
+        audit_service.record(
+            action="billing.settings_changed",
+            actor=request.user,
+            resource_type="billing_settings",
+            resource_id="1",
+            metadata={"changed": {f: [before.get(f, ""), str(getattr(obj, f))] for f in form.changed_data}},
+        )

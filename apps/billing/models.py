@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import uuid
+from decimal import Decimal
 
 from django.conf import settings
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from apps.core.models import TimeStampedModel
@@ -23,6 +25,8 @@ class Plan(TimeStampedModel):
     )
     price_minor = models.BigIntegerField(default=0)
     currency = models.CharField(max_length=3, default="NGN")
+    # US dollar list price in cents, for businesses outside Africa.
+    price_usd_minor = models.BigIntegerField(default=0)
     is_active = models.BooleanField(default=True)
 
     class Meta:
@@ -36,6 +40,66 @@ class Plan(TimeStampedModel):
         n = self.legal_review_allowance
         per = "quarter" if self.legal_review_period_months == 3 else "month"
         return f"{n} legal review{'' if n == 1 else 's'} a {per}"
+
+
+class BillingInterval(models.TextChoices):
+    MONTH = "month", "Monthly"
+    YEAR = "year", "Yearly"
+
+
+class BillingSettings(models.Model):
+    """Prices the super admin sets without a code change. One row only (pk=1)."""
+
+    yearly_discount_pct = models.PositiveSmallIntegerField(
+        default=15,
+        validators=[MaxValueValidator(50)],
+        help_text="Discount for paying yearly, as a percentage (0 to 50).",
+    )
+    extra_legal_fee_ngn_minor = models.BigIntegerField(
+        default=2_500_000, help_text="Extra legal review beyond the plan, in kobo (₦25,000 = 2500000)."
+    )
+    extra_legal_fee_usd_minor = models.BigIntegerField(
+        default=4_000, help_text="Extra legal review beyond the plan, in US cents ($40 = 4000)."
+    )
+    africa_surcharge_ngn_minor = models.BigIntegerField(
+        default=10_000,
+        help_text="Added to the naira price for the rest of Africa before converting, in kobo (₦100 = 10000).",
+    )
+    fallback_ngn_per_usd = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(Decimal("100")), MaxValueValidator(Decimal("20000"))],
+        help_text="Used only when the live exchange rate can't be fetched. Leave empty to pause dollar checkouts instead.",
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
+    )
+
+    class Meta:
+        verbose_name = "billing settings"
+        verbose_name_plural = "billing settings"
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(yearly_discount_pct__lte=50), name="billing_discount_at_most_50"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(extra_legal_fee_ngn_minor__gte=0)
+                & models.Q(extra_legal_fee_usd_minor__gte=0)
+                & models.Q(africa_surcharge_ngn_minor__gte=0),
+                name="billing_amounts_not_negative",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return "Billing settings"
+
+    @classmethod
+    def current(cls) -> BillingSettings:
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
 
 
 class SubscriptionStatus(models.TextChoices):
@@ -54,6 +118,9 @@ class Subscription(TimeStampedModel):
     period_end = models.DateTimeField()
     status = models.CharField(
         max_length=16, choices=SubscriptionStatus.choices, default=SubscriptionStatus.ACTIVE
+    )
+    interval = models.CharField(
+        max_length=8, choices=BillingInterval.choices, default=BillingInterval.MONTH
     )
 
     def __str__(self) -> str:
@@ -137,6 +204,12 @@ class Invoice(TimeStampedModel):
     )
     # The end of the period the upgrade was priced for. It applies only within it.
     upgrade_period_end = models.DateTimeField(null=True, blank=True)
+    # For plan invoices: how long the payment covers.
+    interval = models.CharField(
+        max_length=8, choices=BillingInterval.choices, default=BillingInterval.MONTH
+    )
+    # Naira per US dollar used to price a rest-of-Africa invoice, kept as a record.
+    fx_ngn_per_usd = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     amount_minor = models.BigIntegerField()
     currency = models.CharField(max_length=3, default="NGN")
     status = models.CharField(

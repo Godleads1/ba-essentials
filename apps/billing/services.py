@@ -23,9 +23,10 @@ from apps.core.exceptions import (
 from apps.core.sequences import next_value
 from apps.quotes.models import Quote, QuoteStatus
 
-from . import fees, paystack
+from . import fees, flutterwave, paystack, pricing
 from .models import (
     COVERING_USAGE_KINDS,
+    BillingInterval,
     Invoice,
     InvoiceStatus,
     PaymentAttempt,
@@ -60,6 +61,16 @@ def active_subscription(organization) -> Subscription | None:
     return subscription
 
 
+def task_window_start(subscription: Subscription, now=None):
+    """Start of the current month of tasks. A yearly plan still gets its tasks month by month."""
+    now = now or timezone.now()
+    start, k = subscription.period_start, 0
+    while add_months(subscription.period_start, k + 1) <= now:
+        k += 1
+        start = add_months(subscription.period_start, k)
+    return start
+
+
 def allowance_remaining(organization) -> int:
     subscription = active_subscription(organization)
     if subscription is None:
@@ -68,7 +79,7 @@ def allowance_remaining(organization) -> int:
         UsageLedger.objects.filter(
             organization=organization,
             kind=UsageKind.ALLOWANCE,
-            period_start=subscription.period_start,
+            period_start=task_window_start(subscription),
         ).aggregate(total=Sum("units"))["total"]
         or 0
     )
@@ -95,7 +106,7 @@ def reserve_allowance(task) -> bool:
         else:
             kind = UsageKind.ALLOWANCE
             limit = subscription.plan.monthly_task_allowance
-            window = subscription.period_start
+            window = task_window_start(subscription)
         if legal:
             used = plan_rules.legal_reviews_used(task.organization_id, subscription)
         else:
@@ -306,7 +317,9 @@ def add_months(moment, months: int):
     return moment.replace(year=year, month=month, day=day)
 
 
-def start_plan_checkout(*, organization, membership, plan_slug: str, return_url: str) -> str:
+def start_plan_checkout(
+    *, organization, membership, plan_slug: str, return_url: str, interval: str = "month"
+) -> str:
     """Create the plan invoice and payment record, then start Paystack checkout.
 
     Price, currency and customer all come from the server. Returns the hosted
@@ -322,10 +335,14 @@ def start_plan_checkout(*, organization, membership, plan_slug: str, return_url:
     plan = Plan.objects.filter(slug=plan_slug, is_active=True).first()
     if plan is None or plan.price_minor <= 0:
         raise ValidationFailure("That plan isn't available.")
-    if plan.currency != settings.PAYSTACK_BASE_CURRENCY:
-        raise ValidationFailure("That plan can't be paid with Paystack.")
+    if plan.currency != "NGN":
+        raise ValidationFailure("That plan isn't set up correctly.")
+    if interval not in BillingInterval.values:
+        raise ValidationFailure("Choose monthly or yearly.")
     if active_subscription(organization) is not None:
         raise ValidationFailure("Your business already has an active plan.")
+    # The business's country decides the price and currency, never the browser.
+    price = pricing.plan_price(plan, organization.region, interval)
 
     user = membership.user
     with transaction.atomic():
@@ -339,8 +356,9 @@ def start_plan_checkout(*, organization, membership, plan_slug: str, return_url:
                 plan=plan,
                 upgrade_from__isnull=True,
                 status=InvoiceStatus.ISSUED,
-                amount_minor=plan.price_minor,
-                currency=plan.currency,
+                amount_minor=price.amount_minor,
+                currency=price.currency,
+                interval=price.interval,
             )
             .order_by("-issued_at")
             .first()
@@ -351,28 +369,41 @@ def start_plan_checkout(*, organization, membership, plan_slug: str, return_url:
                 number=f"INV-{timezone.now():%Y}-{number}",
                 organization=organization,
                 plan=plan,
-                amount_minor=plan.price_minor,
-                currency=plan.currency,
+                amount_minor=price.amount_minor,
+                currency=price.currency,
+                interval=price.interval,
+                fx_ngn_per_usd=price.rate,
                 status=InvoiceStatus.ISSUED,
                 due_at=timezone.now() + timedelta(days=1),
             )
         # Created under the invoice lock, so a parallel checkout that fails can't
         # void this invoice while this attempt is about to use it.
-        metadata = {"invoice": invoice.number, "plan": plan.slug}
+        metadata = {"invoice": invoice.number, "plan": plan.slug, "interval": price.interval}
         attempt = _create_attempt(invoice, user, metadata)
     return _start_checkout(attempt, user, return_url=return_url, metadata=metadata, void_on_failure=True)
 
 
-def upgrade_charge_minor(subscription: Subscription, target: Plan, now=None) -> int:
-    """The price difference for the time left in the current period, rounded up to ₦1."""
+def upgrade_charge(subscription: Subscription, target: Plan, now=None, *, rate=None) -> pricing.Price:
+    """The price difference for the time left in the current period, in the business's currency.
+
+    Rounded up to a whole naira or dollar (to the cent for converted rest-of-Africa prices).
+    """
     now = now or timezone.now()
-    total = (subscription.period_end - subscription.period_start).total_seconds()
-    left = max(0.0, (subscription.period_end - now).total_seconds())
-    if total <= 0:
-        return 0
-    difference = target.price_minor - subscription.plan.price_minor
-    raw = difference * left / total
-    return max(100, -(-int(raw) // 100) * 100)
+    region = subscription.organization.region
+    current = pricing.plan_price(subscription.plan, region, subscription.interval, rate=rate)
+    wanted = pricing.plan_price(target, region, subscription.interval, rate=current.rate)
+    total = int((subscription.period_end - subscription.period_start).total_seconds() * 1_000_000)
+    left = max(0, int((subscription.period_end - now).total_seconds() * 1_000_000))
+    unit = 1 if region == "africa" else 100
+    difference = wanted.amount_minor - current.amount_minor
+    # Exact integer ceiling of difference × left ÷ total, then up to the whole unit.
+    raw = -(-(difference * left) // total) if total > 0 else 0
+    amount = max(unit, -(-raw // unit) * unit)
+    return pricing.Price(amount, wanted.currency, subscription.interval, wanted.rate)
+
+
+def upgrade_charge_minor(subscription: Subscription, target: Plan, now=None) -> int:
+    return upgrade_charge(subscription, target, now).amount_minor
 
 
 def upgrade_options(organization) -> list[tuple[Plan, int]]:
@@ -383,7 +414,16 @@ def upgrade_options(organization) -> list[tuple[Plan, int]]:
     plans = Plan.objects.filter(
         is_active=True, rank__gt=subscription.plan.rank, currency=subscription.plan.currency
     ).order_by("rank")
-    return [(plan, upgrade_charge_minor(subscription, plan)) for plan in plans]
+    options = []
+    rate = None
+    for plan in plans:
+        try:
+            charge = upgrade_charge(subscription, plan, rate=rate)
+        except ValidationFailure:
+            continue  # no dollar price yet, or no rate today
+        rate = charge.rate
+        options.append((plan, charge))
+    return options
 
 
 def start_upgrade_checkout(*, organization, membership, plan_slug: str, return_url: str) -> str:
@@ -422,9 +462,10 @@ def start_upgrade_checkout(*, organization, membership, plan_slug: str, return_u
         current = subscription.plan
         if target.rank <= current.rank:
             raise ValidationFailure("Moving to a smaller plan takes effect at renewal, not through an upgrade.")
-        if target.currency != current.currency or target.currency != settings.PAYSTACK_BASE_CURRENCY:
-            raise ValidationFailure("That plan can't be paid with Paystack.")
-        amount = upgrade_charge_minor(subscription, target, now)
+        if target.currency != current.currency:
+            raise ValidationFailure("That plan isn't set up correctly.")
+        charge = upgrade_charge(subscription, target, now)
+        amount = charge.amount_minor
         number = next_value("invoice.number", start=1000)
         invoice = Invoice.objects.create(
             number=f"INV-{now:%Y}-{number}",
@@ -433,7 +474,9 @@ def start_upgrade_checkout(*, organization, membership, plan_slug: str, return_u
             upgrade_from=current,
             upgrade_period_end=subscription.period_end,
             amount_minor=amount,
-            currency=target.currency,
+            currency=charge.currency,
+            interval=subscription.interval,
+            fx_ngn_per_usd=charge.rate,
             status=InvoiceStatus.ISSUED,
             due_at=now + timedelta(days=1),
         )
@@ -471,8 +514,8 @@ def start_invoice_checkout(*, invoice: Invoice, membership, return_url: str) -> 
         locked = Invoice.objects.select_for_update().get(pk=invoice.pk)
         if locked.status != InvoiceStatus.ISSUED:
             raise ValidationFailure("This invoice isn't open for payment.")
-        if locked.currency != settings.PAYSTACK_BASE_CURRENCY:
-            raise ValidationFailure("This invoice can't be paid with Paystack.")
+        if locked.currency not in ("NGN", "USD"):
+            raise ValidationFailure("This invoice can't be paid by card.")
         attempt = _create_attempt(locked, membership.user, metadata)
     return _start_checkout(
         attempt, membership.user, return_url=return_url, metadata=metadata, void_on_failure=False
@@ -484,7 +527,7 @@ def _create_attempt(invoice: Invoice, user, metadata: dict) -> PaymentAttempt:
     reference = f"BA-{uuid.uuid4().hex[:24].upper()}"
     attempt = PaymentAttempt.objects.create(
         invoice=invoice,
-        provider="paystack",
+        provider=pricing.provider_for(invoice.currency),
         reference=reference,
         amount_minor=invoice.amount_minor,
         currency=invoice.currency,
@@ -506,8 +549,10 @@ def _start_checkout(
 ) -> str:
     """Ask Paystack for a checkout. Runs outside any transaction: never hold a lock on a network call."""
     invoice = attempt.invoice
+    client = paystack if attempt.provider == "paystack" else flutterwave
+    error = paystack.PaystackError if attempt.provider == "paystack" else flutterwave.FlutterwaveError
     try:
-        return paystack.initialize(
+        return client.initialize(
             email=user.email,
             amount_minor=attempt.amount_minor,
             currency=attempt.currency,
@@ -515,7 +560,7 @@ def _start_checkout(
             callback_url=return_url,
             metadata=metadata,
         )
-    except paystack.PaystackError as exc:
+    except error as exc:
         with transaction.atomic():
             Invoice.objects.select_for_update().filter(pk=invoice.pk).first()
             PaymentAttempt.objects.filter(pk=attempt.pk).update(
@@ -529,16 +574,49 @@ def _start_checkout(
                 Invoice.objects.filter(pk=invoice.pk, status=InvoiceStatus.ISSUED).update(
                     status=InvoiceStatus.VOID, updated_at=timezone.now()
                 )
-        logger.warning("Paystack checkout could not start for %s: %s", attempt.reference, exc)
+        logger.warning("%s checkout could not start for %s: %s", attempt.provider, attempt.reference, exc)
         raise ValidationFailure("We couldn't start the payment. Please try again.") from exc
 
 
-def _verify_signature(raw_body: bytes, signature: str) -> bool:
+def _verify_signature(raw_body: bytes, signature: str, provider: str = "paystack") -> bool:
+    if provider == "flutterwave":
+        # Flutterwave sends the secret hash set in its dashboard in the `verif-hash` header.
+        secret = settings.FLUTTERWAVE_WEBHOOK_HASH
+        if not secret:
+            raise RuntimeError("Flutterwave webhook hash is not configured.")
+        return hmac.compare_digest(secret.encode("utf-8"), (signature or "").encode("utf-8"))
     secret = settings.PAYSTACK_WEBHOOK_SECRET or settings.PAYSTACK_SECRET_KEY
     if not secret:
         raise RuntimeError("Webhook secret is not configured.")
     expected = hmac.new(secret.encode("utf-8"), raw_body, hashlib.sha512).hexdigest()
     return hmac.compare_digest(expected, signature or "")
+
+
+def _normalise_event(provider: str, payload: dict) -> tuple[str, str, dict]:
+    """(event type, event id, charge data) in Paystack's shape, whichever provider sent it."""
+    data = payload.get("data") if isinstance(payload.get("data"), dict) else {}
+    if provider == "flutterwave":
+        kind = str(payload.get("event") or payload.get("event.type") or "")
+        charge = kind == "charge.completed" and data.get("status") == "successful"
+        transaction_id = str(data.get("id") or data.get("tx_ref") or "")
+        # Flutterwave can notify one transaction more than once as its status changes,
+        # so the status is part of the stored key: a failed notice never blocks the success.
+        status = str(data.get("status") or "unknown")[:32]
+        return (
+            "charge.success" if charge else kind,
+            f"{transaction_id}:{status}" if transaction_id else "",
+            {
+                "reference": str(data.get("tx_ref") or ""),
+                "amount": flutterwave.to_minor(data.get("amount")),
+                "currency": data.get("currency"),
+                "status": "success" if charge else str(data.get("status") or ""),
+            },
+        )
+    return (
+        str(payload.get("event") or ""),
+        str(data.get("id") or data.get("reference") or ""),
+        data,
+    )
 
 
 def process_webhook(
@@ -547,7 +625,7 @@ def process_webhook(
     """Verify, store once and apply a provider event. Returns (event, duplicate)."""
     if not settings.PAYMENTS_ENABLED:
         raise RuntimeError("Payments are disabled.")
-    if not _verify_signature(raw_body, signature):
+    if not _verify_signature(raw_body, signature, provider):
         raise PermissionFailure("Invalid webhook signature.")
 
     try:
@@ -555,9 +633,9 @@ def process_webhook(
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise ValidationFailure("Malformed webhook payload.") from exc
 
-    data = payload.get("data") or {}
-    event_type = str(payload.get("event") or "")
-    event_id = str(data.get("id") or data.get("reference") or "")
+    if not isinstance(payload, dict):
+        raise ValidationFailure("Malformed webhook payload.")
+    event_type, event_id, data = _normalise_event(provider, payload)
     if not event_id:
         raise ValidationFailure("Webhook is missing an event identifier.")
     payload_hash = hashlib.sha256(raw_body).hexdigest()
@@ -569,12 +647,15 @@ def process_webhook(
         provider=provider, event_id=event_id
     ).exists():
         reference = str(data.get("reference") or "")
+        client = flutterwave if provider == "flutterwave" else paystack
+        unavailable = flutterwave.FlutterwaveUnavailable if provider == "flutterwave" else paystack.PaystackUnavailable
+        error = flutterwave.FlutterwaveError if provider == "flutterwave" else paystack.PaystackError
         try:
-            confirmed = paystack.verify(reference) if reference else None
-        except paystack.PaystackUnavailable as exc:
-            # Nothing is stored, so Paystack's retry is processed in full.
+            confirmed = client.verify(reference) if reference else None
+        except unavailable as exc:
+            # Nothing is stored, so the provider's retry is processed in full.
             raise PaymentProviderUnavailable(str(exc)) from exc
-        except paystack.PaystackError:
+        except error:
             confirmed = {}
 
     with transaction.atomic():
@@ -622,7 +703,7 @@ def _apply_charge_success(event: ProviderWebhookEvent, data: dict, confirmed: di
         )
         return "unknown_reference"
 
-    if attempt.amount_minor != amount or attempt.currency != currency:
+    if attempt.provider != event.provider or attempt.amount_minor != amount or attempt.currency != currency:
         audit_service.record(
             action="billing.webhook_amount_mismatch",
             actor=None,
@@ -762,13 +843,15 @@ def _activate_subscription(invoice: Invoice) -> Subscription:
         .filter(organization_id=invoice.organization_id)
         .first()
     )
+    months = 12 if invoice.interval == BillingInterval.YEAR else 1
     if subscription is None:
         subscription = Subscription.objects.create(
             organization_id=invoice.organization_id,
             plan_id=invoice.plan_id,
             period_start=now,
-            period_end=add_months(now, 1),
+            period_end=add_months(now, months),
             status=SubscriptionStatus.ACTIVE,
+            interval=invoice.interval,
         )
     else:
         # A payment made while the current period is still running extends it,
@@ -778,9 +861,10 @@ def _activate_subscription(invoice: Invoice) -> Subscription:
         ) else now
         subscription.plan_id = invoice.plan_id
         subscription.period_start = start
-        subscription.period_end = add_months(start, 1)
+        subscription.period_end = add_months(start, months)
         subscription.status = SubscriptionStatus.ACTIVE
-        subscription.save(update_fields=["plan", "period_start", "period_end", "status", "updated_at"])
+        subscription.interval = invoice.interval
+        subscription.save(update_fields=["plan", "period_start", "period_end", "status", "interval", "updated_at"])
     audit_service.record(
         action="billing.subscription_activated",
         actor=None,
