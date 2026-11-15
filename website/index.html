@@ -214,6 +214,13 @@
     .ds-float.ds-bob, .ds-later, .ds-chip.ds-swap, .ds-stat.ds-flash { animation: none !important; }
     .ds-cursor { display: none; }
   }
+    .seg { display: inline-flex; gap: 4px; border-radius: 999px; background: #fff; padding: 4px; box-shadow: 0 1px 2px rgba(36,26,21,.06), inset 0 0 0 1px #ECE5DA; }
+    .seg-btn { border-radius: 999px; padding: 8px 16px; font-size: 13.5px; font-weight: 600; color: #5C534D; white-space: nowrap; transition: background .2s, color .2s; }
+    .seg-btn:hover { color: #241A15; }
+    .seg-btn[aria-pressed="true"] { background: #33397F; color: #fff; }
+    .seg-btn:focus-visible { outline: 2px solid #33397F; outline-offset: 2px; }
+    .seg-save { margin-left: 4px; border-radius: 999px; background: #FBE3D3; padding: 2px 7px; font-size: 11.5px; font-weight: 700; color: #8F3D12; }
+    .seg-btn[aria-pressed="true"] .seg-save { background: #9A4212; color: #fff; }
   </style>
   <!-- Built from build/ (npm run build). Loaded last so utilities win, as with the Tailwind CDN. -->
   <link rel="stylesheet" href="app.css" />
@@ -582,6 +589,16 @@
           <h2 class="mt-4 font-display text-[28px] font-semibold tracking-tight sm:text-[32px]">Simple, clear and built for your business</h2>
           <p class="mx-auto mt-3 max-w-[520px] text-[15px] leading-relaxed text-ink-muted">All plans include access to our secure platform, expert support and quality assurance.</p>
           <ul class="mt-6 flex flex-wrap justify-center gap-x-6 gap-y-3 text-[13px] font-medium text-ink"><li class="flex items-center gap-2"><span class="grid h-7 w-7 place-items-center rounded-full bg-white text-brand-navy shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-shield-check h-3.5 w-3.5"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path><path d="m9 12 2 2 4-4"></path></svg></span>No hidden fees</li><li class="flex items-center gap-2"><span class="grid h-7 w-7 place-items-center rounded-full bg-white text-brand-navy shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-calendar-check h-3.5 w-3.5"><path d="M8 2v3"></path><path d="M16 2v3"></path><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M3 9h18"></path><path d="m9 15 2 2 4-4"></path></svg></span>Flexible plans</li><li class="flex items-center gap-2"><span class="grid h-7 w-7 place-items-center rounded-full bg-white text-brand-navy shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-star h-3.5 w-3.5"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg></span>Cancel online</li><li class="flex items-center gap-2"><span class="grid h-7 w-7 place-items-center rounded-full bg-white text-brand-navy shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-headset h-3.5 w-3.5"><path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 1 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3Z"></path><path d="M21 16v2a4 4 0 0 1-4 4h-5"></path></svg></span>Dedicated support</li></ul>
+          <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
+            <div class="seg" role="group" aria-label="Where your business is">
+              <button type="button" class="seg-btn" data-region="africa" aria-pressed="true">Africa (&#8358;)</button>
+              <button type="button" class="seg-btn" data-region="intl" aria-pressed="false">Outside Africa ($)</button>
+            </div>
+            <div class="seg" role="group" aria-label="How often you pay">
+              <button type="button" class="seg-btn" data-billing="monthly" aria-pressed="true">Monthly</button>
+              <button type="button" class="seg-btn" data-billing="yearly" aria-pressed="false">Yearly <span class="seg-save" data-save></span></button>
+            </div>
+          </div>
         </div>
 
         <div class="mt-12 grid items-stretch gap-5 lg:grid-cols-3">
@@ -591,10 +608,11 @@
               <span class="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-pill-navyBg text-brand-navy"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-send h-5 w-5"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"></path><path d="m21.854 2.147-10.94 10.939"></path></svg></span>
               <div><h3 class="font-display text-[18px] font-semibold">Starter</h3><p class="text-[12.5px] text-ink-muted">Perfect for small businesses getting started.</p></div>
             </div>
-            <p class="mt-6 flex items-baseline gap-2"><span class="font-display text-[34px] font-semibold tracking-tight text-ink">₦65,000</span><span class="text-[13.5px] text-ink-muted">/ month</span></p>
+            <p class="mt-6 flex items-baseline gap-2"><span class="font-display text-[34px] font-semibold tracking-tight text-ink" data-price="starter">₦65,000</span><span class="text-[13.5px] text-ink-muted">/ month</span></p>
+            <p class="-mt-1 min-h-[19px] text-[12.5px] text-ink-muted" data-billed="starter"></p>
             <p class="mt-3 inline-flex self-start rounded-full bg-pill-navyBg px-3.5 py-1.5 text-[12.5px] font-semibold text-brand-navy">7 docs or tasks a month</p>
             <ul class="mb-8 mt-6 space-y-3.5 text-[14px] text-ink"><li class="flex items-start gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-check mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-navy"><circle cx="12" cy="12" r="10"></circle><path d="m16 9-5.5 5.5L8 12"></path></svg>1 legal review per quarter</li><li class="flex items-start gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-check mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-navy"><circle cx="12" cy="12" r="10"></circle><path d="m16 9-5.5 5.5L8 12"></path></svg>Core services: Business &amp; Admin</li><li class="flex items-start gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-check mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-navy"><circle cx="12" cy="12" r="10"></circle><path d="m16 9-5.5 5.5L8 12"></path></svg>Business support &amp; admin tasks</li><li class="flex items-start gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-check mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-navy"><circle cx="12" cy="12" r="10"></circle><path d="m16 9-5.5 5.5L8 12"></path></svg>Standard turnaround time</li><li class="flex items-start gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-check mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-navy"><circle cx="12" cy="12" r="10"></circle><path d="m16 9-5.5 5.5L8 12"></path></svg>Email support</li></ul>
-            <a href="onboarding.html?plan=starter" class="group mt-auto flex items-center justify-center gap-2 rounded-lg border-[1.5px] border-brand-navy py-3.5 text-[14px] font-semibold text-brand-navy transition hover:bg-brand-navy hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy focus-visible:ring-offset-2">Get Started <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4 transition-transform group-hover:translate-x-0.5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a>
+            <a href="onboarding.html?plan=starter" data-plan-link="starter" class="group mt-auto flex items-center justify-center gap-2 rounded-lg border-[1.5px] border-brand-navy py-3.5 text-[14px] font-semibold text-brand-navy transition hover:bg-brand-navy hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy focus-visible:ring-offset-2">Get Started <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4 transition-transform group-hover:translate-x-0.5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a>
           </article>
 
           <!-- Growth -->
@@ -604,10 +622,11 @@
               <span class="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-pill-orangeBg text-brand-orange"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-trending-up h-5 w-5"><path d="M16 7h6v6"></path><path d="m22 7-8.5 8.5-5-5L2 17"></path></svg></span>
               <div><h3 class="font-display text-[18px] font-semibold">Growth</h3><p class="text-[12.5px] text-ink-muted">Ideal for established businesses.</p></div>
             </div>
-            <p class="mt-6 flex items-baseline gap-2"><span class="font-display text-[34px] font-semibold tracking-tight text-ink">₦97,500</span><span class="text-[13.5px] text-ink-muted">/ month</span></p>
+            <p class="mt-6 flex items-baseline gap-2"><span class="font-display text-[34px] font-semibold tracking-tight text-ink" data-price="growth">₦97,500</span><span class="text-[13.5px] text-ink-muted">/ month</span></p>
+            <p class="-mt-1 min-h-[19px] text-[12.5px] text-ink-muted" data-billed="growth"></p>
             <p class="mt-3 inline-flex self-start rounded-full bg-pill-orangeBg px-3.5 py-1.5 text-[12.5px] font-semibold text-brand-orangeDark">20 docs or tasks a month</p>
             <ul class="mb-8 mt-6 space-y-3.5 text-[14px] text-ink"><li class="flex items-start gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-check mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-orange"><circle cx="12" cy="12" r="10"></circle><path d="m16 9-5.5 5.5L8 12"></path></svg>1 legal review per month</li><li class="flex items-start gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-check mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-orange"><circle cx="12" cy="12" r="10"></circle><path d="m16 9-5.5 5.5L8 12"></path></svg>Everything in Starter</li><li class="flex items-start gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-check mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-orange"><circle cx="12" cy="12" r="10"></circle><path d="m16 9-5.5 5.5L8 12"></path></svg>Priority support</li><li class="flex items-start gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-check mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-orange"><circle cx="12" cy="12" r="10"></circle><path d="m16 9-5.5 5.5L8 12"></path></svg>Faster turnaround time</li><li class="flex items-start gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-check mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-orange"><circle cx="12" cy="12" r="10"></circle><path d="m16 9-5.5 5.5L8 12"></path></svg>Adds Operations, Creator &amp; Tax services</li><li class="flex items-start gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-check mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-orange"><circle cx="12" cy="12" r="10"></circle><path d="m16 9-5.5 5.5L8 12"></path></svg>Monthly performance summary</li></ul>
-            <a href="onboarding.html?plan=growth" class="group mt-auto flex items-center justify-center gap-2 rounded-lg bg-brand-cta py-3.5 text-[14px] font-semibold text-white shadow-lg shadow-brand-orange/30 transition hover:bg-brand-ctaDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">Get Started <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4 transition-transform group-hover:translate-x-0.5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a>
+            <a href="onboarding.html?plan=growth" data-plan-link="growth" class="group mt-auto flex items-center justify-center gap-2 rounded-lg bg-brand-cta py-3.5 text-[14px] font-semibold text-white shadow-lg shadow-brand-orange/30 transition hover:bg-brand-ctaDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">Get Started <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4 transition-transform group-hover:translate-x-0.5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a>
           </article>
 
           <!-- Dedicated -->
@@ -616,14 +635,15 @@
               <span class="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-pill-navyBg text-brand-navy"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-building-2 h-5 w-5"><path d="M10 12h4"></path><path d="M10 8h4"></path><path d="M14 21v-3a2 2 0 0 0-4 0v3"></path><path d="M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2"></path><path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"></path></svg></span>
               <div><h3 class="font-display text-[18px] font-semibold">Dedicated</h3><p class="text-[12.5px] text-ink-muted">For high-volume and complex needs.</p></div>
             </div>
-            <p class="mt-6 flex items-baseline gap-2"><span class="font-display text-[34px] font-semibold tracking-tight text-ink">₦260,000</span><span class="text-[13.5px] text-ink-muted">/ month</span></p>
+            <p class="mt-6 flex items-baseline gap-2"><span class="font-display text-[34px] font-semibold tracking-tight text-ink" data-price="dedicated">₦260,000</span><span class="text-[13.5px] text-ink-muted">/ month</span></p>
+            <p class="-mt-1 min-h-[19px] text-[12.5px] text-ink-muted" data-billed="dedicated"></p>
             <p class="mt-3 inline-flex self-start rounded-full bg-pill-navyBg px-3.5 py-1.5 text-[12.5px] font-semibold text-brand-navy">30 docs or tasks a month</p>
             <ul class="mb-8 mt-6 space-y-3.5 text-[14px] text-ink"><li class="flex items-start gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-check mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-navy"><circle cx="12" cy="12" r="10"></circle><path d="m16 9-5.5 5.5L8 12"></path></svg>Up to 4 legal reviews per month</li><li class="flex items-start gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-check mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-navy"><circle cx="12" cy="12" r="10"></circle><path d="m16 9-5.5 5.5L8 12"></path></svg>Everything in Growth</li><li class="flex items-start gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-check mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-navy"><circle cx="12" cy="12" r="10"></circle><path d="m16 9-5.5 5.5L8 12"></path></svg>Dedicated account manager</li><li class="flex items-start gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-check mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-navy"><circle cx="12" cy="12" r="10"></circle><path d="m16 9-5.5 5.5L8 12"></path></svg>Adds Specialized Add-Ons &amp; custom packages</li><li class="flex items-start gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-check mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-navy"><circle cx="12" cy="12" r="10"></circle><path d="m16 9-5.5 5.5L8 12"></path></svg>SLA options</li><li class="flex items-start gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-check mt-0.5 h-[17px] w-[17px] shrink-0 text-brand-navy"><circle cx="12" cy="12" r="10"></circle><path d="m16 9-5.5 5.5L8 12"></path></svg>Advanced reporting &amp; insights</li></ul>
-            <a href="onboarding.html?plan=dedicated" class="group mt-auto flex items-center justify-center gap-2 rounded-lg border-[1.5px] border-brand-navy py-3.5 text-[14px] font-semibold text-brand-navy transition hover:bg-brand-navy hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy focus-visible:ring-offset-2">Get Started <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4 transition-transform group-hover:translate-x-0.5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a>
+            <a href="onboarding.html?plan=dedicated" data-plan-link="dedicated" class="group mt-auto flex items-center justify-center gap-2 rounded-lg border-[1.5px] border-brand-navy py-3.5 text-[14px] font-semibold text-brand-navy transition hover:bg-brand-navy hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy focus-visible:ring-offset-2">Get Started <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4 transition-transform group-hover:translate-x-0.5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a>
           </article>
         </div>
 
-        <p class="reveal mt-8 text-center text-[13.5px] text-ink-muted">Prices are monthly, in Naira. Annual billing lowers each plan. Further legal reviews are quoted before any work starts.</p>
+        <p id="priceNote" class="reveal mx-auto mt-8 max-w-[640px] text-center text-[13.5px] leading-relaxed text-ink-muted" aria-live="polite">Prices are monthly, in Naira.</p>
 
         <!-- custom plan -->
         <div class="reveal mt-10 flex flex-col gap-5 rounded-2xl border border-cream-line bg-cream px-6 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-8">
@@ -961,6 +981,50 @@
       }, { threshold: .25 }).observe(stage);
     }
   })();
+  </script>
+  <script>
+    // Pricing: Africa pays in naira (outside Nigeria, the same plan in US dollars at today's
+    // rate); everyone outside Africa pays the dollar price. The yearly discount and the extra
+    // legal review fee are set by the super admin; the values below are examples.
+    (function () {
+      const PRICES = {
+        africa: { starter: 65000, growth: 97500, dedicated: 260000, sym: '₦' },
+        intl: { starter: 55, growth: 89, dedicated: 249, sym: '$' },
+      };
+      const ADMIN = { yearlyDiscountPct: 15, extraLegal: { africa: 25000, intl: 40 } }; // example values
+      const fmt = (sym, n) => sym + Math.round(n).toLocaleString('en-US');
+      const state = { region: null, billing: 'monthly' };
+      try { const saved = JSON.parse(localStorage.getItem('banda.pricing') || '{}'); Object.assign(state, saved); } catch (e) {}
+      if (!PRICES[state.region]) {
+        let tz = '';
+        try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
+        state.region = tz && !tz.startsWith('Africa/') ? 'intl' : 'africa';
+      }
+      document.querySelectorAll('[data-save]').forEach(el => { el.textContent = `Save ${ADMIN.yearlyDiscountPct}%`; });
+      function render() {
+        const P = PRICES[state.region], yearly = state.billing === 'yearly', d = ADMIN.yearlyDiscountPct / 100;
+        document.querySelectorAll('[data-region]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.region === state.region)));
+        document.querySelectorAll('[data-billing]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.billing === state.billing)));
+        ['starter', 'growth', 'dedicated'].forEach(k => {
+          const year = Math.round(P[k] * 12 * (1 - d));
+          document.querySelector(`[data-price="${k}"]`).textContent = fmt(P.sym, yearly ? year / 12 : P[k]);
+          document.querySelector(`[data-billed="${k}"]`).textContent = yearly ? `${fmt(P.sym, year)} billed once a year` : '';
+          const link = document.querySelector(`[data-plan-link="${k}"]`);
+          link.href = `onboarding.html?plan=${k}&region=${state.region}&billing=${state.billing}`;
+        });
+        const legal = fmt(P.sym, ADMIN.extraLegal[state.region]);
+        document.getElementById('priceNote').textContent = state.region === 'africa'
+          ? `Prices in Naira for businesses in Nigeria. Elsewhere in Africa, you pay the same plan in US dollars at today’s rate. Extra legal reviews are ${legal} each.`
+          : `Prices in US dollars for businesses outside Africa. A US or UK reviewer is included where a document needs one. Extra legal reviews are ${legal} each.`;
+      }
+      document.addEventListener('click', e => {
+        const b = e.target.closest('[data-region],[data-billing]'); if (!b) return;
+        if (b.dataset.region) state.region = b.dataset.region; else state.billing = b.dataset.billing;
+        try { localStorage.setItem('banda.pricing', JSON.stringify(state)); } catch (e) {}
+        render();
+      });
+      render();
+    })();
   </script>
 </body>
 </html>
