@@ -982,38 +982,35 @@
     }
   })();
   </script>
+  <script src="pricing.js"></script>
   <script>
-    // Pricing: Africa pays in naira (outside Nigeria, the same plan in US dollars at today's
-    // rate); everyone outside Africa pays the dollar price. The yearly discount and the extra
-    // legal review fee are set by the super admin; the values below are examples.
+    // Pricing switches. Prices, the yearly discount and the extra legal review fee come from
+    // pricing.js (set by the super admin in the live app). The switch only shows prices: the
+    // price a client pays follows the country they choose at sign-up.
     (function () {
-      const PRICES = {
-        africa: { starter: 65000, growth: 97500, dedicated: 260000, sym: '₦' },
-        intl: { starter: 55, growth: 89, dedicated: 249, sym: '$' },
-      };
-      const ADMIN = { yearlyDiscountPct: 15, extraLegal: { africa: 25000, intl: 40 } }; // example values
-      const fmt = (sym, n) => sym + Math.round(n).toLocaleString('en-US');
+      const P = window.BANDA_PRICING;
+      const REGION = { africa: 'ng', intl: 'intl' };
       const state = { region: null, billing: 'monthly' };
       try { const saved = JSON.parse(localStorage.getItem('banda.pricing') || '{}'); Object.assign(state, saved); } catch (e) {}
-      if (!PRICES[state.region]) {
+      if (!REGION[state.region]) {
         let tz = '';
         try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
         state.region = tz && !tz.startsWith('Africa/') ? 'intl' : 'africa';
       }
-      document.querySelectorAll('[data-save]').forEach(el => { el.textContent = `Save ${ADMIN.yearlyDiscountPct}%`; });
+      if (state.billing !== 'yearly') state.billing = 'monthly';
+      document.querySelectorAll('[data-save]').forEach(el => { el.textContent = `Save ${P.ADMIN.yearlyDiscountPct}%`; });
       function render() {
-        const P = PRICES[state.region], yearly = state.billing === 'yearly', d = ADMIN.yearlyDiscountPct / 100;
+        const region = REGION[state.region], yearly = state.billing === 'yearly';
         document.querySelectorAll('[data-region]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.region === state.region)));
         document.querySelectorAll('[data-billing]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.billing === state.billing)));
-        ['starter', 'growth', 'dedicated'].forEach(k => {
-          const year = Math.round(P[k] * 12 * (1 - d));
-          document.querySelector(`[data-price="${k}"]`).textContent = fmt(P.sym, yearly ? year / 12 : P[k]);
-          document.querySelector(`[data-billed="${k}"]`).textContent = yearly ? `${fmt(P.sym, year)} billed once a year` : '';
-          const link = document.querySelector(`[data-plan-link="${k}"]`);
-          link.href = `onboarding.html?plan=${k}&region=${state.region}&billing=${state.billing}`;
+        P.PLANS.forEach(k => {
+          const pr = P.price(k, region, state.billing);
+          document.querySelector(`[data-price="${k}"]`).textContent = P.money(Math.round(pr.perMonth), region);
+          document.querySelector(`[data-billed="${k}"]`).textContent = yearly ? `${P.money(pr.total, region)} billed once a year` : '';
+          document.querySelector(`[data-plan-link="${k}"]`).href = `onboarding.html?plan=${k}&region=${state.region}&billing=${state.billing}`;
         });
-        const legal = fmt(P.sym, ADMIN.extraLegal[state.region]);
-        document.getElementById('priceNote').textContent = state.region === 'africa'
+        const legal = region === 'ng' ? P.money(P.ADMIN.extraLegal.ngn, 'ng') : P.money(P.ADMIN.extraLegal.usd, 'intl');
+        document.getElementById('priceNote').textContent = region === 'ng'
           ? `Prices in Naira for businesses in Nigeria. Elsewhere in Africa, you pay the same plan in US dollars at today’s rate. Extra legal reviews are ${legal} each.`
           : `Prices in US dollars for businesses outside Africa. A US or UK reviewer is included where a document needs one. Extra legal reviews are ${legal} each.`;
       }
