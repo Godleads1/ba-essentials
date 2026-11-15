@@ -230,6 +230,7 @@ class FakePaystack:
         self.checkout_url = "https://checkout.paystack.com/synthetic-access-code"
         self.verified = {}
         self.fail_with = None
+        self.charge_status = "success"
 
     def __call__(self, method, path, payload=None):
         from apps.billing import paystack
@@ -244,15 +245,20 @@ class FakePaystack:
             if reference not in self.verified:
                 raise paystack.PaystackError("Transaction not found.")
             return self.verified[reference]
+        if path == "/transaction/charge_authorization":
+            if self.charge_status == "error":
+                raise paystack.PaystackError("Declined.")
+            return {"status": self.charge_status, "reference": payload["reference"]}
         raise AssertionError(f"Unexpected Paystack call {method} {path}")
 
-    def confirm(self, reference, amount_minor, *, currency="NGN", status="success"):
+    def confirm(self, reference, amount_minor, *, currency="NGN", status="success", authorization=None):
         self.verified[reference] = {
             "status": status,
             "reference": reference,
             "amount": amount_minor,
             "currency": currency,
             "customer": {"email": "owner@example.test"},
+            "authorization": authorization or {},
         }
 
 
@@ -279,6 +285,8 @@ class FakeFlutterwave:
             if reference not in self.verified:
                 raise flutterwave.FlutterwaveError("Transaction not found.")
             return self.verified[reference]
+        if path == "/tokenized-charges":
+            return {"status": getattr(self, "charge_status", "successful"), "tx_ref": payload["tx_ref"]}
         if path.startswith("/transfers/rates"):
             # The app must ask for US dollars to naira.
             assert "source_currency=USD" in path and "destination_currency=NGN" in path, path
@@ -287,14 +295,14 @@ class FakeFlutterwave:
             return {"rate": self.rate}
         raise AssertionError(f"Unexpected Flutterwave call {method} {path}")
 
-    def confirm(self, reference, amount_minor, *, currency="USD", status="successful", country="GB", fee_minor=None):
+    def confirm(self, reference, amount_minor, *, currency="USD", status="successful", country="GB", fee_minor=None, card=None):
         self.verified[reference] = {
             "status": status,
             "tx_ref": reference,
             "amount": amount_minor / 100,
             "currency": currency,
             "customer": {"email": "owner@example.test"},
-            "card": {"country": country},
+            "card": {"country": country, **(card or {})},
             "app_fee": None if fee_minor is None else fee_minor / 100,
         }
 

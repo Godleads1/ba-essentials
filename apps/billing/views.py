@@ -5,9 +5,10 @@ from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
-from apps.billing import plan_rules, pricing
+from apps.billing import plan_rules, pricing, renewals
 from apps.billing import services as billing
 from apps.catalogue.models import ServiceCategory
 from apps.billing.models import BillingSettings, Invoice, PaymentAttempt, Plan, UsageLedger
@@ -15,10 +16,27 @@ from apps.core.exceptions import PermissionFailure, ValidationFailure
 from apps.organizations.access import client_required
 
 
+def _renewal_price(subscription):
+    if subscription is None:
+        return None
+    try:
+        return renewals.renewal_price(subscription)[1]
+    except ValidationFailure:
+        return None
+
+
 @client_required
 @require_GET
 def plan_home(request):
+    from apps.billing.models import InvoiceStatus, Subscription, SubscriptionStatus
+
     subscription = billing.active_subscription(request.organization)
+    paused = Subscription.objects.filter(
+        organization=request.organization, status=SubscriptionStatus.PAST_DUE
+    ).select_related("plan").first()
+    renewal_invoice = Invoice.objects.filter(
+        organization=request.organization, status=InvoiceStatus.ISSUED, renews_period_end__isnull=False
+    ).order_by("-issued_at").first()
     usage = UsageLedger.objects.filter(
         organization=request.organization
     ).select_related("task")
@@ -62,6 +80,16 @@ def plan_home(request):
                 for category in ServiceCategory.objects.filter(is_active=True)
             ],
             "payments_enabled": settings.PAYMENTS_ENABLED,
+            "paused": paused,
+            "renewal_invoice": renewal_invoice,
+            "saved_card": renewals.saved_card(request.organization.pk),
+            "downgrades": (
+                Plan.objects.filter(is_active=True, price_minor__gt=0, rank__lt=subscription.plan.rank).order_by("rank")
+                if subscription else []
+            ),
+            "renewal_price": _renewal_price(subscription),
+            "paused_ends": paused.paused_at + renewals.END_AFTER_PAUSE if paused and paused.paused_at else None,
+            "now": timezone.now(),
         },
     )
 
@@ -78,6 +106,7 @@ def plan_checkout(request, plan_slug):
             plan_slug=plan_slug,
             return_url=return_url,
             interval=request.POST.get("interval", "month"),
+            renewal_consent=request.POST.get("renews") == "on",
         )
     except (ValidationFailure, PermissionFailure) as exc:
         messages.error(request, exc.message)
@@ -97,11 +126,69 @@ def plan_upgrade(request, plan_slug):
             membership=request.membership,
             plan_slug=plan_slug,
             return_url=return_url,
+            renewal_consent=request.POST.get("renews") == "on",
         )
     except (ValidationFailure, PermissionFailure) as exc:
         messages.error(request, exc.message)
         return redirect("plan-home")
     return redirect(checkout_url)
+
+
+def _plan_change(request, action, success: str):
+    try:
+        action()
+    except (ValidationFailure, PermissionFailure) as exc:
+        messages.error(request, exc.message)
+    else:
+        messages.success(request, success)
+    return redirect("plan-home")
+
+
+@client_required
+@require_POST
+def plan_cancel(request):
+    """Stop the next renewal. Nothing more is charged; the plan runs to the end of the paid period."""
+    return _plan_change(
+        request, lambda: renewals.cancel_renewal(request.organization, request.membership),
+        "Done. Your plan won't renew, and nothing more will be charged. It stays active until the end of this period.",
+    )
+
+
+@client_required
+@require_POST
+def plan_resume(request):
+    return _plan_change(
+        request, lambda: renewals.undo_cancel(request.organization, request.membership),
+        "Your plan will renew as normal.",
+    )
+
+
+@client_required
+@require_POST
+def plan_downgrade(request):
+    return _plan_change(
+        request,
+        lambda: renewals.schedule_downgrade(request.organization, request.membership, request.POST.get("plan", "")),
+        "Done. The smaller plan starts at your next renewal.",
+    )
+
+
+@client_required
+@require_POST
+def plan_downgrade_undo(request):
+    return _plan_change(
+        request, lambda: renewals.undo_downgrade(request.organization, request.membership),
+        "You'll stay on your current plan.",
+    )
+
+
+@client_required
+@require_POST
+def card_remove(request):
+    return _plan_change(
+        request, lambda: renewals.remove_card(request.organization, request.membership),
+        "Card removed. We'll send you a payment link before each renewal instead.",
+    )
 
 
 @client_required

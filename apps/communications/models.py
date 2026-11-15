@@ -141,6 +141,7 @@ class TicketMessage(models.Model):
 class NotificationKind(models.TextChoices):
     TASK_MESSAGE = "task_message", "Request message"
     SUPPORT = "support", "Support"
+    BILLING = "billing", "Billing"
 
 
 class Notification(models.Model):

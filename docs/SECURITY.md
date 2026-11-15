@@ -146,6 +146,22 @@ without authorization and a rollback procedure.
   request can't be released while fees are open. Paystack's actual fee is
   recorded from its own verification, so a foreign-card shortfall is visible
   to finance.
+- Automatic renewal (Terms 5.4–5.8): a plan or upgrade can't be bought until the
+  owner ticks an unticked renewal box; the server refuses the checkout otherwise
+  and records the wording, terms version, time and provider reference
+  (`RenewalConsent`). After a confirmed payment, the provider's reusable card
+  token is stored encrypted (Fernet, key derived from the secret key with its
+  own context) with only brand, last four digits, expiry and bank. Card numbers
+  never reach us. Rotating the secret key makes saved tokens unreadable; renewals
+  then fall back to a payment link.
+- `run_renewals` (hourly) sends reminders 5 days before a monthly and 30 days
+  before a yearly renewal, charges the saved card about a day before, and only a
+  confirmed webhook renews anything. A failed or missing payment starts five
+  business days' grace (service continues, up to three charge attempts, notices
+  on the first and last day), then pauses service (no new requests), and ends
+  the plan 30 days later. Cancelling stops the next charge and keeps access to
+  the end of the paid period; a downgrade starts at the next renewal. Only the
+  owner can cancel, downgrade or remove the saved card, and each is audited.
 
 ## Files
 
@@ -203,7 +219,7 @@ without authorization and a rollback procedure.
 6. Store secrets in the platform secret manager; never in the repository.
 7. Run `python manage.py check --deploy --settings=config.settings.production`.
 8. Run `python manage.py migrate` with a reviewed migration plan and rollback.
-9. Set up `process_outbox` and `scan_files` as scheduled jobs. The Render
+9. Set up `process_outbox`, `run_renewals` and `scan_files` as scheduled jobs. The Render
    staging Blueprint schedules outbox delivery; `scan_files` needs shared
    storage before it can run in a separate container (see
    [DEPLOYMENT.md](DEPLOYMENT.md)).
@@ -243,8 +259,8 @@ migration check, deploy check, and dependency audit.
 
 ## Known gaps and follow-ups
 
-- Paystack plan checkout exists; refunds, chargebacks, renewals, the
-  cancelling state and Flutterwave are not built yet.
+- Refunds and chargebacks are handled by finance by hand (`refund_due`
+  payments); there is no in-app refund flow yet.
 - No object-storage adapter; local storage must be backed up and is not suitable
   for multi-instance deployments without shared storage.
 - In-app messaging, support tickets, staff queues and the text CMS are

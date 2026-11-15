@@ -186,3 +186,12 @@ YAML, schema, plan, and region checks. The only reported errors were
 `need_payment_info` for the PostgreSQL instance, the web service, the private
 ClamAV service, and the cron job. Those clear once billing is configured; no
 Blueprint change is needed.
+
+## Renewals job
+
+`python manage.py run_renewals` sends renewal reminders, charges saved cards,
+and moves unpaid plans through grace, pause and ending. It is safe to run
+repeatedly and should run at least daily (hourly is fine). It is **not** in the
+Render Blueprint yet, because a new cron service is billed separately; add it
+(same settings as the outbox cron, `schedule: "17 * * * *"`) or a systemd timer
+on Lightsail when renewals go live.

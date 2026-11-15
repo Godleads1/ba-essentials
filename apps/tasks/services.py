@@ -73,8 +73,9 @@ def create_request(
         raise ValidationFailure("Choose a valid priority.")
     # The plan decides which service categories can be requested (Growth and
     # Dedicated categories stay locked on smaller plans).
-    from apps.billing.plan_rules import require_category
+    from apps.billing.plan_rules import require_category, require_not_paused
 
+    require_not_paused(organization)
     require_category(organization, version.definition.category)
 
     # Where the work is for: fixed by the service if it has a country, else the client's

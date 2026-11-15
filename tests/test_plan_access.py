@@ -248,7 +248,7 @@ def test_upgrade_charge_is_the_difference_for_the_days_left(plans, organization)
 def test_upgrade_unlocks_growth_only_after_paystack_confirms(plans, services, organization, owner, make_task, fake_paystack):
     sub = _subscribe(organization, plans["starter"], started_days_ago=10)
     period_end = sub.period_end
-    response = login_client(owner).post("/app/plan/upgrade/growth/")
+    response = login_client(owner).post("/app/plan/upgrade/growth/", {"renews": "on", "renews": "on"})
     assert response["Location"].startswith("https://checkout.paystack.com/")
     attempt = PaymentAttempt.objects.select_related("invoice").get()
     assert attempt.invoice.upgrade_from_id == plans["starter"].pk
@@ -265,11 +265,11 @@ def test_upgrade_unlocks_growth_only_after_paystack_confirms(plans, services, or
 def test_only_the_owner_can_upgrade_and_only_upwards(plans, organization, owner, member):
     _subscribe(organization, plans["growth"])
     with pytest.raises(PermissionFailure):
-        billing.start_upgrade_checkout(organization=organization, membership=member.memberships.get(),
+        billing.start_upgrade_checkout(renewal_consent=True, organization=organization, membership=member.memberships.get(),
                                        plan_slug="dedicated", return_url="https://x.test/")
     for slug in ("starter", "growth"):
         with pytest.raises(ValidationFailure):
-            billing.start_upgrade_checkout(organization=organization, membership=owner.memberships.get(),
+            billing.start_upgrade_checkout(renewal_consent=True, organization=organization, membership=owner.memberships.get(),
                                            plan_slug=slug, return_url="https://x.test/")
 
 
@@ -277,8 +277,8 @@ def test_only_the_owner_can_upgrade_and_only_upwards(plans, organization, owner,
 def test_a_late_payment_for_a_replaced_upgrade_is_refund_due(plans, organization, owner, fake_paystack):
     _subscribe(organization, plans["starter"])
     c = login_client(owner)
-    c.post("/app/plan/upgrade/growth/")
-    c.post("/app/plan/upgrade/dedicated/")
+    c.post("/app/plan/upgrade/growth/", {"renews": "on", "renews": "on"})
+    c.post("/app/plan/upgrade/dedicated/", {"renews": "on", "renews": "on"})
     old, new = PaymentAttempt.objects.order_by("created_at")
     assert Invoice.objects.get(pk=old.invoice_id).status == InvoiceStatus.VOID
     assert _pay(old, fake_paystack, 8201).status == "refund_due"
@@ -290,7 +290,7 @@ def test_a_late_payment_for_a_replaced_upgrade_is_refund_due(plans, organization
 @override_settings(PAYMENTS_ENABLED=True)
 def test_an_upgrade_priced_for_last_period_is_refund_due_after_renewal(plans, organization, owner, fake_paystack):
     sub = _subscribe(organization, plans["starter"], started_days_ago=29, period_days=30)
-    login_client(owner).post("/app/plan/upgrade/growth/")
+    login_client(owner).post("/app/plan/upgrade/growth/", {"renews": "on", "renews": "on"})
     attempt = PaymentAttempt.objects.get()
     # The period ends and Starter renews before the old, cheap upgrade is paid.
     Subscription.objects.filter(pk=sub.pk).update(
@@ -303,7 +303,7 @@ def test_an_upgrade_priced_for_last_period_is_refund_due_after_renewal(plans, or
 @override_settings(PAYMENTS_ENABLED=True)
 def test_an_upgrade_paid_after_the_plan_changed_is_refund_due(plans, organization, owner, fake_paystack):
     sub = _subscribe(organization, plans["starter"])
-    login_client(owner).post("/app/plan/upgrade/growth/")
+    login_client(owner).post("/app/plan/upgrade/growth/", {"renews": "on", "renews": "on"})
     attempt = PaymentAttempt.objects.get()
     Subscription.objects.filter(pk=sub.pk).update(plan=plans["dedicated"])
     assert _pay(attempt, fake_paystack, 8301).status == "refund_due"

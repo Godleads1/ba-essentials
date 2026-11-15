@@ -58,6 +58,20 @@ def require_category(organization, category) -> None:
     raise ValidationFailure(f"{category.name} is included {where}. Upgrade your plan to request it.")
 
 
+def is_paused(organization) -> bool:
+    """Service is paused after an unpaid renewal (Terms 5.6.4)."""
+    return Subscription.objects.filter(
+        organization=organization, status=SubscriptionStatus.PAST_DUE
+    ).exists()
+
+
+def require_not_paused(organization) -> None:
+    if is_paused(organization):
+        raise ValidationFailure(
+            "Your service is paused because the renewal is unpaid. Pay it on the Plan page to send new requests."
+        )
+
+
 # ---------- legal review allowance ----------
 
 def legal_window_start(subscription: Subscription, now=None):
@@ -110,7 +124,9 @@ def lock_active_subscription(organization_id):
         .select_related("plan")
         .first()
     )
-    if subscription is None or not (subscription.period_start <= now <= subscription.period_end):
+    from .services import in_paid_time
+
+    if subscription is None or not in_paid_time(subscription, now):
         return None
     return subscription
 
