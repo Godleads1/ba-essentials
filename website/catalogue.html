@@ -14,7 +14,7 @@
 
   <!-- Tailwind Play CDN for preview only. In Django, build with the Tailwind CLI using the same config. -->
   <style>
-    html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+    html { scroll-behavior: smooth; scroll-padding-top: 100px; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { scrollbar-width: none; }
 
@@ -322,6 +322,7 @@
 
   <div class="min-h-screen p-3 lg:pl-[280px]">
     <!-- ===================== TOP BAR ===================== -->
+    <div class="topbar">
     <header class="panel flex h-[68px] items-center gap-3 px-3 sm:px-4">
       <button type="button" id="openMenu" class="grid h-10 w-10 shrink-0 place-items-center rounded-full text-ink hover:bg-cream lg:hidden" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-menu h-5 w-5"><path d="M4 5h16"></path><path d="M4 12h16"></path><path d="M4 19h16"></path></svg></button>
       <form class="relative min-w-0 flex-1 md:max-w-[400px]" role="search" onsubmit="return false">
@@ -346,6 +347,7 @@
         </div>
       </div>
     </header>
+    </div>
 
     <main id="main" class="mt-3 rounded-[22px] bg-cream-light p-4 sm:p-6">
       <section class="panel flex items-center gap-4 px-5 py-4 sm:px-6">

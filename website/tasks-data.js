@@ -452,4 +452,12 @@
     PLANS, PLAN_ORDER, CAT_MIN_PLAN, minPlanFor, planAllows, ACCOUNT, ISTATUS, invoices, payInvoice, invoiceForTask, getPref, setPref, payWithPaystack, PAYSTACK_TEST,
     SUPPORT, TOPICS, TSTATUS, getList, setList,
     DESKS, conversations, unreadConversations, markRead, markUnread, NKIND, notes, readNote, readAllNotes, unreadNotes, paintCounts };
+  // Top bar: a soft shadow once the page has scrolled under it.
+  (function () {
+    const bar = document.querySelector('.topbar');
+    if (!bar) return;
+    const sync = () => bar.classList.toggle('is-stuck', window.scrollY > 4);
+    window.addEventListener('scroll', sync, { passive: true });
+    sync();
+  })();
 })();
