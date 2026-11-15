@@ -8,6 +8,7 @@ from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.billing import services as billing
+from apps.billing.plan_rules import outside_plan_region as plan_rules_outside
 from apps.billing.models import (
     CLIENT_VISIBLE_FEE_STATUSES,
     FeeRequest,
@@ -16,6 +17,7 @@ from apps.billing.models import (
 )
 from apps.communications import services as communications
 from apps.core import ratelimit
+from apps.core.countries import name_for as country_name
 from apps.core.exceptions import DomainError
 from apps.core.views import handle_domain_error
 from apps.organizations.access import client_required
@@ -137,6 +139,7 @@ def task_submit(request):
                     priority=form.cleaned_data["priority"],
                     due_date=form.cleaned_data["due_date"],
                     files=files,
+                    work_country=form.cleaned_data["work_country"],
                 )
             except DomainError as exc:
                 return handle_domain_error(request, exc, redirect_to="task-submit")
@@ -200,6 +203,8 @@ def task_detail(request, task_id):
             "released_version": released_version,
             "invoice": invoice,
             "fee_requests": fee_requests,
+            "outside_plan_region": plan_rules_outside(task),
+            "work_country_name": country_name(task.work_country),
             "payments_enabled": settings.PAYMENTS_ENABLED,
             "can_pay": billing.can_pay_invoice(invoice, request.membership) if invoice else False,
             "can_pay_fees": any(

@@ -5,6 +5,7 @@ import uuid
 from django.core.exceptions import ValidationError
 from django.db import models
 
+from apps.core.countries import choices as country_choices
 from apps.core.models import TimeStampedModel
 
 
@@ -37,6 +38,9 @@ class ServiceDefinition(TimeStampedModel):
     name = models.CharField(max_length=150)
     slug = models.SlugField(max_length=100, unique=True)
     is_active = models.BooleanField(default=True)
+    # Set for services that are always for one country, such as a US trademark search.
+    # Requests for it are recorded as for that country, whatever the client picks.
+    work_country = models.CharField(max_length=2, blank=True, choices=country_choices)
 
     class Meta:
         ordering = ["category__sort_order", "name"]

@@ -113,3 +113,20 @@ def lock_active_subscription(organization_id):
     if subscription is None or not (subscription.period_start <= now <= subscription.period_end):
         return None
     return subscription
+
+
+# ---------- where the work is for ----------
+
+def outside_plan_region(task) -> bool:
+    """True when a naira or Africa plan is asked for work for a country outside Africa.
+
+    Such work isn't covered by the plan: it's quoted as a one-off fee, or the business
+    moves to the international plan. The price follows where the work is for, not
+    where the client says they are, and staff confirm the country before quoting.
+    """
+    from apps.core.countries import BY_CODE, REGION_INTERNATIONAL
+
+    code = (task.work_country or "").upper()
+    if not code or code not in BY_CODE or BY_CODE[code][2]:
+        return False
+    return task.organization.region != REGION_INTERNATIONAL

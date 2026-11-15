@@ -185,6 +185,10 @@ def scoping_task(submitted_task, ops_user, quote_approver) -> Task:
     task = transition(task=task, action=Action.SCOPE, actor=quote_approver)
     task.refresh_from_db()
     assert task.status == TaskStatus.SCOPING
+    # Staff confirm where the work is for during scoping, before any quote.
+    from apps.tasks.services import confirm_work_country
+
+    task = confirm_work_country(task, quote_approver, task.work_country or "NG")
     return task
 
 

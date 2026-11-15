@@ -5,6 +5,7 @@ import uuid
 from django.conf import settings
 from django.db import models
 
+from apps.core.countries import choices as country_choices
 from apps.core.models import TimeStampedModel
 
 
@@ -91,6 +92,18 @@ class Task(TimeStampedModel):
     needs_info_question = models.TextField(blank=True)
     client_information = models.TextField(blank=True)
     revision_allowance_remaining = models.PositiveSmallIntegerField(default=0)
+    # The country the work is for (where the document will be used, the filing made,
+    # the counterparty based). It decides whether the business's plan covers it.
+    work_country = models.CharField(max_length=2, blank=True, choices=country_choices)
+    # Staff confirm it during scoping, from the documents, before a quote is sent.
+    work_country_confirmed_at = models.DateTimeField(null=True, blank=True)
+    work_country_confirmed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
     completed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
