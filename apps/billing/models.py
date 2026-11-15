@@ -104,8 +104,9 @@ class BillingSettings(models.Model):
 
 class SubscriptionStatus(models.TextChoices):
     ACTIVE = "active", "Active"
-    PAST_DUE = "past_due", "Past due"
-    CANCELLED = "cancelled", "Cancelled"
+    # Renewal unpaid after the grace period: service paused (Terms 5.6.4).
+    PAST_DUE = "past_due", "Paused: renewal unpaid"
+    CANCELLED = "cancelled", "Ended"
 
 
 class Subscription(TimeStampedModel):
@@ -122,9 +123,30 @@ class Subscription(TimeStampedModel):
     interval = models.CharField(
         max_length=8, choices=BillingInterval.choices, default=BillingInterval.MONTH
     )
+    # Cancelling stops the next renewal; access runs to period_end (Terms 5.5.5).
+    cancel_at_period_end = models.BooleanField(default=False)
+    cancel_requested_at = models.DateTimeField(null=True, blank=True)
+    # A move to a smaller plan starts at the next renewal (Terms 5.7).
+    next_plan = models.ForeignKey(
+        "Plan", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
+    )
+    # The period_end a renewal reminder was sent for, so it's sent once (Terms 5.5.4).
+    reminder_sent_for = models.DateTimeField(null=True, blank=True)
+    # Renewal payment problems (Terms 5.6): grace period, retries, pause.
+    grace_until = models.DateTimeField(null=True, blank=True)
+    renewal_attempts = models.PositiveSmallIntegerField(default=0)
+    last_renewal_attempt_at = models.DateTimeField(null=True, blank=True)
+    grace_last_day_reminded = models.BooleanField(default=False)
+    paused_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self) -> str:
         return f"{self.organization.name}: {self.plan.name}"
+
+    @property
+    def in_grace(self) -> bool:
+        from django.utils import timezone
+
+        return bool(self.grace_until and timezone.now() <= self.grace_until)
 
 
 class UsageKind(models.TextChoices):
@@ -208,6 +230,8 @@ class Invoice(TimeStampedModel):
     interval = models.CharField(
         max_length=8, choices=BillingInterval.choices, default=BillingInterval.MONTH
     )
+    # For a renewal invoice: the period_end it renews from. One per period.
+    renews_period_end = models.DateTimeField(null=True, blank=True)
     # Naira per US dollar used to price a rest-of-Africa invoice, kept as a record.
     fx_ngn_per_usd = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     amount_minor = models.BigIntegerField()
@@ -417,3 +441,55 @@ class FeeLine(models.Model):
 
     def __str__(self) -> str:
         return f"{self.payee}: {self.amount_minor}"
+
+
+
+class RenewalConsent(models.Model):
+    """The client's agreement to automatic renewal, as Terms 5.5.3 requires us to record it:
+    the wording shown, the terms version, when, and the provider reference for the saved card."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    organization = models.ForeignKey(
+        "organizations.Organization", on_delete=models.CASCADE, related_name="renewal_consents"
+    )
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="+")
+    invoice = models.OneToOneField(Invoice, on_delete=models.PROTECT, related_name="renewal_consent")
+    wording = models.TextField()
+    terms_version = models.CharField(max_length=32)
+    agreed_at = models.DateTimeField(auto_now_add=True)
+    provider_reference = models.CharField(max_length=64, blank=True)
+
+    def __str__(self) -> str:
+        return f"Renewal consent {self.invoice.number}"
+
+
+class PaymentMethod(TimeStampedModel):
+    """A card saved with the payment provider for renewals. We hold only the provider's
+    token (encrypted) and what the client needs to recognise the card, never the card number."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    organization = models.ForeignKey(
+        "organizations.Organization", on_delete=models.CASCADE, related_name="payment_methods"
+    )
+    provider = models.CharField(max_length=32)
+    token_encrypted = models.TextField()
+    brand = models.CharField(max_length=32, blank=True)
+    last4 = models.CharField(max_length=4, blank=True)
+    exp_month = models.PositiveSmallIntegerField(null=True, blank=True)
+    exp_year = models.PositiveSmallIntegerField(null=True, blank=True)
+    bank = models.CharField(max_length=80, blank=True)
+    email = models.EmailField(blank=True)  # the provider ties the token to this email
+    consent = models.ForeignKey(RenewalConsent, on_delete=models.PROTECT, related_name="+")
+    removed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["organization", "removed_at"])]
+
+    def __str__(self) -> str:
+        return f"{self.brand or 'Card'} ending {self.last4}"
+
+    @property
+    def label(self) -> str:
+        expiry = f", expires {self.exp_month:02d}/{str(self.exp_year)[-2:]}" if self.exp_month and self.exp_year else ""
+        return f"{self.brand or 'Card'} ending {self.last4}{expiry}"

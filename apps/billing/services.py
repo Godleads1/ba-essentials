@@ -23,7 +23,7 @@ from apps.core.exceptions import (
 from apps.core.sequences import next_value
 from apps.quotes.models import Quote, QuoteStatus
 
-from . import fees, flutterwave, paystack, pricing
+from . import fees, flutterwave, paystack, pricing, renewals
 from .models import (
     COVERING_USAGE_KINDS,
     BillingInterval,
@@ -54,11 +54,17 @@ def active_subscription(organization) -> Subscription | None:
     subscription = Subscription.objects.filter(
         organization=organization, status=SubscriptionStatus.ACTIVE
     ).select_related("plan").first()
-    if subscription is None:
-        return None
-    if not (subscription.period_start <= now <= subscription.period_end):
+    if subscription is None or not in_paid_time(subscription, now):
         return None
     return subscription
+
+
+def in_paid_time(subscription: Subscription, now=None) -> bool:
+    """Inside the paid period, or in the grace period after a failed renewal (Terms 5.6.3)."""
+    now = now or timezone.now()
+    if subscription.period_start <= now <= subscription.period_end:
+        return True
+    return bool(subscription.grace_until and subscription.period_end < now <= subscription.grace_until)
 
 
 def task_window_start(subscription: Subscription, now=None):
@@ -329,7 +335,8 @@ def add_months(moment, months: int):
 
 
 def start_plan_checkout(
-    *, organization, membership, plan_slug: str, return_url: str, interval: str = "month"
+    *, organization, membership, plan_slug: str, return_url: str, interval: str = "month",
+    renewal_consent: bool = False,
 ) -> str:
     """Create the plan invoice and payment record, then start Paystack checkout.
 
@@ -352,6 +359,8 @@ def start_plan_checkout(
         raise ValidationFailure("Choose monthly or yearly.")
     if active_subscription(organization) is not None:
         raise ValidationFailure("Your business already has an active plan.")
+    if not renewal_consent:
+        raise ValidationFailure("Tick the box to agree to automatic renewal before you pay.")
     # The business's country decides the price and currency, never the browser.
     price = pricing.plan_price(plan, organization.region, interval)
 
@@ -389,6 +398,12 @@ def start_plan_checkout(
             )
         # Created under the invoice lock, so a parallel checkout that fails can't
         # void this invoice while this attempt is about to use it.
+        months = 12 if price.interval == BillingInterval.YEAR else 1
+        renewals.record_consent(
+            invoice, user,
+            renewals.consent_wording(plan, price.amount_minor, price.currency, price.interval,
+                                     add_months(timezone.now(), months)),
+        )
         metadata = {"invoice": invoice.number, "plan": plan.slug, "interval": price.interval}
         attempt = _create_attempt(invoice, user, metadata)
     return _start_checkout(attempt, user, return_url=return_url, metadata=metadata, void_on_failure=True)
@@ -437,7 +452,9 @@ def upgrade_options(organization) -> list[tuple[Plan, int]]:
     return options
 
 
-def start_upgrade_checkout(*, organization, membership, plan_slug: str, return_url: str) -> str:
+def start_upgrade_checkout(
+    *, organization, membership, plan_slug: str, return_url: str, renewal_consent: bool = False
+) -> str:
     """Move up to a bigger plan mid-cycle. Today's charge covers the rest of the period.
 
     The plan changes only when Paystack confirms the payment (webhook + verify);
@@ -452,6 +469,8 @@ def start_upgrade_checkout(*, organization, membership, plan_slug: str, return_u
     target = Plan.objects.filter(slug=plan_slug, is_active=True).first()
     if target is None:
         raise ValidationFailure("That plan isn't available.")
+    if not renewal_consent:
+        raise ValidationFailure("Tick the box to agree to the new renewal price before you pay.")
     user = membership.user
     with transaction.atomic():
         now = timezone.now()
@@ -491,6 +510,12 @@ def start_upgrade_checkout(*, organization, membership, plan_slug: str, return_u
             status=InvoiceStatus.ISSUED,
             due_at=now + timedelta(days=1),
         )
+        renewal = pricing.plan_price(target, organization.region, subscription.interval, rate=charge.rate)
+        renewals.record_consent(
+            invoice, user,
+            renewals.consent_wording(target, renewal.amount_minor, renewal.currency, subscription.interval,
+                                     subscription.period_end),
+        )
         metadata = {"invoice": invoice.number, "plan": target.slug, "upgrade_from": current.slug}
         attempt = _create_attempt(invoice, user, metadata)
     return _start_checkout(attempt, user, return_url=return_url, metadata=metadata, void_on_failure=True)
@@ -516,7 +541,7 @@ def start_invoice_checkout(*, invoice: Invoice, membership, return_url: str) -> 
         raise ValidationFailure("Payments aren't open yet.")
     if not can_pay_invoice(invoice, membership):
         raise PermissionFailure("You can't pay this invoice.")
-    if invoice.plan_id is not None:
+    if invoice.plan_id is not None and invoice.renews_period_end is None:
         raise ValidationFailure("Plan payments are made from the Plan page.")
     metadata = {"invoice": invoice.number}
     if invoice.task_id:
@@ -804,6 +829,7 @@ def _apply_charge_success(event: ProviderWebhookEvent, data: dict, confirmed: di
                 return "refund_due"
         else:
             _activate_subscription(invoice)
+        renewals.save_payment_method(invoice, attempt, confirmed)
 
     _flag_card_country(invoice, confirmed)
     audit_service.record(
@@ -891,17 +917,39 @@ def _activate_subscription(invoice: Invoice) -> Subscription:
             interval=invoice.interval,
         )
     else:
-        # A payment made while the current period is still running extends it,
-        # so paying early never loses days.
+        # A payment made while the period is still running, or during the grace
+        # period after a failed renewal, carries on from the end of the paid
+        # period, so paying early never loses days and grace isn't free time.
+        # Once service is paused or the plan has ended, the new period starts
+        # the day they pay (Terms 5.6.5).
         start = subscription.period_end if (
-            subscription.status == SubscriptionStatus.ACTIVE and subscription.period_end > now
+            subscription.status == SubscriptionStatus.ACTIVE
+            and (subscription.period_end > now or in_paid_time(subscription, now))
         ) else now
+        if start < now and add_months(start, months) <= now:
+            start = now
         subscription.plan_id = invoice.plan_id
         subscription.period_start = start
         subscription.period_end = add_months(start, months)
         subscription.status = SubscriptionStatus.ACTIVE
         subscription.interval = invoice.interval
-        subscription.save(update_fields=["plan", "period_start", "period_end", "status", "interval", "updated_at"])
+        subscription.next_plan = None
+        subscription.cancel_at_period_end = False
+        subscription.cancel_requested_at = None
+        subscription.grace_until = None
+        subscription.renewal_attempts = 0
+        subscription.last_renewal_attempt_at = None
+        subscription.grace_last_day_reminded = False
+        subscription.paused_at = None
+        subscription.save(update_fields=[
+            "plan", "period_start", "period_end", "status", "interval", "next_plan",
+            "cancel_at_period_end", "cancel_requested_at", "grace_until", "renewal_attempts",
+            "last_renewal_attempt_at", "grace_last_day_reminded", "paused_at", "updated_at",
+        ])
+    # Any other unpaid renewal invoice is now out of date and can't be paid.
+    Invoice.objects.filter(
+        organization_id=invoice.organization_id, status=InvoiceStatus.ISSUED, renews_period_end__isnull=False
+    ).exclude(pk=invoice.pk).update(status=InvoiceStatus.VOID, updated_at=now)
     audit_service.record(
         action="billing.subscription_activated",
         actor=None,

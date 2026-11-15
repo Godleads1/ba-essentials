@@ -123,6 +123,16 @@ def verify(reference: str) -> dict:
         "email": str(customer.get("email") or ""),
         "fees": fee,
         "card_country": str(card.get("country") or "")[:2],
+        # A reusable card token for renewals (Terms 5.5.3). Kept only server-side.
+        "card": {
+            "token": str(card.get("token") or ""),
+            "reusable": bool(card.get("token")),
+            "last4": str(card.get("last_4digits") or "")[-4:],
+            "brand": str(card.get("type") or "")[:32].strip().title(),
+            "exp_month": _expiry(card.get("expiry"))[0],
+            "exp_year": _expiry(card.get("expiry"))[1],
+            "bank": str(card.get("issuer") or "")[:80],
+        },
     }
 
 
@@ -154,3 +164,32 @@ def ngn_per_usd() -> Decimal:
     if not valid_rate(rate):
         raise FlutterwaveError("Flutterwave's rate is outside the expected range.")
     return rate.quantize(Decimal("0.01"))
+
+
+def _expiry(value) -> tuple[int | None, int | None]:
+    """'09/32' -> (9, 2032)."""
+    try:
+        month, year = str(value).split("/", 1)
+        month, year = int(month), int(year)
+        return month, (2000 + year if year < 100 else year)
+    except (TypeError, ValueError):
+        return None, None
+
+
+def charge_saved_card(*, token: str, email: str, amount_minor: int, currency: str, reference: str, metadata: dict) -> str:
+    """Charge a saved card for a renewal. Returns Flutterwave's status, mapped to
+    "success" or the raw status. Only a confirmed webhook marks anything paid."""
+    result = _request(
+        "POST",
+        "/tokenized-charges",
+        {
+            "token": token,
+            "email": email,
+            "currency": currency,
+            "amount": to_major(amount_minor),
+            "tx_ref": reference,
+            "meta": {k: str(v)[:100] for k, v in metadata.items()},
+        },
+    )
+    status = str(result.get("status") or "")
+    return "success" if status == "successful" else status

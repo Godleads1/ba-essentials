@@ -115,7 +115,7 @@ def test_an_implausible_rate_is_refused(plans, fake_flutterwave):
 @override_settings(PAYMENTS_ENABLED=True)
 def test_nigeria_pays_naira_with_paystack(plans, organization, owner, fake_flutterwave):
     _set_country(organization, "NG")
-    response = login_client(owner).post("/app/plan/checkout/growth/", {"interval": "month"})
+    response = login_client(owner).post("/app/plan/checkout/growth/", {"renews": "on", "interval": "month"})
     assert response["Location"].startswith("https://checkout.paystack.com/")
     attempt = PaymentAttempt.objects.get()
     assert (attempt.provider, attempt.currency, attempt.amount_minor) == ("paystack", "NGN", 9_750_000)
@@ -125,7 +125,7 @@ def test_nigeria_pays_naira_with_paystack(plans, organization, owner, fake_flutt
 @override_settings(PAYMENTS_ENABLED=True)
 def test_uk_pays_dollars_with_flutterwave_and_starts_on_confirmation(plans, organization, owner, fake_flutterwave):
     _set_country(organization, "GB")
-    response = login_client(owner).post("/app/plan/checkout/starter/", {"interval": "month"})
+    response = login_client(owner).post("/app/plan/checkout/starter/", {"renews": "on", "interval": "month"})
     assert response["Location"] == fake_flutterwave.checkout_url
     attempt = PaymentAttempt.objects.select_related("invoice").get()
     assert (attempt.provider, attempt.currency, attempt.amount_minor) == ("flutterwave", "USD", 5_500)
@@ -141,7 +141,7 @@ def test_uk_pays_dollars_with_flutterwave_and_starts_on_confirmation(plans, orga
 @override_settings(PAYMENTS_ENABLED=True)
 def test_ghana_pays_converted_dollars_and_the_rate_is_kept(plans, organization, owner, fake_flutterwave):
     _set_country(organization, "GH")
-    login_client(owner).post("/app/plan/checkout/growth/", {"interval": "month"})
+    login_client(owner).post("/app/plan/checkout/growth/", {"renews": "on", "interval": "month"})
     invoice = Invoice.objects.get()
     assert (invoice.currency, invoice.amount_minor, invoice.fx_ngn_per_usd) == ("USD", 6_297, Decimal("1550.00"))
 
@@ -149,7 +149,7 @@ def test_ghana_pays_converted_dollars_and_the_rate_is_kept(plans, organization, 
 @override_settings(PAYMENTS_ENABLED=True)
 def test_yearly_covers_twelve_months(plans, organization, owner, fake_flutterwave):
     _set_country(organization, "US")
-    login_client(owner).post("/app/plan/checkout/growth/", {"interval": "year"})
+    login_client(owner).post("/app/plan/checkout/growth/", {"renews": "on", "interval": "year"})
     attempt = PaymentAttempt.objects.select_related("invoice").get()
     assert attempt.amount_minor == 90_800 and attempt.invoice.interval == "year"
     _flw_pay(attempt, fake_flutterwave, 502)
@@ -160,11 +160,11 @@ def test_yearly_covers_twelve_months(plans, organization, owner, fake_flutterwav
 @override_settings(PAYMENTS_ENABLED=True)
 def test_the_browser_cannot_choose_the_currency_or_price(plans, organization, owner, fake_flutterwave):
     _set_country(organization, "US")
-    login_client(owner).post("/app/plan/checkout/growth/", {"interval": "month", "currency": "NGN", "amount": "1"})
+    login_client(owner).post("/app/plan/checkout/growth/", {"renews": "on", "interval": "month", "currency": "NGN", "amount": "1"})
     attempt = PaymentAttempt.objects.get()
     assert (attempt.currency, attempt.amount_minor) == ("USD", 8_900)
     with pytest.raises(ValidationFailure):
-        billing.start_plan_checkout(organization=organization, membership=owner.memberships.get(),
+        billing.start_plan_checkout(renewal_consent=True, organization=organization, membership=owner.memberships.get(),
                                     plan_slug="growth", return_url="https://x.test/", interval="decade")
 
 
@@ -173,7 +173,7 @@ def test_the_browser_cannot_choose_the_currency_or_price(plans, organization, ow
 @override_settings(PAYMENTS_ENABLED=True)
 def test_flutterwave_webhook_needs_the_secret_hash(plans, organization, owner, fake_flutterwave):
     _set_country(organization, "GB")
-    login_client(owner).post("/app/plan/checkout/starter/")
+    login_client(owner).post("/app/plan/checkout/starter/", {"renews": "on", "renews": "on"})
     attempt = PaymentAttempt.objects.get()
     fake_flutterwave.confirm(attempt.reference, attempt.amount_minor)
     response = _flw_webhook({"event": "charge.completed", "data": {"id": 9, "tx_ref": attempt.reference,
@@ -185,7 +185,7 @@ def test_flutterwave_webhook_needs_the_secret_hash(plans, organization, owner, f
 @override_settings(PAYMENTS_ENABLED=True)
 def test_flutterwave_must_confirm_the_amount(plans, organization, owner, fake_flutterwave):
     _set_country(organization, "GB")
-    login_client(owner).post("/app/plan/checkout/starter/")
+    login_client(owner).post("/app/plan/checkout/starter/", {"renews": "on", "renews": "on"})
     attempt = PaymentAttempt.objects.get()
     fake_flutterwave.confirm(attempt.reference, 100)  # Flutterwave says only $1 was paid
     _flw_webhook({"event": "charge.completed", "data": {"id": 10, "tx_ref": attempt.reference,
@@ -197,7 +197,7 @@ def test_flutterwave_must_confirm_the_amount(plans, organization, owner, fake_fl
 @override_settings(PAYMENTS_ENABLED=True)
 def test_a_paystack_reference_cannot_be_paid_through_flutterwave(plans, organization, owner, fake_flutterwave):
     _set_country(organization, "NG")
-    login_client(owner).post("/app/plan/checkout/starter/")
+    login_client(owner).post("/app/plan/checkout/starter/", {"renews": "on", "renews": "on"})
     attempt = PaymentAttempt.objects.get()  # a Paystack (naira) attempt
     fake_flutterwave.confirm(attempt.reference, attempt.amount_minor, currency="NGN")
     _flw_webhook({"event": "charge.completed", "data": {"id": 11, "tx_ref": attempt.reference,
@@ -208,7 +208,7 @@ def test_a_paystack_reference_cannot_be_paid_through_flutterwave(plans, organiza
 @override_settings(PAYMENTS_ENABLED=True)
 def test_flutterwave_resends_are_applied_once(plans, organization, owner, fake_flutterwave):
     _set_country(organization, "GB")
-    login_client(owner).post("/app/plan/checkout/starter/")
+    login_client(owner).post("/app/plan/checkout/starter/", {"renews": "on", "renews": "on"})
     attempt = PaymentAttempt.objects.get()
     _flw_pay(attempt, fake_flutterwave, 600)
     end = Subscription.objects.get(organization=organization).period_end
@@ -221,9 +221,9 @@ def test_flutterwave_resends_are_applied_once(plans, organization, owner, fake_f
 @override_settings(PAYMENTS_ENABLED=True)
 def test_a_dollar_business_upgrades_in_dollars(plans, organization, owner, fake_flutterwave):
     _set_country(organization, "GB")
-    login_client(owner).post("/app/plan/checkout/starter/")
+    login_client(owner).post("/app/plan/checkout/starter/", {"renews": "on", "renews": "on"})
     _flw_pay(PaymentAttempt.objects.get(), fake_flutterwave, 700)
-    response = login_client(owner).post("/app/plan/upgrade/growth/")
+    response = login_client(owner).post("/app/plan/upgrade/growth/", {"renews": "on", "renews": "on"})
     assert response["Location"] == fake_flutterwave.checkout_url
     upgrade = PaymentAttempt.objects.select_related("invoice").latest("created_at")
     assert upgrade.currency == "USD" and 0 < upgrade.amount_minor <= 3_400  # at most $89 − $55
@@ -312,7 +312,7 @@ def test_a_rate_limited_verify_is_retried_not_stored(plans, organization, owner,
     from apps.billing.models import ProviderWebhookEvent
 
     _set_country(organization, "GB")
-    login_client(owner).post("/app/plan/checkout/starter/")
+    login_client(owner).post("/app/plan/checkout/starter/", {"renews": "on", "renews": "on"})
     attempt = PaymentAttempt.objects.get()
     fake_flutterwave.fail_with = flutterwave.FlutterwaveUnavailable("Flutterwave returned 429.")
     response = _flw_webhook({"event": "charge.completed", "data": {"id": 31, "tx_ref": attempt.reference,
@@ -341,7 +341,7 @@ def test_http_429_counts_as_temporary(monkeypatch, fake_flutterwave):
 @override_settings(PAYMENTS_ENABLED=True)
 def test_a_failed_notice_does_not_block_the_later_success(plans, organization, owner, fake_flutterwave):
     _set_country(organization, "GB")
-    login_client(owner).post("/app/plan/checkout/starter/")
+    login_client(owner).post("/app/plan/checkout/starter/", {"renews": "on", "renews": "on"})
     attempt = PaymentAttempt.objects.get()
     _flw_webhook({"event": "charge.completed", "data": {"id": 77, "tx_ref": attempt.reference,
                   "amount": 55, "currency": "USD", "status": "failed"}})

@@ -37,7 +37,7 @@ def growth(db) -> Plan:
 
 
 def _start(owner_client, slug="growth", **extra):
-    return owner_client.post(f"/app/plan/checkout/{slug}/", extra)
+    return owner_client.post(f"/app/plan/checkout/{slug}/", {"renews": "on", **extra})
 
 
 def _webhook(client, payload):
@@ -104,8 +104,8 @@ def test_no_second_plan_while_one_is_active(owner, growth, subscription):
 
 @pytest.mark.django_db
 def test_anonymous_and_staff_cannot_start_checkout(growth, ops_user):
-    assert Client().post("/app/plan/checkout/growth/")["Location"].startswith("/login")
-    staff = login_client(ops_user).post("/app/plan/checkout/growth/")
+    assert Client().post("/app/plan/checkout/growth/", {"renews": "on", "renews": "on"})["Location"].startswith("/login")
+    staff = login_client(ops_user).post("/app/plan/checkout/growth/", {"renews": "on", "renews": "on"})
     assert staff.status_code == 302 and "/staff/" in staff["Location"]
     assert not Invoice.objects.exists()
 

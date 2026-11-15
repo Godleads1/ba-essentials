@@ -113,4 +113,39 @@ def verify(reference: str) -> dict:
         # What Paystack kept, and where the card was issued (foreign cards cost more).
         "fees": fee if isinstance(fee, int) and not isinstance(fee, bool) else None,
         "card_country": str(authorization.get("country_code") or "")[:2],
+        # A reusable card permission for renewals (Terms 5.5.3). Kept only server-side.
+        "card": {
+            "token": str(authorization.get("authorization_code") or ""),
+            "reusable": authorization.get("reusable") is True,
+            "last4": str(authorization.get("last4") or "")[-4:],
+            "brand": str(authorization.get("brand") or authorization.get("card_type") or "")[:32].strip().title(),
+            "exp_month": _int_or_none(authorization.get("exp_month")),
+            "exp_year": _int_or_none(authorization.get("exp_year")),
+            "bank": str(authorization.get("bank") or "")[:80],
+        },
     }
+
+
+def _int_or_none(value):
+    try:
+        return int(str(value).strip())
+    except (TypeError, ValueError):
+        return None
+
+
+def charge_saved_card(*, token: str, email: str, amount_minor: int, currency: str, reference: str, metadata: dict) -> str:
+    """Charge a saved card for a renewal. Returns Paystack's status ("success", "failed",
+    "send_otp", ...). Only a confirmed webhook marks anything paid."""
+    result = _request(
+        "POST",
+        "/transaction/charge_authorization",
+        {
+            "authorization_code": token,
+            "email": email,
+            "amount": amount_minor,
+            "currency": currency,
+            "reference": reference,
+            "metadata": metadata,
+        },
+    )
+    return str(result.get("status") or "")
