@@ -252,6 +252,60 @@ class FakePaystack:
         }
 
 
+class FakeFlutterwave:
+    """Stands in for Flutterwave's API (amounts in major units, as Flutterwave sends them)."""
+
+    def __init__(self):
+        self.calls = []
+        self.checkout_url = "https://checkout.flutterwave.com/v3/hosted/pay/synthetic"
+        self.verified = {}
+        self.rate = "1550.00"
+        self.fail_with = None
+
+    def __call__(self, method, path, payload=None):
+        from apps.billing import flutterwave
+
+        self.calls.append((method, path, payload))
+        if self.fail_with is not None:
+            raise self.fail_with
+        if path == "/payments":
+            return {"link": self.checkout_url}
+        if path.startswith("/transactions/verify_by_reference"):
+            reference = path.split("tx_ref=", 1)[1]
+            if reference not in self.verified:
+                raise flutterwave.FlutterwaveError("Transaction not found.")
+            return self.verified[reference]
+        if path.startswith("/transfers/rates"):
+            if self.rate is None:
+                raise flutterwave.FlutterwaveUnavailable("down")
+            return {"rate": self.rate}
+        raise AssertionError(f"Unexpected Flutterwave call {method} {path}")
+
+    def confirm(self, reference, amount_minor, *, currency="USD", status="successful", country="GB", fee_minor=None):
+        self.verified[reference] = {
+            "status": status,
+            "tx_ref": reference,
+            "amount": amount_minor / 100,
+            "currency": currency,
+            "customer": {"email": "owner@example.test"},
+            "card": {"country": country},
+            "app_fee": None if fee_minor is None else fee_minor / 100,
+        }
+
+
+@pytest.fixture(autouse=True)
+def fake_flutterwave(monkeypatch):
+    """No test ever reaches the real Flutterwave API, and each starts without a cached rate."""
+    from django.core.cache import cache
+
+    from apps.billing import flutterwave
+
+    fake = FakeFlutterwave()
+    monkeypatch.setattr(flutterwave, "_request", fake)
+    cache.clear()
+    return fake
+
+
 @pytest.fixture(autouse=True)
 def fake_paystack(monkeypatch):
     """No test ever reaches the real Paystack API."""

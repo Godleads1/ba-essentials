@@ -77,6 +77,14 @@ user, and drops privileges after fixing the persistent-disk ownership.
    python manage.py seed_plans
    ```
 
+   For US dollar payments, set `FLUTTERWAVE_SECRET_KEY` and
+   `FLUTTERWAVE_WEBHOOK_HASH` (the "secret hash" you choose in the Flutterwave
+   dashboard under Webhooks), and point the Flutterwave webhook at
+   `https://<host>/webhooks/flutterwave/`. Production refuses to start with
+   payments enabled and either value missing. The yearly discount, extra legal
+   review fees and the rest-of-Africa amount are under Billing settings in
+   Django admin, for super admins only.
+
    Each category in a manifest can set `minimum_plan_rank` (0 = every client,
    2 = Growth and above, 3 = Dedicated only) and `uses_legal_allowance`
    (true for Legal & IP work). The founder-approved split is: Business & Admin

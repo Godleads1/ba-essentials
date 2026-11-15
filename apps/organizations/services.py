@@ -39,12 +39,17 @@ def _unique_slug(name: str) -> str:
 
 
 @transaction.atomic
-def create_organization(user, name: str) -> Organization:
+def create_organization(user, name: str, country: str = "") -> Organization:
+    from apps.core.countries import BY_CODE
+
     name = (name or "").strip()
     if len(name) < 2:
         raise ValidationFailure("Enter a business or team name.")
+    country = (country or "").upper()
+    if country and country not in BY_CODE:
+        raise ValidationFailure("Choose the country your business is based in.")
     organization = Organization.objects.create(
-        name=name, slug=_unique_slug(name), status=OrganizationStatus.ACTIVE
+        name=name, slug=_unique_slug(name), status=OrganizationStatus.ACTIVE, country=country
     )
     Membership.objects.create(
         organization=organization, user=user, role=MembershipRole.OWNER
@@ -55,6 +60,7 @@ def create_organization(user, name: str) -> Organization:
         organization=organization,
         resource_type="organization",
         resource_id=str(organization.pk),
+        metadata={"country": country},
     )
     return organization
 

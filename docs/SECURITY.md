@@ -117,6 +117,17 @@ without authorization and a rollback procedure.
 - Tests never call the real Paystack API (`fake_paystack` fixture in
   `tests/conftest.py`).
 - Finance verification requires the exact invoice amount and a unique reference.
+- Businesses outside Nigeria pay in US dollars through Flutterwave. Its webhook
+  must carry the dashboard's secret hash (`verif-hash`, compared in constant
+  time), each event is stored once, and Flutterwave's own verify answer must
+  match the attempt's provider, amount and currency before anything is paid.
+- Prices and currency come from the business's country, set at sign-up and
+  changeable only by staff in admin (audited). The browser never chooses them.
+  Rest-of-Africa prices use Flutterwave's rate, cached for an hour and bounded;
+  if it can't be fetched and no admin fallback is set, dollar checkout stops.
+  The rate used is stored on the invoice.
+- The yearly discount and extra legal review fees are editable only by super
+  admins, in one settings row, and every change is audited with old and new values.
 - Request invoices (quotes and third-party fees) are paid through the same
   server-started Paystack checkout as plans. The browser names the invoice;
   the amount always comes from the stored invoice. Only the business owner
