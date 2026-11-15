@@ -119,3 +119,8 @@ def choices() -> list[tuple[str, str]]:
     africa = sorted(((c, n) for c, n, _, a in COUNTRIES if a and c != "NG"), key=lambda x: x[1])
     rest = sorted(((c, n) for c, n, _, a in COUNTRIES if not a), key=lambda x: x[1])
     return nigeria + africa + rest
+
+
+def name_for(code: str) -> str:
+    entry = BY_CODE.get((code or "").upper())
+    return entry[0] if entry else ""

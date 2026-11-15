@@ -8,6 +8,7 @@ from apps.audit import services as audit_services
 from apps.billing import services as billing
 from apps.quotes import services as quote_services
 from apps.tasks import services as task_services
+from apps.tasks.services import confirm_work_country
 from apps.tasks.transitions import Action, transition
 
 from .conftest import login_client, make_user, pdf_upload
@@ -51,6 +52,7 @@ def _to_ready_for_assignment(
 ):
     task = _refresh(transition(task=task, action=Action.TRIAGE, actor=ops_user))
     task = _refresh(transition(task=task, action=Action.SCOPE, actor=quote_approver))
+    task = confirm_work_country(task, quote_approver, "NG")
     version = quote_services.create_version(
         task,
         quote_approver,

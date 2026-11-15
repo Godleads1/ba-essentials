@@ -24,11 +24,15 @@ from apps.accounts.permissions import (
 )
 from apps.audit.models import AuditEvent
 from apps.billing import fees
+from apps.billing.plan_rules import outside_plan_region
 from apps.billing.models import FeeRequest, Invoice
 from apps.communications import services as communications
+from apps.core.countries import choices as country_choices
+from apps.core.countries import name_for as country_name
 from apps.core.exceptions import DomainError
 from apps.core.views import handle_domain_error
-from apps.organizations.models import Organization
+from apps.organizations import services as organization_services
+from apps.organizations.models import AccountFlag, Organization
 from apps.quotes.forms import QuoteForm
 from apps.reviews.models import DeliverableVersion, DeliverableVersionStatus
 from apps.tasks import services
@@ -195,6 +199,13 @@ def task_detail(request, task_id):
             "can_quote": can_quote,
             "can_review": can_review,
             "can_release": Action.RELEASE.value in actions,
+            "work_country_name": country_name(task.work_country),
+            "outside_plan_region": outside_plan_region(task),
+            "can_confirm_country": has_perm(request.user, TASK_SCOPE) and task.status == TaskStatus.SCOPING,
+            "country_fixed": bool(task.service_version.definition.work_country),
+            "country_choices": country_choices(),
+            "account_flags": AccountFlag.objects.filter(organization=task.organization, resolved_at__isnull=True),
+            "can_resolve_flags": has_perm(request.user, QUOTE_SEND),
             "fee_requests": fee_requests,
             "fees_open": fees.has_open_fees(task),
             "can_prepare_fees": has_perm(request.user, FEES_PREPARE) and task.status in fees.FEE_STATUSES,
@@ -561,3 +572,32 @@ def audit_log(request):
             "query": query,
         },
     )
+
+
+@staff_required
+@require_POST
+def confirm_work_country(request, task_id):
+    def action(task):
+        services.confirm_work_country(
+            task, request.user, request.POST.get("country", ""), request.POST.get("reason", "")
+        )
+        messages.success(request, "Work country confirmed.")
+
+    return _run(request, task_id, action)
+
+
+@staff_required
+@require_POST
+def resolve_account_flag(request, flag_id):
+    flag = AccountFlag.objects.filter(pk=flag_id).select_related("organization").first()
+    task_id = request.POST.get("task", "")
+    back = redirect("staff-task-detail", task_id=task_id) if task_id else redirect("staff-clients")
+    if flag is None:
+        raise Http404("Flag not found")
+    try:
+        organization_services.resolve_flag(flag, request.user, request.POST.get("resolution", ""))
+    except DomainError as exc:
+        messages.error(request, exc.message)
+        return back
+    messages.success(request, "Flag resolved.")
+    return back

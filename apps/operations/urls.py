@@ -23,6 +23,8 @@ urlpatterns = [
         "tasks/<uuid:task_id>/scoping/", views.begin_scoping, name="staff-task-scope"
     ),
     path("tasks/<uuid:task_id>/assign/", views.assign, name="staff-task-assign"),
+    path("tasks/<uuid:task_id>/work-country/", views.confirm_work_country, name="staff-task-work-country"),
+    path("flags/<uuid:flag_id>/resolve/", views.resolve_account_flag, name="staff-flag-resolve"),
     path(
         "tasks/<uuid:task_id>/assignment/accept/",
         views.accept_assignment,

@@ -246,6 +246,10 @@ def transition(
     if rule.requires_reason and not (reason or "").strip():
         raise ValidationFailure("Give a short reason for this action.")
 
+    if action == Action.SEND_QUOTE and task.work_country_confirmed_at is None:
+        # The price depends on where the work is for, so staff confirm it first.
+        raise ValidationFailure("Confirm which country this work is for before sending a quote.")
+
     if action == Action.RELEASE:
         from apps.billing.fees import has_open_fees
 

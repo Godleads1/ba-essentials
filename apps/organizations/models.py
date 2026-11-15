@@ -24,6 +24,9 @@ class Organization(TimeStampedModel):
     # Where the business is based. It sets the pricing region and currency, so the
     # client can't change it after sign-up; staff can, from admin, with a record.
     country = models.CharField(max_length=2, blank=True, choices=country_choices)
+    # Staff can move a business in Nigeria or Africa to the international (US dollar)
+    # plans, so work outside Africa is included. Changed only in admin, and audited.
+    international_plan = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["name"]
@@ -37,9 +40,38 @@ class Organization(TimeStampedModel):
 
     @property
     def region(self) -> str:
-        from apps.core.countries import region_for
+        from apps.core.countries import REGION_INTERNATIONAL, region_for
 
-        return region_for(self.country)
+        return REGION_INTERNATIONAL if self.international_plan else region_for(self.country)
+
+
+class AccountFlagKind(models.TextChoices):
+    CARD_COUNTRY_MISMATCH = "card_country", "Card from another country"
+
+
+class AccountFlag(TimeStampedModel):
+    """Something staff should look at on a business, such as a card from another country.
+
+    A flag never blocks the client on its own: a Nigerian business can genuinely pay
+    with a UK card. Staff review it and either resolve it or change the account.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name="flags")
+    kind = models.CharField(max_length=32, choices=AccountFlagKind.choices)
+    detail = models.CharField(max_length=255)
+    resolved_at = models.DateTimeField(null=True, blank=True)
+    resolved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
+    )
+    resolution = models.CharField(max_length=255, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["organization", "resolved_at"])]
+
+    def __str__(self) -> str:
+        return f"{self.organization}: {self.get_kind_display()}"
 
 
 class MembershipRole(models.TextChoices):

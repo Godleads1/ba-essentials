@@ -128,6 +128,13 @@ without authorization and a rollback procedure.
   The rate used is stored on the invoice.
 - The yearly discount and extra legal review fees are editable only by super
   admins, in one settings row, and every change is audited with old and new values.
+- Each request records the country the work is for (fixed by the service when
+  it has one). On a naira or Africa plan, work for a country outside Africa is
+  never covered by the allowance; it is quoted, or staff move the business to the
+  international plan in admin (audited). Staff with `task.scope` must confirm the
+  country before a quote can be sent; a change needs a reason and is audited.
+- A confirmed payment from a card issued in another country than the business's
+  creates an account flag for staff review. Flags never block the client.
 - Request invoices (quotes and third-party fees) are paid through the same
   server-started Paystack checkout as plans. The browser names the invoice;
   the amount always comes from the stored invoice. Only the business owner

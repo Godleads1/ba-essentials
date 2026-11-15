@@ -35,9 +35,20 @@ class SubmitTaskForm(StyledFormMixin, forms.Form):
         label="Preferred due date",
         widget=forms.DateInput(attrs={"type": "date"}),
     )
+    work_country = forms.ChoiceField(
+        label="Which country is this work for?",
+        help_text="Where the document will be used, the filing made or the other party is based.",
+    )
 
     def __init__(self, *args, organization=None, **kwargs):
         super().__init__(*args, **kwargs)
+        from apps.core.countries import choices
+
+        self.fields["work_country"].choices = choices()
+        if organization is not None and organization.country and not self.initial.get("work_country"):
+            self.initial["work_country"] = organization.country
+        elif not self.initial.get("work_country"):
+            self.initial["work_country"] = "NG"
         if organization is not None:
             # Only offer services the business's plan includes. The server checks
             # again when the request is created.

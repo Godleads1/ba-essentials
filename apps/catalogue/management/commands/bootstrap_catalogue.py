@@ -102,14 +102,20 @@ class Command(BaseCommand):
             raise CommandError(f"Unknown service state {state!r} for {name}.")
 
         slug = (data.get("slug") or slugify(name)).strip()
-        definition, _ = ServiceDefinition.objects.update_or_create(
-            slug=slug,
-            defaults={
-                "category": category,
-                "name": name,
-                "is_active": bool(data.get("is_active", True)),
-            },
-        )
+        service_defaults = {
+            "category": category,
+            "name": name,
+            "is_active": bool(data.get("is_active", True)),
+        }
+        # Only set when the manifest says so, like plan access on categories.
+        if "work_country" in data:
+            from apps.core.countries import BY_CODE
+
+            code = str(data["work_country"] or "").upper()
+            if code and code not in BY_CODE:
+                raise CommandError(f"work_country for {name} must be a known country code, like US or GB.")
+            service_defaults["work_country"] = code
+        definition, _ = ServiceDefinition.objects.update_or_create(slug=slug, defaults=service_defaults)
         settings_payload = {
             "scope_summary": scope,
             "deliverables_summary": deliverables,

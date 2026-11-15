@@ -95,6 +95,17 @@ def reserve_allowance(task) -> bool:
     from . import plan_rules
 
     legal = plan_rules.uses_legal_allowance(task)
+    if plan_rules.outside_plan_region(task):
+        # Work for a country outside Africa on a naira or Africa plan is quoted, never covered.
+        audit_service.record(
+            action="billing.allowance_skipped_work_country",
+            actor=None,
+            organization_id=task.organization_id,
+            resource_type="task",
+            resource_id=str(task.pk),
+            metadata={"work_country": task.work_country},
+        )
+        return False
     with transaction.atomic():
         subscription = plan_rules.lock_active_subscription(task.organization_id)
         if subscription is None:
@@ -794,6 +805,7 @@ def _apply_charge_success(event: ProviderWebhookEvent, data: dict, confirmed: di
         else:
             _activate_subscription(invoice)
 
+    _flag_card_country(invoice, confirmed)
     audit_service.record(
         action="billing.webhook_paid",
         actor=None,
@@ -803,6 +815,31 @@ def _apply_charge_success(event: ProviderWebhookEvent, data: dict, confirmed: di
         metadata={"reference": reference, "amount_minor": amount},
     )
     return "paid"
+
+
+def _flag_card_country(invoice: Invoice, confirmed: dict | None) -> None:
+    """Flag a paid card from a different country than the business's, for staff to review.
+
+    Never blocks anything: a Nigerian business can genuinely pay with a UK card.
+    """
+    from apps.organizations.models import AccountFlag, AccountFlagKind, Organization
+
+    card = str((confirmed or {}).get("card_country") or "").upper()[:2]
+    organization = Organization.objects.get(pk=invoice.organization_id)
+    if not card or not organization.country or card == organization.country:
+        return
+    detail = f"Paid {invoice.number} with a card from {card}; the business is in {organization.country}."
+    AccountFlag.objects.create(
+        organization=organization, kind=AccountFlagKind.CARD_COUNTRY_MISMATCH, detail=detail[:255]
+    )
+    audit_service.record(
+        action="organization.flagged",
+        actor=None,
+        organization_id=organization.pk,
+        resource_type="organization",
+        resource_id=str(organization.pk),
+        metadata={"kind": AccountFlagKind.CARD_COUNTRY_MISMATCH, "card_country": card, "invoice": invoice.number},
+    )
 
 
 def _apply_upgrade(invoice: Invoice) -> bool:

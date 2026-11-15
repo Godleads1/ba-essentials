@@ -214,3 +214,32 @@ def ensure_single_default_organization(user) -> Organization | None:
     """Convenience for tests and the demo seed only."""
     membership = Membership.objects.filter(user=user).first()
     return membership.organization if membership else None
+
+
+def resolve_flag(flag, actor, resolution: str):
+    """Staff close a flag after looking at it, saying what they found."""
+    from apps.accounts.permissions import QUOTE_SEND, require_perm
+
+    from .models import AccountFlag
+
+    require_perm(actor, QUOTE_SEND)
+    resolution = (resolution or "").strip()
+    if len(resolution) < 3:
+        raise ValidationFailure("Say what you checked or changed.")
+    with transaction.atomic():
+        flag = AccountFlag.objects.select_for_update().get(pk=flag.pk)
+        if flag.resolved_at is not None:
+            raise ValidationFailure("This flag is already resolved.")
+        flag.resolved_at = timezone.now()
+        flag.resolved_by = actor
+        flag.resolution = resolution[:255]
+        flag.save(update_fields=["resolved_at", "resolved_by", "resolution", "updated_at"])
+        audit_service.record(
+            action="organization.flag_resolved",
+            actor=actor,
+            organization_id=flag.organization_id,
+            resource_type="account_flag",
+            resource_id=str(flag.pk),
+            reason=resolution[:500],
+        )
+    return flag

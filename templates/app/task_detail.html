@@ -119,6 +119,14 @@
         </section>
       {% endif %}
 
+      {% if outside_plan_region %}
+        <section class="card card-pad border border-amber-200 bg-amber-50/60">
+          <p class="eyebrow">Work outside Africa</p>
+          <h3 class="mt-1 text-base font-semibold text-navy-900">This request is for {{ work_country_name }}</h3>
+          <p class="mt-1 text-sm text-slate-600">Your plan covers work in Nigeria and the rest of Africa. Work for {{ work_country_name }} needs a specialist there, so it isn&rsquo;t included: we&rsquo;ll send a one-off fee quote before any work starts, and nothing is charged unless you accept it. If you often need work outside Africa, ask us to move you to the international plan, which includes it.</p>
+        </section>
+      {% endif %}
+
       {% include "app/_fees.html" %}
 
       {% if invoice %}
