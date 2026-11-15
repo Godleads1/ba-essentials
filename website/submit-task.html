@@ -392,6 +392,12 @@
                 <input id="audience" class="field mt-1.5" maxlength="120" placeholder="e.g. a client, our team, a bank" autocomplete="off" />
               </div>
             </div>
+            <div class="mt-5">
+              <label for="workCountry" class="lbl">Which country is this work for?</label>
+              <select id="workCountry" class="field mt-1.5" aria-describedby="workCountryHint workCountryNote"></select>
+              <p id="workCountryHint" class="mt-1.5 text-[12.5px] text-ink-muted">Where the document will be used, the filing made or the other party is based.</p>
+              <p id="workCountryNote" class="mt-2 rounded-xl bg-pill-orangeBg px-3.5 py-2.5 text-[13px] text-brand-orangeDark" hidden></p>
+            </div>
 
             <div class="mt-5">
               <div class="flex items-baseline justify-between gap-3">
@@ -587,6 +593,7 @@
   <script src="tasks-data.js"></script>
   <script src="https://unpkg.com/lucide@1.60.0/dist/umd/lucide.min.js"></script>
   <script src="catalogue-data.js"></script>
+  <script src="pricing.js"></script>
   <script>
     // ---------- Service catalogue (from the Task Bank) ----------
     const { AVAIL, CATS, CALLS, ID_DOCS } = window.CATALOGUE;
@@ -770,8 +777,9 @@
       $('rvCallWrap').hidden = !needsCall();
       const A = window.BANDA.ACCOUNT;
       const over = window.BANDA.overAllowance(state.cat);
-      $('rvQuote').hidden = !over;
-      if (over) $('rvQuote').innerHTML = window.BANDA.overAllowanceNote(over, { html: true });
+      $('rvQuote').hidden = !over && !workOutsideAfrica();
+      if (workOutsideAfrica()) $('rvQuote').textContent = $('workCountryNote').textContent;
+      else if (over) $('rvQuote').innerHTML = window.BANDA.overAllowanceNote(over, { html: true });
       $('rvCall').textContent = needsCall() ? `${$('callWho').value.trim()}. You confirmed it needs no personal, legal or in-person action from you.` : '';
       $('rvFiles').innerHTML = state.files.length
         ? state.files.map(f => `<span class="mr-2 mt-1 inline-flex items-center gap-1.5 rounded-lg bg-cream-light px-2 py-1 text-[12.5px]"><i data-lucide="paperclip" class="h-3.5 w-3.5 text-brand-navy"></i>${esc(f.name)} <span class="text-ink-soft">(${fmtSize(f.size)})</span></span>`).join('')
@@ -788,6 +796,26 @@
     document.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', () => show(state.step - 1)));
     document.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => show(+b.dataset.edit)));
 
+    // ---------- where the work is for ----------
+    // The business is in Nigeria in this preview. Work for a country outside Africa
+    // isn't covered by a naira plan: it's quoted as a one-off fee, or the business
+    // moves to the international plan. Staff confirm the country from the documents.
+    (function workCountry() {
+      const P = window.BANDA_PRICING, sel = $('workCountry');
+      const africa = P.COUNTRIES.filter(c => c[3] && c[0] !== 'NG').sort((a, b) => a[1].localeCompare(b[1]));
+      const rest = P.COUNTRIES.filter(c => !c[3]).sort((a, b) => a[1].localeCompare(b[1]));
+      const opt = c => `<option value="${c[0]}">${esc(c[1])}</option>`;
+      sel.innerHTML = opt(P.COUNTRIES[0]) + `<optgroup label="Rest of Africa">${africa.map(opt).join('')}</optgroup><optgroup label="Outside Africa">${rest.map(opt).join('')}</optgroup>`;
+      sel.value = 'NG';
+      const sync = () => {
+        const c = P.byCode[sel.value], outside = c && !c.africa;
+        $('workCountryNote').hidden = !outside;
+        if (outside) $('workCountryNote').textContent = `Work for ${c.name} needs a specialist there, so your naira plan doesn’t include it. We’ll send a one-off fee quote before any work starts, and nothing is charged unless you accept it. If you often need work outside Africa, ask us about the international plan.`;
+      };
+      sel.addEventListener('change', sync); sync();
+    })();
+    const workOutsideAfrica = () => { const c = window.BANDA_PRICING.byCode[$('workCountry').value]; return !!(c && !c.africa); };
+
     function submitRequest() {
       const btn = $('submitBtn'); btn.disabled = true;
       // Preview: the request is saved in this browser so it shows in My Tasks, the request page,
@@ -798,7 +826,7 @@
         const task = window.BANDA.add({
           title: serviceName() || CATS[state.cat].name, cat: state.cat, service: serviceName(),
           priority: priority(), due: $('deadline').value || null, details: details.value.trim(),
-          purpose: $('purpose').value, audience: $('audience').value.trim(),
+          purpose: $('purpose').value, audience: $('audience').value.trim(), workCountry: $('workCountry').value,
           call: needsCall() ? $('callWho').value.trim() : '',
           files: state.files.map(f => [f.name, f.size]),
         });
