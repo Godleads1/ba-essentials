@@ -70,6 +70,19 @@ user, and drops privileges after fixing the persistent-disk ownership.
    The catalogue file is synthetic. Replace it with a founder-approved
    manifest before using staging for realistic service scenarios.
 
+   Create the three published plans (Starter, Growth, Dedicated) with their
+   list prices, task allowances and legal review allowances:
+
+   ```bash
+   python manage.py seed_plans
+   ```
+
+   Each category in a manifest can set `minimum_plan_rank` (0 = every client,
+   2 = Growth and above, 3 = Dedicated only) and `uses_legal_allowance`
+   (true for Legal & IP work). The founder-approved split is: Business & Admin
+   and Legal & IP at 0, Operations & Logistics, Creator Essentials and Tax
+   Readiness at 2, Specialized Add-Ons at 3.
+
 `RENDER_EXTERNAL_HOSTNAME` is adopted automatically by
 `config.settings.staging`, so a service-name suffix does not break host or CSRF
 validation. `APP_BASE_URL` in the environment group is only the expected

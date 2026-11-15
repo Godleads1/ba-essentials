@@ -36,6 +36,19 @@ class SubmitTaskForm(StyledFormMixin, forms.Form):
         widget=forms.DateInput(attrs={"type": "date"}),
     )
 
+    def __init__(self, *args, organization=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if organization is not None:
+            # Only offer services the business's plan includes. The server checks
+            # again when the request is created.
+            from apps.billing.plan_rules import active_subscription
+
+            subscription = active_subscription(organization)
+            rank = subscription.plan.rank if subscription else 0
+            self.fields["service_version"].queryset = submittable_versions().filter(
+                definition__category__minimum_plan_rank__lte=rank
+            )
+
     def clean_title(self):
         title = (self.cleaned_data.get("title") or "").strip()
         if len(title) < 4:

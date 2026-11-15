@@ -14,7 +14,10 @@ from .models import (
 
 @admin.register(Plan)
 class PlanAdmin(admin.ModelAdmin):
-    list_display = ("name", "slug", "monthly_task_allowance", "price_minor", "is_active")
+    list_display = (
+        "name", "slug", "rank", "monthly_task_allowance", "legal_review_allowance",
+        "legal_review_period_months", "price_minor", "is_active",
+    )
     list_filter = ("is_active", "currency")
     search_fields = ("name", "slug")
 

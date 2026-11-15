@@ -18,7 +18,7 @@
           <article class="card card-pad flex flex-col">
             <div class="flex flex-wrap items-start justify-between gap-2">
               <h3 class="text-sm font-semibold text-navy-900">{{ version.definition.name }}</h3>
-              {% include "partials/status_badge.html" with status=version.state %}
+              {% if version.access.allowed %}{% include "partials/status_badge.html" with status=version.state %}{% else %}<span class="badge bg-slate-100 text-slate-600 ring-slate-300">On {{ version.access.required_plan.name|default:"a bigger plan" }}</span>{% endif %}
             </div>
             <dl class="mt-4 space-y-2 text-sm">
               <div><dt class="text-xs font-semibold uppercase tracking-wide text-slate-400">Scope</dt><dd class="mt-0.5 whitespace-pre-line text-slate-700">{{ version.scope_summary }}</dd></div>
@@ -30,7 +30,11 @@
               {% if version.requires_quote %}<span>Quote before work</span>{% endif %}
             </div>
             <div class="mt-5 flex-1"></div>
-            <a class="btn-primary btn-sm self-start" href="{% url 'task-submit' %}?service={{ version.pk }}">Request this service</a>
+            {% if version.access.allowed %}
+              <a class="btn-primary btn-sm self-start" href="{% url 'task-submit' %}?service={{ version.pk }}">Request this service</a>
+            {% else %}
+              <a class="btn-secondary btn-sm self-start" href="{% url 'plan-home' %}#upgrade">Upgrade to {{ version.access.required_plan.name|default:"request this" }}</a>
+            {% endif %}
           </article>
         {% endfor %}
       </div>

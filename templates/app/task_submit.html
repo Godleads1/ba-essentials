@@ -12,6 +12,9 @@
         {% csrf_token %}
         {{ form.non_field_errors }}
         {% include "partials/field.html" with field=form.service_version %}
+        {% if locked_categories %}
+          <p class="-mt-2 rounded-xl bg-slate-50 px-3.5 py-2.5 text-xs text-slate-600">Not in your plan: {% for category, access in locked_categories %}{{ category.name }} (from {{ access.required_plan.name|default:"a bigger plan" }}){% if not forloop.last %}, {% endif %}{% endfor %}. <a class="font-semibold text-brand-700 hover:underline" href="{% url 'plan-home' %}#upgrade">See upgrade options</a></p>
+        {% endif %}
         {% include "partials/field.html" with field=form.title %}
         {% include "partials/field.html" with field=form.brief %}
         {% include "partials/field.html" with field=form.desired_outcome %}

@@ -15,6 +15,11 @@ class ServiceCategory(TimeStampedModel):
     summary = models.CharField(max_length=255, blank=True)
     sort_order = models.PositiveSmallIntegerField(default=0)
     is_active = models.BooleanField(default=True)
+    # 0 = open to every client, including those without a plan (quoted per request).
+    # Otherwise the client's plan rank must be at least this (Growth 2, Dedicated 3).
+    minimum_plan_rank = models.PositiveSmallIntegerField(default=0)
+    # Legal & IP work draws on the plan's legal review allowance, not the task allowance.
+    uses_legal_allowance = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["sort_order", "name"]
