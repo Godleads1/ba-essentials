@@ -614,9 +614,12 @@
     function renderAlerts() {
     const pending = getPref('nextPlan', null);
     const alerts = [];
-    if (projected > plan.tasks) alerts.push(['triangle-alert', 'bg-pill-orangeBg text-brand-orangeDark', 'You may run out before renewal', `At this pace you'll need about ${projected} tasks this cycle, and your plan includes ${plan.tasks}. We quote any extra tasks before starting, or you can move up a plan, which starts straight away.`]);
+    const tasksOver = window.BANDA.overAllowance('business');
+    if (tasksOver) alerts.push(['triangle-alert', 'bg-pill-orangeBg text-brand-orangeDark', 'Tasks used up', window.BANDA.overAllowanceNote(tasksOver) + (ACCOUNT.tasksQuoted ? ` We’ll send you a quote for the ${ACCOUNT.tasksQuoted} waiting.` : '')]);
+    else if (projected > plan.tasks) alerts.push(['triangle-alert', 'bg-pill-orangeBg text-brand-orangeDark', 'You may run out before renewal', `At this pace you'll need about ${projected} tasks this cycle, and your plan includes ${plan.tasks}. We quote any extra tasks before starting, or you can move up a plan, which starts straight away.`]);
     else alerts.push(['circle-check', 'bg-pill-greenBg text-pill-greenTx', 'You’re on track', `${left} tasks left for ${daysLeft} days.`]);
-    if (ACCOUNT.legalUsed >= plan.legal) alerts.push(['scale', 'bg-pill-navyBg text-brand-navy', 'Legal reviews used up', `You've used your ${plan.legal} legal review${plan.legal === 1 ? '' : 's'} this ${plan.legalPer}. Further legal reviews are quoted before any work starts.${ACCOUNT.legalQuoted ? ` We’ll send you a quote for the ${ACCOUNT.legalQuoted} waiting.` : ''}`]);
+    const legalOver = window.BANDA.overAllowance('legal');
+    if (legalOver) alerts.push(['scale', 'bg-pill-navyBg text-brand-navy', 'Legal reviews used up', window.BANDA.overAllowanceNote(legalOver) + (ACCOUNT.legalQuoted ? ` We’ll send you a quote for the ${ACCOUNT.legalQuoted} waiting.` : '')]);
     $('alerts').innerHTML = alerts.map(([ic, tone, title, body]) => `<li class="flex gap-3 rounded-2xl bg-cream-light p-3.5"><span class="grid h-8 w-8 shrink-0 place-items-center rounded-full ${tone}"><i data-lucide="${ic}" class="h-4 w-4"></i></span><span><span class="block text-[13.5px] font-semibold">${esc(title)}</span><span class="block text-[12.5px] text-ink-muted">${esc(body)}</span></span></li>`).join('')
       + `<li><button type="button" class="btn-outline w-full py-2 text-[13px]" data-open-change>Compare plans</button></li>`;
     if (pending && PLANS[pending]) {

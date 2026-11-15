@@ -164,17 +164,19 @@
     const year = new Date().getFullYear();
     const next = Math.max(0, ...source().filter(t => t.id.startsWith(`REQ-${year}-`)).map(t => +t.id.slice(9))) + 1;
     const id = `REQ-${year}-${String(next).padStart(4, '0')}`;
-    // Legal work beyond the plan's legal reviews is quoted before any work starts (Terms 3.3).
-    const needsQuote = req.cat === 'legal' && ACCOUNT.legalUsed >= PLANS[ACCOUNT.plan].legal;
+    // Work beyond the plan's tasks or legal reviews is quoted as a one-off fee first (Terms 3.3).
+    const over = overAllowance(req.cat);
+    const needsQuote = !!over;
     const task = {
-      id, needsQuote, title: req.title, cat: req.cat, service: req.service, status: 'submitted', priority: req.priority === 'Urgent' ? 'Urgent' : 'Standard',
+      id, needsQuote, over: over ? over.kind : null, overNote: over ? overAllowanceNote(over, { after: true }) : '', title: req.title, cat: req.cat, service: req.service, status: 'submitted', priority: req.priority === 'Urgent' ? 'Urgent' : 'Standard',
       submitted: nowLocal(), due: req.due || null, details: req.details, purpose: req.purpose || '', audience: req.audience || '',
       call: req.call || '', files: req.files || [], messages: [],
     };
     store.added = (store.added || []).concat(task);
     if (req.cat === 'legal') { if (needsQuote) ACCOUNT.legalQuoted = (ACCOUNT.legalQuoted || 0) + 1; else ACCOUNT.legalUsed += 1; }
+    else if (needsQuote) ACCOUNT.tasksQuoted = (ACCOUNT.tasksQuoted || 0) + 1;
     else if (req.cat !== 'addons') { ACCOUNT.tasksUsed += 1; ACCOUNT.byCat[req.cat] = (ACCOUNT.byCat[req.cat] || 0) + 1; ACCOUNT.daily[ACCOUNT.daily.length - 1] += 1; }
-    store.nextra = (store.nextra || []).concat({ id: 'N-' + id, kind: 'request', at: task.submitted, title: 'Request received', text: `We’ve received ${id} (${task.title}).${needsQuote ? ' Your plan’s legal reviews are used up, so we’ll send a quote before starting.' : ''}${task.priority === 'Urgent' ? ' You marked it urgent, so we’ll confirm the timeline before starting.' : ''}`, href: 'task.html?id=' + id });
+    store.nextra = (store.nextra || []).concat({ id: 'N-' + id, kind: 'request', at: task.submitted, title: 'Request received', text: `We’ve received ${id} (${task.title}).${needsQuote ? ' ' + task.overNote : ''}${task.priority === 'Urgent' ? ' You marked it urgent, so we’ll confirm the timeline before starting.' : ''}`, href: 'task.html?id=' + id });
     writeStore(store);
     return task;
   }
@@ -218,13 +220,38 @@
   // Design preview only: "Preview as" on the Plan page switches the sample account's plan.
   const previewPlan = (store.prefs || {}).previewPlan;
   if (PLANS[previewPlan]) ACCOUNT.plan = previewPlan;
+  // A smaller plan can't have used more than it includes (sample data was made on Growth).
+  ACCOUNT.tasksUsed = Math.min(ACCOUNT.tasksUsed, PLANS[ACCOUNT.plan].tasks);
+  ACCOUNT.legalUsed = Math.min(ACCOUNT.legalUsed, PLANS[ACCOUNT.plan].legal);
   const minPlanFor = cat => CAT_MIN_PLAN[cat] || 'starter';
   const planAllows = (cat, plan = ACCOUNT.plan) => PLAN_ORDER.indexOf(plan) >= PLAN_ORDER.indexOf(minPlanFor(cat));
+  // When a plan's tasks or legal reviews are used up, the next request in that kind is
+  // either paid as a one-off fee (quoted first, Terms 3.3) or covered by upgrading.
+  function overAllowance(cat) {
+    const p = PLANS[ACCOUNT.plan];
+    if (cat === 'addons') return null; // always quoted separately
+    if (cat === 'legal') return ACCOUNT.legalUsed >= p.legal ? { kind: 'legal', what: `${p.legal === 1 ? 'legal review' : p.legal + ' legal reviews'}`, per: p.legalPer } : null;
+    return ACCOUNT.tasksUsed >= p.tasks ? { kind: 'tasks', what: `${p.tasks} tasks`, per: 'month' } : null;
+  }
+  const nextPlanUp = () => PLAN_ORDER[PLAN_ORDER.indexOf(ACCOUNT.plan) + 1] || null;
+  // Plain-language note with both choices. html=true adds an Upgrade link.
+  function overAllowanceNote(over, { html = false, after = false } = {}) {
+    const p = PLANS[ACCOUNT.plan], up = nextPlanUp();
+    const used = `You’ve used your ${p.name} plan’s ${over.what} for this ${over.per}.`;
+    const fee = after
+      ? 'We’ll send a one-off fee quote before any work starts. Nothing is charged unless you accept it.'
+      : 'To go ahead now, pay a one-off fee: we’ll send a quote before any work starts, and nothing is charged unless you accept it.';
+    const upgrade = !up ? '' : html
+      ? ` Or <a class="font-semibold underline underline-offset-2 hover:no-underline" href="plan.html?upgrade=${up}">upgrade to ${esc(PLANS[up].name)}</a> to have more included.`
+      : ` Or upgrade to ${PLANS[up].name} to have more included.`;
+    return (html ? esc(used + ' ' + fee) : used + ' ' + fee) + upgrade;
+  }
   // Requests submitted in this preview count toward this cycle. Legal & IP uses the legal
   // allowance, Specialized Add-Ons are quoted separately, and cancelled requests don't count.
   (store.added || []).forEach(t => {
     if ((store[t.id] || {}).status === 'cancelled' || t.cat === 'addons') return;
     if (t.cat === 'legal') { if (t.needsQuote) ACCOUNT.legalQuoted = (ACCOUNT.legalQuoted || 0) + 1; else ACCOUNT.legalUsed += 1; return; }
+    if (t.needsQuote) { ACCOUNT.tasksQuoted = (ACCOUNT.tasksQuoted || 0) + 1; return; }
     ACCOUNT.tasksUsed += 1;
     ACCOUNT.byCat[t.cat] = (ACCOUNT.byCat[t.cat] || 0) + 1;
     ACCOUNT.daily[ACCOUNT.daily.length - 1] += 1;
@@ -449,7 +476,7 @@
 
   window.BANDA = { CATS, STATUS, CANCELLABLE, PRIORITY, all, find, add, update, feeBreakdown, grossUp, paystackCharge, esc, toDate, fmtDate, fmtDateTime, fmtSize, naira, chip,
     DSTATUS, DOWNLOADABLE, REVISION_NOTE, deliverables, deliverablesFor, setDeliverable, fileType, nowLocal, toast,
-    PLANS, PLAN_ORDER, CAT_MIN_PLAN, minPlanFor, planAllows, ACCOUNT, ISTATUS, invoices, payInvoice, invoiceForTask, getPref, setPref, payWithPaystack, PAYSTACK_TEST,
+    PLANS, PLAN_ORDER, CAT_MIN_PLAN, minPlanFor, planAllows, overAllowance, overAllowanceNote, nextPlanUp, ACCOUNT, ISTATUS, invoices, payInvoice, invoiceForTask, getPref, setPref, payWithPaystack, PAYSTACK_TEST,
     SUPPORT, TOPICS, TSTATUS, getList, setList,
     DESKS, conversations, unreadConversations, markRead, markUnread, NKIND, notes, readNote, readAllNotes, unreadNotes, paintCounts };
   // Top bar: a soft shadow once the page has scrolled under it.
