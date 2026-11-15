@@ -55,7 +55,8 @@ def _request(method: str, path: str, payload: dict | None = None) -> dict:
         with urllib.request.urlopen(request, timeout=TIMEOUT_SECONDS) as response:  # fixed https host (API_BASE)
             data = json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
-        if exc.code >= 500:
+        # 5xx and 429 (rate limited) are temporary: retry later.
+        if exc.code >= 500 or exc.code == 429:
             raise FlutterwaveUnavailable(f"Flutterwave returned {exc.code}.") from exc
         raise FlutterwaveError(f"Flutterwave returned {exc.code}.") from exc
     except (urllib.error.URLError, TimeoutError, OSError) as exc:
@@ -125,14 +126,31 @@ def verify(reference: str) -> dict:
     }
 
 
+def valid_rate(rate) -> bool:
+    try:
+        rate = Decimal(str(rate))
+    except (InvalidOperation, TypeError, ValueError):
+        return False
+    return rate.is_finite() and RATE_BOUNDS[0] <= rate <= RATE_BOUNDS[1]
+
+
 def ngn_per_usd() -> Decimal:
-    """Today's naira price of one US dollar, from Flutterwave's rate service."""
-    query = urllib.parse.urlencode({"amount": "1", "source_currency": "NGN", "destination_currency": "USD"})
+    """Today's naira price of one US dollar, from Flutterwave's rate service.
+
+    Asked as US dollars to naira. Flutterwave states a rate as source per
+    destination in some answers and destination per source in others, so a value
+    below 1 (dollars per naira) is turned the right way up before the bounds check.
+    """
+    query = urllib.parse.urlencode({"amount": "1", "source_currency": "USD", "destination_currency": "NGN"})
     result = _request("GET", f"/transfers/rates?{query}")
     try:
         rate = Decimal(str(result.get("rate")))
     except (InvalidOperation, TypeError, ValueError) as exc:
         raise FlutterwaveError("Flutterwave sent no usable rate.") from exc
-    if not (RATE_BOUNDS[0] <= rate <= RATE_BOUNDS[1]):
+    if not rate.is_finite() or rate <= 0:
+        raise FlutterwaveError("Flutterwave sent no usable rate.")
+    if rate < 1:
+        rate = Decimal(1) / rate
+    if not valid_rate(rate):
         raise FlutterwaveError("Flutterwave's rate is outside the expected range.")
     return rate.quantize(Decimal("0.01"))

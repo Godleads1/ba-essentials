@@ -61,6 +61,16 @@ def active_subscription(organization) -> Subscription | None:
     return subscription
 
 
+def task_window_start(subscription: Subscription, now=None):
+    """Start of the current month of tasks. A yearly plan still gets its tasks month by month."""
+    now = now or timezone.now()
+    start, k = subscription.period_start, 0
+    while add_months(subscription.period_start, k + 1) <= now:
+        k += 1
+        start = add_months(subscription.period_start, k)
+    return start
+
+
 def allowance_remaining(organization) -> int:
     subscription = active_subscription(organization)
     if subscription is None:
@@ -69,7 +79,7 @@ def allowance_remaining(organization) -> int:
         UsageLedger.objects.filter(
             organization=organization,
             kind=UsageKind.ALLOWANCE,
-            period_start=subscription.period_start,
+            period_start=task_window_start(subscription),
         ).aggregate(total=Sum("units"))["total"]
         or 0
     )
@@ -96,7 +106,7 @@ def reserve_allowance(task) -> bool:
         else:
             kind = UsageKind.ALLOWANCE
             limit = subscription.plan.monthly_task_allowance
-            window = subscription.period_start
+            window = task_window_start(subscription)
         if legal:
             used = plan_rules.legal_reviews_used(task.organization_id, subscription)
         else:
@@ -382,11 +392,13 @@ def upgrade_charge(subscription: Subscription, target: Plan, now=None, *, rate=N
     region = subscription.organization.region
     current = pricing.plan_price(subscription.plan, region, subscription.interval, rate=rate)
     wanted = pricing.plan_price(target, region, subscription.interval, rate=current.rate)
-    total = (subscription.period_end - subscription.period_start).total_seconds()
-    left = max(0.0, (subscription.period_end - now).total_seconds())
+    total = int((subscription.period_end - subscription.period_start).total_seconds() * 1_000_000)
+    left = max(0, int((subscription.period_end - now).total_seconds() * 1_000_000))
     unit = 1 if region == "africa" else 100
-    raw = (wanted.amount_minor - current.amount_minor) * left / total if total > 0 else 0
-    amount = max(unit, -(-int(raw) // unit) * unit)
+    difference = wanted.amount_minor - current.amount_minor
+    # Exact integer ceiling of difference × left ÷ total, then up to the whole unit.
+    raw = -(-(difference * left) // total) if total > 0 else 0
+    amount = max(unit, -(-raw // unit) * unit)
     return pricing.Price(amount, wanted.currency, subscription.interval, wanted.rate)
 
 
@@ -586,9 +598,13 @@ def _normalise_event(provider: str, payload: dict) -> tuple[str, str, dict]:
     if provider == "flutterwave":
         kind = str(payload.get("event") or payload.get("event.type") or "")
         charge = kind == "charge.completed" and data.get("status") == "successful"
+        transaction_id = str(data.get("id") or data.get("tx_ref") or "")
+        # Flutterwave can notify one transaction more than once as its status changes,
+        # so the status is part of the stored key: a failed notice never blocks the success.
+        status = str(data.get("status") or "unknown")[:32]
         return (
             "charge.success" if charge else kind,
-            str(data.get("id") or data.get("tx_ref") or ""),
+            f"{transaction_id}:{status}" if transaction_id else "",
             {
                 "reference": str(data.get("tx_ref") or ""),
                 "amount": flutterwave.to_minor(data.get("amount")),

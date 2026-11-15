@@ -276,6 +276,8 @@ class FakeFlutterwave:
                 raise flutterwave.FlutterwaveError("Transaction not found.")
             return self.verified[reference]
         if path.startswith("/transfers/rates"):
+            # The app must ask for US dollars to naira.
+            assert "source_currency=USD" in path and "destination_currency=NGN" in path, path
             if self.rate is None:
                 raise flutterwave.FlutterwaveUnavailable("down")
             return {"rate": self.rate}
@@ -301,6 +303,7 @@ def fake_flutterwave(monkeypatch):
     from apps.billing import flutterwave
 
     fake = FakeFlutterwave()
+    fake.original = flutterwave._request  # for tests of the client's own error handling
     monkeypatch.setattr(flutterwave, "_request", fake)
     cache.clear()
     return fake

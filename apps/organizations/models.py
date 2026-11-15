@@ -5,6 +5,7 @@ import uuid
 from django.conf import settings
 from django.db import models
 
+from apps.core.countries import choices as country_choices
 from apps.core.models import TimeStampedModel
 
 
@@ -22,7 +23,7 @@ class Organization(TimeStampedModel):
     )
     # Where the business is based. It sets the pricing region and currency, so the
     # client can't change it after sign-up; staff can, from admin, with a record.
-    country = models.CharField(max_length=2, blank=True)
+    country = models.CharField(max_length=2, blank=True, choices=country_choices)
 
     class Meta:
         ordering = ["name"]

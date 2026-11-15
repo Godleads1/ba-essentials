@@ -22,6 +22,9 @@ from .models import BillingInterval, BillingSettings, Plan
 
 RATE_CACHE_KEY = "billing:fx:ngn_per_usd"
 RATE_CACHE_SECONDS = 60 * 60
+# After a failed lookup, don't ask again for a minute, so one page doesn't wait on it per plan.
+RATE_FAILURE_KEY = "billing:fx:failed"
+RATE_FAILURE_CACHE_SECONDS = 60
 
 
 @dataclass(frozen=True)
@@ -51,17 +54,22 @@ def ngn_per_usd() -> Decimal:
     cached = cache.get(RATE_CACHE_KEY)
     if cached:
         return Decimal(cached)
-    try:
-        rate = flutterwave.ngn_per_usd()
-    except flutterwave.FlutterwaveError:
-        fallback = BillingSettings.current().fallback_ngn_per_usd
-        if fallback:
-            return Decimal(fallback)
-        raise ValidationFailure(
-            "We couldn't get today's exchange rate. Please try again in a few minutes."
-        ) from None
-    cache.set(RATE_CACHE_KEY, str(rate), RATE_CACHE_SECONDS)
-    return rate
+    rate = None
+    if not cache.get(RATE_FAILURE_KEY):
+        try:
+            rate = flutterwave.ngn_per_usd()
+        except flutterwave.FlutterwaveError:
+            cache.set(RATE_FAILURE_KEY, "1", RATE_FAILURE_CACHE_SECONDS)
+    if rate is not None:
+        cache.set(RATE_CACHE_KEY, str(rate), RATE_CACHE_SECONDS)
+        return rate
+    fallback = BillingSettings.current().fallback_ngn_per_usd
+    # The fallback is only used if it's a believable rate, never as a raw divisor.
+    if fallback and flutterwave.valid_rate(fallback):
+        return Decimal(fallback)
+    raise ValidationFailure(
+        "We couldn't get today's exchange rate. Please try again in a few minutes."
+    )
 
 
 def _round(amount: Decimal, unit: int) -> int:

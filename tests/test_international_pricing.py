@@ -264,3 +264,131 @@ def test_only_super_admins_can_change_billing_settings(db):
     root.is_superuser = True
     root.save(update_fields=["is_superuser"])
     assert BillingSettings.current().pk == 1
+
+
+# ---------- review follow-ups ----------
+
+def test_a_dollars_per_naira_rate_is_turned_the_right_way_up(plans, fake_flutterwave):
+    fake_flutterwave.rate = "0.000645"
+    assert pricing.ngn_per_usd() == Decimal("1550.39")
+
+
+@pytest.mark.parametrize("bad", ["NaN", "Infinity", "-1550", "0", "abc"])
+def test_unusable_rates_fall_back_or_stop(plans, fake_flutterwave, bad):
+    fake_flutterwave.rate = bad
+    with pytest.raises(ValidationFailure, match="exchange rate"):
+        pricing.ngn_per_usd()
+
+
+def test_a_failed_lookup_is_not_repeated_for_every_plan(plans, fake_flutterwave):
+    fake_flutterwave.rate = None
+    for _ in range(3):
+        with pytest.raises(ValidationFailure):
+            pricing.ngn_per_usd()
+    assert sum(1 for c in fake_flutterwave.calls if c[1].startswith("/transfers/rates")) == 1
+
+
+@pytest.mark.parametrize("fallback, usable", [("1500", True), ("15.50", False), ("-1500", False)])
+def test_the_admin_fallback_rate_must_be_believable(plans, fake_flutterwave, fallback, usable):
+    fake_flutterwave.rate = None
+    settings = BillingSettings.current()
+    BillingSettings.objects.filter(pk=settings.pk).update(fallback_ngn_per_usd=Decimal(fallback))
+    if usable:
+        assert pricing.ngn_per_usd() == Decimal(fallback)
+    else:
+        with pytest.raises(ValidationFailure):
+            pricing.ngn_per_usd()
+    from django.core.exceptions import ValidationError
+
+    settings.refresh_from_db()
+    if not usable:
+        with pytest.raises(ValidationError):
+            settings.full_clean()
+
+
+@override_settings(PAYMENTS_ENABLED=True)
+def test_a_rate_limited_verify_is_retried_not_stored(plans, organization, owner, fake_flutterwave):
+    from apps.billing import flutterwave
+    from apps.billing.models import ProviderWebhookEvent
+
+    _set_country(organization, "GB")
+    login_client(owner).post("/app/plan/checkout/starter/")
+    attempt = PaymentAttempt.objects.get()
+    fake_flutterwave.fail_with = flutterwave.FlutterwaveUnavailable("Flutterwave returned 429.")
+    response = _flw_webhook({"event": "charge.completed", "data": {"id": 31, "tx_ref": attempt.reference,
+                             "amount": 55, "currency": "USD", "status": "successful"}})
+    assert response.status_code == 503 and not ProviderWebhookEvent.objects.exists()
+    fake_flutterwave.fail_with = None
+    assert _flw_pay(attempt, fake_flutterwave, 31).status_code == 200
+    assert Subscription.objects.filter(organization=organization).exists()
+
+
+def test_http_429_counts_as_temporary(monkeypatch, fake_flutterwave):
+    import io
+    import urllib.error
+    import urllib.request
+
+    from apps.billing import flutterwave
+
+    def raise_429(*args, **kwargs):
+        raise urllib.error.HTTPError("https://api.flutterwave.com", 429, "Too Many", {}, io.BytesIO(b""))
+
+    monkeypatch.setattr(urllib.request, "urlopen", raise_429)
+    with pytest.raises(flutterwave.FlutterwaveUnavailable):
+        fake_flutterwave.original("GET", "/transactions/verify_by_reference?tx_ref=x")
+
+
+@override_settings(PAYMENTS_ENABLED=True)
+def test_a_failed_notice_does_not_block_the_later_success(plans, organization, owner, fake_flutterwave):
+    _set_country(organization, "GB")
+    login_client(owner).post("/app/plan/checkout/starter/")
+    attempt = PaymentAttempt.objects.get()
+    _flw_webhook({"event": "charge.completed", "data": {"id": 77, "tx_ref": attempt.reference,
+                  "amount": 55, "currency": "USD", "status": "failed"}})
+    assert not Subscription.objects.filter(organization=organization).exists()
+    _flw_pay(attempt, fake_flutterwave, 77)
+    assert Subscription.objects.filter(organization=organization).exists()
+
+
+def test_upgrade_charge_rounds_up_exactly(plans, organization):
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    _set_country(organization, "NG")
+    Plan.objects.filter(slug="starter").update(price_minor=1_000)
+    Plan.objects.filter(slug="growth").update(price_minor=1_201)  # difference 201 kobo
+    now = timezone.now()
+    sub = Subscription.objects.create(organization=organization, plan=Plan.objects.get(slug="starter"),
+                                      period_start=now - timedelta(days=15), period_end=now + timedelta(days=15))
+    # 201 × ½ = 100.5 kobo → rounds up to ₦2, never down to ₦1
+    assert billing.upgrade_charge(sub, Plan.objects.get(slug="growth"), now).amount_minor == 200
+
+
+def test_yearly_plans_get_tasks_month_by_month(plans, organization, owner, make_task):
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.billing.models import UsageKind, UsageLedger
+
+    _set_country(organization, "GB")
+    start = timezone.now() - timedelta(days=40)
+    sub = Subscription.objects.create(organization=organization, plan=plans["starter"], interval="year",
+                                      period_start=start, period_end=start + timedelta(days=365))
+    # All 7 of the first month's tasks were used in the first month.
+    for _ in range(7):
+        UsageLedger.objects.create(organization=organization, task=make_task(organization, owner),
+                                   kind=UsageKind.ALLOWANCE, period_start=sub.period_start)
+    assert billing.task_window_start(sub) > sub.period_start
+    assert billing.allowance_remaining(organization) == 7  # a fresh month
+
+
+def test_admin_cannot_save_an_unknown_country(organization):
+    from django.core.exceptions import ValidationError
+
+    organization.country = "UK"  # the code is GB
+    with pytest.raises(ValidationError):
+        organization.full_clean()
+    organization.country = ""  # older accounts stay valid
+    organization.full_clean()

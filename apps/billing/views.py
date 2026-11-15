@@ -23,7 +23,7 @@ def plan_home(request):
         organization=request.organization
     ).select_related("task")
     if subscription is not None:
-        usage = usage.filter(period_start=subscription.period_start)
+        usage = usage.filter(period_start=billing.task_window_start(subscription))
     region = request.organization.region
     plans = []
     rate_error = ""

@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import uuid
+from decimal import Decimal
 
 from django.conf import settings
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from apps.core.models import TimeStampedModel
@@ -49,7 +51,9 @@ class BillingSettings(models.Model):
     """Prices the super admin sets without a code change. One row only (pk=1)."""
 
     yearly_discount_pct = models.PositiveSmallIntegerField(
-        default=15, help_text="Discount for paying yearly, as a percentage (0 to 50)."
+        default=15,
+        validators=[MaxValueValidator(50)],
+        help_text="Discount for paying yearly, as a percentage (0 to 50).",
     )
     extra_legal_fee_ngn_minor = models.BigIntegerField(
         default=2_500_000, help_text="Extra legal review beyond the plan, in kobo (₦25,000 = 2500000)."
@@ -66,6 +70,7 @@ class BillingSettings(models.Model):
         decimal_places=2,
         null=True,
         blank=True,
+        validators=[MinValueValidator(Decimal("100")), MaxValueValidator(Decimal("20000"))],
         help_text="Used only when the live exchange rate can't be fetched. Leave empty to pause dollar checkouts instead.",
     )
     updated_at = models.DateTimeField(auto_now=True)
