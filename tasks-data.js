@@ -166,14 +166,19 @@
     const id = `REQ-${year}-${String(next).padStart(4, '0')}`;
     // Work beyond the plan's tasks or legal reviews is quoted as a one-off fee first (Terms 3.3).
     const over = overAllowance(req.cat);
-    const needsQuote = !!over;
+    // Work for a country outside Africa isn't covered by a naira plan (the preview business is in Nigeria).
+    const P = window.BANDA_PRICING, wc = P && req.workCountry ? P.byCode[req.workCountry] : null;
+    const abroad = !!(wc && !wc.africa);
+    const needsQuote = !!over || abroad;
     const task = {
-      id, needsQuote, over: over ? over.kind : null, overNote: over ? overAllowanceNote(over, { after: true }) : '', title: req.title, cat: req.cat, service: req.service, status: 'submitted', priority: req.priority === 'Urgent' ? 'Urgent' : 'Standard',
+      id, needsQuote, over: abroad ? 'country' : over ? over.kind : null, workCountry: req.workCountry || 'NG',
+      overNote: abroad ? `This work is for ${wc.name}, outside Africa, so your naira plan doesn’t include it. We’ll send a one-off fee quote before any work starts. Nothing is charged unless you accept it.` : over ? overAllowanceNote(over, { after: true }) : '', title: req.title, cat: req.cat, service: req.service, status: 'submitted', priority: req.priority === 'Urgent' ? 'Urgent' : 'Standard',
       submitted: nowLocal(), due: req.due || null, details: req.details, purpose: req.purpose || '', audience: req.audience || '',
       call: req.call || '', files: req.files || [], messages: [],
     };
     store.added = (store.added || []).concat(task);
-    if (req.cat === 'legal') { if (needsQuote) ACCOUNT.legalQuoted = (ACCOUNT.legalQuoted || 0) + 1; else ACCOUNT.legalUsed += 1; }
+    if (abroad) { /* quoted separately: doesn't use the plan's allowance */ }
+    else if (req.cat === 'legal') { if (needsQuote) ACCOUNT.legalQuoted = (ACCOUNT.legalQuoted || 0) + 1; else ACCOUNT.legalUsed += 1; }
     else if (needsQuote) ACCOUNT.tasksQuoted = (ACCOUNT.tasksQuoted || 0) + 1;
     else if (req.cat !== 'addons') { ACCOUNT.tasksUsed += 1; ACCOUNT.byCat[req.cat] = (ACCOUNT.byCat[req.cat] || 0) + 1; ACCOUNT.daily[ACCOUNT.daily.length - 1] += 1; }
     store.nextra = (store.nextra || []).concat({ id: 'N-' + id, kind: 'request', at: task.submitted, title: 'Request received', text: `We’ve received ${id} (${task.title}).${needsQuote ? ' ' + task.overNote : ''}${task.priority === 'Urgent' ? ' You marked it urgent, so we’ll confirm the timeline before starting.' : ''}`, href: 'task.html?id=' + id });
@@ -250,6 +255,7 @@
   // allowance, Specialized Add-Ons are quoted separately, and cancelled requests don't count.
   (store.added || []).forEach(t => {
     if ((store[t.id] || {}).status === 'cancelled' || t.cat === 'addons') return;
+    if (t.over === 'country') return;
     if (t.cat === 'legal') { if (t.needsQuote) ACCOUNT.legalQuoted = (ACCOUNT.legalQuoted || 0) + 1; else ACCOUNT.legalUsed += 1; return; }
     if (t.needsQuote) { ACCOUNT.tasksQuoted = (ACCOUNT.tasksQuoted || 0) + 1; return; }
     ACCOUNT.tasksUsed += 1;
