@@ -8,6 +8,7 @@ urlpatterns = [
     path("security/mfa/", views.security_mfa, name="security-mfa"),
     path("security/details/", views.security_details, name="security-details"),
     path("security/preferences/", views.security_preferences, name="security-preferences"),
+    path("activity/", views.business_activity_view, name="business-activity"),
     path("security/data/download/", views.security_data_download, name="security-data-download"),
     path("security/data/request/", views.security_data_request, name="security-data-request"),
     path("security/close/", views.security_close, name="security-close"),
