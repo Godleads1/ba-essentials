@@ -326,6 +326,13 @@
         </div>
       </section>
 
+      <!-- Service is paused while a renewal is unpaid (Terms 5.6.4): new requests wait. -->
+      <section id="pausedNote" class="mt-3 flex flex-wrap items-start gap-3 rounded-2xl bg-[#FDECEC] px-4 py-3.5 text-[#912018]" role="alert" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="mt-0.5 h-5 w-5 shrink-0"><circle cx="12" cy="12" r="10"></circle><line x1="10" x2="10" y1="15" y2="9"></line><line x1="14" x2="14" y1="15" y2="9"></line></svg>
+        <div class="min-w-0 flex-1"><p class="text-[14px] font-semibold">Your service is paused</p><p class="mt-0.5 text-[13px]">Your plan renewal is unpaid, so new requests can&rsquo;t be sent. You can still fill this in; pay the renewal to send it.</p></div>
+        <a href="plan.html" class="btn-next shrink-0 py-2 text-[13px] max-sm:w-full">Pay renewal</a>
+      </section>
+
       <div class="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_300px] 2xl:grid-cols-[minmax(0,1fr)_340px]">
         <!-- ================= FORM ================= -->
         <section class="panel min-w-0 p-5 sm:p-7" aria-label="Task form">
@@ -816,7 +823,13 @@
     })();
     const workOutsideAfrica = () => { const c = window.BANDA_PRICING.byCode[$('workCountry').value]; return !!(c && !c.africa); };
 
+    $('pausedNote').hidden = !window.BANDA.isPaused();
     function submitRequest() {
+      if (window.BANDA.isPaused()) {
+        window.BANDA.toast('Your service is paused. Pay your renewal on the Plan page to send this request.');
+        $('pausedNote').scrollIntoView({ block: 'center' }); $('pausedNote').querySelector('a').focus();
+        return;
+      }
       const btn = $('submitBtn'); btn.disabled = true;
       // Preview: the request is saved in this browser so it shows in My Tasks, the request page,
       // Messages and Plan & Usage. The app will POST the form and files, and the server returns the reference.

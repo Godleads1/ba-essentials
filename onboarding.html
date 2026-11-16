@@ -751,7 +751,7 @@
         ? 'Test mode: Paystack’s window opens with its test cards. No real money moves.'
         : 'Test mode: Flutterwave’s window opens with its test cards. No real money moves.';
       // The checkout wording from the Terms (5.5); the box starts unticked.
-      document.getElementById('renewText').textContent = `I agree that my ${PLAN_INFO[plan][0]} renews automatically every ${p.every} at ${fmt(p.total)} until I cancel. My first renewal is on ${document.getElementById('payNext').textContent}. I can cancel with 30 days’ written notice.`;
+      document.getElementById('renewText').textContent = `I agree that my ${PLAN_INFO[plan][0]} renews automatically every ${p.every} at ${fmt(p.total)} until I cancel. My first renewal is on ${document.getElementById('payNext').textContent}. I can cancel any time before a renewal date.`;
     }
     document.getElementById('renewOk').addEventListener('change', e => { if (e.target.checked) document.getElementById('renewErr').hidden = true; });
     function payNotice(text, tone) {

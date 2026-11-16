@@ -480,7 +480,45 @@
     }).catch(() => onFail && onFail('load'));
   }
 
-  window.BANDA = { CATS, STATUS, CANCELLABLE, PRIORITY, all, find, add, update, feeBreakdown, grossUp, paystackCharge, esc, toDate, fmtDate, fmtDateTime, fmtSize, naira, chip,
+  // ---------- renewal (Terms 5.4–5.8) ----------
+  // The plan renews automatically by charging the saved card. If that fails, service
+  // continues for 5 business days (grace), then pauses (no new requests), and the plan
+  // ends 30 days after pausing. Cancelling stops the next charge and the plan runs to
+  // the end of the paid period. Design preview: the Plan page can show each state.
+  const isoDay = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const addDays = (iso, n) => { const d = toDate(iso); d.setDate(d.getDate() + n); return isoDay(d); };
+  function addBusinessDays(iso, n) {
+    const d = toDate(iso); let added = 0;
+    while (added < n) { d.setDate(d.getDate() + 1); if (d.getDay() % 6) added++; }
+    return isoDay(d);
+  }
+  const RENEWAL_STATES = { ok: 'Renewing', failed: 'Payment failed', paused: 'Paused' };
+  function renewal() {
+    const p = (store.prefs || {});
+    const state = RENEWAL_STATES[p.previewRenewal] ? p.previewRenewal : 'ok';
+    const today = isoDay(new Date());
+    const next = PLANS[p.nextPlan] || PLANS[ACCOUNT.plan];
+    const r = {
+      state, today, cancelling: !!p.cancelNotice && state === 'ok',
+      card: p.cardRemoved ? null : ACCOUNT.card,
+      renews: ACCOUNT.renews, nextPlan: next, amount: next.price,
+      remindOn: addDays(ACCOUNT.renews, -5),
+    };
+    if (state === 'failed') {          // the renewal charge was declined yesterday
+      r.dueOn = addDays(today, -1);
+      r.graceUntil = addBusinessDays(r.dueOn, 5);
+      r.amount = PLANS[ACCOUNT.plan].price;
+    }
+    if (state === 'paused') {          // grace ran out two days ago
+      r.pausedOn = addDays(today, -2);
+      r.endsOn = addDays(r.pausedOn, 30);
+      r.amount = PLANS[ACCOUNT.plan].price;
+    }
+    return r;
+  }
+  const isPaused = () => renewal().state === 'paused';
+
+  window.BANDA = { renewal, isPaused, addBusinessDays, CATS, STATUS, CANCELLABLE, PRIORITY, all, find, add, update, feeBreakdown, grossUp, paystackCharge, esc, toDate, fmtDate, fmtDateTime, fmtSize, naira, chip,
     DSTATUS, DOWNLOADABLE, REVISION_NOTE, deliverables, deliverablesFor, setDeliverable, fileType, nowLocal, toast,
     PLANS, PLAN_ORDER, CAT_MIN_PLAN, minPlanFor, planAllows, overAllowance, overAllowanceNote, nextPlanUp, ACCOUNT, ISTATUS, invoices, payInvoice, invoiceForTask, getPref, setPref, payWithPaystack, PAYSTACK_TEST,
     SUPPORT, TOPICS, TSTATUS, getList, setList,

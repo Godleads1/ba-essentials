@@ -371,16 +371,20 @@
         <button type="button" id="openChange" class="btn-outline max-sm:w-full">Change plan</button>
       </section>
 
+      <div id="renewBanner" hidden></div>
+
       <section class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl border border-dashed border-brand-navy/30 px-4 py-2.5 text-[13px] text-brand-navy" aria-label="Design preview">
         <span><span class="font-semibold">Design preview:</span> view the app as</span>
         <div id="pvPlans" class="flex flex-wrap gap-1.5"></div>
+        <span class="sm:ml-3">Renewal:</span>
+        <div id="pvRenew" class="flex flex-wrap gap-1.5"></div>
       </section>
 
       <section class="mt-3 grid grid-cols-2 gap-3 xl:grid-cols-4" aria-label="Plan summary">
         <div class="tile">
           <p class="tile-label"><span class="stat-ic bg-pill-navyBg text-brand-navy"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-crown h-5 w-5"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z"></path><path d="M5 21h14"></path></svg></span>Current plan</p>
-          <p class="tile-num"><span data-plan-name></span> <span class="chip-status ml-1 align-middle bg-pill-greenBg text-pill-greenTx">Active</span></p>
-          <p class="tile-sub"><span data-plan-price></span> a month · renews <span data-renews></span></p>
+          <p class="tile-num"><span data-plan-name></span> <span id="planChip" class="chip-status ml-1 align-middle bg-pill-greenBg text-pill-greenTx">Active</span></p>
+          <p class="tile-sub"><span data-plan-price></span> a month · <span id="tileRenew"></span></p>
         </div>
         <div class="tile">
           <p class="tile-label"><span class="stat-ic bg-pill-navyBg text-brand-navy"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-square-check h-5 w-5"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="m16 9-5.5 5.5L8 12"></path></svg></span>Tasks used</p>
@@ -447,10 +451,14 @@
               <dt class="text-ink-muted">Plan</dt><dd class="font-medium" data-plan-name></dd>
               <dt class="text-ink-muted">Price</dt><dd class="font-medium"><span data-plan-price></span> a month</dd>
               <dt class="text-ink-muted">Includes</dt><dd class="font-medium"><span data-total></span> tasks a month, <span data-legal-total></span> legal review<span data-legal-s></span> a <span data-legal-per></span></dd>
-              <dt class="text-ink-muted">Next renewal</dt><dd class="font-medium" data-renews></dd>
               <dt class="text-ink-muted">Renewal</dt><dd class="font-medium"><span id="autoLabel"></span></dd>
             </dl>
             <a href="billing.html" class="btn-outline mt-4 w-full py-2 text-[13px]">Billing and invoices</a>
+          </section>
+          <!-- Automatic renewal and cancelling (Terms 5.4–5.8) -->
+          <section class="panel p-5" aria-labelledby="rnT">
+            <h2 id="rnT" class="font-display text-[17px] font-semibold">Renewal</h2>
+            <div id="renewPanel" class="mt-3 space-y-3 text-[13.5px]"></div>
           </section>
           <section class="panel p-5" aria-labelledby="alT">
             <h2 id="alT" class="font-display text-[17px] font-semibold">Usage alerts</h2>
@@ -491,9 +499,24 @@
         <div id="planOpts" class="grid gap-3 sm:grid-cols-3"></div>
       </fieldset>
       <p id="chNote" class="mt-4 rounded-xl bg-cream-light px-3.5 py-2.5 text-[13px]" role="status" hidden></p>
+      <label id="chAgreeRow" class="mt-3 flex cursor-pointer items-start gap-3 rounded-xl border border-cream-line px-3.5 py-2.5 text-[13px] leading-snug" hidden>
+        <input id="chAgree" type="checkbox" class="mt-0.5 h-[18px] w-[18px] shrink-0 accent-[#33397F]" />
+        <span id="chAgreeText"></span>
+      </label>
       <div class="mt-6 flex justify-end gap-2.5">
         <button value="close" class="btn-ghost py-2.5">Keep current plan</button>
         <button value="change" id="confirmChange" class="btn-next py-2.5" disabled>Switch plan</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="askDlg" class="w-[min(92vw,440px)] rounded-2xl p-0 text-ink backdrop:bg-cocoa-deep/50" aria-labelledby="askT">
+    <form method="dialog" class="p-6">
+      <h2 id="askT" class="font-display text-[19px] font-semibold"></h2>
+      <p class="mt-1.5 text-[14px] leading-relaxed text-ink-muted" id="askBody"></p>
+      <div class="mt-6 flex flex-wrap justify-end gap-2.5">
+        <button value="no" id="askNo" class="btn-ghost py-2.5"></button>
+        <button value="yes" id="askYes" class="btn-next py-2.5"></button>
       </div>
     </form>
   </dialog>
@@ -524,11 +547,116 @@
     setAll('[data-legal-total]', plan.legal);
     setAll('[data-legal-s]', plan.legal === 1 ? '' : 's');
     setAll('[data-legal-per]', plan.legalPer);
-    $('autoLabel').textContent = getPref('cancelNotice', null) ? `Ends after your 30-day notice` : `Renews automatically on ${fmtDate(ACCOUNT.renews)}`;
     const meter = document.querySelector('[data-meter="used"]');
     meter.setAttribute('aria-valuemax', plan.tasks); meter.setAttribute('aria-valuenow', ACCOUNT.tasksUsed);
     meter.setAttribute('aria-valuetext', `${ACCOUNT.tasksUsed} of ${plan.tasks} tasks, ${pct}%`);
     meter.firstElementChild.style.width = Math.min(100, pct) + '%';
+
+
+    // ---------- renewal: reminders, saved card, cancel, payment problems (Terms 5.4–5.8) ----------
+    function ask({ title, body, yes, no, danger }, onYes) {
+      const d = $('askDlg');
+      $('askT').textContent = title; $('askBody').textContent = body;
+      $('askYes').textContent = yes; $('askNo').textContent = no;
+      $('askYes').className = danger ? 'btn-next bg-[#B42318] py-2.5 hover:bg-[#912018]' : 'btn-next py-2.5';
+      d._opener = document.activeElement;
+      d.onclose = () => { if (d.returnValue === 'yes') onYes(); else if (d._opener) d._opener.focus(); };
+      if (typeof d.showModal === 'function') d.showModal(); else d.setAttribute('open', '');
+      $('askNo').focus();
+    }
+    function payRenewal() {
+      const r = window.BANDA.renewal();
+      window.BANDA.payWithPaystack({
+        amount: r.amount, purpose: 'Plan renewal', ref: `${plan.name} renewal`,
+        onPaid: reference => {
+          setPref('previewRenewal', 'ok');
+          setPref('upgradedNote', `Renewal paid. ${r.state === 'paused' ? 'Your service is back on, and your new month starts today.' : 'Your plan carries on as normal.'} Paystack test reference ${reference}; no real money moved.`);
+          location.href = 'plan.html';
+        },
+        onCancel: () => toast('Payment cancelled. Your renewal is still unpaid.'),
+        onFail: why => toast(why === 'load' ? 'We couldn’t reach Paystack. Check your connection and try again.' : 'Paystack couldn’t start this payment. Try again in a moment.'),
+      });
+    }
+    const cardText = c => `${c.brand} ending ${c.last4} (expires ${c.expires})`;
+    function renderRenewal() {
+      const r = window.BANDA.renewal();
+      const chip = $('planChip'), banner = $('renewBanner');
+      const setChip = (label, tone) => { chip.textContent = label; chip.className = `chip-status ml-1 align-middle ${tone}`; };
+      banner.hidden = true; banner.innerHTML = '';
+      const bannerHtml = (tone, icon, title, body, button) => `<section class="mt-3 flex flex-wrap items-start gap-3 rounded-2xl ${tone} px-4 py-3.5" role="alert">
+          <i data-lucide="${icon}" class="mt-0.5 h-5 w-5 shrink-0"></i>
+          <div class="min-w-0 flex-1"><p class="text-[14px] font-semibold">${title}</p><p class="mt-0.5 text-[13px]">${body}</p></div>
+          ${button || ''}</section>`;
+      let panel = '';
+      if (r.state === 'failed') {
+        setChip('Payment failed', 'bg-pill-orangeBg text-brand-orangeDark');
+        $('tileRenew').textContent = `renewal unpaid`;
+        $('autoLabel').textContent = `Unpaid. Service continues until ${fmtDate(r.graceUntil)}`;
+        banner.hidden = false;
+        banner.innerHTML = bannerHtml('bg-pill-orangeBg text-brand-orangeDark', 'credit-card',
+          'Your renewal payment didn’t go through',
+          `We couldn’t take ${naira(r.amount)} from your ${r.card ? esc(cardText(r.card)) : 'card'} on ${fmtDate(r.dueOn)}. Your service continues as normal until ${fmtDate(r.graceUntil)}. We’ll try your card again, up to 3 times in all. If it’s still unpaid after ${fmtDate(r.graceUntil)}, your service pauses.`,
+          `<button type="button" class="btn-next shrink-0 py-2 text-[13px] max-sm:w-full" data-pay-renewal>Pay ${naira(r.amount)} now</button>`);
+        panel = `<p>Your ${esc(plan.name)} renewal of <strong>${naira(r.amount)}</strong> is unpaid. Pay before <strong>${fmtDate(r.graceUntil)}</strong> to keep your service running.</p>
+          <button type="button" class="btn-next w-full py-2 text-[13px]" data-pay-renewal>Pay ${naira(r.amount)} now</button>`;
+      } else if (r.state === 'paused') {
+        setChip('Paused', 'bg-[#FDECEC] text-[#B42318]');
+        $('tileRenew').textContent = `paused since ${fmtDate(r.pausedOn)}`;
+        $('autoLabel').textContent = `Paused. Ends ${fmtDate(r.endsOn)} if unpaid`;
+        banner.hidden = false;
+        banner.innerHTML = bannerHtml('bg-[#FDECEC] text-[#912018]', 'circle-pause',
+          'Your service is paused',
+          `Your renewal of ${naira(r.amount)} is unpaid. You can still see your requests and download your finished work, but new requests wait until you pay. Your new month starts the day you pay. If it’s still unpaid on ${fmtDate(r.endsOn)}, your plan ends.`,
+          `<button type="button" class="btn-next shrink-0 py-2 text-[13px] max-sm:w-full" data-pay-renewal>Pay ${naira(r.amount)} to resume</button>`);
+        panel = `<p>Paused since <strong>${fmtDate(r.pausedOn)}</strong>. Pay <strong>${naira(r.amount)}</strong> to turn your service back on.</p>
+          <button type="button" class="btn-next w-full py-2 text-[13px]" data-pay-renewal>Pay ${naira(r.amount)} to resume</button>
+          <p class="text-[12.5px] text-ink-muted">If it stays unpaid, your plan ends on ${fmtDate(r.endsOn)}. Your records stay, and you can choose a plan again any time.</p>`;
+      } else if (r.cancelling) {
+        setChip(`Ends ${fmtDate(r.renews)}`, 'bg-cream text-ink');
+        $('tileRenew').textContent = `ends ${fmtDate(r.renews)}`;
+        $('autoLabel').textContent = `Won’t renew. Ends ${fmtDate(r.renews)}`;
+        panel = `<p>Your plan <strong>won’t renew</strong>. You keep everything in ${esc(plan.name)} until <strong>${fmtDate(r.renews)}</strong>, and nothing more will be charged.</p>
+          <button type="button" class="btn-outline w-full py-2 text-[13px]" data-renew-resume>Keep my plan</button>`;
+      } else {
+        setChip('Active', 'bg-pill-greenBg text-pill-greenTx');
+        $('tileRenew').textContent = `renews ${fmtDate(r.renews)}`;
+        $('autoLabel').textContent = `Automatic on ${fmtDate(r.renews)}`;
+        const how = r.card
+          ? `We’ll charge your <strong>${esc(cardText(r.card))}</strong> about a day before.`
+          : `You removed your saved card, so we’ll send you a payment link before then.`;
+        panel = `<p>Renews on <strong>${fmtDate(r.renews)}</strong> for <strong>${naira(r.amount)}</strong>${r.nextPlan.name !== plan.name ? ` on the <strong>${esc(r.nextPlan.name)}</strong> plan` : ''}. ${how}</p>
+          <p class="flex items-start gap-2 rounded-xl bg-cream-light px-3 py-2 text-[12.5px] text-ink-muted"><i data-lucide="bell" class="mt-0.5 h-3.5 w-3.5 shrink-0"></i><span>We’ll remind you by email and here on ${fmtDate(r.remindOn)}, 5 days before.</span></p>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" class="btn-outline py-2 text-[13px]" data-open-change>Move down</button>
+            <button type="button" class="btn-outline py-2 text-[13px]" data-renew-cancel>Cancel renewal</button>
+          </div>
+          <p class="text-[12.5px] text-ink-muted">Cancelling stops the next charge. You keep your plan until ${fmtDate(r.renews)}.</p>`;
+      }
+      if (r.state !== 'paused') {
+        panel += r.card
+          ? `<p class="border-t border-cream-line pt-3 text-[12.5px] text-ink-muted">Saved card: ${esc(cardText(r.card))}. The card details stay with Paystack; we keep only a reference to charge it. <button type="button" class="font-semibold text-brand-navy underline underline-offset-2" data-card-remove>Remove card</button></p>`
+          : `<p class="border-t border-cream-line pt-3 text-[12.5px] text-ink-muted">No saved card. You’ll pay each renewal from a link. You can save a card next time you pay.</p>`;
+      }
+      $('renewPanel').innerHTML = panel;
+      icons();
+    }
+    document.addEventListener('click', e => {
+      if (e.target.closest('[data-pay-renewal]')) return payRenewal();
+      if (e.target.closest('[data-renew-cancel]')) {
+        const r = window.BANDA.renewal();
+        return ask({ title: 'Cancel your renewal?', danger: true, yes: 'Cancel renewal', no: 'Keep my plan',
+          body: `Your plan won’t renew on ${fmtDate(r.renews)} and nothing more will be charged. You keep everything in ${plan.name} until then. Unused tasks aren’t refunded. You can change your mind any time before ${fmtDate(r.renews)}.` },
+          () => { setPref('cancelNotice', window.BANDA.nowLocal().slice(0, 10)); renderRenewal(); toast(`Done. Your plan ends on ${fmtDate(r.renews)} and won’t be charged again. Preview only.`); $('renewPanel').querySelector('button')?.focus(); });
+      }
+      if (e.target.closest('[data-renew-resume]')) { setPref('cancelNotice', null); renderRenewal(); toast('Your plan will renew as normal.'); $('renewPanel').querySelector('button')?.focus(); }
+      if (e.target.closest('[data-card-remove]')) {
+        return ask({ title: 'Remove your saved card?', yes: 'Remove card', no: 'Keep card',
+          body: 'We won’t charge this card again. Before each renewal we’ll send you a payment link instead. If you don’t pay by the renewal date, your service continues for 5 business days and then pauses.' },
+          () => { setPref('cardRemoved', true); renderRenewal(); toast('Card removed. You’ll get a payment link before each renewal.'); $('rnT').focus(); });
+      }
+    });
+    $('rnT').tabIndex = -1;
+    renderRenewal();
 
     // ---------- usage line chart (single series, so no legend: the title names it) ----------
     // Drawn at the container's real width so text and lines never stretch; redrawn on resize.
@@ -650,8 +778,11 @@
     const periodDays = Math.round((toDate(ACCOUNT.renews) - toDate(ACCOUNT.cycleStart)) / 864e5);
     function changeNote() {
       const k = chosen(), np = PLANS[k];
-      if (!np || k === ACCOUNT.plan) { $('chNote').hidden = true; return; }
+      if (!np || k === ACCOUNT.plan) { $('chNote').hidden = true; $('chAgreeRow').hidden = true; return; }
+      $('chAgreeRow').hidden = !(np.price > plan.price);
       if (np.price > plan.price) {
+        $('chAgreeText').textContent = `I agree that from ${fmtDate(ACCOUNT.renews)} my plan renews automatically as ${np.name} at ${naira(np.price)} a month until I cancel.`;
+        $('confirmChange').disabled = !$('chAgree').checked;
         const charge = Math.round((np.price - plan.price) * daysLeft / periodDays);
         $('chNote').textContent = `${np.name} starts straight away. You'll pay about ${naira(charge)} today for the ${daysLeft} days left in this period, then ${naira(np.price)} a month from ${fmtDate(ACCOUNT.renews)}.`;
         $('confirmChange').textContent = `Move up to ${np.name}`;
@@ -661,8 +792,10 @@
       }
       $('chNote').hidden = false;
     }
-    $('planOpts').addEventListener('change', () => { $('confirmChange').disabled = chosen() === (getPref('nextPlan', null) || ACCOUNT.plan); changeNote(); });
-    function openChange(btn) { dlg._opener = btn; if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', ''); }
+    $('planOpts').addEventListener('change', () => { $('chAgree').checked = false; $('confirmChange').disabled = chosen() === (getPref('nextPlan', null) || ACCOUNT.plan); changeNote(); });
+    $('chAgree').addEventListener('change', changeNote);
+    function openChange(btn) {
+      if (window.BANDA.renewal().state !== 'ok') { toast('Pay your renewal first. You can change your plan once it’s paid.'); return; } dlg._opener = btn; if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', ''); }
     $('openChange').addEventListener('click', e => openChange(e.currentTarget));
     document.addEventListener('click', e => { const b = e.target.closest('[data-open-change]'); if (b) openChange(b); });
     dlg.addEventListener('close', () => {
@@ -702,6 +835,13 @@
 
     // ---------- design preview only: view the app as another plan ----------
     $('pvPlans').innerHTML = PLAN_ORDER.map(k => `<button type="button" class="tab" data-pv="${k}" aria-pressed="${k === ACCOUNT.plan}">${esc(PLANS[k].name)}</button>`).join('');
+    const RSTATES = [['ok', 'Normal'], ['failed', 'Payment failed'], ['paused', 'Paused']];
+    const curR = window.BANDA.renewal().state;
+    $('pvRenew').innerHTML = RSTATES.map(([k, l]) => `<button type="button" class="tab" data-pvr="${k}" aria-pressed="${k === curR}">${l}</button>`).join('');
+    $('pvRenew').addEventListener('click', e => {
+      const b = e.target.closest('[data-pvr]'); if (!b) return;
+      setPref('previewRenewal', b.dataset.pvr); if (b.dataset.pvr !== 'ok') setPref('cancelNotice', null); location.reload();
+    });
     $('pvPlans').addEventListener('click', e => {
       const b = e.target.closest('[data-pv]'); if (!b) return;
       setPref('previewPlan', b.dataset.pv); setPref('nextPlan', null); location.reload();
