@@ -2,19 +2,19 @@ from __future__ import annotations
 
 from django.conf import settings
 from django.contrib import messages
-from django.db.models import Count, Q
+from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.billing import services as billing
-from apps.billing.plan_rules import outside_plan_region as plan_rules_outside
 from apps.billing.models import (
     CLIENT_VISIBLE_FEE_STATUSES,
     FeeRequest,
     Invoice,
     InvoiceStatus,
 )
+from apps.billing.plan_rules import outside_plan_region as plan_rules_outside
 from apps.communications import services as communications
 from apps.core import ratelimit
 from apps.core.countries import name_for as country_name
@@ -27,7 +27,7 @@ from apps.reviews.models import DeliverableVersionStatus
 from . import services
 from .access import tasks_for
 from .forms import MAX_ATTACHMENTS, SubmitTaskForm
-from .models import OPEN_STATUSES, TaskStatus
+from .models import TaskStatus
 from .transitions import Action, available_actions
 
 
@@ -50,36 +50,30 @@ def _task_for_org(request, task_id):
 
 @client_required
 def overview(request):
+    from django.utils import timezone
+
+    from . import dashboard
+
     organization = request.organization
     tasks = tasks_for(request.user).filter(organization=organization)
-    counts = tasks.aggregate(
-        open_tasks=Count("id", filter=Q(status__in=OPEN_STATUSES)),
-        awaiting_client=Count(
-            "id",
-            filter=Q(
-                status__in=[
-                    TaskStatus.NEEDS_INFORMATION,
-                    TaskStatus.AWAITING_CLIENT_APPROVAL,
-                    TaskStatus.DELIVERED,
-                ]
-            ),
-        ),
-        completed=Count("id", filter=Q(status=TaskStatus.COMPLETED)),
-    )
+    now = timezone.now()
     subscription = billing.active_subscription(organization)
-    recent = list(tasks.select_related("service_version__definition")[:5])
-    outstanding = Invoice.objects.filter(
-        organization=organization, status=InvoiceStatus.ISSUED
-    ).order_by("due_at")[:5]
+    outstanding = Invoice.objects.filter(organization=organization, status=InvoiceStatus.ISSUED).order_by("due_at")
     return render(
         request,
-        "app/overview.html",
+        "banda/app/overview.html",
         {
-            **counts,
-            "recent_tasks": recent,
+            "greeting": dashboard.greeting(now),
+            "first_name": (request.user.full_name or "").split(" ")[0],
+            "stats": dashboard.stats(tasks, now),
+            "week": dashboard.week(tasks, now),
+            "waiting": dashboard.waiting_on_you(tasks),
+            "deadlines": dashboard.deadlines(tasks),
+            "recent_tasks": list(tasks.select_related("service_version__definition__category").order_by("-created_at")[:5]),
             "subscription": subscription,
-            "allowance_remaining": billing.allowance_remaining(organization),
-            "outstanding_invoices": outstanding,
+            "usage": dashboard.plan_usage(organization, subscription),
+            "outstanding_count": outstanding.count(),
+            "first_outstanding": outstanding.first(),
         },
     )
 
@@ -94,6 +88,11 @@ def task_list(request):
     status = request.GET.get("status", "")
     if status in TaskStatus.values:
         tasks = tasks.filter(status=status)
+    group = request.GET.get("group", "")
+    if group:
+        from apps.core.client_status import STATUS as CLIENT_STATUS
+
+        tasks = tasks.filter(status__in=[s for s, (g, _) in CLIENT_STATUS.items() if g == group])
     query = (request.GET.get("q") or "").strip()
     if query:
         tasks = tasks.filter(
