@@ -12,9 +12,9 @@
 /* Classes the old (pre-banda) workspace shell used. Kept so a rebuild still matches the
    committed static/css/app.css byte for byte. */
 @source inline("-right-0.5 -top-0.5 bg-rose-500 bg-white/5 border-white/10 gap-1 h-8 hover:bg-slate-100 lg:block lg:flex lg:hidden lg:px-8 min-w-4 opacity-80 overflow-x-auto overflow-y-auto p-2 pr-1 px-1 px-2 py-1 sm:block sm:inline sm:px-6 w-8 z-20 hover:text-slate-700");
-/* Classes only the old client dashboard and task list used (now banda/app/overview.html). Kept so a
+/* Classes only the old client dashboard, task list, task detail and submit pages used (now banda/app/overview.html). Kept so a
    rebuild still matches static/css/app.css; remove when the old pages are all gone. */
-@source inline("-right-10 -top-10 absolute bg-brand-200/40 bg-gradient-to-r blur-3xl from-brand-50 h-48 h-full hover:text-brand-200 p-6 ring-brand-100 sm:p-8 text-brand-400 to-brand-50 via-white visible w-48 z-10 pointer-events-none w-56");
+@source inline("-right-10 -top-10 absolute bg-brand-200/40 bg-gradient-to-r blur-3xl from-brand-50 h-48 h-full hover:text-brand-200 p-6 ring-brand-100 sm:p-8 text-brand-400 to-brand-50 via-white visible w-48 z-10 pointer-events-none w-56 bg-brand-400 border-amber-300 focus:border-amber-500 focus:ring-amber-100 list-none sm:w-80 sm:w-auto -mt-2 file:bg-brand-600 file:border-0 file:font-semibold file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:text-white file:text-xs hover:border-slate-400");
 @source "../../apps";
 
 @theme {

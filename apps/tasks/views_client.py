@@ -31,6 +31,23 @@ from .models import TaskStatus
 from .transitions import Action, available_actions
 
 
+def _is_uuid(value) -> bool:
+    import uuid
+
+    try:
+        uuid.UUID(str(value))
+    except (TypeError, ValueError):
+        return False
+    return True
+
+
+def _mark_mine(messages, user):
+    rows = list(messages)
+    for m in rows:
+        m.mine = m.author_id == user.pk
+    return rows
+
+
 def _task_for_org(request, task_id):
     task = (
         tasks_for(request.user)
@@ -189,14 +206,28 @@ def task_submit(request):
             return redirect("task-detail", task_id=task.pk)
     from apps.billing import plan_rules
     from apps.catalogue.models import ServiceCategory
+    from apps.core import client_status as cs
 
-    locked = [
-        (category, access)
-        for category in ServiceCategory.objects.filter(is_active=True, minimum_plan_rank__gt=0)
-        for access in [plan_rules.category_access(request.organization, category)]
-        if not access.allowed
-    ]
-    return render(request, "app/task_submit.html", {"form": form, "locked_categories": locked})
+    # Category cards: open ones link to ?category=<slug>, which narrows the service
+    # list on the server (no JavaScript needed). Locked ones say which plan has them.
+    chosen_version = form.fields["service_version"].queryset.filter(pk=form["service_version"].value() or None).first() \
+        if _is_uuid(form["service_version"].value()) else None
+    category_slug = request.GET.get("category", "") or (chosen_version.definition.category.slug if chosen_version else "")
+    cards = []
+    for i, category in enumerate(ServiceCategory.objects.filter(is_active=True, services__is_active=True).distinct()):
+        access = plan_rules.category_access(request.organization, category)
+        cards.append({"category": category, "access": access, "selected": category.slug == category_slug,
+                      "tone": cs.CATEGORY_TONES[i % len(cs.CATEGORY_TONES)]})
+    selected = next((c for c in cards if c["selected"] and c["access"].allowed), None)
+    if selected is not None:
+        form.fields["service_version"].queryset = form.fields["service_version"].queryset.filter(
+            definition__category=selected["category"])
+    return render(request, "banda/app/task_submit.html", {
+        "form": form, "cards": cards, "selected": selected, "chosen_version": chosen_version,
+        "any_locked": any(not c["access"].allowed for c in cards),
+        "paused": _is_paused(request.organization),
+        "priority_value": form["priority"].value() or "medium",
+    })
 
 
 def _is_paused(organization):
@@ -237,11 +268,24 @@ def task_detail(request, task_id):
         .prefetch_related("lines__evidence", "lines__receipt")
     )
     actions = available_actions(task, request.user)
+    from apps.core import client_status as cs
+
+    from .dashboard import timeline
+
+    released_versions = (
+        list(deliverable.versions.filter(status=DeliverableVersionStatus.RELEASED).select_related("file")
+             .order_by("-version_number"))
+        if deliverable is not None else []
+    )
     return render(
         request,
-        "app/task_detail.html",
+        "banda/app/task_detail.html",
         {
             "task": task,
+            "timeline": timeline(task, list(events)),
+            "released_versions": released_versions,
+            "priority": cs.PRIORITY.get(task.priority, cs.PRIORITY["medium"]),
+            "is_cancelled": task.status == "cancelled",
             "events": events,
             "attachments": attachments,
             "quote_versions": quote_versions,
@@ -258,7 +302,7 @@ def task_detail(request, task_id):
                 billing.can_pay_invoice(fr.invoice, request.membership) for fr in fee_requests if fr.invoice
             ),
             "actions": actions,
-            "thread": communications.task_thread(task, request.user),
+            "thread": _mark_mine(communications.task_thread(task, request.user), request.user),
             "can_provide_information": Action.PROVIDE_INFORMATION.value in actions,
             "can_cancel": Action.CANCEL_CLIENT.value in actions,
             "can_decide_deliverable": Action.CLIENT_ACCEPT.value in actions,

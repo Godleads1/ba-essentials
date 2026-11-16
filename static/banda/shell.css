@@ -285,3 +285,11 @@
 .sw:focus-visible { outline: 2px solid #33397F; outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .sw, .sw::after { transition: none; } }
 @media (forced-colors: active) { .sw { border: 1px solid CanvasText; } .sw:checked { background: Highlight; } }
+
+/* Category cards on Submit a Task are links (no JavaScript): the chosen one is aria-current. */
+a.cat { color: inherit; text-decoration: none; }
+.cat[aria-current="true"] { border-color: #33397F; box-shadow: 0 0 0 3px #ECEDF8; }
+.cat[aria-current="true"] .cat-check { border-color: #33397F; background: #33397F; color: #fff; }
+a.cat:focus-visible { outline: 2px solid #33397F; outline-offset: 2px; }
+.cat.is-soon { cursor: default; background: #FBF9F5; }
+.cat.is-soon:hover { border-color: #ECE5DA; transform: none; }

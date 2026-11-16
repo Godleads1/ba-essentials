@@ -90,7 +90,7 @@ def test_the_international_plan_covers_work_anywhere(starter_plan, make_task, or
 def test_the_client_sees_why_work_outside_africa_is_quoted(starter_plan, make_task, organization, owner, client):
     task = make_task(organization, owner, work_country="GB")
     body = client.get(f"/app/tasks/{task.pk}/").content.decode()
-    assert "This request is for United Kingdom" in body and "one-off fee" in body
+    assert "This work is for United Kingdom, outside Africa" in body and "One-off fee first" in body
 
 
 # ---------- staff confirm before quoting ----------
