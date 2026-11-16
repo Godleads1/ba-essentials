@@ -255,7 +255,8 @@ without authorization and a rollback procedure.
 ## Deployment checklist
 
 1. Use PostgreSQL with backups and point-in-time recovery. Install
-   `requirements/prod.txt`, which pins the `psycopg` driver.
+   `requirements/prod.txt` with `--require-hashes` (every package pinned and
+   hash-checked, including the `psycopg` driver).
 2. Terminate TLS at the proxy and forward `X-Forwarded-Proto`; set
    `SECURE_SSL_REDIRECT=true`, `SECURE_COOKIE=true`, and a one-year HSTS value.
 3. Provide a shared cache (Redis) for rate limiting.

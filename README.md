@@ -41,7 +41,7 @@ docs/              security notes and deployment guidance
 ```bash
 python -m venv .venv
 source .venv/Scripts/activate      # Windows Git Bash
-pip install -r requirements/dev.txt
+pip install --require-hashes -r requirements/dev.txt
 npm install
 npm run css:build
 
@@ -104,6 +104,20 @@ quote acceptance, idempotent replay, allowance limits, and payment
 verification. The production deploy check needs the PostgreSQL driver from
 `requirements/prod.txt` plus the production environment variables; the workflow
 supplies inert values for the check.
+
+### Python packages
+
+`requirements/*.in` list what the app needs; `requirements/*.txt` (made by
+pip-tools) pin every package, including the ones those pull in, with SHA-256
+hashes. Installs use `--require-hashes`, so a changed or swapped package fails
+instead of installing. Edit only the `.in` files, then regenerate the `.txt`
+files (CI checks they match):
+
+```bash
+cd requirements
+pip-compile --generate-hashes --allow-unsafe --strip-extras --no-emit-index-url -o prod.txt prod.in
+pip-compile --generate-hashes --allow-unsafe --strip-extras --no-emit-index-url -o dev.txt dev.in prod.in
+```
 
 ## Deployment
 
