@@ -280,9 +280,9 @@ Subscription states and access rules (each state must have an explicit rule):
 | --- | --- |
 | `PENDING_PAYMENT` | No paid features |
 | `ACTIVE` | Full access within the plan's allowances |
-| `CANCELLING` | Full access until the end date (30 days' notice, Terms 5.8) |
-| `PAST_DUE` | Grace period per the approved billing policy (invoices: 5 business days, no late fees) |
-| `SUSPENDED` | Read-only |
+| `ACTIVE` + `cancel_at_period_end` | Full access to the end of the paid period; no further charge (Terms 5.5.5) |
+| `ACTIVE` + `grace_until` | Renewal unpaid: full access for 5 business days, up to 3 charge attempts, no late fees (Terms 5.6) |
+| `PAST_DUE` (paused) | Read-only: no new requests; the plan ends 30 days after pausing (Terms 5.6.4–5.6.6) |
 | `EXPIRED` / `CANCELLED` | Read-only access to files and invoices (Terms) |
 | `PAYMENT_FAILED` / `REFUNDED` | No new paid work |
 
@@ -473,7 +473,8 @@ controller "of major importance" under the Act.
   documents 6 years after the task closes; support records 6 years; one-time
   codes 1 day; backups rotated within 2 days, with deletions reapplied after a
   restore. Build a scheduled deletion job and test it.
-- **Account closure:** 30 days' notice for the plan, read-only access after it
+- **Account closure:** the plan stops renewing with no further charge and runs
+  to the end of the paid period (as Terms 5.5.5); read-only access after it
   ends, deletion on the schedule above.
 - **Breaches:** notify the Nigeria Data Protection Commission within 72 hours
   of becoming aware of a breach likely to put people's rights at risk (NDPA
