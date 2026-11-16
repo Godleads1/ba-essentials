@@ -61,6 +61,14 @@ if PAYMENTS_ENABLED:
         bool(PAYSTACK_WEBHOOK_SECRET),
         "PAYSTACK_WEBHOOK_SECRET is required while payments are enabled",
     )
+    _require(
+        bool(FLUTTERWAVE_SECRET_KEY),
+        "FLUTTERWAVE_SECRET_KEY is required while payments are enabled",
+    )
+    _require(
+        bool(FLUTTERWAVE_WEBHOOK_HASH),
+        "FLUTTERWAVE_WEBHOOK_HASH is required while payments are enabled",
+    )
 
 if _reachable_bugs:
     raise ImproperlyConfigured(
@@ -69,6 +77,9 @@ if _reachable_bugs:
     )
 
 SECURE_SSL_REDIRECT = True
+# Platform health checks reach the container over plain HTTP on the private
+# network. This endpoint returns only a status, never tenant data.
+SECURE_REDIRECT_EXEMPT = [r"^/health/$"]
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SECURE_HSTS_SECONDS = env_int("SECURE_HSTS_SECONDS", 31_536_000)

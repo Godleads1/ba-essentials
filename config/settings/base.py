@@ -32,6 +32,8 @@ INSTALLED_APPS = [
     "apps.reviews",
     "apps.billing",
     "apps.operations",
+    "apps.communications",
+    "apps.website",
 ]
 
 MIDDLEWARE = [
@@ -170,6 +172,9 @@ PRIVATE_STORAGE_ROOT = env("PRIVATE_STORAGE_ROOT", str(BASE_DIR / "var" / "priva
 PRIVATE_STORAGE_BACKEND = env("PRIVATE_STORAGE_BACKEND", "local")
 FILE_MAX_BYTES = env_int("FILE_MAX_BYTES", 10 * 1024 * 1024)
 FILE_SCAN_BACKEND = env("FILE_SCAN_BACKEND", "noop")
+# Optional clamd client configuration for a scanner on another host. The
+# container entrypoint writes this file from CLAMD_HOST/CLAMD_PORT.
+CLAMD_CONFIG_FILE = env("CLAMD_CONFIG_FILE", "")
 FILE_DOWNLOAD_TOKEN_TTL = env_int("FILE_DOWNLOAD_TOKEN_TTL", 300)
 
 # --- Payments -------------------------------------------------------------
@@ -178,6 +183,11 @@ PAYSTACK_SECRET_KEY = env("PAYSTACK_SECRET_KEY", "")
 PAYSTACK_PUBLIC_KEY = env("PAYSTACK_PUBLIC_KEY", "")
 PAYSTACK_WEBHOOK_SECRET = env("PAYSTACK_WEBHOOK_SECRET", "")
 PAYSTACK_BASE_CURRENCY = "NGN"
+# Flutterwave takes US dollar payments from businesses outside Nigeria. The secret
+# key and webhook hash come from the environment and are never sent to the browser.
+FLUTTERWAVE_SECRET_KEY = env("FLUTTERWAVE_SECRET_KEY", "")
+FLUTTERWAVE_PUBLIC_KEY = env("FLUTTERWAVE_PUBLIC_KEY", "")
+FLUTTERWAVE_WEBHOOK_HASH = env("FLUTTERWAVE_WEBHOOK_HASH", "")
 
 # --- Business policy defaults (require founder approval) ------------------
 OTP_TTL_SECONDS = env_int("OTP_TTL_SECONDS", 600)
@@ -187,7 +197,8 @@ LOGIN_MAX_FAILURES = env_int("LOGIN_MAX_FAILURES", 5)
 LOGIN_LOCK_SECONDS = env_int("LOGIN_LOCK_SECONDS", 900)
 STEP_UP_MAX_AGE = env_int("STEP_UP_MAX_AGE", 600)
 MFA_ISSUER = env("MFA_ISSUER", "B & A Essentials")
-MFA_ENC_KEY_SALT = env("MFA_ENC_KEY_SALT", "ba-essentials-mfa-v1")
+# Public derivation context, not a secret: the key material is SECRET_KEY.
+MFA_ENC_CONTEXT = env("MFA_ENC_CONTEXT", "ba-essentials-mfa-v1")  # gitleaks:allow
 STAFF_QUOTE_MAX_MINOR = env_int("STAFF_QUOTE_MAX_MINOR", 50_000_00)
 QUOTE_VALIDITY_DAYS = env_int("QUOTE_VALIDITY_DAYS", 14)
 

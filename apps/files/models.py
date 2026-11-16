@@ -11,6 +11,8 @@ from apps.core.models import TimeStampedModel
 class FilePurpose(models.TextChoices):
     ATTACHMENT = "attachment", "Request attachment"
     DELIVERABLE = "deliverable", "Deliverable"
+    FEE_EVIDENCE = "fee_evidence", "Third-party fee evidence"
+    FEE_RECEIPT = "fee_receipt", "Third-party fee receipt"
 
 
 class ScanStatus(models.TextChoices):

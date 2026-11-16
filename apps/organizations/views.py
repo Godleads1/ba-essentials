@@ -21,7 +21,7 @@ def onboarding(request):
     form = OrganizationForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         organization = services.create_organization(
-            request.user, form.cleaned_data["name"]
+            request.user, form.cleaned_data["name"], country=form.cleaned_data["country"]
         )
         request.session["organization_id"] = str(organization.pk)
         messages.success(request, f"{organization.name} is ready.")

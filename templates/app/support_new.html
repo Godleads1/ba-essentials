@@ -1,0 +1,32 @@
+{% extends "app/base.html" %}
+{% block title %}Open a support ticket · B &amp; A Essentials{% endblock %}
+{% block page_title %}Open a support ticket{% endblock %}
+{% block mobile_title %}New ticket{% endblock %}
+{% block content %}
+  <div class="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
+    <div class="card card-pad">
+      <h2 class="text-lg font-semibold text-navy-900">How can we help?</h2>
+      <p class="mt-1 text-sm text-slate-500">Use a ticket for account, billing or access questions. Task-specific questions belong in the request thread.</p>
+      <form method="post" class="mt-6 space-y-5" novalidate>
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        {% include "partials/field.html" with field=form.subject %}
+        {% include "partials/field.html" with field=form.priority %}
+        {% include "partials/field.html" with field=form.body %}
+        <div class="flex flex-wrap items-center gap-3 pt-2">
+          <button type="submit" class="btn-primary">Open ticket</button>
+          <a class="btn-ghost" href="{% url 'support-home' %}">Cancel</a>
+        </div>
+      </form>
+    </div>
+    <aside class="space-y-4">
+      <div class="card card-pad text-sm text-slate-600">
+        <h3 class="text-sm font-semibold text-navy-900">What to expect</h3>
+        <p class="mt-2">Support replies inside the ticket and you receive an in-app notification. Response times are not a service guarantee during the pilot.</p>
+      </div>
+      <div class="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs leading-relaxed text-amber-800">
+        Never include passwords, one-time codes, card numbers or API keys in a ticket.
+      </div>
+    </aside>
+  </div>
+{% endblock %}

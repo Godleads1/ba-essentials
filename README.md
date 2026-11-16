@@ -83,6 +83,13 @@ python -m pytest
 python manage.py makemigrations --check --dry-run --settings=config.settings.test
 ```
 
+The row-lock race tests need a real PostgreSQL server and skip on SQLite:
+
+```bash
+DATABASE_URL=postgres://ba:ba@127.0.0.1:5432/ba \
+  python -m pytest --ds=config.settings.test_postgres
+```
+
 The suite covers production fail-closed settings, OTP attempt limits and
 invalidation, lockout and rate limits, MFA replay, session credential binding,
 tenant isolation, transition legality and stale writes, quote idempotency,
@@ -90,11 +97,20 @@ allowance versus invoice, webhook signatures and duplicate events, release
 payment gating, QA independence, file magic-byte checks and signed downloads,
 a full lifecycle, and page rendering for each surface.
 
-CI runs the tests, the migration check, a production `check --deploy`, both
-dependency audits, a secret scan, and verifies that compiled CSS is current.
-The production deploy check needs the PostgreSQL driver from
+CI runs the tests on SQLite and PostgreSQL, the migration check, a production
+`check --deploy`, both dependency audits, a secret scan, and verifies that
+compiled CSS is current. The PostgreSQL job exercises concurrent transitions,
+quote acceptance, idempotent replay, allowance limits, and payment
+verification. The production deploy check needs the PostgreSQL driver from
 `requirements/prod.txt` plus the production environment variables; the workflow
 supplies inert values for the check.
+
+## Deployment
+
+A Render Blueprint with PostgreSQL, Render Key Value (Redis), Resend SMTP, and
+a private ClamAV service is documented in
+[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). It is a staging runbook: paid
+resources, synthetic data, and payments disabled.
 
 ## Security posture
 
@@ -117,8 +133,9 @@ Implemented controls and deployment requirements are documented in
 
 ## Known limitations (deliberate)
 
-- Paystack checkout initialization is not implemented. Only verified webhooks
-  and manual finance reconciliation change payment state.
+- Paystack plan checkout is implemented; a plan starts only after a signed
+  webhook that Paystack's verify API confirms. Renewals, refunds and
+  Flutterwave are not built yet.
 - Object storage (for example Cloudflare R2) is not implemented; the local
   adapter refuses unknown backends instead of silently falling back.
 - In-app messaging and the website CMS are Phase 5+ and out of scope here.

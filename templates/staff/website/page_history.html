@@ -1,0 +1,81 @@
+{% extends "app/base.html" %}
+{% load ui %}
+{% block title %}History · /{{ page.slug }}/ · B &amp; A Essentials{% endblock %}
+{% block page_title %}History · /{{ page.slug }}/{% endblock %}
+{% block mobile_title %}History{% endblock %}
+{% block content %}
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <p class="text-sm text-slate-600">
+        {% if page.published_revision_id %}
+          Publicly live at v{{ page.published_revision.revision_number }}.
+        {% else %}
+          This page is not published.
+        {% endif %}
+      </p>
+      {% if page.published_revision_id %}
+        <a class="text-xs font-semibold text-brand-700" href="{% url 'website-page' slug=page.slug %}">View public page &rarr;</a>
+      {% endif %}
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <a class="btn-secondary btn-sm" href="{% url 'staff-website-edit' page_id=page.pk %}">Edit latest</a>
+      {% if page.published_revision_id and can_publish %}
+        <form method="post" action="{% url 'staff-website-unpublish' page_id=page.pk %}">
+          {% csrf_token %}
+          <button class="btn-ghost btn-sm" type="submit">Unpublish</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <section class="card">
+    {% if revisions %}
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Revision</th><th>Title</th><th>State</th><th>Author</th><th>Saved</th><th></th></tr></thead>
+          <tbody>
+            {% for revision in revisions %}
+              <tr>
+                <td class="whitespace-nowrap font-mono text-xs text-slate-500">v{{ revision.revision_number }}</td>
+                <td>
+                  <p class="font-medium text-navy-900">{{ revision.title }}</p>
+                  {% if revision.summary %}<p class="max-w-md truncate text-xs text-slate-400">{{ revision.summary }}</p>{% endif %}
+                </td>
+                <td>
+                  {% if revision.pk == published_revision_id %}
+                    {% include "partials/status_badge.html" with status="published" %}
+                  {% elif revision.published_at %}
+                    <span class="text-xs text-slate-500">Previously live</span>
+                  {% else %}
+                    {% include "partials/status_badge.html" with status="draft" %}
+                  {% endif %}
+                </td>
+                <td class="text-slate-600">{{ revision.created_by.full_name|default:revision.created_by.email|default:"System" }}</td>
+                <td class="whitespace-nowrap text-slate-500">{{ revision.created_at|date:"j M Y, H:i" }}</td>
+                <td class="text-right">
+                  <div class="flex flex-wrap justify-end gap-2">
+                    <a class="btn-ghost btn-sm" href="{% url 'staff-website-preview' page_id=page.pk %}?revision={{ revision.pk }}">Preview</a>
+                    <form method="post" action="{% url 'staff-website-restore' page_id=page.pk %}">
+                      {% csrf_token %}
+                      <input type="hidden" name="revision" value="{{ revision.pk }}">
+                      <button class="btn-secondary btn-sm" type="submit">Restore as draft</button>
+                    </form>
+                    {% if can_publish and revision.pk != published_revision_id %}
+                      <form method="post" action="{% url 'staff-website-publish' page_id=page.pk %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="revision" value="{{ revision.pk }}">
+                        <button class="btn-primary btn-sm" type="submit">Publish</button>
+                      </form>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="px-5 py-10 text-sm text-slate-500">No revisions recorded.</p>
+    {% endif %}
+  </section>
+{% endblock %}

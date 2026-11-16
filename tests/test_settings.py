@@ -57,6 +57,36 @@ def _import_production(overrides: dict[str, str | None]) -> subprocess.Completed
     )
 
 
+def test_staging_adopts_the_render_hostname():
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "from config.settings import staging as s; "
+            "print(s.APP_BASE_URL); "
+            "print(','.join(s.ALLOWED_HOSTS)); "
+            "print(','.join(s.CSRF_TRUSTED_ORIGINS)); "
+            "print(','.join(s.SECURE_REDIRECT_EXEMPT))",
+        ],
+        cwd=BASE_DIR,
+        env=_clean_environment(
+            {"RENDER_EXTERNAL_HOSTNAME": "ba-essentials-staging.onrender.com"}
+        ),
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+
+    assert result.returncode == 0, result.stderr
+    app_base_url, allowed_hosts, trusted_origins, redirect_exempt = (
+        result.stdout.strip().splitlines()
+    )
+    assert app_base_url == "https://ba-essentials-staging.onrender.com"
+    assert "ba-essentials-staging.onrender.com" in allowed_hosts.split(",")
+    assert "https://ba-essentials-staging.onrender.com" in trusted_origins.split(",")
+    assert "^/health/$" in redirect_exempt.split(",")
+
+
 def test_safe_production_configuration_imports():
     result = _import_production({})
     assert result.returncode == 0, result.stderr

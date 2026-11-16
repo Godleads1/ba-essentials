@@ -119,6 +119,16 @@
         </section>
       {% endif %}
 
+      {% if outside_plan_region %}
+        <section class="card card-pad border border-amber-200 bg-amber-50/60">
+          <p class="eyebrow">Work outside Africa</p>
+          <h3 class="mt-1 text-base font-semibold text-navy-900">This request is for {{ work_country_name }}</h3>
+          <p class="mt-1 text-sm text-slate-600">Your plan covers work in Nigeria and the rest of Africa. Work for {{ work_country_name }} needs a specialist there, so it isn&rsquo;t included: we&rsquo;ll send a one-off fee quote before any work starts, and nothing is charged unless you accept it. If you often need work outside Africa, ask us to move you to the international plan, which includes it.</p>
+        </section>
+      {% endif %}
+
+      {% include "app/_fees.html" %}
+
       {% if invoice %}
         <section class="card card-pad">
           <div class="flex flex-wrap items-center justify-between gap-2">
@@ -130,10 +140,27 @@
             {% include "partials/status_badge.html" with status=invoice.status %}
           </div>
           {% if invoice.status == "issued" %}
-            <p class="mt-4 rounded-xl bg-slate-50 p-3 text-xs leading-relaxed text-slate-500">Pay by bank transfer using the invoice number as the reference. Finance reconciles payments manually; the browser never marks an invoice paid.</p>
+            {% if payments_enabled and can_pay %}
+              <form method="post" action="{% url 'invoice-checkout' invoice_id=invoice.pk %}" class="mt-4">
+                {% csrf_token %}
+                <button class="btn-primary btn-sm">Pay {{ invoice.amount_minor|money_minor:invoice.currency }} with Paystack</button>
+              </form>
+              <p class="mt-2 text-xs text-slate-500">The invoice shows as paid once Paystack confirms the payment to us. You can also pay by bank transfer using the invoice number as the reference.</p>
+            {% else %}
+              <p class="mt-4 rounded-xl bg-slate-50 p-3 text-xs leading-relaxed text-slate-500">Pay by bank transfer using the invoice number as the reference. Finance reconciles payments manually; the browser never marks an invoice paid.</p>
+            {% endif %}
           {% endif %}
         </section>
       {% endif %}
+
+      {% url 'task-message-post' task_id=task.pk as task_message_url %}
+      <section class="card scroll-mt-24" id="messages">
+        <div class="border-b border-slate-100 px-5 py-4">
+          <h3 class="text-sm font-semibold text-navy-900">Messages</h3>
+          <p class="mt-1 text-xs text-slate-500">Ask the team a question or add detail to this request.</p>
+        </div>
+        {% include "partials/task_thread.html" with thread=thread post_url=task_message_url empty_text="No messages yet. Start the conversation." %}
+      </section>
 
       <section class="card">
         <div class="border-b border-slate-100 px-5 py-4"><h3 class="text-sm font-semibold text-navy-900">History</h3></div>

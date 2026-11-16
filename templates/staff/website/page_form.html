@@ -1,0 +1,52 @@
+{% extends "app/base.html" %}
+{% block title %}{% if mode == "create" %}New page{% else %}Edit page{% endif %} · B &amp; A Essentials{% endblock %}
+{% block page_title %}{% if mode == "create" %}New website page{% else %}Edit /{{ page.slug }}/{% endif %}{% endblock %}
+{% block mobile_title %}{% if mode == "create" %}New page{% else %}Edit page{% endif %}{% endblock %}
+{% block content %}
+  <div class="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
+    <section class="card card-pad">
+      <form method="post" class="space-y-5" novalidate>
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        {% if mode == "create" %}
+          {% include "partials/field.html" with field=form.slug %}
+        {% endif %}
+        {% include "partials/field.html" with field=form.title %}
+        {% include "partials/field.html" with field=form.summary %}
+        {% include "partials/field.html" with field=form.body %}
+        <div class="flex flex-wrap items-center gap-3 pt-2">
+          <button type="submit" class="btn-primary">{% if mode == "create" %}Create draft{% else %}Save as new draft{% endif %}</button>
+          {% if mode == "edit" %}
+            <a class="btn-secondary" href="{% url 'staff-website-preview' page_id=page.pk %}">Preview latest</a>
+          {% endif %}
+          <a class="btn-ghost" href="{% url 'staff-website-pages' %}">Cancel</a>
+        </div>
+      </form>
+    </section>
+
+    <aside class="space-y-4">
+      {% if mode == "edit" %}
+        <div class="card card-pad">
+          <h2 class="text-sm font-semibold text-navy-900">Page status</h2>
+          <p class="mt-2 text-sm text-slate-600">
+            {% if page.published_revision_id %}
+              Live · published {{ page.published_at|date:"j M Y, H:i" }}
+            {% else %}
+              Not published
+            {% endif %}
+          </p>
+          <p class="mt-1 text-xs text-slate-400">Latest revision v{{ latest.revision_number }} · saved {{ latest.created_at|date:"j M Y, H:i" }}</p>
+          <div class="mt-4 grid gap-2">
+            <a class="btn-secondary btn-sm justify-between" href="{% url 'staff-website-history' page_id=page.pk %}">Revision history <span>&rarr;</span></a>
+            {% if page.published_revision_id %}
+              <a class="btn-ghost btn-sm justify-between" href="{% url 'website-page' slug=page.slug %}">View public page <span>&rarr;</span></a>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+      <div class="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs leading-relaxed text-amber-800">
+        Saving creates a new revision. Nothing changes on the public site until a publisher releases that revision.
+      </div>
+    </aside>
+  </div>
+{% endblock %}

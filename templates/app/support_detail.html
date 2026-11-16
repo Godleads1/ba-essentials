@@ -1,0 +1,73 @@
+{% extends "app/base.html" %}
+{% block title %}{{ ticket.reference }} · B &amp; A Essentials{% endblock %}
+{% block page_title %}Ticket {{ ticket.reference }}{% endblock %}
+{% block mobile_title %}{{ ticket.reference }}{% endblock %}
+{% block content %}
+  <section class="card card-pad">
+    <div class="flex flex-wrap items-start justify-between gap-4">
+      <div>
+        <div class="flex flex-wrap items-center gap-2">
+          {% include "partials/status_badge.html" with status=ticket.status %}
+          <span class="text-xs font-medium uppercase tracking-wide text-slate-400">{{ ticket.get_priority_display }} priority</span>
+        </div>
+        <h2 class="mt-2 text-xl font-semibold text-navy-900">{{ ticket.subject }}</h2>
+        <p class="mt-1 text-sm text-slate-500">Opened {{ ticket.created_at|date:"j M Y, H:i" }}{% if ticket.assigned_to %} · handled by {{ ticket.assigned_to.full_name|default:ticket.assigned_to.email }}{% endif %}</p>
+      </div>
+      <a href="{% url 'support-home' %}" class="btn-ghost btn-sm">All tickets</a>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="border-b border-slate-100 px-5 py-4">
+      <h3 class="text-sm font-semibold text-navy-900">Conversation</h3>
+    </div>
+    {% if ticket.status == "closed" %}
+      <div class="divide-y divide-slate-100">
+        {% for message in thread %}
+          <article class="px-5 py-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="text-sm font-semibold text-navy-900">{{ message.author_name|default:"B &amp; A team" }}</span>
+                <span class="badge bg-slate-100 text-slate-600 ring-slate-200">{% if message.author_role == "staff" %}B &amp; A team{% else %}Client{% endif %}</span>
+              </div>
+              <time class="text-xs text-slate-400" datetime="{{ message.created_at|date:'c' }}">{{ message.created_at|date:"j M Y, H:i" }}</time>
+            </div>
+            <p class="mt-2 whitespace-pre-line text-sm leading-relaxed text-slate-700">{{ message.body }}</p>
+          </article>
+        {% endfor %}
+      </div>
+      <div class="border-t border-slate-100 px-5 py-4 text-sm text-slate-500">
+        This ticket is closed. <a class="font-medium text-brand-700 hover:underline" href="{% url 'support-new' %}">Open a new ticket</a> if you need more help.
+      </div>
+    {% else %}
+      <div class="divide-y divide-slate-100">
+        {% for message in thread %}
+          <article class="px-5 py-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="text-sm font-semibold text-navy-900">{{ message.author_name|default:"B &amp; A team" }}</span>
+                <span class="badge bg-slate-100 text-slate-600 ring-slate-200">{% if message.author_role == "staff" %}B &amp; A team{% else %}Client{% endif %}</span>
+              </div>
+              <time class="text-xs text-slate-400" datetime="{{ message.created_at|date:'c' }}">{{ message.created_at|date:"j M Y, H:i" }}</time>
+            </div>
+            <p class="mt-2 whitespace-pre-line text-sm leading-relaxed text-slate-700">{{ message.body }}</p>
+          </article>
+        {% endfor %}
+      </div>
+      <form method="post" class="space-y-3 border-t border-slate-100 px-5 py-4">
+        {% csrf_token %}
+        <label class="sr-only" for="ticket-reply">Reply</label>
+        <textarea id="ticket-reply" name="body" rows="3" maxlength="4000" required class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-100" placeholder="Add a reply"></textarea>
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <button type="submit" class="btn-primary btn-sm">Send reply</button>
+        </div>
+      </form>
+      <div class="border-t border-slate-100 px-5 py-4">
+        <form method="post" action="{% url 'support-close' ticket_id=ticket.pk %}">
+          {% csrf_token %}
+          <button type="submit" class="btn-ghost btn-sm text-slate-500">Close this ticket</button>
+        </form>
+      </div>
+    {% endif %}
+  </section>
+{% endblock %}

@@ -65,15 +65,24 @@ class Command(BaseCommand):
             self.stdout.write(f"Would ensure category {name} ({slug}).")
             return 1
 
-        category, _ = ServiceCategory.objects.update_or_create(
-            slug=slug,
-            defaults={
-                "name": name,
-                "summary": (data.get("summary") or "").strip()[:255],
-                "sort_order": int(data.get("sort_order") or 0),
-                "is_active": bool(data.get("is_active", True)),
-            },
-        )
+        defaults = {
+            "name": name,
+            "summary": (data.get("summary") or "").strip()[:255],
+            "sort_order": int(data.get("sort_order") or 0),
+            "is_active": bool(data.get("is_active", True)),
+        }
+        # Plan access is only changed when the manifest says so, so an older
+        # manifest can't silently unlock a category or move legal work.
+        if "minimum_plan_rank" in data:
+            rank = data["minimum_plan_rank"]
+            if not isinstance(rank, int) or isinstance(rank, bool) or rank < 0:
+                raise CommandError(f"minimum_plan_rank for {name} must be a whole number of 0 or more.")
+            defaults["minimum_plan_rank"] = rank
+        if "uses_legal_allowance" in data:
+            if not isinstance(data["uses_legal_allowance"], bool):
+                raise CommandError(f"uses_legal_allowance for {name} must be true or false.")
+            defaults["uses_legal_allowance"] = data["uses_legal_allowance"]
+        category, _ = ServiceCategory.objects.update_or_create(slug=slug, defaults=defaults)
         changed = 1
         for service_data in services_data:
             changed += self._service(category, service_data)
@@ -93,14 +102,20 @@ class Command(BaseCommand):
             raise CommandError(f"Unknown service state {state!r} for {name}.")
 
         slug = (data.get("slug") or slugify(name)).strip()
-        definition, _ = ServiceDefinition.objects.update_or_create(
-            slug=slug,
-            defaults={
-                "category": category,
-                "name": name,
-                "is_active": bool(data.get("is_active", True)),
-            },
-        )
+        service_defaults = {
+            "category": category,
+            "name": name,
+            "is_active": bool(data.get("is_active", True)),
+        }
+        # Only set when the manifest says so, like plan access on categories.
+        if "work_country" in data:
+            from apps.core.countries import BY_CODE
+
+            code = str(data["work_country"] or "").upper()
+            if code and code not in BY_CODE:
+                raise CommandError(f"work_country for {name} must be a known country code, like US or GB.")
+            service_defaults["work_country"] = code
+        definition, _ = ServiceDefinition.objects.update_or_create(slug=slug, defaults=service_defaults)
         settings_payload = {
             "scope_summary": scope,
             "deliverables_summary": deliverables,

@@ -3,7 +3,9 @@ from __future__ import annotations
 from django.contrib import admin
 from django.urls import include, path
 
+from apps.accounts import views as account_views
 from apps.core import views as core_views
+from apps.website import views_public as website_views
 
 urlpatterns = [
     path("", core_views.landing, name="landing"),
@@ -11,19 +13,27 @@ urlpatterns = [
     path("", include("apps.accounts.urls")),
     path("", include("apps.organizations.urls_public")),
     path("", include("apps.billing.urls_webhook")),
+    path("", include("apps.website.urls_public")),
     path("app/", include("apps.tasks.urls_client")),
     path("app/", include("apps.quotes.urls")),
     path("app/", include("apps.reviews.urls")),
     path("app/", include("apps.billing.urls")),
     path("app/", include("apps.organizations.urls")),
     path("app/", include("apps.accounts.urls_app")),
+    path("app/", include("apps.catalogue.urls_client")),
+    path("app/", include("apps.communications.urls_client")),
     path("app/files/", include("apps.files.urls")),
     path("staff/", include("apps.operations.urls")),
+    path("staff/", include("apps.communications.urls_staff")),
     path("staff/", include("apps.quotes.urls_staff")),
     path("staff/", include("apps.reviews.urls_staff")),
     path("staff/", include("apps.billing.urls_staff")),
     path("staff/", include("apps.catalogue.urls")),
+    path("staff/", include("apps.website.urls_staff")),
+    # Must come before admin.site.urls so it replaces the built-in admin sign-in.
+    path("admin/login/", account_views.admin_login_redirect, name="admin-login-redirect"),
     path("admin/", admin.site.urls),
+    path("<slug:slug>/", website_views.page, name="website-page"),
 ]
 
 handler403 = "apps.core.views.permission_denied_view"
