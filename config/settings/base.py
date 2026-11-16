@@ -195,6 +195,21 @@ OTP_MAX_ATTEMPTS = env_int("OTP_MAX_ATTEMPTS", 5)
 OTP_RESEND_COOLDOWN_SECONDS = env_int("OTP_RESEND_COOLDOWN_SECONDS", 60)
 LOGIN_MAX_FAILURES = env_int("LOGIN_MAX_FAILURES", 5)
 LOGIN_LOCK_SECONDS = env_int("LOGIN_LOCK_SECONDS", 900)
+
+# One-time codes by SMS and WhatsApp (Termii). Without these, clients get codes by email.
+# The base URL is the one shown in your Termii dashboard; WhatsApp needs Termii to
+# switch on its WhatsApp OTP route and a WhatsApp device name.
+TERMII_API_KEY = env("TERMII_API_KEY", "")
+TERMII_BASE_URL = env("TERMII_BASE_URL", "")
+TERMII_SENDER_ID = env("TERMII_SENDER_ID", "")
+TERMII_WHATSAPP_FROM = env("TERMII_WHATSAPP_FROM", "")
+TERMII_SMS_CHANNEL = env("TERMII_SMS_CHANNEL", "dnd")
+TERMII_WHATSAPP_CHANNEL = env("TERMII_WHATSAPP_CHANNEL", "whatsapp_otp")
+# Code requests answer no faster than this, so the timing never shows whether an
+# account exists (sending a real code takes longer than doing nothing).
+AUTH_MIN_RESPONSE_SECONDS = float(env("AUTH_MIN_RESPONSE_SECONDS", "1.2"))
+# Each lockout after repeated wrong codes or passwords lasts twice as long as the last.
+LOGIN_LOCK_MAX_SECONDS = env_int("LOGIN_LOCK_MAX_SECONDS", 60 * 60 * 24)
 STEP_UP_MAX_AGE = env_int("STEP_UP_MAX_AGE", 600)
 MFA_ISSUER = env("MFA_ISSUER", "B & A Essentials")
 # Public derivation context, not a secret: the key material is SECRET_KEY.

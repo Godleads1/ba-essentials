@@ -14,9 +14,13 @@ from apps.core import ratelimit
 from apps.core.exceptions import RateLimited, ValidationFailure
 from apps.organizations.access import memberships_for
 
-from . import services
+from . import codes, phones, services
 from .forms import (
+    CHANNEL_IN_TEXT,
+    CHANNEL_LABELS,
     ChangePasswordForm,
+    ChannelForm,
+    CodeLoginForm,
     LoginForm,
     MFAConfirmForm,
     PasswordResetConfirmForm,
@@ -35,38 +39,42 @@ def _client_ip(request) -> str:
     return request.META.get("REMOTE_ADDR", "")
 
 
+def _after_sign_in(request, user):
+    next_url = request.GET.get("next") or request.session.pop("sign_in_next", "")
+    if next_url:
+        from apps.core.middleware import _safe_next
+
+        return redirect(_safe_next(request, next_url))
+    if user.staff_role:
+        return redirect("staff-dashboard")
+    if memberships_for(user).exists():
+        return redirect("client-overview")
+    return redirect("organization-onboarding")
+
+
 @require_http_methods(["GET", "POST"])
 def signup(request):
     if request.user.is_authenticated:
         return redirect("client-overview")
-    form = SignupForm(request.POST or None)
-    if request.method == "POST":
-        if not ratelimit.hit(
-            "signup", _client_ip(request), limit=5, window_seconds=600
-        ):
-            messages.error(request, "Too many sign-up attempts. Please try again later.")
+    channels = codes.channels_offered_at_signup()
+    form = SignupForm(request.POST or None, channels=channels)
+    if request.method == "POST" and form.is_valid():
+        try:
+            pending = codes.register_client(
+                full_name=form.cleaned_data["full_name"],
+                email=form.cleaned_data["email"],
+                phone=form.cleaned_data.get("phone", ""),
+                channel=form.cleaned_data.get("channel") or "email",
+                client_ip=_client_ip(request),
+            )
+        except ValidationFailure as exc:
+            form.add_error(None, exc.message)
+        except RateLimited as exc:
+            form.add_error(None, exc.message)
             return render(request, "auth/signup.html", {"form": form}, status=429)
-        if form.is_valid():
-            try:
-                user = services.register_user(
-                    email=form.cleaned_data["email"],
-                    full_name=form.cleaned_data["full_name"],
-                    password=form.cleaned_data["password1"],
-                )
-            except ValidationFailure as exc:
-                form.add_error(None, exc.message)
-            except RateLimited:
-                pass
-            else:
-                request.session["pending_verify_email"] = form.cleaned_data["email"]
-                if user is not None:
-                    messages.success(request, "Check your email for a 6-digit code.")
-                else:
-                    messages.info(
-                        request,
-                        "If this address can be used, we have sent a verification code.",
-                    )
-                return redirect("verify-email")
+        else:
+            request.session["pending_sign_in"] = pending
+            return redirect("login-code")
     return render(request, "auth/signup.html", {"form": form})
 
 
@@ -114,7 +122,6 @@ def resend_verification(request):
 
 
 @require_http_methods(["GET", "POST"])
-@require_http_methods(["GET", "POST"])
 def admin_login_redirect(request):
     """Django admin has no sign-in form of its own.
 
@@ -126,10 +133,91 @@ def admin_login_redirect(request):
     next_url = request.GET.get("next", "")
     if not next_url.startswith("/admin/") or next_url.startswith("//"):
         next_url = "/admin/"
-    return redirect(f"{reverse('login')}?{urlencode({'next': next_url})}")
+    return redirect(f"{reverse('staff-login')}?{urlencode({'next': next_url})}")
 
 
+@require_http_methods(["GET", "POST"])
 def login_view(request):
+    """Clients sign in with a one-time code. Staff use the staff sign-in page."""
+    if request.user.is_authenticated:
+        return redirect("staff-dashboard" if request.user.staff_role else "client-overview")
+    channels = codes.phone_channels()
+    form = CodeLoginForm(request.POST or None, channels=channels)
+    if request.method == "POST" and form.is_valid():
+        try:
+            pending = codes.request_sign_in(
+                form.cleaned_data["identifier"],
+                client_ip=_client_ip(request),
+                channel=form.cleaned_data.get("channel") or "",
+            )
+        except (ValidationFailure, RateLimited) as exc:
+            form.add_error(None, exc.message)
+        else:
+            request.session["pending_sign_in"] = pending
+            if request.GET.get("next"):
+                request.session["sign_in_next"] = request.GET["next"]
+            return redirect("login-code")
+    return render(request, "auth/login.html", {"form": form, "phone_ok": bool(channels)})
+
+
+@require_http_methods(["GET", "POST"])
+def login_code(request):
+    pending = request.session.get("pending_sign_in")
+    if not pending:
+        return redirect("login")
+    form = VerifyForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        try:
+            user = codes.verify_sign_in(pending, form.cleaned_data["code"], client_ip=_client_ip(request))
+        except (ValidationFailure, RateLimited) as exc:
+            form.add_error("code", exc.message)
+        else:
+            request.session.pop("pending_sign_in", None)
+            if user.mfa_enabled:
+                request.session["pending_mfa_user"] = str(user.pk)
+                request.session["pending_mfa_cv"] = user.credential_version
+                return redirect("login-mfa")
+            services.establish_session(request, user)
+            if pending.get("confirm_phone"):
+                return redirect("verify-phone")
+            return _after_sign_in(request, user)
+    other = [c for c in codes.phone_channels() if c != pending.get("ch")] if pending.get("kind") == "phone" else []
+    return render(request, "auth/code.html", {
+        "form": form, "pending": pending, "channel_label": CHANNEL_IN_TEXT.get(pending.get("ch"), "email"),
+        "other_channels": [(c, CHANNEL_IN_TEXT[c]) for c in other],
+    })
+
+
+@require_POST
+def login_code_resend(request):
+    pending = request.session.get("pending_sign_in")
+    if not pending:
+        return redirect("login")
+    try:
+        if pending.get("signup"):
+            fresh = dict(pending)
+            user = User.objects.filter(pk=pending.get("uid") or None).first() if pending.get("uid") else None
+            if user is not None:
+                codes._limit_sends(pending["key"], _client_ip(request))
+                try:
+                    codes.send_code(user, ChallengePurpose.SIGN_IN, "email")
+                except (RateLimited, ValidationFailure):
+                    pass
+        else:
+            fresh = codes.request_sign_in(pending["key"], client_ip=_client_ip(request),
+                                          channel=request.POST.get("channel") or pending.get("ch", ""))
+            fresh.update({k: v for k, v in pending.items() if k in ("confirm_phone",)})
+    except (ValidationFailure, RateLimited) as exc:
+        messages.error(request, exc.message)
+        return redirect("login-code")
+    request.session["pending_sign_in"] = fresh
+    messages.info(request, f"If the details are right, a new code is on its way to {fresh['to']}.")
+    return redirect("login-code")
+
+
+@require_http_methods(["GET", "POST"])
+def staff_login(request):
+    """Staff and Django admins: password and authenticator code."""
     if request.user.is_authenticated:
         return redirect("staff-dashboard" if request.user.staff_role else "client-overview")
     form = LoginForm(request.POST or None)
@@ -152,13 +240,44 @@ def login_view(request):
         if outcome.status == services.LoginStatus.MFA_REQUIRED:
             request.session["pending_mfa_user"] = str(outcome.user.pk)
             request.session["pending_mfa_cv"] = outcome.user.credential_version
+            if request.GET.get("next"):
+                request.session["sign_in_next"] = request.GET["next"]
             return redirect("login-mfa")
         if outcome.status == services.LoginStatus.UNVERIFIED:
             request.session["pending_verify_email"] = outcome.user.email
             messages.info(request, "Verify your email address to continue.")
             return redirect("verify-email")
         form.add_error(None, "Email or password is incorrect.")
-    return render(request, "auth/login.html", {"form": form})
+    return render(request, "auth/staff_login.html", {"form": form})
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def verify_phone(request):
+    """Confirm a phone number with a code sent to it, so it can be used to sign in."""
+    user = request.user
+    if not user.phone or user.phone_verified:
+        return _after_sign_in(request, user)
+    form = VerifyForm(request.POST or None)
+    if request.method == "POST" and request.POST.get("send"):
+        try:
+            to = codes.send_phone_code(user, client_ip=_client_ip(request), channel=request.POST.get("channel", ""))
+            messages.info(request, f"We've sent a code to {to}.")
+        except (ValidationFailure, RateLimited) as exc:
+            messages.error(request, exc.message)
+        return redirect("verify-phone")
+    if request.method == "POST" and form.is_valid():
+        try:
+            codes.confirm_phone(user, form.cleaned_data["code"])
+        except (ValidationFailure, RateLimited) as exc:
+            form.add_error("code", exc.message)
+        else:
+            messages.success(request, "Your phone number is confirmed. You can sign in with it now.")
+            return _after_sign_in(request, user)
+    return render(request, "auth/verify_phone.html", {
+        "form": form, "phone": phones.masked(user.phone),
+        "channels": [(c, CHANNEL_LABELS[c]) for c in codes.phone_channels()],
+    })
 
 
 @require_http_methods(["GET", "POST"])
@@ -182,7 +301,7 @@ def login_mfa(request):
                 request.session.pop("pending_mfa_cv", None)
                 services.establish_session(request, user)
                 services.mark_step_up(request, user)
-                return redirect("staff-dashboard" if user.staff_role else "client-overview")
+                return _after_sign_in(request, user)
             form.add_error("code", "That authenticator code is not valid.")
     return render(request, "auth/mfa.html", {"form": form})
 
@@ -203,7 +322,8 @@ def password_reset_request(request):
             messages.info(request, "If that account exists, a reset code is on its way.")
             return redirect("login")
         user = User.objects.filter(email=email).first()
-        if user is not None:
+        # Only staff have passwords; clients sign in with codes and get the same answer.
+        if user is not None and not user.is_client_account:
             try:
                 services.send_challenge(user, ChallengePurpose.PASSWORD_RESET)
             except (RateLimited, ValidationFailure):
@@ -222,7 +342,7 @@ def password_reset_confirm(request):
     form = PasswordResetConfirmForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         user = User.objects.filter(email=email).first()
-        if user is None:
+        if user is None or user.is_client_account:
             form.add_error(None, "That code is invalid or has expired.")
         else:
             try:
@@ -237,31 +357,51 @@ def password_reset_confirm(request):
                 messages.success(
                     request, "Your password has been reset. Sign in with the new one."
                 )
-                return redirect("login")
+                return redirect("staff-login")
     return render(request, "auth/password_reset_confirm.html", {"form": form, "email": email})
 
 
 @require_http_methods(["GET", "POST"])
 def step_up(request):
+    """Confirm it's you before something sensitive.
+
+    Staff give their password (and authenticator code). Clients have no password,
+    so they get a one-time code (and give their authenticator code if they set one up).
+    """
     if not request.user.is_authenticated:
         return redirect(f"{reverse('login')}?next={reverse('step-up')}")
     user = request.user
     next_url = request.GET.get("next") or request.POST.get("next") or "/app/"
-    form = StepUpForm(request.POST or None)
+    by_code = not user.has_usable_password()
+    form = (VerifyForm if by_code else StepUpForm)(request.POST or None)
+    if by_code and request.method == "POST" and request.POST.get("send"):
+        try:
+            to = codes.send_step_up_code(user, client_ip=_client_ip(request))
+            messages.info(request, f"We've sent a code to {to}.")
+        except (ValidationFailure, RateLimited) as exc:
+            messages.error(request, exc.message)
+        return redirect(f"{reverse('step-up')}?{urlencode({'next': next_url})}")
     if request.method == "POST" and form.is_valid():
-        password_ok = services.verify_step_up_password(
-            user, form.cleaned_data["password"]
-        )
-        code_ok = True
-        if user.mfa_enabled:
-            code_ok = services.verify_mfa(user, form.cleaned_data["code"])
-        if password_ok and code_ok:
+        if by_code:
+            first_ok = codes.verify_step_up_code(user, form.cleaned_data["code"])
+            code_ok = True
+            if user.mfa_enabled:
+                code_ok = services.verify_mfa(user, request.POST.get("totp", ""))
+        else:
+            first_ok = services.verify_step_up_password(user, form.cleaned_data["password"])
+            code_ok = True
+            if user.mfa_enabled:
+                code_ok = services.verify_mfa(user, form.cleaned_data["code"])
+        if first_ok and code_ok:
             services.mark_step_up(request, user)
             from apps.core.middleware import _safe_next
 
             return redirect(_safe_next(request, next_url))
         form.add_error(None, "Those details are not correct.")
-    return render(request, "auth/step_up.html", {"form": form, "next": next_url})
+    return render(request, "auth/step_up.html", {
+        "form": form, "next": next_url, "by_code": by_code,
+        "channel_label": CHANNEL_IN_TEXT.get(codes.preferred_channel(user), "email") if by_code else "",
+    })
 
 
 @login_required
@@ -278,9 +418,24 @@ def security_home(request):
             "current_session_key": request.session.session_key,
             "memberships": memberships,
             "step_up_fresh": services.has_fresh_step_up(request, user),
-            "password_form": ChangePasswordForm(),
+            "password_form": ChangePasswordForm() if user.has_usable_password() else None,
+            "channel_form": ChannelForm(initial={"channel": codes.preferred_channel(user)},
+                                        channels=codes.channels_for(user)) if user.is_client_account else None,
+            "masked_phone": phones.masked(user.phone),
         },
     )
+
+
+@login_required
+@require_POST
+def security_channel(request):
+    form = ChannelForm(request.POST, channels=codes.channels_for(request.user))
+    if form.is_valid():
+        codes.set_channel(request.user, form.cleaned_data["channel"])
+        messages.success(request, f"We'll send your codes by {CHANNEL_IN_TEXT[form.cleaned_data['channel']]}.")
+    else:
+        messages.error(request, "Choose a way we can reach you.")
+    return redirect("security-home")
 
 
 @login_required

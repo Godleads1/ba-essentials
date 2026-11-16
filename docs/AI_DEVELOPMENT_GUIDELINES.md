@@ -719,7 +719,10 @@ Each step is its own reviewed pull request.
    both providers, verify calls, subscription states, allowances, 30-day
    cancellation; tested in each provider's test mode.
 4. Sign-in with one-time codes: phone identifier, WhatsApp and SMS via Termii,
-   email fallback, the rules in section 4.1.
+   email fallback, the rules in section 4.1. 4a (codes, sign-in, sign-up,
+   phone confirmation, client step-up) done; 4b: changing phone or email with
+   a code to the new contact and a notice to the old one, and the optional
+   authenticator for clients on Profile & security.
 5. Records the legal pages promise (F-07, F-08): consents, data requests,
    account closure, retention job.
 6. Staff access scoping and the per-user audit log (F-04, section 4.9).

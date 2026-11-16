@@ -1,0 +1,12 @@
+{% comment %}Radio choices for how to send a code. field: a ChoiceField with RadioSelect.{% endcomment %}
+<fieldset>
+  <legend class="text-sm font-medium text-slate-700">{{ field.label }}</legend>
+  <div class="mt-2 flex flex-wrap gap-2">
+    {% for radio in field %}
+      <label class="flex cursor-pointer items-center gap-2 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-700 has-[:checked]:border-emerald-600 has-[:checked]:bg-emerald-50">
+        {{ radio.tag }} {{ radio.choice_label }}
+      </label>
+    {% endfor %}
+  </div>
+  {{ field.errors }}
+</fieldset>

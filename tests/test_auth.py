@@ -13,6 +13,7 @@ from django.utils import timezone
 from apps.accounts import services
 from apps.accounts.models import (
     ChallengePurpose,
+    StaffRole,
     User,
     UserSession,
     VerificationChallenge,
@@ -30,10 +31,11 @@ def _code_from_mail(mailoutbox) -> str:
 
 
 def _register(email: str = "new@example.test") -> User:
-    user = services.register_user(
-        email=email, full_name="New Synthetic", password=PASSWORD
-    )
-    assert user is not None
+    from apps.accounts import codes
+
+    pending = codes.register_client(email=email, full_name="New Synthetic")
+    user = User.objects.get(pk=pending["uid"])
+    assert not user.has_usable_password()
     return user
 
 
@@ -44,19 +46,16 @@ def test_registration_normalises_email_and_sends_one_code(db, mailoutbox):
     assert user.email_verified_at is None
     assert len(mailoutbox) == 1
     code = _code_from_mail(mailoutbox)
-    services.verify_challenge(user, ChallengePurpose.EMAIL_VERIFICATION, code)
-
-    user.refresh_from_db()
-    assert user.email_verified_at is not None
+    services.verify_challenge(user, ChallengePurpose.SIGN_IN, code)
 
 
 def test_verification_code_is_single_use(db, mailoutbox):
     user = _register()
     code = _code_from_mail(mailoutbox)
-    services.verify_challenge(user, ChallengePurpose.EMAIL_VERIFICATION, code)
+    services.verify_challenge(user, ChallengePurpose.SIGN_IN, code)
 
     with pytest.raises(ValidationFailure):
-        services.verify_challenge(user, ChallengePurpose.EMAIL_VERIFICATION, code)
+        services.verify_challenge(user, ChallengePurpose.SIGN_IN, code)
 
 
 def test_verification_attempts_are_capped(db, mailoutbox):
@@ -66,10 +65,10 @@ def test_verification_attempts_are_capped(db, mailoutbox):
 
     for _ in range(5):
         with pytest.raises(ValidationFailure):
-            services.verify_challenge(user, ChallengePurpose.EMAIL_VERIFICATION, wrong)
+            services.verify_challenge(user, ChallengePurpose.SIGN_IN, wrong)
 
     with pytest.raises(RateLimited):
-        services.verify_challenge(user, ChallengePurpose.EMAIL_VERIFICATION, real_code)
+        services.verify_challenge(user, ChallengePurpose.SIGN_IN, real_code)
 
 
 def test_expired_code_is_rejected(db, mailoutbox):
@@ -80,7 +79,7 @@ def test_expired_code_is_rejected(db, mailoutbox):
     )
 
     with pytest.raises(ValidationFailure):
-        services.verify_challenge(user, ChallengePurpose.EMAIL_VERIFICATION, code)
+        services.verify_challenge(user, ChallengePurpose.SIGN_IN, code)
 
 
 def test_credential_change_invalidates_outstanding_code(db, mailoutbox):
@@ -89,26 +88,28 @@ def test_credential_change_invalidates_outstanding_code(db, mailoutbox):
     user.bump_credential_version()
 
     with pytest.raises(ValidationFailure):
-        services.verify_challenge(user, ChallengePurpose.EMAIL_VERIFICATION, code)
+        services.verify_challenge(user, ChallengePurpose.SIGN_IN, code)
 
     challenge = VerificationChallenge.objects.filter(user=user).first()
     assert challenge.superseded_at is not None
 
 
 def test_duplicate_signup_does_not_reveal_account_state(db, mailoutbox, owner):
-    mailoutbox.clear()
-    result = services.register_user(
-        email=owner.email, full_name="Someone Else", password=PASSWORD
-    )
+    from apps.accounts import codes
 
-    assert result is None
-    assert len(mailoutbox) == 1
-    assert "already exists" in mailoutbox[0].body.lower()
+    mailoutbox.clear()
+    new = codes.register_client(email="fresh@example.test", full_name="Someone")
+    taken = codes.register_client(email=owner.email, full_name="Someone Else")
+    # Same answer either way; the existing account just gets a sign-in code.
+    assert {k for k in new if k != "uid"} == {k for k in taken if k != "uid"}
+    assert len(mailoutbox) == 2 and all("code" in m.subject.lower() for m in mailoutbox)
+    owner.refresh_from_db()
+    assert owner.full_name != "Someone Else"
     assert User.objects.filter(email=owner.email).count() == 1
 
 
 def test_password_login_requires_verification(db, owner):
-    unverified = make_user("unverified@example.test")
+    unverified = make_user("unverified@example.test", staff_role=StaffRole.OPERATIONS)
     User.objects.filter(pk=unverified.pk).update(email_verified_at=None)
     unverified.refresh_from_db()
 
@@ -119,7 +120,8 @@ def test_password_login_requires_verification(db, owner):
     assert outcome.status == services.LoginStatus.UNVERIFIED
 
 
-def test_repeated_wrong_passwords_lock_account(db, owner):
+def test_repeated_wrong_passwords_lock_account(db):
+    owner = make_user("staff-lock@example.test", staff_role=StaffRole.OPERATIONS)
     for _ in range(5):
         outcome = services.login_with_password(
             email=owner.email, password="Wrong-Pass-2026!", client_ip="198.51.100.2"

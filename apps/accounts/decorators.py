@@ -16,7 +16,7 @@ def staff_required(view):
     @wraps(view)
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
-            return redirect(f"{reverse('login')}?next={request.path}")
+            return redirect(f"{reverse('staff-login')}?next={request.path}")
         if not request.user.staff_role:
             messages.error(request, "Staff access only.")
             return redirect("client-overview")

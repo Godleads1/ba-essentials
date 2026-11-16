@@ -6,6 +6,7 @@ urlpatterns = [
     path("security/", views.security_home, name="security-home"),
     path("security/password/", views.change_password, name="security-password"),
     path("security/mfa/", views.security_mfa, name="security-mfa"),
+    path("security/codes/", views.security_channel, name="security-channel"),
     path(
         "security/sessions/<str:session_key>/revoke/",
         views.revoke_session,
