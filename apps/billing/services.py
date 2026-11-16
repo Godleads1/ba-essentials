@@ -359,6 +359,11 @@ def start_plan_checkout(
         raise ValidationFailure("Choose monthly or yearly.")
     if active_subscription(organization) is not None:
         raise ValidationFailure("Your business already has an active plan.")
+    owed = renewals.owed_renewal(organization.pk)
+    if owed is not None:
+        raise ValidationFailure(
+            f"Your last renewal ({owed.number}) is still unpaid. Pay it to restart your plan."
+        )
     if not renewal_consent:
         raise ValidationFailure("Tick the box to agree to automatic renewal before you pay.")
     # The business's country decides the price and currency, never the browser.

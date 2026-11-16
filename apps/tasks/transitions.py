@@ -200,6 +200,27 @@ def _resolve_target(task: Task, rule: Rule) -> str:
     return rule.to
 
 
+# While a client's service is paused for an unpaid renewal, work on their requests
+# stops too (Terms 5.6.4): nothing moves forward until they pay. Talking to the
+# client, putting work on hold and cancelling still work, and so do verified
+# payment webhooks.
+PAUSED_ACTIONS = frozenset({
+    Action.TRIAGE, Action.SCOPE, Action.SEND_QUOTE, Action.QUOTE_ACCEPTED_COVERED,
+    Action.ASSIGN, Action.ACCEPT_ASSIGNMENT, Action.SUBMIT_FOR_REVIEW, Action.APPROVE,
+    Action.REQUEST_REWORK, Action.RESUME_WORK, Action.RELEASE, Action.START_REVISION, Action.RESUME,
+})
+PAUSED_MESSAGE = (
+    "This client's service is paused because their plan renewal is unpaid. "
+    "Work on their requests resumes when they pay."
+)
+
+
+def _service_paused(task: Task) -> bool:
+    from apps.billing.plan_rules import is_paused
+
+    return is_paused(task.organization)
+
+
 def transition(
     *,
     task: Task,
@@ -245,6 +266,9 @@ def transition(
 
     if rule.requires_reason and not (reason or "").strip():
         raise ValidationFailure("Give a short reason for this action.")
+
+    if not system and action in PAUSED_ACTIONS and _service_paused(task):
+        raise ValidationFailure(PAUSED_MESSAGE)
 
     if action == Action.SEND_QUOTE and task.work_country_confirmed_at is None:
         # The price depends on where the work is for, so staff confirm it first.
@@ -310,8 +334,11 @@ def transition(
 def available_actions(task: Task, actor) -> set[str]:
     """Actions the actor may take, for rendering. Never the authorization check."""
     allowed: set[str] = set()
+    paused = _service_paused(task)
     for (status, action), rule in RULES.items():
         if status != task.status:
+            continue
+        if paused and action in PAUSED_ACTIONS:
             continue
         try:
             authorize(task, rule, actor)

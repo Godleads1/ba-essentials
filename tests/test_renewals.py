@@ -205,7 +205,10 @@ def test_a_declined_renewal_starts_grace_retries_then_pauses_and_ends(plans, org
     assert renewals.run(after + timedelta(days=30, minutes=1))["ended"] == 1
     sub.refresh_from_db()
     assert sub.status == SubscriptionStatus.CANCELLED
-    assert not Invoice.objects.filter(status=InvoiceStatus.ISSUED, renews_period_end__isnull=False).exists()
+    # The unpaid renewal stays owed (Terms 5.6.6).
+    owed = renewals.owed_renewal(organization.pk)
+    assert owed is not None and owed.status == InvoiceStatus.ISSUED
+    assert "still owed" in OutboxEvent.objects.last().payload["body"]
 
 
 def test_paying_during_grace_continues_from_the_old_end(plans, organization, owner, fake_paystack):
@@ -361,3 +364,58 @@ def test_flutterwave_saved_card_charge_maps_its_status(fake_flutterwave):
     (_, _path, payload), = [c for c in fake_flutterwave.calls if c[1] == "/tokenized-charges"]
     assert payload["amount"] == "55.00" and payload["token"] == "flw-t-synthetic"
     assert flutterwave._expiry("09/32") == (9, 2032) and flutterwave._expiry(None) == (None, None)
+
+
+# ---------- Terms 5.6.4–5.6.6: paused work and what's owed ----------
+
+def _pause(sub):
+    Subscription.objects.filter(pk=sub.pk).update(
+        status=SubscriptionStatus.PAST_DUE, paused_at=timezone.now(), period_end=timezone.now() - timedelta(days=8)
+    )
+    sub.refresh_from_db()
+    return sub
+
+
+def test_work_in_progress_pauses_too(plans, organization, owner, submitted_task, ops_user, quote_approver):
+    from apps.tasks.transitions import Action, available_actions, transition
+
+    task = transition(task=submitted_task, action=Action.TRIAGE, actor=ops_user)
+    _pause(_subscribe(organization, plans["starter"]))
+    assert Action.SCOPE.value not in available_actions(task, quote_approver)
+    with pytest.raises(ValidationFailure, match="paused"):
+        transition(task=task, action=Action.SCOPE, actor=quote_approver)
+    # Holding and talking to the client still work; nothing is cancelled.
+    held = transition(task=task, action=Action.HOLD, actor=ops_user, reason="Client renewal unpaid")
+    assert held.status == "on_hold"
+
+
+def test_paused_notices_on_task_pages(plans, organization, owner, submitted_task, ops_user):
+    _pause(_subscribe(organization, plans["starter"]))
+    assert "work on this request is paused" in login_client(owner).get(f"/app/tasks/{submitted_task.pk}/").content.decode()
+    assert "service is paused: renewal unpaid" in login_client(ops_user).get(f"/staff/tasks/{submitted_task.pk}/").content.decode()
+
+
+@override_settings(PAYMENTS_ENABLED=True)
+def test_an_ended_unpaid_plan_must_pay_what_is_owed_first(plans, organization, owner, fake_paystack):
+    sub = _pause(_subscribe(organization, plans["starter"]))
+    invoice = renewals._create_renewal_invoice(sub)
+    Subscription.objects.filter(pk=sub.pk).update(status=SubscriptionStatus.CANCELLED)
+    with pytest.raises(ValidationFailure, match="still unpaid"):
+        billing.start_plan_checkout(renewal_consent=True, organization=organization, membership=owner.memberships.get(),
+                                    plan_slug="growth", return_url="https://x.test/")
+    body = login_client(owner).get("/app/plan/").content.decode()
+    assert "is still owed" in body and invoice.number in body
+    before = timezone.now()
+    _pay(billing._create_attempt(invoice, owner, {}), fake_paystack, 9501)
+    sub.refresh_from_db()
+    assert sub.status == SubscriptionStatus.ACTIVE and sub.period_start >= before
+    assert renewals.owed_renewal(organization.pk) is None
+
+
+def test_cancelling_after_the_renewal_date_does_not_wipe_the_debt(plans, organization, owner):
+    sub = _subscribe(organization, plans["starter"])
+    Subscription.objects.filter(pk=sub.pk).update(
+        period_end=timezone.now() - timedelta(days=1), grace_until=timezone.now() + timedelta(days=3)
+    )
+    with pytest.raises(ValidationFailure, match="renewal date has passed"):
+        renewals.cancel_renewal(organization, owner.memberships.get())

@@ -4,6 +4,12 @@
 {% block page_title %}Request {{ task.reference }}{% endblock %}
 {% block mobile_title %}{{ task.reference }}{% endblock %}
 {% block content %}
+  {% if service_paused %}
+    <div class="mb-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800" role="alert">
+      <p class="font-semibold">Your service is paused</p>
+      <p class="mt-1">Your plan renewal is unpaid, so work on this request is paused. Nothing is cancelled: it carries on when you pay. <a class="font-semibold underline" href="{% url 'plan-home' %}">Pay your renewal</a></p>
+    </div>
+  {% endif %}
   <section class="card card-pad">
     <div class="flex flex-wrap items-start justify-between gap-4">
       <div>

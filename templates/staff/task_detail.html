@@ -4,6 +4,12 @@
 {% block page_title %}{{ task.reference }}{% endblock %}
 {% block mobile_title %}{{ task.reference }}{% endblock %}
 {% block content %}
+  {% if service_paused %}
+    <div class="mb-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800" role="alert">
+      <p class="font-semibold">Client&rsquo;s service is paused: renewal unpaid</p>
+      <p class="mt-1">Don&rsquo;t move this request forward until they pay (Terms 5.6.4). You can still message the client, put it on hold or cancel it.</p>
+    </div>
+  {% endif %}
   <section class="card card-pad">
     <div class="flex flex-wrap items-start justify-between gap-4">
       <div>

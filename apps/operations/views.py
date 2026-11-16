@@ -145,6 +145,12 @@ def queue(request):
     )
 
 
+def _is_paused(organization):
+    from apps.billing.plan_rules import is_paused
+
+    return is_paused(organization)
+
+
 @staff_required
 @require_GET
 def task_detail(request, task_id):
@@ -197,6 +203,7 @@ def task_detail(request, task_id):
             ).order_by("full_name"),
             "Action": Action,
             "can_quote": can_quote,
+            "service_paused": _is_paused(task.organization),
             "can_review": can_review,
             "can_release": Action.RELEASE.value in actions,
             "work_country_name": country_name(task.work_country),
