@@ -334,6 +334,16 @@ def add_months(moment, months: int):
     return moment.replace(year=year, month=month, day=day)
 
 
+def _refuse_if_closing(organization) -> None:
+    from apps.organizations.models import Organization
+
+    org = Organization.objects.filter(pk=organization.pk).values("closure_requested_at", "closed_at").first() or {}
+    if org.get("closed_at"):
+        raise ValidationFailure("This account is closed. Contact support to reopen it.")
+    if org.get("closure_requested_at"):
+        raise ValidationFailure("This account is set to close. Cancel the closure in Profile & security first.")
+
+
 def start_plan_checkout(
     *, organization, membership, plan_slug: str, return_url: str, interval: str = "month",
     renewal_consent: bool = False,
@@ -350,6 +360,7 @@ def start_plan_checkout(
         raise ValidationFailure("Payments aren't open yet.")
     if membership.role != MembershipRole.OWNER:
         raise PermissionFailure("Only the business owner can choose a plan.")
+    _refuse_if_closing(organization)
     plan = Plan.objects.filter(slug=plan_slug, is_active=True).first()
     if plan is None or plan.price_minor <= 0:
         raise ValidationFailure("That plan isn't available.")
@@ -471,6 +482,7 @@ def start_upgrade_checkout(
         raise ValidationFailure("Payments aren't open yet.")
     if membership.role != MembershipRole.OWNER:
         raise PermissionFailure("Only the business owner can change the plan.")
+    _refuse_if_closing(organization)
     target = Plan.objects.filter(slug=plan_slug, is_active=True).first()
     if target is None:
         raise ValidationFailure("That plan isn't available.")

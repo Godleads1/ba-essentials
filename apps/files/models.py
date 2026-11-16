@@ -36,6 +36,9 @@ class PrivateFile(TimeStampedModel):
     purpose = models.CharField(max_length=16, choices=FilePurpose.choices)
     storage_key = models.CharField(max_length=255, unique=True)
     original_name = models.CharField(max_length=255)
+    # When the stored file was deleted under the retention schedule. The record stays
+    # (deliverable versions and fee evidence point at it); the bytes are gone.
+    purged_at = models.DateTimeField(null=True, blank=True)
     size_bytes = models.PositiveBigIntegerField()
     content_type = models.CharField(max_length=100)
     sha256 = models.CharField(max_length=64)

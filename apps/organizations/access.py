@@ -65,6 +65,10 @@ def client_required(view):
             return redirect("organization-onboarding")
         request.membership = membership
         request.organization = membership.organization
+        if membership.organization.closed_at is not None and request.method not in ("GET", "HEAD", "OPTIONS"):
+            # A closed account is read-only: sign in, view and download (Privacy Policy 5).
+            messages.error(request, "This account is closed, so it's read-only. Contact support to reopen it.")
+            return redirect("client-overview")
         return view(request, *args, **kwargs)
 
     return wrapper

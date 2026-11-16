@@ -454,6 +454,61 @@ def security_home(request):
     )
 
 
+def _owner_membership(request):
+    membership = current_membership(request) if request.user.is_client_account else None
+    if membership is None or not membership.is_owner:
+        raise Http404
+    return membership
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def security_close(request):
+    """Close the business account: confirm it's you, see what happens, then tick to confirm."""
+    from apps.organizations import closure
+
+    membership = _owner_membership(request)
+    org = membership.organization
+    if org.closure_requested_at is not None:
+        return redirect(reverse("security-home") + "#close")
+    if (stop := _needs_step_up(request, reverse("security-close"))) is not None:
+        return stop
+    error = ""
+    if request.method == "POST":
+        if request.POST.get("confirm") != "yes":
+            error = "Tick the box to confirm."
+        else:
+            try:
+                org = closure.request_closure(org, membership)
+            except (ValidationFailure, PermissionFailure) as exc:
+                error = exc.message
+            else:
+                if org.closed_at:
+                    messages.success(request, "Your account is closed. You can still sign in to view and download your files and invoices.")
+                else:
+                    messages.success(request, f"Your account will close on {org.closes_at:%d %b %Y}. Nothing more will be charged.")
+                return redirect(reverse("security-home") + "#close")
+    return render(request, "banda/app/close_account.html", {
+        "organization": org, "closes_at": closure.paid_until(org), "open_requests": closure.open_requests(org),
+        "error": error,
+    }, status=400 if error else 200)
+
+
+@login_required
+@require_POST
+def security_close_cancel(request):
+    from apps.organizations import closure
+
+    membership = _owner_membership(request)
+    try:
+        closure.cancel_closure(membership.organization, membership)
+    except (ValidationFailure, PermissionFailure) as exc:
+        messages.error(request, exc.message)
+    else:
+        messages.success(request, "Your account will stay open.")
+    return redirect(reverse("security-home") + "#close")
+
+
 @login_required
 @require_http_methods(["GET"])
 def security_data_download(request):

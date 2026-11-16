@@ -58,7 +58,7 @@ its regression test passes.
 | F-05 | Medium | Payments not confirmed with the provider; no Flutterwave | Open, step 3 |
 | F-06 | Medium | Legal review allowance not modelled | Open, step 3 |
 | F-07 | Medium | Terms acceptance and consents not recorded | Fixed in step 5a (cookie choices stay in the browser until the backend sets non-essential cookies) |
-| F-08 | Medium | No account closure or 90-day deletion | Open, step 5 |
+| F-08 | Medium | No account closure or 90-day deletion | Fixed in step 5c (invoice deletion after 7 years is not built yet; the first are due in 2033) |
 | F-09 | Medium | Files on local disk only | Open, step 9 |
 | F-10 | Low | No hash-locked dependency lockfile; dev-only pytest advisory | Open, step 9 |
 | F-11 | Info | `main` history was replaced; older CI evidence can't be traced | Noted |
@@ -498,7 +498,7 @@ controller "of major importance" under the Act.
   Lightsail container service; never the Django development server.
 - Lightsail managed PostgreSQL on private networking; automatic backups;
   restore tested.
-- `clamd` on the instance; `process_outbox` and `scan_files` as systemd timers
+- `clamd` on the instance; `process_outbox`, `run_renewals`, `run_retention` and `scan_files` as systemd timers
   or cron.
 - Database cache for rate limits on one server; Redis only for several.
 - Health checks, process supervision, log forwarding and alerts.

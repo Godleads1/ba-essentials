@@ -256,7 +256,7 @@ without authorization and a rollback procedure.
 6. Store secrets in the platform secret manager; never in the repository.
 7. Run `python manage.py check --deploy --settings=config.settings.production`.
 8. Run `python manage.py migrate` with a reviewed migration plan and rollback.
-9. Set up `process_outbox`, `run_renewals` and `scan_files` as scheduled jobs. The Render
+9. Set up `process_outbox`, `run_renewals`, `run_retention` (daily) and `scan_files` as scheduled jobs. The Render
    staging Blueprint schedules outbox delivery; `scan_files` needs shared
    storage before it can run in a separate container (see
    [DEPLOYMENT.md](DEPLOYMENT.md)).

@@ -27,6 +27,20 @@ class Organization(TimeStampedModel):
     # Staff can move a business in Nigeria or Africa to the international (US dollar)
     # plans, so work outside Africa is included. Changed only in admin, and audited.
     international_plan = models.BooleanField(default=False)
+    # Closing the account (Terms 5.5.5, Privacy Policy section 5): it runs to the end
+    # of the paid period, is then read-only, and the profile is deleted 90 days later.
+    closure_requested_at = models.DateTimeField(null=True, blank=True)
+    closure_requested_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
+    )
+    closes_at = models.DateTimeField(null=True, blank=True)
+    closed_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    # Whether closing stopped the renewal (so cancelling the closure restarts it).
+    closure_stopped_renewal = models.BooleanField(default=False)
+    profile_deleted_at = models.DateTimeField(null=True, blank=True)
+    # Set by staff in admin when the law requires records to be kept (a claim or an
+    # investigation). The retention job deletes nothing for this business while it's on.
+    legal_hold = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["name"]
@@ -37,6 +51,14 @@ class Organization(TimeStampedModel):
     @property
     def is_active(self) -> bool:
         return self.status == OrganizationStatus.ACTIVE
+
+    @property
+    def is_closed(self) -> bool:
+        return self.closed_at is not None
+
+    @property
+    def is_closing(self) -> bool:
+        return self.closure_requested_at is not None and self.closed_at is None
 
     @property
     def region(self) -> str:
