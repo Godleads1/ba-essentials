@@ -617,7 +617,13 @@ def security_mfa(request):
             messages.success(request, "The authenticator app is on. You'll enter a code from it each time you log in.")
             return redirect("security-home")
     elif request.method == "GET" and not user.mfa_enabled:
-        secret = services.begin_mfa_enrollment(user)
+        # Keep the key already shown until set-up is finished. Making a new one on
+        # every visit meant any background request (a browser extension, a favicon
+        # redirected here for staff without an authenticator) silently replaced the
+        # key the person was typing into their app. "Start again" asks for a new one.
+        secret = None if request.GET.get("new") else _enrollment_secret(user)
+        if not secret:
+            secret = services.begin_mfa_enrollment(user)
 
     uri = None
     if secret:
