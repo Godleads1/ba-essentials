@@ -251,7 +251,7 @@ def test_workspace_setup_asks_and_stores_the_country(db):
     c = login_client(user)
     assert "Where is your business based?" in c.get("/app/onboarding/").content.decode()
     assert c.post("/app/onboarding/", {"name": "Mensah & Co", "country": "ZZ"}).status_code == 200
-    c.post("/app/onboarding/", {"name": "Mensah & Co", "country": "GH"})
+    c.post("/app/onboarding/", {"name": "Mensah & Co", "country": "GH", "confirm_authority": "on"})
     assert Organization.objects.get(name="Mensah & Co").country == "GH"
 
 

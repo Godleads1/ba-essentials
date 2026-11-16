@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from django.contrib import messages
+from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods, require_POST
@@ -20,13 +21,17 @@ def onboarding(request):
         return redirect("client-overview")
     form = OrganizationForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
-        organization = services.create_organization(
-            request.user, form.cleaned_data["name"], country=form.cleaned_data["country"]
-        )
+        from apps.accounts.profile import record_authority
+
+        with transaction.atomic():
+            organization = services.create_organization(
+                request.user, form.cleaned_data["name"], country=form.cleaned_data["country"]
+            )
+            record_authority(request.user, organization)
         request.session["organization_id"] = str(organization.pk)
         messages.success(request, f"{organization.name} is ready.")
         return redirect("client-overview")
-    return render(request, "app/onboarding.html", {"form": form})
+    return render(request, "banda/auth/onboarding.html", {"form": form})
 
 
 @client_required

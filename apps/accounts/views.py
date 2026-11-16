@@ -11,11 +11,13 @@ from django.utils.http import urlencode
 from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.core import ratelimit
-from apps.core.exceptions import RateLimited, ValidationFailure
-from apps.organizations.access import memberships_for
+from apps.core.exceptions import PermissionFailure, RateLimited, ValidationFailure
+from apps.organizations.access import current_membership, memberships_for
 
-from . import codes, phones, services
+from . import codes, phones, profile, services
 from .forms import (
+    ContactPreferencesForm,
+    DetailsForm,
     CHANNEL_IN_TEXT,
     CHANNEL_LABELS,
     ChangePasswordForm,
@@ -174,6 +176,8 @@ def login_code(request):
             form.add_error("code", exc.message)
         else:
             request.session.pop("pending_sign_in", None)
+            if pending.get("signup"):
+                profile.record_agreement(user)
             if user.mfa_enabled:
                 request.session["pending_mfa_user"] = str(user.pk)
                 request.session["pending_mfa_cv"] = user.credential_version
@@ -443,8 +447,46 @@ def security_home(request):
             "preferred": codes.preferred_channel(user) if channels else "",
             "masked_phone": phones.masked(user.phone),
             "phone_ok": bool(codes.phone_channels()),
+            "membership": current_membership(request) if user.is_client_account else None,
         },
     )
+
+
+@login_required
+@require_POST
+def security_details(request):
+    form = DetailsForm(request.POST)
+    membership = current_membership(request) if request.user.is_client_account else None
+    if not form.is_valid():
+        messages.error(request, "Enter your full name.")
+        return redirect("security-home")
+    business = form.cleaned_data["business_name"] if membership is not None and membership.is_owner else None
+    try:
+        changed = profile.update_details(request.user, full_name=form.cleaned_data["full_name"],
+                                         membership=membership, business_name=business)
+    except (ValidationFailure, PermissionFailure) as exc:
+        messages.error(request, exc.message)
+    else:
+        messages.success(request, "Details saved." if changed else "Nothing to change.")
+    return redirect(reverse("security-home") + "#details")
+
+
+@login_required
+@require_POST
+def security_preferences(request):
+    if not request.user.is_client_account:
+        raise Http404
+    form = ContactPreferencesForm(request.POST)
+    form.is_valid()
+    membership = current_membership(request)
+    profile.set_contact_preferences(
+        request.user,
+        updates_by_email=bool(form.cleaned_data.get("updates_by_email")),
+        marketing_by_email=bool(form.cleaned_data.get("marketing_by_email")),
+        organization=membership.organization if membership else None,
+    )
+    messages.success(request, "Contact preferences saved.")
+    return redirect(reverse("security-home") + "#contact")
 
 
 @login_required

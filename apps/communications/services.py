@@ -120,6 +120,41 @@ def notify(
         )
     if rows:
         Notification.objects.bulk_create(rows)
+        _email_updates(rows, kind)
+
+
+def _email_updates(rows, kind: str) -> None:
+    """Clients who want request updates by email get one per notification.
+
+    The email names the reference only (like the notification title), never the
+    message or file, and links to the app. Billing notices have their own emails.
+    """
+    from django.conf import settings
+
+    from apps.core.models import OutboxEvent
+
+    if kind == NotificationKind.BILLING:
+        return
+    link = f"{settings.APP_BASE_URL.rstrip('/')}/notifications/"
+    events = [
+        OutboxEvent(
+            topic=OutboxEvent.Topic.EMAIL,
+            payload={
+                "to": [n.user.email],
+                "subject": f"B&A Essentials: {n.title}"[:200],
+                "body": (
+                    f"Hello {n.user.full_name or ''},\n\n{n.title}.\n\n"
+                    f"Sign in to see it: {link}\n\n"
+                    "You get these because request updates by email are on. "
+                    f"Turn them off in Profile & security: {settings.APP_BASE_URL.rstrip('/')}/app/security/#contact\n"
+                ),
+            },
+        )
+        for n in rows
+        if n.user.is_client_account and n.user.updates_by_email and n.user.email_verified and n.user.email
+    ]
+    if events:
+        OutboxEvent.objects.bulk_create(events)
 
 
 @transaction.atomic

@@ -191,7 +191,7 @@ def test_you_cannot_sign_out_someone_elses_session(client_user, mailoutbox):
 
 def test_security_page_uses_the_banda_design(client_user):
     body = login_client(client_user).get("/app/security/").content.decode()
-    assert "banda/app.css" in body and "Your contact details" in body and "Where you&rsquo;re signed in" in body
+    assert "banda/app.css" in body and "Your details" in body and "Where you&rsquo;re signed in" in body
 
 
 def test_a_code_only_works_for_the_address_it_was_sent_to(client_user, mailoutbox):

@@ -75,6 +75,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     mfa_secret_encrypted = models.TextField(blank=True)
     mfa_confirmed_at = models.DateTimeField(null=True, blank=True)
     mfa_last_timestep = models.BigIntegerField(null=True, blank=True)
+    # Contact preferences. Security messages (codes, contact changes) and billing
+    # notices are always sent; these cover request updates and marketing only.
+    updates_by_email = models.BooleanField(default=True)
+    marketing_by_email = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -204,3 +208,39 @@ class PasswordHistory(models.Model):
     class Meta:
         ordering = ["-created_at"]
         get_latest_by = "created_at"
+
+
+class ConsentKind(models.TextChoices):
+    AGREEMENT = "agreement", "Terms, Privacy Policy and age"
+    AUTHORITY = "authority", "Allowed to act for the business"
+    MARKETING = "marketing", "Tips and offers"
+
+
+class ConsentRecord(models.Model):
+    """What someone agreed to (or withdrew), in the words they saw, and when.
+
+    Append-only: a change of mind is a new row, never an edit. Renewal consent at
+    checkout has its own record (billing.RenewalConsent) tied to the invoice.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="consents"
+    )
+    organization = models.ForeignKey(
+        "organizations.Organization", on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="consents",
+    )
+    kind = models.CharField(max_length=16, choices=ConsentKind.choices)
+    granted = models.BooleanField()
+    channel = models.CharField(max_length=16, blank=True)
+    wording = models.TextField()
+    version = models.CharField(max_length=80, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["user", "kind", "-created_at"])]
+
+    def __str__(self) -> str:
+        return f"{self.get_kind_display()} {'given' if self.granted else 'withdrawn'}"
