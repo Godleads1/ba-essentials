@@ -31,4 +31,6 @@ STEP_UP_MAX_AGE = 600
 # Deterministic secrets for tests; never used outside the test settings.
 PAYSTACK_SECRET_KEY = "sk_test_webhook_secret"
 PAYSTACK_WEBHOOK_SECRET = "sk_test_webhook_secret"
+FLUTTERWAVE_SECRET_KEY = "FLWSECK_TEST-synthetic"
+FLUTTERWAVE_WEBHOOK_HASH = "synthetic-flutterwave-hash"
 PAYMENTS_ENABLED = True

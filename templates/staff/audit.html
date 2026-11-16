@@ -1,0 +1,60 @@
+{% extends "app/base.html" %}
+{% load ui %}
+{% block title %}Audit log · B &amp; A Essentials{% endblock %}
+{% block page_title %}Audit log{% endblock %}
+{% block mobile_title %}Audit log{% endblock %}
+{% block content %}
+  <form method="get" class="flex flex-wrap items-center gap-2">
+    <input type="search" name="q" value="{{ query }}" placeholder="Reference, actor or client" class="w-64 rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-600 focus:ring-2 focus:ring-brand-100">
+    <select name="action" class="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm">
+      <option value="">All actions</option>
+      {% for value in actions %}
+        <option value="{{ value }}" {% if value == selected_action %}selected{% endif %}>{{ value }}</option>
+      {% endfor %}
+    </select>
+    <select name="result" class="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm">
+      <option value="">All results</option>
+      {% for value, label in result_choices %}
+        <option value="{{ value }}" {% if value == selected_result %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <button class="btn-secondary btn-sm" type="submit">Filter</button>
+    {% if query or selected_action or selected_result %}<a class="btn-ghost btn-sm" href="{% url 'staff-audit' %}">Clear</a>{% endif %}
+  </form>
+
+  <section class="card">
+    <div class="border-b border-slate-100 px-5 py-4">
+      <h2 class="text-sm font-semibold text-navy-900">Recorded events</h2>
+      <p class="mt-1 text-xs text-slate-500">Most recent 200 matching events. Sensitive values are never recorded in this stream.</p>
+    </div>
+    {% if events %}
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Resource</th><th>Organization</th><th>Result</th><th>Reason</th></tr></thead>
+          <tbody>
+            {% for event in events %}
+              <tr>
+                <td class="whitespace-nowrap text-slate-500">{{ event.created_at|date:"j M Y, H:i" }}</td>
+                <td class="text-slate-600">
+                  {% if event.actor %}{{ event.actor.full_name|default:event.actor.email }}{% else %}<span class="text-slate-400">{{ event.actor_type|capfirst }}</span>{% endif %}
+                </td>
+                <td class="whitespace-nowrap font-mono text-xs text-navy-900">{{ event.action }}</td>
+                <td class="whitespace-nowrap font-mono text-xs text-slate-500">
+                  {% if event.resource_type %}{{ event.resource_type }}{% if event.resource_id %}:{{ event.resource_id|truncatechars:12 }}{% endif %}{% else %}—{% endif %}
+                </td>
+                <td class="text-slate-600">{{ event.organization.name|default:"—" }}</td>
+                <td>{% include "partials/status_badge.html" with status=event.result %}</td>
+                <td class="max-w-xs truncate text-slate-500" title="{{ event.reason }}">{{ event.reason|default:"—" }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="px-6 py-16 text-center">
+        <p class="text-sm font-medium text-navy-900">No events match these filters.</p>
+        <p class="mt-1 text-sm text-slate-500">Clear the filters to see the full stream.</p>
+      </div>
+    {% endif %}
+  </section>
+{% endblock %}

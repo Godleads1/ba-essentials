@@ -1,0 +1,64 @@
+{% extends "app/base.html" %}
+{% block title %}{{ ticket.reference }} · Support · B &amp; A Essentials{% endblock %}
+{% block page_title %}Ticket {{ ticket.reference }}{% endblock %}
+{% block mobile_title %}{{ ticket.reference }}{% endblock %}
+{% block content %}
+  <section class="card card-pad">
+    <div class="flex flex-wrap items-start justify-between gap-4">
+      <div>
+        <div class="flex flex-wrap items-center gap-2">
+          {% include "partials/status_badge.html" with status=ticket.status %}
+          <span class="text-xs font-medium uppercase tracking-wide text-slate-400">{{ ticket.get_priority_display }} priority</span>
+        </div>
+        <h2 class="mt-2 text-xl font-semibold text-navy-900">{{ ticket.subject }}</h2>
+        <p class="mt-1 text-sm text-slate-500">{{ ticket.organization.name }} · opened {{ ticket.created_at|date:"j M Y, H:i" }} by {{ ticket.created_by.full_name|default:ticket.created_by.email|default:"—" }}</p>
+      </div>
+      <a href="{% url 'staff-support' %}" class="btn-ghost btn-sm">Back to queue</a>
+    </div>
+  </section>
+
+  <div class="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
+    <section class="card">
+      <div class="border-b border-slate-100 px-5 py-4">
+        <h3 class="text-sm font-semibold text-navy-900">Conversation</h3>
+        <p class="mt-1 text-xs text-slate-500">Internal notes are highlighted and never shown to the client.</p>
+      </div>
+      {% include "partials/task_thread.html" with thread=thread post_url=request.path allow_internal=True action_value="reply" empty_text="No messages on this ticket." %}
+    </section>
+
+    <aside class="space-y-6">
+      <section class="card card-pad">
+        <h3 class="text-sm font-semibold text-navy-900">Ownership</h3>
+        <p class="mt-2 text-sm text-slate-600">Current owner: <span class="font-medium text-navy-900">{% if ticket.assigned_to %}{{ ticket.assigned_to.full_name|default:ticket.assigned_to.email }}{% else %}Unassigned{% endif %}</span></p>
+        <form method="post" class="mt-3 space-y-2">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="assign">
+          <label class="label" for="assignee">Assign to</label>
+          <select id="assignee" name="assignee" required class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900">
+            <option value="">Choose a team member</option>
+            {% for agent in agents %}
+              <option value="{{ agent.pk }}" {% if ticket.assigned_to_id == agent.pk %}selected{% endif %}>{{ agent.full_name|default:agent.email }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="btn-secondary btn-sm">Save owner</button>
+        </form>
+      </section>
+
+      <section class="card card-pad">
+        <h3 class="text-sm font-semibold text-navy-900">Status</h3>
+        <form method="post" class="mt-3 space-y-2">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="status">
+          <label class="label" for="ticket-status">Set status</label>
+          <select id="ticket-status" name="status" class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900">
+            {% for value, label in statuses %}
+              <option value="{{ value }}" {% if ticket.status == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="btn-secondary btn-sm">Update status</button>
+        </form>
+        {% if ticket.resolved_at %}<p class="mt-3 text-xs text-slate-400">Resolved {{ ticket.resolved_at|date:"j M Y, H:i" }}</p>{% endif %}
+      </section>
+    </aside>
+  </div>
+{% endblock %}

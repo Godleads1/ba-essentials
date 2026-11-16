@@ -14,12 +14,18 @@ ALLOWED_PATHS = (
     "/login",
     "/static/",
     "/health/",
-    "/admin/",
+    # "/admin/" is deliberately absent: Django admin reaches every tenant's
+    # records, so it needs the second factor more than any other surface.
 )
 
 
+def needs_second_factor(user) -> bool:
+    """Staff-app users and Django-admin users must both enrol a second factor."""
+    return bool(getattr(user, "staff_role", "")) or bool(getattr(user, "is_staff", False))
+
+
 class StaffMFAEnforcementMiddleware(MiddlewareMixin):
-    """Staff accounts must enrol a second factor before using operations.
+    """Staff and admin accounts must enrol a second factor before using either app.
 
     Enforced server-side on every request, not by hiding navigation.
     """
@@ -28,7 +34,7 @@ class StaffMFAEnforcementMiddleware(MiddlewareMixin):
         user = getattr(request, "user", None)
         if user is None or not user.is_authenticated:
             return None
-        if not getattr(user, "staff_role", ""):
+        if not needs_second_factor(user):
             return None
         if user.mfa_enabled:
             return None

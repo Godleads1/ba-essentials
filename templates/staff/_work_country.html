@@ -1,0 +1,53 @@
+<section class="card card-pad scroll-mt-24" id="work-country">
+  <div class="flex flex-wrap items-center justify-between gap-2">
+    <h3 class="text-sm font-semibold text-navy-900">Where the work is for</h3>
+    {% if task.work_country_confirmed_at %}
+      <span class="badge bg-brand-50 text-brand-700 ring-brand-200">Confirmed</span>
+    {% else %}
+      <span class="badge bg-amber-50 text-amber-700 ring-amber-200">Confirm before quoting</span>
+    {% endif %}
+  </div>
+  <p class="mt-2 text-sm text-navy-900">{{ work_country_name|default:"Not given" }}{% if country_fixed %} <span class="text-xs text-slate-500">(fixed by the service)</span>{% endif %}</p>
+  {% if task.work_country_confirmed_at %}
+    <p class="text-xs text-slate-500">Confirmed by {{ task.work_country_confirmed_by.full_name|default:task.work_country_confirmed_by.email }} on {{ task.work_country_confirmed_at|date:"j M Y" }}.</p>
+  {% endif %}
+  {% if outside_plan_region %}
+    <p class="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">Outside Africa on a naira or Africa plan: not covered by the plan. Quote it as a one-off fee, or move the business to the international plan in admin.</p>
+  {% endif %}
+  {% if can_confirm_country %}
+    <form method="post" action="{% url 'staff-task-work-country' task_id=task.pk %}" class="mt-3 grid gap-2 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+      {% csrf_token %}
+      <label class="text-xs text-slate-600">Country, from the documents
+        <select name="country" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"{% if country_fixed %} disabled{% endif %}>
+          {% for code, name in country_choices %}<option value="{{ code }}"{% if code == task.work_country %} selected{% endif %}>{{ name }}</option>{% endfor %}
+        </select>
+        {% if country_fixed %}<input type="hidden" name="country" value="{{ task.work_country }}">{% endif %}
+      </label>
+      <label class="text-xs text-slate-600">Reason, if you change it
+        <input name="reason" maxlength="500" placeholder="e.g. Delaware company agreement" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm">
+      </label>
+      <button class="btn-primary btn-sm">Confirm country</button>
+    </form>
+  {% endif %}
+
+  {% if account_flags %}
+    <div class="mt-4 border-t border-slate-100 pt-3">
+      <h4 class="text-xs font-semibold uppercase tracking-wide text-slate-500">Account flags</h4>
+      <ul class="mt-2 space-y-2">
+        {% for flag in account_flags %}
+          <li class="rounded-xl bg-slate-50 px-3 py-2 text-sm">
+            <p class="font-medium text-navy-900">{{ flag.get_kind_display }}</p>
+            <p class="text-xs text-slate-500">{{ flag.detail }} &middot; {{ flag.created_at|date:"j M Y" }}</p>
+            {% if can_resolve_flags %}
+              <form method="post" action="{% url 'staff-flag-resolve' flag_id=flag.pk %}" class="mt-2 flex flex-wrap gap-2">
+                {% csrf_token %}<input type="hidden" name="task" value="{{ task.pk }}">
+                <input name="resolution" required minlength="3" maxlength="255" placeholder="What you checked" aria-label="What you checked" class="min-w-0 flex-1 rounded-xl border border-slate-300 px-3 py-1.5 text-sm">
+                <button class="btn-secondary btn-sm">Resolve</button>
+              </form>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+</section>

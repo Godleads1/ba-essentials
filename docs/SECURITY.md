@@ -12,6 +12,12 @@ certificate and makes no claim that any deployment is "100% secure".
 - The public site, client app, staff app, and Django admin share one backend.
   Django admin is a break-glass support surface and is restricted to accounts
   with `is_staff`; application roles still control the staff app.
+- Django admin requires the same enrolled second factor as the staff app, for
+  every `is_staff` account with or without a staff role. Its built-in sign-in
+  form is replaced by a redirect to the app's sign-in, so admin access always
+  goes through the app's rate limits, lockout and TOTP step; the redirect never
+  reads a submitted password and keeps only `/admin/` destinations
+  (`tests/test_admin_access.py`).
 - Uploaded files and webhook payloads are untrusted input.
 
 ## Configuration fail-closed
@@ -96,7 +102,66 @@ without authorization and a rollback procedure.
 - Finance verification serialises on a conditional invoice update, so two
   concurrent confirmations cannot both record a successful payment.
 - Redirect parameters from the browser are never treated as proof of payment.
+- Plan checkout is started on the server (`start_plan_checkout`): only the
+  business owner can start it, the price and currency come from the `Plan`
+  row, and the customer is the signed-in owner. The hosted checkout address
+  must be `https://checkout.paystack.com`.
+- Before any `charge.success` is applied, the server calls Paystack's
+  verify-transaction API (`apps/billing/paystack.py`) and requires
+  `status=success` and the same reference, amount and currency as the stored
+  payment attempt. If Paystack can't be reached, nothing is stored and the
+  webhook answers 503 so Paystack retries.
+- A plan starts only when its invoice moves from issued to paid, so repeated
+  or extra events never extend it twice. Paying during an active period
+  extends from the current end date. The return page only shows status.
+- Tests never call the real Paystack API (`fake_paystack` fixture in
+  `tests/conftest.py`).
 - Finance verification requires the exact invoice amount and a unique reference.
+- Businesses outside Nigeria pay in US dollars through Flutterwave. Its webhook
+  must carry the dashboard's secret hash (`verif-hash`, compared in constant
+  time), each event is stored once, and Flutterwave's own verify answer must
+  match the attempt's provider, amount and currency before anything is paid.
+- Prices and currency come from the business's country, set at sign-up and
+  changeable only by staff in admin (audited). The browser never chooses them.
+  Rest-of-Africa prices use Flutterwave's rate, cached for an hour and bounded;
+  if it can't be fetched and no admin fallback is set, dollar checkout stops.
+  The rate used is stored on the invoice.
+- The yearly discount and extra legal review fees are editable only by super
+  admins, in one settings row, and every change is audited with old and new values.
+- Each request records the country the work is for (fixed by the service when
+  it has one). On a naira or Africa plan, work for a country outside Africa is
+  never covered by the allowance; it is quoted, or staff move the business to the
+  international plan in admin (audited). Staff with `task.scope` must confirm the
+  country before a quote can be sent; a change needs a reason and is audited.
+- A confirmed payment from a card issued in another country than the business's
+  creates an account flag for staff review. Flags never block the client.
+- Request invoices (quotes and third-party fees) are paid through the same
+  server-started Paystack checkout as plans. The browser names the invoice;
+  the amount always comes from the stored invoice. Only the business owner
+  can pay.
+- Third-party fees need evidence of the official amount per line and a second
+  staff member's approval before the client sees them; the preparer can't
+  approve their own. Paystack's local charge is added on top and the total is
+  fixed at approval. Fee invoices never count as payment for the work, and a
+  request can't be released while fees are open. Paystack's actual fee is
+  recorded from its own verification, so a foreign-card shortfall is visible
+  to finance.
+- Automatic renewal (Terms 5.4–5.8): a plan or upgrade can't be bought until the
+  owner ticks an unticked renewal box; the server refuses the checkout otherwise
+  and records the wording, terms version, time and provider reference
+  (`RenewalConsent`). After a confirmed payment, the provider's reusable card
+  token is stored encrypted (Fernet, key derived from the secret key with its
+  own context) with only brand, last four digits, expiry and bank. Card numbers
+  never reach us. Rotating the secret key makes saved tokens unreadable; renewals
+  then fall back to a payment link.
+- `run_renewals` (hourly) sends reminders 5 days before a monthly and 30 days
+  before a yearly renewal, charges the saved card about a day before, and only a
+  confirmed webhook renews anything. A failed or missing payment starts five
+  business days' grace (service continues, up to three charge attempts, notices
+  on the first and last day), then pauses service (no new requests), and ends
+  the plan 30 days later. Cancelling stops the next charge and keeps access to
+  the end of the paid period; a downgrade starts at the next renewal. Only the
+  owner can cancel, downgrade or remove the saved card, and each is audited.
 
 ## Files
 
@@ -108,6 +173,29 @@ without authorization and a rollback procedure.
   signed token or a fresh authorization check derived from the related task.
   Quarantined or unscanned files are refused.
 - Production refuses the noop scanner. `scan_files` also refuses it.
+
+## Messaging, support and public website
+
+- Task threads are tenant-scoped through the task access layer. Internal notes
+  are removed at queryset level for client callers, and clients cannot create
+  them; posting attempts are rate-limited.
+- Notifications are database rows naming a task reference or ticket subject,
+  never message content. Recipients are derived server-side: the client
+  organization, the assigned specialist, or the operations/support roles.
+- Staff replies and ticket assignment require `support.handle`. Clients can
+  only add public replies; closed tickets refuse client replies and new public
+  staff replies.
+- The public contact form is rate-limited per source address, includes a
+  honeypot, and stores only a keyed HMAC of the address using
+  `django.utils.crypto.salted_hmac`. Message content is never written to audit
+  metadata.
+- Website pages keep immutable revisions. Editors with `website.edit` save
+  drafts and preview them through an authenticated, permission-gated view;
+  `website.publish` controls what the public renderer serves. Publishing,
+  unpublishing and restores are audited.
+- Revision bodies render as escaped plain text with preserved line breaks; raw
+  HTML in a revision is never trusted. Reserved slugs cannot shadow the auth,
+  staff, admin, health or contact routes.
 
 ## Logging and audit
 
@@ -131,7 +219,7 @@ without authorization and a rollback procedure.
 6. Store secrets in the platform secret manager; never in the repository.
 7. Run `python manage.py check --deploy --settings=config.settings.production`.
 8. Run `python manage.py migrate` with a reviewed migration plan and rollback.
-9. Set up `process_outbox` and `scan_files` as scheduled jobs. The Render
+9. Set up `process_outbox`, `run_renewals` and `scan_files` as scheduled jobs. The Render
    staging Blueprint schedules outbox delivery; `scan_files` needs shared
    storage before it can run in a separate container (see
    [DEPLOYMENT.md](DEPLOYMENT.md)).
@@ -145,10 +233,14 @@ The staging Blueprint and its verification steps are in
 
 On 2026-10-28, against Python 3.13:
 
-- `python -m pytest` — 95 passed, 5 PostgreSQL-only tests skipped.
-- `python -m pytest --ds=config.settings.test_postgres` in CI — 100 passed,
-  including concurrent transitions, quote acceptance, idempotent replay,
-  allowance limits, and payment verification.
+- `python -m pytest` — 131 passed, 5 PostgreSQL-only tests skipped.
+- `python -m pytest --ds=config.settings.test_postgres` in CI — 106 passed at
+  commit `671b5e6`, including concurrent transitions, quote acceptance,
+  idempotent replay, allowance limits, and payment verification. The
+  communications, staff-queue and website suites run on PostgreSQL on the next
+  push.
+- The CI container job builds the production image and runs
+  `check --deploy` with `config.settings.staging` inside it.
 - `python manage.py makemigrations --check --dry-run --settings=config.settings.test`
   — no changes detected.
 - `python manage.py check --deploy --settings=config.settings.production` with
@@ -167,11 +259,14 @@ migration check, deploy check, and dependency audit.
 
 ## Known gaps and follow-ups
 
-- No Paystack checkout initialization or refund flow; payments are webhook and
-  manual-reconciliation only.
+- Refunds and chargebacks are handled by finance by hand (`refund_due`
+  payments); there is no in-app refund flow yet.
 - No object-storage adapter; local storage must be backed up and is not suitable
   for multi-instance deployments without shared storage.
-- In-app notifications and the messaging/CMS surfaces are not implemented.
+- In-app messaging, support tickets, staff queues and the text CMS are
+  implemented. Outbound message email, a CMS media library, and
+  object-storage-backed uploads are not; public contact enquiries live in-app
+  only until an email provider is wired.
 - Concurrency guarantees rely on PostgreSQL row locks and conditional writes;
   SQLite remains development-only, while CI runs the full suite on PostgreSQL.
 - HSTS preload is intentionally not enabled. It is a long-lived commitment and
