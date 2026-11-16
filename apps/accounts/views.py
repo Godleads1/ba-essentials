@@ -71,11 +71,11 @@ def signup(request):
             form.add_error(None, exc.message)
         except RateLimited as exc:
             form.add_error(None, exc.message)
-            return render(request, "auth/signup.html", {"form": form}, status=429)
+            return render(request, "banda/auth/signup.html", {"form": form}, status=429)
         else:
             request.session["pending_sign_in"] = pending
             return redirect("login-code")
-    return render(request, "auth/signup.html", {"form": form})
+    return render(request, "banda/auth/signup.html", {"form": form})
 
 
 @require_http_methods(["GET", "POST"])
@@ -102,7 +102,7 @@ def verify_email(request):
                 if memberships_for(user).exists():
                     return redirect("client-overview")
                 return redirect("organization-onboarding")
-    return render(request, "auth/verify.html", {"form": form, "email": email})
+    return render(request, "banda/auth/verify_email.html", {"form": form, "email": email})
 
 
 @require_http_methods(["GET", "POST"])
@@ -153,11 +153,12 @@ def login_view(request):
         except (ValidationFailure, RateLimited) as exc:
             form.add_error(None, exc.message)
         else:
+            pending["remember"] = bool(form.cleaned_data.get("remember"))
             request.session["pending_sign_in"] = pending
             if request.GET.get("next"):
                 request.session["sign_in_next"] = request.GET["next"]
             return redirect("login-code")
-    return render(request, "auth/login.html", {"form": form, "phone_ok": bool(channels)})
+    return render(request, "banda/auth/login.html", {"form": form, "phone_ok": bool(channels)})
 
 
 @require_http_methods(["GET", "POST"])
@@ -176,14 +177,16 @@ def login_code(request):
             if user.mfa_enabled:
                 request.session["pending_mfa_user"] = str(user.pk)
                 request.session["pending_mfa_cv"] = user.credential_version
+                request.session["pending_remember"] = bool(pending.get("remember"))
                 return redirect("login-mfa")
-            services.establish_session(request, user)
+            services.establish_session(request, user, remember=bool(pending.get("remember")))
             if pending.get("confirm_phone"):
                 return redirect("verify-phone")
             return _after_sign_in(request, user)
     other = [c for c in codes.phone_channels() if c != pending.get("ch")] if pending.get("kind") == "phone" else []
-    return render(request, "auth/code.html", {
+    return render(request, "banda/auth/code.html", {
         "form": form, "pending": pending, "channel_label": CHANNEL_IN_TEXT.get(pending.get("ch"), "email"),
+        "resend_wait": settings.OTP_RESEND_COOLDOWN_SECONDS if request.method == "GET" else 0,
         "other_channels": [(c, CHANNEL_IN_TEXT[c]) for c in other],
     })
 
@@ -206,7 +209,7 @@ def login_code_resend(request):
         else:
             fresh = codes.request_sign_in(pending["key"], client_ip=_client_ip(request),
                                           channel=request.POST.get("channel") or pending.get("ch", ""))
-            fresh.update({k: v for k, v in pending.items() if k in ("confirm_phone",)})
+            fresh.update({k: v for k, v in pending.items() if k in ("confirm_phone", "remember")})
     except (ValidationFailure, RateLimited) as exc:
         messages.error(request, exc.message)
         return redirect("login-code")
@@ -248,7 +251,7 @@ def staff_login(request):
             messages.info(request, "Verify your email address to continue.")
             return redirect("verify-email")
         form.add_error(None, "Email or password is incorrect.")
-    return render(request, "auth/staff_login.html", {"form": form})
+    return render(request, "banda/auth/staff_login.html", {"form": form})
 
 
 @login_required
@@ -274,7 +277,7 @@ def verify_phone(request):
         else:
             messages.success(request, "Your phone number is confirmed. You can sign in with it now.")
             return _after_sign_in(request, user)
-    return render(request, "auth/verify_phone.html", {
+    return render(request, "banda/auth/verify_phone.html", {
         "form": form, "phone": phones.masked(user.phone),
         "channels": [(c, CHANNEL_LABELS[c]) for c in codes.phone_channels()],
     })
@@ -299,11 +302,11 @@ def login_mfa(request):
             if services.verify_mfa(user, form.cleaned_data["code"]):
                 request.session.pop("pending_mfa_user", None)
                 request.session.pop("pending_mfa_cv", None)
-                services.establish_session(request, user)
+                services.establish_session(request, user, remember=bool(request.session.pop("pending_remember", False)))
                 services.mark_step_up(request, user)
                 return _after_sign_in(request, user)
             form.add_error("code", "That authenticator code is not valid.")
-    return render(request, "auth/mfa.html", {"form": form})
+    return render(request, "banda/auth/mfa.html", {"form": form})
 
 
 @require_POST
@@ -331,7 +334,7 @@ def password_reset_request(request):
         request.session["pending_reset_email"] = email
         messages.info(request, "If that account exists, a reset code is on its way.")
         return redirect("password-reset-confirm")
-    return render(request, "auth/password_reset.html", {"form": form})
+    return render(request, "banda/auth/password_reset.html", {"form": form})
 
 
 @require_http_methods(["GET", "POST"])
@@ -358,7 +361,7 @@ def password_reset_confirm(request):
                     request, "Your password has been reset. Sign in with the new one."
                 )
                 return redirect("staff-login")
-    return render(request, "auth/password_reset_confirm.html", {"form": form, "email": email})
+    return render(request, "banda/auth/password_reset_confirm.html", {"form": form, "email": email})
 
 
 @require_http_methods(["GET", "POST"])
@@ -398,7 +401,7 @@ def step_up(request):
 
             return redirect(_safe_next(request, next_url))
         form.add_error(None, "Those details are not correct.")
-    return render(request, "auth/step_up.html", {
+    return render(request, "banda/auth/step_up.html", {
         "form": form, "next": next_url, "by_code": by_code,
         "channel_label": CHANNEL_IN_TEXT.get(codes.preferred_channel(user), "email") if by_code else "",
     })

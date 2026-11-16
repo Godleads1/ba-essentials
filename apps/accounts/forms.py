@@ -59,7 +59,8 @@ class CodeLoginForm(StyledFormMixin, forms.Form):
         max_length=254, label="Phone number or email",
         widget=forms.TextInput(attrs={"autocomplete": "username", "autocapitalize": "none", "spellcheck": "false"}),
     )
-    channel = forms.ChoiceField(label="If it's a phone number, send the code by", widget=forms.RadioSelect, required=False)
+    channel = forms.ChoiceField(label="Send my code by", widget=forms.RadioSelect, required=False)
+    remember = forms.BooleanField(required=False, label="Keep me signed in on this device")
 
     def __init__(self, *args, channels=(), **kwargs):
         super().__init__(*args, **kwargs)
