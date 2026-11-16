@@ -61,6 +61,14 @@ if PAYMENTS_ENABLED:
         bool(PAYSTACK_WEBHOOK_SECRET),
         "PAYSTACK_WEBHOOK_SECRET is required while payments are enabled",
     )
+    _require(
+        bool(FLUTTERWAVE_SECRET_KEY),
+        "FLUTTERWAVE_SECRET_KEY is required while payments are enabled",
+    )
+    _require(
+        bool(FLUTTERWAVE_WEBHOOK_HASH),
+        "FLUTTERWAVE_WEBHOOK_HASH is required while payments are enabled",
+    )
 
 if _reachable_bugs:
     raise ImproperlyConfigured(

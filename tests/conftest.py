@@ -185,6 +185,10 @@ def scoping_task(submitted_task, ops_user, quote_approver) -> Task:
     task = transition(task=task, action=Action.SCOPE, actor=quote_approver)
     task.refresh_from_db()
     assert task.status == TaskStatus.SCOPING
+    # Staff confirm where the work is for during scoping, before any quote.
+    from apps.tasks.services import confirm_work_country
+
+    task = confirm_work_country(task, quote_approver, task.work_country or "NG")
     return task
 
 
@@ -216,3 +220,112 @@ def other_client(other_owner):
 @pytest.fixture
 def staff_client(ops_user):
     return login_client(ops_user)
+
+
+class FakePaystack:
+    """Stands in for Paystack's API. Tests set `verified` to what Paystack would say."""
+
+    def __init__(self):
+        self.calls = []
+        self.checkout_url = "https://checkout.paystack.com/synthetic-access-code"
+        self.verified = {}
+        self.fail_with = None
+        self.charge_status = "success"
+
+    def __call__(self, method, path, payload=None):
+        from apps.billing import paystack
+
+        self.calls.append((method, path, payload))
+        if self.fail_with is not None:
+            raise self.fail_with
+        if path == "/transaction/initialize":
+            return {"authorization_url": self.checkout_url, "reference": payload["reference"]}
+        if path.startswith("/transaction/verify/"):
+            reference = path.rsplit("/", 1)[1]
+            if reference not in self.verified:
+                raise paystack.PaystackError("Transaction not found.")
+            return self.verified[reference]
+        if path == "/transaction/charge_authorization":
+            if self.charge_status == "error":
+                raise paystack.PaystackError("Declined.")
+            return {"status": self.charge_status, "reference": payload["reference"]}
+        raise AssertionError(f"Unexpected Paystack call {method} {path}")
+
+    def confirm(self, reference, amount_minor, *, currency="NGN", status="success", authorization=None):
+        self.verified[reference] = {
+            "status": status,
+            "reference": reference,
+            "amount": amount_minor,
+            "currency": currency,
+            "customer": {"email": "owner@example.test"},
+            "authorization": authorization or {},
+        }
+
+
+class FakeFlutterwave:
+    """Stands in for Flutterwave's API (amounts in major units, as Flutterwave sends them)."""
+
+    def __init__(self):
+        self.calls = []
+        self.checkout_url = "https://checkout.flutterwave.com/v3/hosted/pay/synthetic"
+        self.verified = {}
+        self.rate = "1550.00"
+        self.fail_with = None
+
+    def __call__(self, method, path, payload=None):
+        from apps.billing import flutterwave
+
+        self.calls.append((method, path, payload))
+        if self.fail_with is not None:
+            raise self.fail_with
+        if path == "/payments":
+            return {"link": self.checkout_url}
+        if path.startswith("/transactions/verify_by_reference"):
+            reference = path.split("tx_ref=", 1)[1]
+            if reference not in self.verified:
+                raise flutterwave.FlutterwaveError("Transaction not found.")
+            return self.verified[reference]
+        if path == "/tokenized-charges":
+            return {"status": getattr(self, "charge_status", "successful"), "tx_ref": payload["tx_ref"]}
+        if path.startswith("/transfers/rates"):
+            # The app must ask for US dollars to naira.
+            assert "source_currency=USD" in path and "destination_currency=NGN" in path, path
+            if self.rate is None:
+                raise flutterwave.FlutterwaveUnavailable("down")
+            return {"rate": self.rate}
+        raise AssertionError(f"Unexpected Flutterwave call {method} {path}")
+
+    def confirm(self, reference, amount_minor, *, currency="USD", status="successful", country="GB", fee_minor=None, card=None):
+        self.verified[reference] = {
+            "status": status,
+            "tx_ref": reference,
+            "amount": amount_minor / 100,
+            "currency": currency,
+            "customer": {"email": "owner@example.test"},
+            "card": {"country": country, **(card or {})},
+            "app_fee": None if fee_minor is None else fee_minor / 100,
+        }
+
+
+@pytest.fixture(autouse=True)
+def fake_flutterwave(monkeypatch):
+    """No test ever reaches the real Flutterwave API, and each starts without a cached rate."""
+    from django.core.cache import cache
+
+    from apps.billing import flutterwave
+
+    fake = FakeFlutterwave()
+    fake.original = flutterwave._request  # for tests of the client's own error handling
+    monkeypatch.setattr(flutterwave, "_request", fake)
+    cache.clear()
+    return fake
+
+
+@pytest.fixture(autouse=True)
+def fake_paystack(monkeypatch):
+    """No test ever reaches the real Paystack API."""
+    from apps.billing import paystack
+
+    fake = FakePaystack()
+    monkeypatch.setattr(paystack, "_request", fake)
+    return fake

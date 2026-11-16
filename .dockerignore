@@ -13,6 +13,5 @@ var
 .env.*
 !.env.example
 tests
-docs
 README.md
 render.yaml

@@ -2,14 +2,42 @@ from __future__ import annotations
 
 from django.contrib import admin
 
-from .models import Invitation, Membership, Organization
+from .models import AccountFlag, Invitation, Membership, Organization
 
 
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
-    list_display = ("name", "slug", "status", "created_at")
-    list_filter = ("status",)
+    list_display = ("name", "slug", "country", "international_plan", "status", "created_at")
+    list_filter = ("status", "country", "international_plan")
     search_fields = ("name", "slug")
+
+    def save_model(self, request, obj, form, change):
+        # The country sets the pricing currency, so a change is always on record.
+        old = Organization.objects.get(pk=obj.pk) if change else None
+        old_country = old.country if old else ""
+        super().save_model(request, obj, form, change)
+        if change and "international_plan" in form.changed_data:
+            from apps.audit import services as audit_service
+
+            audit_service.record(
+                action="organization.international_plan_changed",
+                actor=request.user,
+                organization=obj,
+                resource_type="organization",
+                resource_id=str(obj.pk),
+                metadata={"from": old.international_plan, "to": obj.international_plan},
+            )
+        if change and "country" in form.changed_data:
+            from apps.audit import services as audit_service
+
+            audit_service.record(
+                action="organization.country_changed",
+                actor=request.user,
+                organization=obj,
+                resource_type="organization",
+                resource_id=str(obj.pk),
+                metadata={"from": old_country, "to": obj.country},
+            )
 
 
 @admin.register(Membership)
@@ -26,3 +54,16 @@ class InvitationAdmin(admin.ModelAdmin):
     search_fields = ("email", "organization__name")
     exclude = ("token_hash",)
     readonly_fields = ("created_at", "expires_at", "accepted_at", "revoked_at")
+
+
+@admin.register(AccountFlag)
+class AccountFlagAdmin(admin.ModelAdmin):
+    list_display = ("organization", "kind", "detail", "created_at", "resolved_at")
+    list_filter = ("kind", "resolved_at")
+    readonly_fields = ("organization", "kind", "detail", "created_at", "resolved_at", "resolved_by", "resolution")
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False

@@ -24,6 +24,7 @@ from apps.tasks.models import (
     Task,
     TaskStatus,
 )
+from apps.tasks.services import confirm_work_country
 from apps.tasks.transitions import Action, transition
 
 from .conftest import pdf_upload
@@ -51,6 +52,7 @@ def _advance_to_delivered(
     task = _refresh(
         transition(task=task, action=Action.SCOPE, actor=quote_approver)
     )
+    task = confirm_work_country(task, quote_approver, "NG")
 
     version = quote_services.create_version(
         task,

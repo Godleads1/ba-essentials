@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from django.conf import settings
 from django.contrib import messages
 from django.db.models import Count, Q
 from django.http import Http404
@@ -7,8 +8,16 @@ from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.billing import services as billing
-from apps.billing.models import Invoice, InvoiceStatus
+from apps.billing.plan_rules import outside_plan_region as plan_rules_outside
+from apps.billing.models import (
+    CLIENT_VISIBLE_FEE_STATUSES,
+    FeeRequest,
+    Invoice,
+    InvoiceStatus,
+)
+from apps.communications import services as communications
 from apps.core import ratelimit
+from apps.core.countries import name_for as country_name
 from apps.core.exceptions import DomainError
 from apps.core.views import handle_domain_error
 from apps.organizations.access import client_required
@@ -107,7 +116,11 @@ def task_list(request):
 @client_required
 @require_http_methods(["GET", "POST"])
 def task_submit(request):
-    form = SubmitTaskForm(request.POST or None)
+    initial = {}
+    service_id = request.GET.get("service", "").strip()
+    if service_id:
+        initial["service_version"] = service_id
+    form = SubmitTaskForm(request.POST or None, initial=initial, organization=request.organization)
     if request.method == "POST":
         if not ratelimit.hit(
             "task-submit", str(request.organization.pk), limit=20, window_seconds=3600
@@ -126,6 +139,7 @@ def task_submit(request):
                     priority=form.cleaned_data["priority"],
                     due_date=form.cleaned_data["due_date"],
                     files=files,
+                    work_country=form.cleaned_data["work_country"],
                 )
             except DomainError as exc:
                 return handle_domain_error(request, exc, redirect_to="task-submit")
@@ -133,7 +147,16 @@ def task_submit(request):
                 request, f"Request {task.reference} submitted. The team will triage it."
             )
             return redirect("task-detail", task_id=task.pk)
-    return render(request, "app/task_submit.html", {"form": form})
+    from apps.billing import plan_rules
+    from apps.catalogue.models import ServiceCategory
+
+    locked = [
+        (category, access)
+        for category in ServiceCategory.objects.filter(is_active=True, minimum_plan_rank__gt=0)
+        for access in [plan_rules.category_access(request.organization, category)]
+        if not access.allowed
+    ]
+    return render(request, "app/task_submit.html", {"form": form, "locked_categories": locked})
 
 
 @client_required
@@ -160,7 +183,12 @@ def task_detail(request, task_id):
         )
 
     invoice = (
-        Invoice.objects.filter(task=task).order_by("-issued_at").first()
+        Invoice.objects.filter(task=task, fee_request__isnull=True).order_by("-issued_at").first()
+    )
+    fee_requests = list(
+        FeeRequest.objects.filter(task=task, status__in=CLIENT_VISIBLE_FEE_STATUSES)
+        .select_related("invoice")
+        .prefetch_related("lines__evidence", "lines__receipt")
     )
     actions = available_actions(task, request.user)
     return render(
@@ -174,7 +202,16 @@ def task_detail(request, task_id):
             "sent_quote": sent_quote,
             "released_version": released_version,
             "invoice": invoice,
+            "fee_requests": fee_requests,
+            "outside_plan_region": plan_rules_outside(task),
+            "work_country_name": country_name(task.work_country),
+            "payments_enabled": settings.PAYMENTS_ENABLED,
+            "can_pay": billing.can_pay_invoice(invoice, request.membership) if invoice else False,
+            "can_pay_fees": any(
+                billing.can_pay_invoice(fr.invoice, request.membership) for fr in fee_requests if fr.invoice
+            ),
             "actions": actions,
+            "thread": communications.task_thread(task, request.user),
             "can_provide_information": Action.PROVIDE_INFORMATION.value in actions,
             "can_cancel": Action.CANCEL_CLIENT.value in actions,
             "can_decide_deliverable": Action.CLIENT_ACCEPT.value in actions,
