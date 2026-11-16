@@ -1,0 +1,33 @@
+{% extends "banda/auth/base.html" %}
+{% block title %}Set up your business{% endblock %}
+{% block fit %}{% endblock %}
+{% block form %}
+        <h2 class="font-display text-[34px] font-semibold leading-tight tracking-[-0.02em] sm:text-[38px]">Set up your business</h2>
+        <p class="sub mt-1.5 text-[16.5px] text-ink-muted">Your workspace holds your requests, files and invoices. You can invite colleagues later.</p>
+        {% if messages %}<div class="mt-6 space-y-2">{% for m in messages %}<p class="rounded-xl bg-pill-navyBg px-4 py-3 text-[14px] text-brand-navy" role="status">{{ m }}</p>{% endfor %}</div>{% endif %}
+
+        <form method="post" class="mt-9" novalidate>
+          {% csrf_token %}
+          {% if form.non_field_errors %}<div class="mb-4">{{ form.non_field_errors }}</div>{% endif %}
+          <label for="id_name" class="block text-[14px] font-semibold">Business or team name</label>
+          <input id="id_name" name="name" type="text" autocomplete="organization" required maxlength="150" value="{{ form.name.value|default:'' }}" {% if form.name.errors %}aria-invalid="true"{% endif %} class="mt-2 w-full rounded-xl border border-cream-line bg-white px-4 py-3.5 text-[15px] text-ink placeholder:text-ink-soft transition focus:border-brand-navy focus:outline-none focus:ring-4 focus:ring-brand-navy/10 aria-[invalid=true]:border-red-600" />
+          {{ form.name.errors }}
+
+          <label for="id_country" class="gap mt-5 block text-[14px] font-semibold">Where is your business based?</label>
+          <select id="id_country" name="country" required aria-describedby="countryHelp" {% if form.country.errors %}aria-invalid="true"{% endif %} class="mt-2 w-full rounded-xl border border-cream-line bg-white px-4 py-3.5 text-[15px] text-ink transition focus:border-brand-navy focus:outline-none focus:ring-4 focus:ring-brand-navy/10 aria-[invalid=true]:border-red-600">
+            {% for value, label in form.fields.country.choices %}<option value="{{ value }}" {% if form.country.value == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+          </select>
+          <p id="countryHelp" class="mt-1.5 text-[13px] text-ink-muted">This sets your plan&rsquo;s currency. Contact us if it ever needs to change.</p>
+          {{ form.country.errors }}
+
+          <label class="gap mt-5 flex cursor-pointer items-start gap-2.5 text-[14px] text-ink">
+            <input type="checkbox" name="confirm_authority" required {% if form.confirm_authority.value %}checked{% endif %} class="mt-0.5 h-[18px] w-[18px] shrink-0 rounded border-cream-line accent-[#33397F]" />
+            <span>I confirm I&rsquo;m allowed to act for this business.</span>
+          </label>
+          {{ form.confirm_authority.errors }}
+
+          <button type="submit" class="submit mt-7 flex w-full items-center justify-center gap-2.5 rounded-xl bg-brand-cta py-4 text-[15.5px] font-semibold text-white shadow-lg shadow-brand-orange/25 transition hover:bg-brand-ctaDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">Create workspace</button>
+        </form>
+
+        <form method="post" action="{% url 'logout' %}" class="mt-8 text-center">{% csrf_token %}<button type="submit" class="text-[14px] font-semibold text-brand-navy underline-offset-4 hover:underline">Log out</button></form>
+{% endblock %}

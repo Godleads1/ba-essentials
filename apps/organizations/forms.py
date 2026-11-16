@@ -13,6 +13,10 @@ class OrganizationForm(StyledFormMixin, forms.Form):
         label="Where is your business based?",
         help_text="This sets your plan's currency. Contact us if it ever needs to change.",
     )
+    confirm_authority = forms.BooleanField(
+        label="I confirm I'm allowed to act for this business.",
+        error_messages={"required": "Tick the box to confirm you can act for this business."},
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

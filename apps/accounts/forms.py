@@ -79,6 +79,16 @@ class ChannelForm(forms.Form):
         self.fields["channel"].choices = [(c, CHANNEL_LABELS[c]) for c in channels]
 
 
+class DetailsForm(forms.Form):
+    full_name = forms.CharField(max_length=150, label="Full name")
+    business_name = forms.CharField(max_length=150, label="Business name", required=False)
+
+
+class ContactPreferencesForm(forms.Form):
+    updates_by_email = forms.BooleanField(required=False)
+    marketing_by_email = forms.BooleanField(required=False)
+
+
 class LoginForm(StyledFormMixin, forms.Form):
     email = forms.EmailField(label="Email")
     password = forms.CharField(label="Password", widget=forms.PasswordInput)

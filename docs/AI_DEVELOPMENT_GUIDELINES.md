@@ -57,7 +57,7 @@ its regression test passes.
 | F-04 | Medium | Five staff roles see every client's tasks; staff views not logged | Open, step 6 and section 4.9 |
 | F-05 | Medium | Payments not confirmed with the provider; no Flutterwave | Open, step 3 |
 | F-06 | Medium | Legal review allowance not modelled | Open, step 3 |
-| F-07 | Medium | Terms acceptance and consents not recorded | Open, step 5 |
+| F-07 | Medium | Terms acceptance and consents not recorded | Fixed in step 5a (cookie choices stay in the browser until the backend sets non-essential cookies) |
 | F-08 | Medium | No account closure or 90-day deletion | Open, step 5 |
 | F-09 | Medium | Files on local disk only | Open, step 9 |
 | F-10 | Low | No hash-locked dependency lockfile; dev-only pytest advisory | Open, step 9 |

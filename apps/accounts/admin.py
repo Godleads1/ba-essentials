@@ -3,7 +3,7 @@ from __future__ import annotations
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
-from .models import User, UserSession, VerificationChallenge
+from .models import ConsentRecord, User, UserSession, VerificationChallenge
 
 
 @admin.register(User)
@@ -96,3 +96,22 @@ class VerificationChallengeAdmin(admin.ModelAdmin):
     search_fields = ("user__email",)
     exclude = ("code_hash", "salt")
     readonly_fields = ("created_at", "expires_at", "consumed_at", "superseded_at", "attempts")
+
+
+@admin.register(ConsentRecord)
+class ConsentRecordAdmin(admin.ModelAdmin):
+    """Evidence of what people agreed to. Read-only: a change of mind is a new record."""
+
+    list_display = ("user", "kind", "granted", "version", "created_at")
+    list_filter = ("kind", "granted")
+    search_fields = ("user__email",)
+    readonly_fields = ("user", "organization", "kind", "granted", "channel", "wording", "version", "created_at")
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
