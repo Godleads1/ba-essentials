@@ -50,7 +50,7 @@ class Migration(migrations.Migration):
                 ("granted", models.BooleanField()),
                 ("channel", models.CharField(blank=True, max_length=16)),
                 ("wording", models.TextField()),
-                ("version", models.CharField(blank=True, max_length=40)),
+                ("version", models.CharField(blank=True, max_length=80)),
                 ("created_at", models.DateTimeField(auto_now_add=True, db_index=True)),
                 (
                     "organization",

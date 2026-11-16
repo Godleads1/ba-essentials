@@ -235,7 +235,7 @@ class ConsentRecord(models.Model):
     granted = models.BooleanField()
     channel = models.CharField(max_length=16, blank=True)
     wording = models.TextField()
-    version = models.CharField(max_length=40, blank=True)
+    version = models.CharField(max_length=80, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
