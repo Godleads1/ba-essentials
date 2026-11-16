@@ -16,7 +16,7 @@ class StyledFormMixin:
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
-            if isinstance(field.widget, forms.CheckboxInput):
+            if isinstance(field.widget, (forms.CheckboxInput, forms.RadioSelect)):
                 field.widget.attrs.setdefault("class", CHECKBOX_CLASS)
             elif isinstance(field.widget, forms.Select):
                 field.widget.attrs.setdefault("class", INPUT_CLASS)
@@ -25,22 +25,57 @@ class StyledFormMixin:
                 field.widget.attrs.setdefault("autocomplete", "off")
 
 
+CHANNEL_LABELS = {"whatsapp": "WhatsApp", "sms": "Text message (SMS)", "email": "Email"}
+# For sentences: "we've sent a code by WhatsApp / text message / email".
+CHANNEL_IN_TEXT = {"whatsapp": "WhatsApp", "sms": "text message", "email": "email"}
+
+
 class SignupForm(StyledFormMixin, forms.Form):
+    """Clients have no password: they get a one-time code each time they sign in."""
+
     full_name = forms.CharField(max_length=150, label="Full name")
-    email = forms.EmailField(label="Work email")
-    password1 = forms.CharField(
-        label="Password", widget=forms.PasswordInput, help_text="At least 12 characters."
+    email = forms.EmailField(label="Work email", help_text="We send your first code here.")
+    phone = forms.CharField(
+        max_length=32, required=False, label="Phone number",
+        help_text="Optional. For codes by WhatsApp or text message, e.g. 0803 123 4567 or +44 7700 900123.",
+        widget=forms.TextInput(attrs={"inputmode": "tel", "autocomplete": "tel"}),
     )
-    password2 = forms.CharField(label="Confirm password", widget=forms.PasswordInput)
+    channel = forms.ChoiceField(label="Send my sign-in codes by", widget=forms.RadioSelect)
     accept_terms = forms.BooleanField(
         label="I agree to the terms of service and privacy notice"
     )
 
-    def clean(self):
-        cleaned = super().clean()
-        if cleaned.get("password1") != cleaned.get("password2"):
-            self.add_error("password2", "Both passwords must match.")
-        return cleaned
+    def __init__(self, *args, channels=(), **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["channel"].choices = [(c, CHANNEL_LABELS[c]) for c in channels]
+        self.fields["channel"].initial = channels[0] if channels else "email"
+        if list(channels) == ["email"]:
+            self.fields["channel"].widget = forms.HiddenInput()
+            self.fields["phone"].widget = forms.HiddenInput()
+
+
+class CodeLoginForm(StyledFormMixin, forms.Form):
+    identifier = forms.CharField(
+        max_length=254, label="Phone number or email",
+        widget=forms.TextInput(attrs={"autocomplete": "username", "autocapitalize": "none", "spellcheck": "false"}),
+    )
+    channel = forms.ChoiceField(label="If it's a phone number, send the code by", widget=forms.RadioSelect, required=False)
+
+    def __init__(self, *args, channels=(), **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["channel"].choices = [(c, CHANNEL_LABELS[c]) for c in channels]
+        self.fields["channel"].initial = channels[0] if channels else ""
+        if not channels:
+            self.fields["identifier"].label = "Email"
+            self.fields["channel"].widget = forms.HiddenInput()
+
+
+class ChannelForm(forms.Form):
+    channel = forms.ChoiceField(widget=forms.RadioSelect)
+
+    def __init__(self, *args, channels=(), **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["channel"].choices = [(c, CHANNEL_LABELS[c]) for c in channels]
 
 
 class LoginForm(StyledFormMixin, forms.Form):

@@ -17,7 +17,7 @@ from django.contrib.auth.hashers import check_password, make_password
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
-from django.db import IntegrityError, transaction
+from django.db import transaction
 from django.utils import timezone
 
 from apps.audit import services as audit_service
@@ -53,6 +53,20 @@ def _hash_code(code: str, salt: str, credential_version: int) -> str:
 
 
 def _challenge_message(purpose: str) -> tuple[str, str]:
+    if purpose == ChallengePurpose.SIGN_IN:
+        return (
+            "Your B & A Essentials sign-in code",
+            "Your code to sign in is: {code}\n\n"
+            "It expires in {minutes} minutes and can only be used once. Never share it.\n"
+            "If you did not try to sign in, you can ignore this email.",
+        )
+    if purpose == ChallengePurpose.STEP_UP:
+        return (
+            "Confirm it's you",
+            "Your code to confirm it's you is: {code}\n\n"
+            "It expires in {minutes} minutes. Never share it.\n"
+            "If you did not ask for this, sign in and check your account's security page.",
+        )
     if purpose == ChallengePurpose.PASSWORD_RESET:
         return (
             "Reset your B & A Essentials password",
@@ -86,7 +100,7 @@ def _send_code_email(user: User, purpose: str, code: str) -> None:
 
 
 def issue_challenge(
-    user: User, purpose: str, *, enforce_cooldown: bool = True
+    user: User, purpose: str, *, enforce_cooldown: bool = True, channel: str = ""
 ) -> VerificationChallenge:
     now = timezone.now()
     with transaction.atomic():
@@ -114,6 +128,7 @@ def issue_challenge(
         challenge = VerificationChallenge.objects.create(
             user=user,
             purpose=purpose,
+            channel=channel,
             code_hash=_hash_code(code, salt, user.credential_version),
             salt=salt,
             credential_version=user.credential_version,
@@ -179,57 +194,6 @@ def verify_challenge(user: User, purpose: str, code: str) -> User:
     return locked_user
 
 
-def register_user(*, email: str, full_name: str, password: str) -> User | None:
-    """Create an unverified account. Returns None when the address is taken.
-
-    Callers must always show the same response, so the return value is for
-    logging and for deciding whether to send a verification email.
-    """
-    email = (email or "").strip().lower()
-    full_name = (full_name or "").strip()
-
-    existing = User.objects.filter(email=email).first()
-    if existing is not None:
-        if existing.email_verified_at is None:
-            try:
-                send_challenge(existing, ChallengePurpose.EMAIL_VERIFICATION)
-            except RateLimited:
-                pass
-        else:
-            _send_account_exists_email(existing)
-        return None
-
-    candidate = User(email=email, full_name=full_name)
-    try:
-        validate_password(password, user=candidate)
-    except ValidationError as exc:
-        raise ValidationFailure(" ".join(exc.messages)) from exc
-
-    try:
-        with transaction.atomic():
-            user = User(email=email, full_name=full_name)
-            user.set_password(password)
-            user.save()
-    except IntegrityError:
-        return None
-
-    send_challenge(user, ChallengePurpose.EMAIL_VERIFICATION)
-    return user
-
-
-def _send_account_exists_email(user: User) -> None:
-    try:
-        send_mail(
-            "Someone tried to sign up with your email address",
-            "An account already exists for this address. Sign in, or use the "
-            "password reset link if you need to regain access.",
-            settings.DEFAULT_FROM_EMAIL,
-            [user.email],
-        )
-    except Exception:  # pragma: no cover - provider failures only
-        logger.warning("account_exists_email_failed user=%s", user.pk)
-
-
 class LoginStatus(StrEnum):
     OK = "ok"
     MFA_REQUIRED = "mfa_required"
@@ -254,7 +218,8 @@ def login_with_password(*, email: str, password: str, client_ip: str = "") -> Lo
         return LoginOutcome(LoginStatus.RATE_LIMITED)
 
     user = User.objects.filter(email=email).first()
-    if user is None:
+    if user is None or user.is_client_account:
+        # Clients sign in with one-time codes and have no password.
         check_password(password or "", _dummy_hash())
         return LoginOutcome(LoginStatus.FAILED)
 
@@ -269,10 +234,7 @@ def login_with_password(*, email: str, password: str, client_ip: str = "") -> Lo
     if not user.is_active:
         return LoginOutcome(LoginStatus.FAILED)
 
-    if user.failed_login_count or user.locked_until:
-        user.failed_login_count = 0
-        user.locked_until = None
-        user.save(update_fields=["failed_login_count", "locked_until", "updated_at"])
+    clear_login_failures(user)
 
     if user.email_verified_at is None:
         try:
@@ -292,11 +254,15 @@ def _record_failed_login(user: User) -> None:
         locked = User.objects.select_for_update().get(pk=user.pk)
         locked.failed_login_count += 1
         if locked.failed_login_count >= settings.LOGIN_MAX_FAILURES:
-            locked.locked_until = timezone.now() + timedelta(
-                seconds=settings.LOGIN_LOCK_SECONDS
+            # Each lockout in a row lasts twice as long as the one before.
+            seconds = min(
+                settings.LOGIN_LOCK_SECONDS * (2 ** min(locked.login_lockouts, 10)),
+                settings.LOGIN_LOCK_MAX_SECONDS,
             )
+            locked.locked_until = timezone.now() + timedelta(seconds=seconds)
             locked.failed_login_count = 0
-            locked.save(update_fields=["failed_login_count", "locked_until", "updated_at"])
+            locked.login_lockouts += 1
+            locked.save(update_fields=["failed_login_count", "locked_until", "login_lockouts", "updated_at"])
             audit_service.record(
                 action="auth.lockout",
                 actor=locked,
@@ -306,6 +272,14 @@ def _record_failed_login(user: User) -> None:
             )
         else:
             locked.save(update_fields=["failed_login_count", "updated_at"])
+
+
+def clear_login_failures(user: User) -> None:
+    if user.failed_login_count or user.locked_until or user.login_lockouts:
+        User.objects.filter(pk=user.pk).update(
+            failed_login_count=0, locked_until=None, login_lockouts=0, updated_at=timezone.now()
+        )
+        user.failed_login_count, user.locked_until, user.login_lockouts = 0, None, 0
 
 
 def establish_session(request, user: User) -> None:

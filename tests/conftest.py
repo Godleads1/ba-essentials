@@ -329,3 +329,33 @@ def fake_paystack(monkeypatch):
     fake = FakePaystack()
     monkeypatch.setattr(paystack, "_request", fake)
     return fake
+
+
+class FakeTermii:
+    """Records what would be sent by SMS or WhatsApp. No test reaches Termii."""
+
+    def __init__(self):
+        self.sent = []
+        self.fail = False
+
+    def __call__(self, payload):
+        from apps.accounts.termii import TermiiError
+
+        if self.fail:
+            raise TermiiError("Termii could not be reached.")
+        self.sent.append(payload)
+        return {"code": "ok", "message_id": str(len(self.sent))}
+
+    def last_code(self):
+        import re
+
+        return re.search(r"\b(\d{6})\b", self.sent[-1]["sms"]).group(1)
+
+
+@pytest.fixture(autouse=True)
+def fake_termii(monkeypatch):
+    from apps.accounts import termii
+
+    fake = FakeTermii()
+    monkeypatch.setattr(termii, "_request", fake)
+    return fake

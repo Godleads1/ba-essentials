@@ -67,14 +67,14 @@ def test_client_accounts_are_not_asked_for_a_second_factor(owner):
 def test_admin_sign_in_form_is_replaced_by_app_sign_in():
     response = Client().get("/admin/login/?next=/admin/accounts/user/")
     assert response.status_code == 302
-    assert response["Location"] == "/login/?next=%2Fadmin%2Faccounts%2Fuser%2F"
+    assert response["Location"] == "/login/staff/?next=%2Fadmin%2Faccounts%2Fuser%2F"
 
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("unsafe", ["https://evil.example/", "//evil.example/admin/", "/app/billing/", ""])
 def test_admin_sign_in_keeps_only_admin_destinations(unsafe):
     response = Client().get("/admin/login/", {"next": unsafe})
-    assert response["Location"] == "/login/?next=%2Fadmin%2F"
+    assert response["Location"] == "/login/staff/?next=%2Fadmin%2F"
 
 
 @pytest.mark.django_db
@@ -86,7 +86,7 @@ def test_admin_sign_in_never_checks_a_password():
         response = client.post("/admin/login/", {"username": user.email, "password": password})
         answers.add((response.status_code, response.get("Location")))
     # Right and wrong passwords get the same answer, so the form can't confirm a guess.
-    assert answers == {(302, "/login/?next=%2Fadmin%2F")}
+    assert answers == {(302, "/login/staff/?next=%2Fadmin%2F")}
     # Nothing signed in, and the attempts didn't touch the account.
     assert "_auth_user_id" not in client.session
     user.refresh_from_db()

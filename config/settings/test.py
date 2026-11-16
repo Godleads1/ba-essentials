@@ -34,3 +34,9 @@ PAYSTACK_WEBHOOK_SECRET = "sk_test_webhook_secret"
 FLUTTERWAVE_SECRET_KEY = "FLWSECK_TEST-synthetic"
 FLUTTERWAVE_WEBHOOK_HASH = "synthetic-flutterwave-hash"
 PAYMENTS_ENABLED = True
+
+AUTH_MIN_RESPONSE_SECONDS = 0
+TERMII_API_KEY = "termii-test-key"
+TERMII_BASE_URL = "https://termii.example.test"
+TERMII_SENDER_ID = "BandA"
+TERMII_WHATSAPP_FROM = "banda-device"

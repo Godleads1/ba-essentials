@@ -62,6 +62,12 @@ class User(AbstractBaseUser, PermissionsMixin):
         max_length=32, choices=StaffRole.choices, blank=True, db_index=True
     )
     email_verified_at = models.DateTimeField(null=True, blank=True)
+    # Clients sign in with one-time codes. The phone number is in E.164 form and
+    # becomes a way to sign in only once a code sent to it has been entered.
+    phone = models.CharField(max_length=16, blank=True, db_index=True)
+    phone_verified_at = models.DateTimeField(null=True, blank=True)
+    code_channel = models.CharField(max_length=16, default="email")
+    login_lockouts = models.PositiveSmallIntegerField(default=0)
     credential_version = models.PositiveIntegerField(default=1)
     failed_login_count = models.PositiveSmallIntegerField(default=0)
     locked_until = models.DateTimeField(null=True, blank=True)
@@ -79,9 +85,25 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     class Meta:
         ordering = ["email"]
+        constraints = [
+            # Two accounts can't both have proven the same phone number.
+            models.UniqueConstraint(
+                fields=["phone"], condition=models.Q(phone_verified_at__isnull=False),
+                name="unique_verified_phone",
+            ),
+        ]
 
     def __str__(self) -> str:
         return self.email
+
+    @property
+    def is_client_account(self) -> bool:
+        """Clients sign in with codes. Staff and Django admins use a password and an authenticator."""
+        return not (self.staff_role or self.is_staff or self.is_superuser)
+
+    @property
+    def phone_verified(self) -> bool:
+        return bool(self.phone and self.phone_verified_at)
 
     @property
     def is_staff_member(self) -> bool:
@@ -126,6 +148,15 @@ class UserSession(models.Model):
 class ChallengePurpose(models.TextChoices):
     EMAIL_VERIFICATION = "email_verification", "Email verification"
     PASSWORD_RESET = "password_reset", "Password reset"
+    SIGN_IN = "sign_in", "Sign in"
+    PHONE_VERIFICATION = "phone_verification", "Phone verification"
+    STEP_UP = "step_up", "Confirm it's you"
+
+
+class CodeChannel(models.TextChoices):
+    WHATSAPP = "whatsapp", "WhatsApp"
+    SMS = "sms", "Text message (SMS)"
+    EMAIL = "email", "Email"
 
 
 class VerificationChallenge(models.Model):
@@ -133,6 +164,7 @@ class VerificationChallenge(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="challenges"
     )
     purpose = models.CharField(max_length=32, choices=ChallengePurpose.choices)
+    channel = models.CharField(max_length=16, blank=True)
     code_hash = models.CharField(max_length=64)
     salt = models.CharField(max_length=32)
     credential_version = models.PositiveIntegerField()

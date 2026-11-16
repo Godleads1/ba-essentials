@@ -31,6 +31,12 @@ class Command(BaseCommand):
             self.stdout.write(f"{len(events)} event(s) pending.")
             return
 
+        # Sign-in code records are kept for at most a day (Privacy Policy). This job
+        # runs every few minutes, so it clears them without a scheduler of its own.
+        from apps.accounts.codes import purge_old_codes
+
+        purge_old_codes()
+
         delivered = 0
         failed = 0
         for event in events:

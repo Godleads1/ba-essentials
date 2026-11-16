@@ -41,7 +41,30 @@ silently accepting localhost in production.
 
 ## Identity and sessions
 
-- Passwords use Django's configured hashers and validators (minimum 12
+- **Clients have no password.** They sign in with a 6-digit code sent by
+  WhatsApp, SMS (Termii) or email (`apps/accounts/codes.py`). Existing client
+  passwords were made unusable by migration `accounts.0002`. Staff and Django
+  admins sign in at `/login/staff/` with password + TOTP; the client sign-in
+  never sends them a code, and the password sign-in refuses client accounts.
+- Sign-in codes use the same challenge machinery as below (HMAC, single use,
+  bound to account and purpose, expiry, a new code cancels the old one). Sends
+  are limited per phone number/email (5 an hour) and per IP (20 an hour); code
+  checks per IP (30 per 10 minutes); five wrong codes lock the account, and
+  each lockout in a row lasts twice as long (capped at a day).
+- Requests for a code answer the same way whether or not an account exists:
+  same next page, same wording, a minimum response time
+  (`AUTH_MIN_RESPONSE_SECONDS`), and Termii failures are not shown.
+- Phone numbers are stored in E.164. A number becomes a way to sign in only
+  after a code sent to it has been entered; confirming it removes it from any
+  account that typed it without proving it, and a database constraint stops
+  two accounts holding the same confirmed number. Sign-up always sends the
+  first code to the email address; unproven sign-up details are replaced by
+  the next sign-up for that email.
+- Clients confirm sensitive actions (step-up) with a fresh code, plus their
+  authenticator code if they set one up.
+- Codes are never logged, put in URLs or kept in plain text; code records are
+  deleted after a day by `process_outbox` (Privacy Policy).
+- Passwords (staff) use Django's configured hashers and validators (minimum 12
   characters, common-password and numeric checks). Password history prevents
   immediate reuse.
 - Email and password-reset codes are random, HMAC-protected with the server
