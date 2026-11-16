@@ -10,6 +10,9 @@ class OrganizationAdmin(admin.ModelAdmin):
     list_display = ("name", "slug", "country", "international_plan", "status", "created_at")
     list_filter = ("status", "country", "international_plan")
     search_fields = ("name", "slug")
+    # Closure dates are set by the client's request and the retention job, not by hand.
+    readonly_fields = ("closure_requested_at", "closure_requested_by", "closes_at", "closed_at",
+                       "closure_stopped_renewal", "profile_deleted_at")
 
     def save_model(self, request, obj, form, change):
         # The country sets the pricing currency, so a change is always on record.
@@ -26,6 +29,17 @@ class OrganizationAdmin(admin.ModelAdmin):
                 resource_type="organization",
                 resource_id=str(obj.pk),
                 metadata={"from": old.international_plan, "to": obj.international_plan},
+            )
+        if change and "legal_hold" in form.changed_data:
+            from apps.audit import services as audit_service
+
+            audit_service.record(
+                action="organization.legal_hold_changed",
+                actor=request.user,
+                organization=obj,
+                resource_type="organization",
+                resource_id=str(obj.pk),
+                metadata={"to": "on" if obj.legal_hold else "off"},
             )
         if change and "country" in form.changed_data:
             from apps.audit import services as audit_service

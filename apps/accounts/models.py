@@ -244,3 +244,54 @@ class ConsentRecord(models.Model):
 
     def __str__(self) -> str:
         return f"{self.get_kind_display()} {'given' if self.granted else 'withdrawn'}"
+
+
+class DataRequestKind(models.TextChoices):
+    COPY = "copy", "A copy of my data"
+    CORRECT = "correct", "Correct something that's wrong"
+    DELETE = "delete", "Delete my data"
+    RESTRICT = "restrict", "Limit how you use my data"
+    OBJECT = "object", "Stop using my data for a purpose"
+    MOVE = "move", "Send my data to another provider"
+    WITHDRAW = "withdraw", "Withdraw a consent I gave"
+    REVIEW = "review", "Review an automated decision"
+
+
+class DataRequestStatus(models.TextChoices):
+    OPEN = "open", "Open"
+    DONE = "done", "Done"
+    DECLINED = "declined", "Couldn't do it"
+
+
+class DataRequest(models.Model):
+    """A request under the Nigeria Data Protection Act. Answered within 30 days."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    reference = models.CharField(max_length=16, unique=True)
+    # Kept if the account is later deleted, as evidence the request was handled.
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="data_requests"
+    )
+    organization = models.ForeignKey(
+        "organizations.Organization", on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
+    )
+    kind = models.CharField(max_length=16, choices=DataRequestKind.choices)
+    details = models.TextField(blank=True, max_length=1000)
+    status = models.CharField(max_length=16, choices=DataRequestStatus.choices, default=DataRequestStatus.OPEN, db_index=True)
+    reply_by = models.DateTimeField()
+    outcome = models.TextField(blank=True, max_length=2000, help_text="Shown to the client.")
+    resolved_at = models.DateTimeField(null=True, blank=True)
+    resolved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"{self.reference} {self.get_kind_display()}"
+
+    @property
+    def overdue(self) -> bool:
+        return self.status == DataRequestStatus.OPEN and timezone.now() > self.reply_by

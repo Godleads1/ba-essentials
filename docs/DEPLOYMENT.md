@@ -195,3 +195,13 @@ repeatedly and should run at least daily (hourly is fine). It is **not** in the
 Render Blueprint yet, because a new cron service is billed separately; add it
 (same settings as the outbox cron, `schedule: "17 * * * *"`) or a systemd timer
 on Lightsail when renewals go live.
+
+## Retention job
+
+`python manage.py run_retention` closes accounts whose paid period has ended
+and deletes data on the Privacy Policy schedule: the account and business
+profile 90 days after closing, task documents and support threads 6 years after
+they close, and one-time codes after a day. Invoices and the audit trail are
+kept. A business with **legal hold** ticked in admin is skipped. It is safe to
+run repeatedly; schedule it daily (for example `schedule: "41 2 * * *"`). Like
+the renewals job, it isn't in the Render Blueprint yet.

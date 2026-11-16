@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
-from .models import ConsentRecord, User, UserSession, VerificationChallenge
+from .models import ConsentRecord, DataRequest, DataRequestStatus, User, UserSession, VerificationChallenge
 
 
 @admin.register(User)
@@ -115,3 +116,60 @@ class ConsentRecordAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+class DataRequestAnswerForm(forms.ModelForm):
+    class Meta:
+        model = DataRequest
+        fields = ("status", "outcome")
+
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned.get("status") == DataRequestStatus.DECLINED and not (cleaned.get("outcome") or "").strip():
+            self.add_error("outcome", "Explain why, so the client knows and can complain to the NDPC if they wish.")
+        return cleaned
+
+
+@admin.register(DataRequest)
+class DataRequestAdmin(admin.ModelAdmin):
+    """The data protection contact answers requests here. Only the status and the
+    answer can be set, once; everything is recorded in the audit log."""
+
+    form = DataRequestAnswerForm
+    list_display = ("reference", "kind", "status", "reply_by", "is_overdue", "created_at")
+    list_filter = ("status", "kind")
+    search_fields = ("reference", "user__email")
+    readonly_fields = ("reference", "user", "organization", "kind", "details", "reply_by",
+                       "created_at", "resolved_at", "resolved_by")
+    fields = ("reference", "user", "organization", "kind", "details", "reply_by", "created_at",
+              "status", "outcome", "resolved_at", "resolved_by")
+
+    @admin.display(boolean=True, description="Overdue")
+    def is_overdue(self, obj: DataRequest) -> bool:
+        return obj.overdue
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def get_readonly_fields(self, request, obj=None):
+        # Check the saved record: on a failed save the form has already changed obj.
+        if obj is not None and not DataRequest.objects.filter(pk=obj.pk, status=DataRequestStatus.OPEN).exists():
+            return (*self.readonly_fields, "status", "outcome")
+        return self.readonly_fields
+
+    def save_model(self, request, obj, form, change):
+        from django.contrib import messages
+
+        from apps.core.exceptions import DomainError
+
+        from .privacy import resolve
+
+        if not change or obj.status == DataRequestStatus.OPEN:
+            return  # nothing answered yet; leave the record as it was
+        try:
+            resolve(DataRequest.objects.get(pk=obj.pk), request.user, status=obj.status, outcome=obj.outcome)
+        except DomainError as exc:
+            messages.error(request, exc.message)
