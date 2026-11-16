@@ -114,6 +114,23 @@
             <p class="mt-3 text-[12.5px] text-ink-muted">Questions about your data? Email our data protection contact at <span class="font-medium text-ink">{{ dpo_email }}</span>.</p>
           </section>
           {% endif %}
+
+          {% if membership and membership.is_owner %}
+          {% with org=membership.organization %}
+          <section id="close" class="panel scroll-mt-24 p-5 sm:p-6" aria-labelledby="closeT">
+            <h2 id="closeT" class="font-display text-[18px] font-semibold">Close your account</h2>
+            {% if org.closed_at %}
+              <p class="mt-2 text-[14px] text-ink-muted">This account closed on <b class="text-ink">{{ org.closed_at|date:"j M Y" }}</b>. You can still view and download your files and invoices. The account and business profile will be deleted 90 days after it closed. To reopen it, contact support.</p>
+            {% elif org.closure_requested_at %}
+              <p class="mt-2 text-[14px] text-ink-muted">Closing on <b class="text-ink">{{ org.closes_at|date:"j M Y" }}</b>, at the end of your paid period. Nothing more will be charged. You can change your mind until then.</p>
+              <form method="post" action="{% url 'security-close-cancel' %}" class="mt-4">{% csrf_token %}<button type="submit" class="btn-next py-2.5 text-[13.5px]">Keep my account</button></form>
+            {% else %}
+              <p class="mt-2 text-[14px] text-ink-muted">Stops your plan and closes your account at the end of the period you&rsquo;ve paid for. The next page shows what we keep, and for how long, before you decide.</p>
+              <a href="{% url 'security-close' %}" class="btn-ghost mt-3 px-3 py-1.5 text-[13px] text-[#B42318] hover:bg-[#FDECEC] hover:text-[#B42318]">Close account</a>
+            {% endif %}
+          </section>
+          {% endwith %}
+          {% endif %}
         </div>
 
         <div class="grid content-start gap-3">

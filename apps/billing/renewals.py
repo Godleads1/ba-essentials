@@ -197,8 +197,12 @@ def cancel_renewal(organization, membership) -> Subscription:
 
 
 def undo_cancel(organization, membership) -> Subscription:
+    from apps.organizations.models import Organization
+
     with transaction.atomic():
         sub = _owner_subscription(organization, membership)
+        if Organization.objects.filter(pk=organization.pk, closure_requested_at__isnull=False).exists():
+            raise ValidationFailure("Your account is set to close. Cancel the closure in Profile & security instead.")
         if timezone.now() > sub.period_end:
             raise ValidationFailure("This plan has already ended. Choose a plan to start again.")
         sub.cancel_at_period_end = False
