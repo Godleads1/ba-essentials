@@ -5,7 +5,7 @@
 {% block mobile_title %}Audit log{% endblock %}
 {% block content %}
   <form method="get" class="flex flex-wrap items-center gap-2">
-    <input type="search" name="q" value="{{ query }}" placeholder="Reference, actor or client" class="w-64 rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-600 focus:ring-2 focus:ring-brand-100">
+    <input type="search" name="q" value="{{ query }}" placeholder="Reference, person's email or client" class="w-64 rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-600 focus:ring-2 focus:ring-brand-100">
     <select name="action" class="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm">
       <option value="">All actions</option>
       {% for value in actions %}
@@ -18,8 +18,10 @@
         <option value="{{ value }}" {% if value == selected_result %}selected{% endif %}>{{ label }}</option>
       {% endfor %}
     </select>
+    <label class="text-sm text-slate-500">From <input type="date" name="from" value="{{ date_from }}" class="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm"></label>
+    <label class="text-sm text-slate-500">To <input type="date" name="to" value="{{ date_to }}" class="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm"></label>
     <button class="btn-secondary btn-sm" type="submit">Filter</button>
-    {% if query or selected_action or selected_result %}<a class="btn-ghost btn-sm" href="{% url 'staff-audit' %}">Clear</a>{% endif %}
+    {% if query or selected_action or selected_result or date_from or date_to %}<a class="btn-ghost btn-sm" href="{% url 'staff-audit' %}">Clear</a>{% endif %}
   </form>
 
   <section class="card">

@@ -8,11 +8,13 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.http import urlencode
-from django.views.decorators.http import require_http_methods, require_POST
+from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from apps.core import ratelimit
 from apps.core.exceptions import PermissionFailure, RateLimited, ValidationFailure
 from apps.organizations.access import current_membership, memberships_for
+
+from apps.audit.activity import own_activity
 
 from . import codes, phones, profile, services
 from .forms import (
@@ -448,8 +450,24 @@ def security_home(request):
             "masked_phone": phones.masked(user.phone),
             "phone_ok": bool(codes.phone_channels()),
             "membership": current_membership(request) if user.is_client_account else None,
+            "activity": own_activity(user),
         },
     )
+
+
+@login_required
+@require_GET
+def business_activity_view(request):
+    """Owners: what happened on the business account, including B & A staff opening requests."""
+    from apps.audit.activity import business_activity
+
+    membership = current_membership(request) if request.user.is_client_account else None
+    if membership is None or not membership.is_owner:
+        raise Http404
+    return render(request, "banda/app/activity.html", {
+        "organization": membership.organization,
+        "rows": business_activity(membership.organization, request.user),
+    })
 
 
 @login_required

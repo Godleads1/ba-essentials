@@ -40,6 +40,8 @@ class AuditEvent(models.Model):
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["organization", "-created_at"]),
+            # One person's history loads quickly (Profile & security, admin filters).
+            models.Index(fields=["actor", "-created_at"]),
             models.Index(fields=["resource_type", "resource_id"]),
             models.Index(fields=["action", "-created_at"]),
         ]

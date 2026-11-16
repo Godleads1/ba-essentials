@@ -581,6 +581,15 @@ def my_cases(request):
     )
 
 
+def _parse_day(raw):
+    from datetime import date
+
+    try:
+        return date.fromisoformat((raw or "").strip())
+    except ValueError:
+        return None
+
+
 @staff_permission_required(AUDIT_VIEW)
 @require_GET
 def audit_log(request):
@@ -594,6 +603,11 @@ def audit_log(request):
         events = events.filter(result=result)
     else:
         result = ""
+    start, end = _parse_day(request.GET.get("from")), _parse_day(request.GET.get("to"))
+    if start:
+        events = events.filter(created_at__date__gte=start)
+    if end:
+        events = events.filter(created_at__date__lte=end)
     if query:
         events = events.filter(
             Q(resource_id__icontains=query)
@@ -616,6 +630,8 @@ def audit_log(request):
             "selected_action": action,
             "selected_result": result,
             "query": query,
+            "date_from": start.isoformat() if start else "",
+            "date_to": end.isoformat() if end else "",
         },
     )
 

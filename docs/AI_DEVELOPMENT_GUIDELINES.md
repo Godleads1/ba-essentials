@@ -54,7 +54,7 @@ its regression test passes.
 | F-01 | High | Django admin skipped the staff second factor | **Fixed** in PR #11 (merged 13 Nov 2026) |
 | F-02 | High | No sign-up → payment → subscription path | Open, step 3 |
 | F-03 | Medium | Admin sign-in form had no rate limit or lockout | **Fixed** in PR #11 |
-| F-04 | Medium | Five staff roles see every client's tasks; staff views not logged | Fixed in step 6 (scoping in `apps/tasks/access.py`; views logged as `staff.task_opened` / `staff.list_viewed`). The per-user activity pages in section 4.9 are still to do |
+| F-04 | Medium | Five staff roles see every client's tasks; staff views not logged | Fixed in step 6 (scoping in `apps/tasks/access.py`; views logged as `staff.task_opened` / `staff.list_viewed`); activity pages in step 6b |
 | F-05 | Medium | Payments not confirmed with the provider; no Flutterwave | Open, step 3 |
 | F-06 | Medium | Legal review allowance not modelled | Open, step 3 |
 | F-07 | Medium | Terms acceptance and consents not recorded | Fixed in step 5a (cookie choices stay in the browser until the backend sets non-essential cookies) |

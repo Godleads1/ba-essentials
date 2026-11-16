@@ -1,0 +1,22 @@
+{% extends "banda/app/base.html" %}
+{% block title %}Business activity{% endblock %}
+{% block content %}
+      <section class="panel p-5 sm:p-7">
+        <a href="{% url 'security-home' %}#activity" class="text-[13px] font-semibold text-brand-navy underline-offset-2 hover:underline">&larr; Profile &amp; security</a>
+        <h1 class="mt-3 font-display text-[22px] font-semibold">Activity on {{ organization.name }}</h1>
+        <p class="mt-1 text-[14px] text-ink-muted">The latest 100 events on your requests, files and account, including each time someone at B &amp; A opened one of your requests. We show our team by role, not by name.</p>
+        {% if rows %}
+          <ul class="mt-5 divide-y divide-cream-line">
+            {% for row in rows %}
+              <li class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 py-2.5 text-[14px]">
+                <span><span class="font-medium {% if row.staff %}text-brand-navy{% endif %}">{{ row.who }}</span> {{ row.what }}{% if row.target %} <span class="font-medium">{{ row.target }}</span>{% endif %}</span>
+                <span class="text-[12.5px] text-ink-muted">{{ row.at|date:"j M Y, H:i" }}</span>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="mt-5 text-[13.5px] text-ink-muted">Nothing yet.</p>
+        {% endif %}
+        <p class="mt-5 text-[12.5px] text-ink-muted">Something you don&rsquo;t expect? <a href="{% url 'support-home' %}" class="font-semibold text-brand-navy underline underline-offset-2">Tell support</a>, or email our data protection contact.</p>
+      </section>
+{% endblock %}
