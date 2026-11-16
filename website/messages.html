@@ -244,6 +244,21 @@
     .qa-s { font-size: 11.5px; color: #736C66; }
     .menu-i { display: flex; align-items: center; gap: 10px; padding: 9px 14px; text-align: left; }
     .menu-i:hover, .menu-i:focus-visible { background: #F5F0E8; outline: none; }
+    /* Updates & shortcuts: while they sit under the conversation, "Latest updates" fills the left,
+       and "Quick actions" with a slim "Not about a request?" strip sit on the right, each at its
+       own height (no stretched cards). On wide screens they stack in the side column. */
+    #latest .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    @media (min-width: 768px) and (max-width: 1535px) {
+      aside.msg-aside { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+      aside.msg-aside > .upd { grid-row: span 2; }
+      .help-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; column-gap: 16px; }
+      .help-card .help-txt h2 { margin-top: 0; }
+      .help-card > .btn { margin-top: 0; }
+    }
+    @media (min-width: 768px) and (max-width: 1100px) {
+      .help-card { grid-template-columns: auto minmax(0, 1fr); row-gap: 12px; }
+      .help-card > .btn { grid-column: 2; justify-self: start; }
+    }
     .toast { position: fixed; left: 50%; bottom: 20px; z-index: 70; max-width: min(92vw, 460px); transform: translateX(-50%); border-radius: 14px; background: #1C1712; color: #fff; padding: 12px 16px; font-size: 13.5px; box-shadow: 0 18px 40px -18px rgba(0,0,0,.5); animation: toastIn .3s cubic-bezier(.22,1,.36,1); }
     @keyframes toastIn { from { opacity: 0; transform: translate(-50%, 10px); } }
     dialog[open] { animation: dlgIn .25s cubic-bezier(.22,1,.36,1); }
@@ -503,8 +518,8 @@
         </section>
 
         <!-- ===== right: latest updates and shortcuts ===== -->
-        <aside class="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-3 lg:col-span-2 2xl:col-span-1 2xl:grid-cols-1 2xl:content-start" aria-label="Updates and shortcuts">
-          <section class="panel anim p-5" style="--d:180ms" aria-labelledby="latestT">
+        <aside class="msg-aside grid min-w-0 grid-cols-1 gap-3 lg:col-span-2 2xl:col-span-1 2xl:content-start" aria-label="Updates and shortcuts">
+          <section class="upd panel anim p-5" style="--d:180ms" aria-labelledby="latestT">
             <div class="flex items-center justify-between gap-3">
               <h2 id="latestT" class="font-display text-[17px] font-semibold">Latest updates</h2>
               <a href="#notifications" id="viewAll" class="inline-flex items-center gap-1 text-[13px] font-semibold text-brand-navy hover:underline">View all<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-3.5 w-3.5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a>
@@ -522,11 +537,11 @@
             </div>
           </section>
 
-          <section class="anim relative overflow-hidden rounded-[22px] p-5 text-white stat--hero" style="--d:300ms" aria-labelledby="helpT">
+          <section class="help-card anim relative overflow-hidden rounded-[22px] p-5 text-white stat--hero" style="--d:300ms" aria-labelledby="helpT">
             <span aria-hidden="true" class="rings pointer-events-none absolute inset-0"></span>
             <span class="relative grid h-10 w-10 place-items-center rounded-full bg-white text-brand-navy"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-headset h-5 w-5"><path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 1 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3Z"></path><path d="M21 16v2a4 4 0 0 1-4 4h-5"></path></svg></span>
-            <h2 id="helpT" class="relative mt-3 font-display text-[16px] font-semibold leading-snug">Not about a request?</h2>
-            <p id="helpS" class="relative mt-1 text-[13px] leading-snug text-white/80">For billing, sign-in or anything else, send support a request.</p>
+            <div class="help-txt relative min-w-0"><h2 id="helpT" class="mt-3 font-display text-[16px] font-semibold leading-snug">Not about a request?</h2>
+            <p id="helpS" class="mt-1 text-[13px] leading-snug text-white/80">For billing, sign-in or anything else, send support a request.</p></div>
             <a href="contact.html" class="btn relative mt-4 bg-brand-cta px-5 py-2.5 text-[13.5px] hover:bg-brand-ctaDark">Contact support<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a>
           </section>
         </aside>
