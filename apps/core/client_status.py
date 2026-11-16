@@ -5,17 +5,27 @@ internal steps (for example "rework required") are never shown to clients.
 """
 from __future__ import annotations
 
-# group: (label, chip classes, what it means)
+# group: (label, chip classes, what it means, dot colour for the status guide)
 GROUPS = {
-    "submitted": ("Submitted", "bg-cream text-ink", "Received and waiting in the queue"),
-    "scoping": ("Being scoped", "border border-brand-navy/40 text-brand-navy", "We're confirming what's needed and any cost"),
-    "input": ("Needs your info", "bg-pill-orangeBg text-brand-orangeDark", "We need something from you to continue"),
-    "progress": ("In progress", "bg-pill-navyBg text-brand-navy", "A specialist is working on it"),
-    "checking": ("Being checked", "bg-[#EFE9FB] text-[#5B3FA8]", "Quality check before it reaches you"),
-    "hold": ("On hold", "bg-[#F1EFEC] text-ink-muted", "Paused for now"),
-    "delivered": ("Delivered", "bg-pill-greenBg text-pill-greenTx", "Finished and sent to you"),
-    "cancelled": ("Cancelled", "bg-[#FDECEC] text-[#B42318]", "Stopped before work began"),
+    "submitted": ("Submitted", "bg-cream text-ink", "Received and waiting in the queue", "bg-ink-soft"),
+    "scoping": ("Being scoped", "border border-brand-navy/40 text-brand-navy", "We're confirming what's needed and any cost", "bg-brand-lavender"),
+    "progress": ("In progress", "bg-pill-navyBg text-brand-navy", "A specialist is working on it", "bg-brand-navy"),
+    "input": ("Needs your info", "bg-pill-orangeBg text-brand-orangeDark", "We need something from you to continue", "bg-brand-orange"),
+    "checking": ("Being checked", "bg-[#EFE9FB] text-[#5B3FA8]", "Quality check before it reaches you", "bg-[#7C5CC4]"),
+    "hold": ("On hold", "bg-[#F1EFEC] text-ink-muted", "Paused for now", "bg-[#B5ADA5]"),
+    "delivered": ("Delivered", "bg-pill-greenBg text-pill-greenTx", "Finished and sent to you", "bg-pill-greenTx"),
+    "cancelled": ("Cancelled", "bg-[#FDECEC] text-[#B42318]", "Stopped before work began", "bg-[#B42318]"),
 }
+
+# Category colours, in the preview's order; a category gets one by its position.
+CATEGORY_TONES = [
+    "bg-pill-navyBg text-brand-navy", "bg-pill-orangeBg text-brand-orangeDark", "bg-pill-greenBg text-pill-greenTx",
+    "bg-[#EFE9FB] text-[#5B3FA8]", "bg-cream text-ink",
+]
+
+PRIORITY = {"high": ("Urgent", "bg-pill-orangeBg text-brand-orangeDark"),
+            "medium": ("Standard", "bg-pill-navyBg text-brand-navy"),
+            "low": ("Low", "bg-cream text-ink-muted")}
 
 # workflow status -> (group, label override)
 STATUS = {
@@ -59,3 +69,11 @@ def label(status: str) -> str:
 
 def chip(status: str) -> str:
     return GROUPS[group(status)][1]
+
+
+def statuses_in(*groups: str) -> list[str]:
+    return [s for s, (g, _) in STATUS.items() if g in groups]
+
+
+def guide() -> list[dict]:
+    return [{"label": v[0], "about": v[2], "dot": v[3]} for v in GROUPS.values()]

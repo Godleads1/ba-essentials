@@ -19,7 +19,7 @@ def _uses_banda_shell(body: str) -> None:
 
 
 def test_client_pages_use_the_banda_shell(client, owner):
-    for path in ("/app/tasks/", "/app/plan/", "/app/billing/", "/app/messages/"):
+    for path in ("/app/plan/", "/app/billing/", "/app/messages/"):
         _uses_banda_shell(client.get(path).content.decode())
 
 
@@ -51,6 +51,6 @@ def test_banda_utilities_are_the_preview_stylesheet_minus_its_reset():
 
 
 def test_redesigned_pages_use_only_the_banda_stylesheet(client, owner):
-    for path in ("/app/",):
+    for path in ("/app/", "/app/tasks/"):
         body = client.get(path).content.decode()
         assert "/static/banda/app.css" in body and "/static/css/app.css" not in body, path

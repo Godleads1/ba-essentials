@@ -80,34 +80,75 @@ def overview(request):
 
 @client_required
 def task_list(request):
-    tasks = (
-        tasks_for(request.user)
-        .filter(organization=request.organization)
-        .select_related("service_version__definition")
-    )
+    """My tasks: search and filter on the server, 10 to a page."""
+    from datetime import timedelta
+
+    from django.core.paginator import Paginator
+    from django.utils import timezone
+
+    from apps.catalogue.models import ServiceCategory
+    from apps.core import client_status as cs
+
+    all_tasks = tasks_for(request.user).filter(organization=request.organization)
+    tasks = all_tasks.select_related("service_version__definition__category").order_by("-created_at")
+    group_choices = [(k, v[0]) for k, v in cs.GROUPS.items()]
+    group = request.GET.get("group", "")
+    if group == "active":
+        tasks = tasks.filter(status__in=cs.statuses_in("progress", "checking"))
+    elif group in cs.GROUPS:
+        tasks = tasks.filter(status__in=cs.statuses_in(group))
+    else:
+        group = ""
     status = request.GET.get("status", "")
     if status in TaskStatus.values:
         tasks = tasks.filter(status=status)
-    group = request.GET.get("group", "")
-    if group:
-        from apps.core.client_status import STATUS as CLIENT_STATUS
-
-        tasks = tasks.filter(status__in=[s for s, (g, _) in CLIENT_STATUS.items() if g == group])
-    query = (request.GET.get("q") or "").strip()
+    categories = list(ServiceCategory.objects.filter(
+        services__versions__tasks__organization=request.organization).distinct().order_by("name"))
+    tones = {c.pk: cs.CATEGORY_TONES[i % len(cs.CATEGORY_TONES)] for i, c in enumerate(categories)}
+    category = request.GET.get("category", "")
+    if category:
+        tasks = tasks.filter(service_version__definition__category__slug=category)
+    days = request.GET.get("days", "")
+    if days in ("7", "30", "90"):
+        tasks = tasks.filter(created_at__gte=timezone.now() - timedelta(days=int(days)))
+    else:
+        days = ""
+    query = (request.GET.get("q") or "").strip()[:100]
     if query:
         tasks = tasks.filter(
             Q(title__icontains=query)
             | Q(reference__icontains=query)
-            | Q(brief__icontains=query)
+            | Q(service_version__definition__name__icontains=query)
         )
+    page = Paginator(tasks, 10).get_page(request.GET.get("page"))
+    rows = [
+        {"task": t, "tone": tones.get(t.service_version.definition.category_id, cs.CATEGORY_TONES[0]),
+         "priority": cs.PRIORITY.get(t.priority, cs.PRIORITY["medium"]),
+         "late": bool(t.due_date and t.due_date < timezone.localdate()
+                      and t.status not in cs.statuses_in("delivered", "cancelled"))}
+        for t in page.object_list
+    ]
+    filtered = bool(query or group or category or days or status)
+    keep = request.GET.copy()
+    keep.pop("page", None)
     return render(
         request,
-        "app/tasks_list.html",
+        "banda/app/tasks_list.html",
         {
-            "tasks": tasks[:200],
-            "statuses": TaskStatus.choices,
-            "selected_status": status,
-            "query": query,
+            "rows": rows,
+            "page": page,
+            "keep": keep.urlencode(),
+            "counts": {
+                "all": all_tasks.count(),
+                "active": all_tasks.filter(status__in=cs.statuses_in("progress", "checking")).count(),
+                "input": all_tasks.filter(status__in=cs.statuses_in("input")).count(),
+                "delivered": all_tasks.filter(status__in=cs.statuses_in("delivered")).count(),
+            },
+            "group_choices": group_choices,
+            "categories": categories,
+            "guide": cs.guide(),
+            "group": group, "category": category, "days": days, "query": query,
+            "filtered": filtered,
         },
     )
 

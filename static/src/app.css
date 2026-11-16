@@ -5,15 +5,16 @@
 @source not "../../templates/banda";
 /* Client status chips use the banda stylesheet, not this one. */
 @source not "../../apps/core/client_status.py";
+@source not "../../apps/core/templatetags/icons.py";
 /* Styles the old sign-in and security pages used. Kept so this built stylesheet stays unchanged;
    remove when the rest of the app moves to the banda design (step 8). */
 @source inline("has-[:checked]:bg-emerald-50 has-[:checked]:border-emerald-600 list-decimal ml-2 pl-5 underline-offset-2 -bottom-24 -left-24 -right-24 -top-24 bg-brand-500/10 bg-brand-500/20 h-72 w-72 lg:flex-col lg:justify-between p-10 sm:px-10 text-slate-300");
 /* Classes the old (pre-banda) workspace shell used. Kept so a rebuild still matches the
    committed static/css/app.css byte for byte. */
 @source inline("-right-0.5 -top-0.5 bg-rose-500 bg-white/5 border-white/10 gap-1 h-8 hover:bg-slate-100 lg:block lg:flex lg:hidden lg:px-8 min-w-4 opacity-80 overflow-x-auto overflow-y-auto p-2 pr-1 px-1 px-2 py-1 sm:block sm:inline sm:px-6 w-8 z-20 hover:text-slate-700");
-/* Classes only the old client dashboard used (now banda/app/overview.html). Kept so a
+/* Classes only the old client dashboard and task list used (now banda/app/overview.html). Kept so a
    rebuild still matches static/css/app.css; remove when the old pages are all gone. */
-@source inline("-right-10 -top-10 absolute bg-brand-200/40 bg-gradient-to-r blur-3xl from-brand-50 h-48 h-full hover:text-brand-200 p-6 ring-brand-100 sm:p-8 text-brand-400 to-brand-50 via-white visible w-48 z-10 pointer-events-none");
+@source inline("-right-10 -top-10 absolute bg-brand-200/40 bg-gradient-to-r blur-3xl from-brand-50 h-48 h-full hover:text-brand-200 p-6 ring-brand-100 sm:p-8 text-brand-400 to-brand-50 via-white visible w-48 z-10 pointer-events-none w-56");
 @source "../../apps";
 
 @theme {

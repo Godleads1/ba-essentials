@@ -208,7 +208,7 @@
     /* ---------- my tasks / request detail ---------- */
     .stat-f { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 12px; row-gap: 2px; border-radius: 20px; background: #fff; padding: 16px 18px; text-align: left; border: 1.5px solid transparent; transition: border-color .2s, transform .2s, box-shadow .2s; }
     .stat-f:hover { transform: translateY(-2px); box-shadow: 0 18px 34px -26px rgba(51,57,127,.5); }
-    .stat-f[aria-pressed="true"] { border-color: #33397F; }
+    .stat-f[aria-pressed="true"], .stat-f[aria-current="true"] { border-color: #33397F; }
     .stat-f:focus-visible { outline: 2px solid #33397F; outline-offset: 2px; }
     .stat-ic { grid-row: span 1; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 999px; }
     .stat-label { font-size: 14.5px; font-weight: 500; }

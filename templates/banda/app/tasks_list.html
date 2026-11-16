@@ -1,0 +1,131 @@
+{% extends "banda/app/base.html" %}
+{% load ui icons %}
+{% block title %}My Tasks{% endblock %}
+{% block content %}
+      <section class="panel flex flex-wrap items-center gap-4 px-5 py-4 sm:px-6">
+        <span class="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-brand-navy text-white">{% icon "clipboard-list" "h-5 w-5" %}</span>
+        <div class="min-w-0 flex-1">
+          <h1 class="font-display text-[22px] font-semibold leading-tight tracking-[-0.01em] sm:text-[24px]">My Tasks</h1>
+          <p class="mt-0.5 text-[14px] text-ink-muted">Track every request from submission to delivery.</p>
+        </div>
+        <a href="{% url 'task-submit' %}" class="btn-next max-sm:w-full">{% icon "plus" "h-4 w-4" %}New request</a>
+      </section>
+
+      <section class="mt-3 grid grid-cols-2 gap-3 xl:grid-cols-4" aria-label="Task summary">
+        <a href="{% url 'task-list' %}" class="stat-f" {% if not filtered %}aria-current="true"{% endif %}><span class="stat-ic bg-pill-navyBg text-brand-navy">{% icon "clipboard-list" "h-5 w-5" %}</span><span class="stat-label">Total tasks</span><span class="stat-num">{{ counts.all }}</span><span class="stat-sub">All time</span></a>
+        <a href="?group=active" class="stat-f" {% if group == "active" and not query and not category and not days %}aria-current="true"{% endif %}><span class="stat-ic bg-pill-navyBg text-brand-navy">{% icon "loader" "h-5 w-5" %}</span><span class="stat-label">In progress</span><span class="stat-num">{{ counts.active }}</span><span class="stat-sub">Including being checked</span></a>
+        <a href="?group=input" class="stat-f" {% if group == "input" and not query and not category and not days %}aria-current="true"{% endif %}><span class="stat-ic bg-pill-orangeBg text-brand-orangeDark">{% icon "hourglass" "h-5 w-5" %}</span><span class="stat-label">Needs your info</span><span class="stat-num">{{ counts.input }}</span><span class="stat-sub">Waiting on you</span></a>
+        <a href="?group=delivered" class="stat-f" {% if group == "delivered" and not query and not category and not days %}aria-current="true"{% endif %}><span class="stat-ic bg-pill-greenBg text-pill-greenTx">{% icon "circle-check" "h-5 w-5" %}</span><span class="stat-label">Delivered</span><span class="stat-num">{{ counts.delivered }}</span><span class="stat-sub">Ready in Deliverables</span></a>
+      </section>
+
+      <div class="mt-3 grid grid-cols-1 gap-3 2xl:grid-cols-[minmax(0,1fr)_320px]">
+        <section class="panel min-w-0 p-4 sm:p-5" aria-labelledby="listTitle">
+          <h2 id="listTitle" class="sr-only">Your requests</h2>
+          <form method="get" aria-label="Filter tasks" role="search" class="grid grid-cols-2 gap-2.5 lg:grid-cols-[minmax(0,1fr)_170px_160px_150px_auto]">
+            <div class="relative col-span-2 lg:col-span-1">
+              <label for="fq" class="sr-only">Search tasks</label>
+              {% icon "search" "pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-ink-muted" %}
+              <input id="fq" name="q" type="search" value="{{ query }}" class="field pl-10" placeholder="Search by name, ID or service" autocomplete="off" />
+            </div>
+            <div class="relative"><label for="fcat" class="sr-only">Category</label><select id="fcat" name="category" class="field appearance-none pr-9"><option value="">All categories</option>{% for c in categories %}<option value="{{ c.slug }}" {% if c.slug == category %}selected{% endif %}>{{ c.name }}</option>{% endfor %}</select>{% icon "chevron-down" "pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" %}</div>
+            <div class="relative"><label for="fstatus" class="sr-only">Status</label><select id="fstatus" name="group" class="field appearance-none pr-9"><option value="">All statuses</option><option value="active" {% if group == "active" %}selected{% endif %}>In progress or being checked</option>{% for value, label in group_choices %}<option value="{{ value }}" {% if value == group %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>{% icon "chevron-down" "pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" %}</div>
+            <div class="relative"><label for="fdate" class="sr-only">Submitted</label><select id="fdate" name="days" class="field appearance-none pr-9"><option value="">Any date</option><option value="7" {% if days == "7" %}selected{% endif %}>Last 7 days</option><option value="30" {% if days == "30" %}selected{% endif %}>Last 30 days</option><option value="90" {% if days == "90" %}selected{% endif %}>Last 3 months</option></select>{% icon "chevron-down" "pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" %}</div>
+            <div class="col-span-2 flex items-center gap-2 lg:col-span-1">
+              <button type="submit" class="btn-outline py-2.5 text-[13.5px]">Filter</button>
+              {% if filtered %}<a href="{% url 'task-list' %}" class="btn-ghost py-2.5 text-[13.5px]">{% icon "x" "h-4 w-4" %}Clear</a>{% endif %}
+            </div>
+          </form>
+
+          {% if filtered %}<p class="mt-3 text-[12.5px] text-ink-muted" role="status">{{ page.paginator.count }} of {{ counts.all }} task{{ counts.all|pluralize }} match</p>{% endif %}
+
+          {% if rows %}
+            <div tabindex="0" role="region" aria-label="Tasks table" class="relative mt-2 hidden overflow-x-auto md:block">
+              <table class="w-full min-w-[760px] border-separate border-spacing-0 text-left text-[13.5px]">
+                <thead>
+                  <tr class="text-[12px] text-ink-muted">
+                    <th scope="col" class="th">Request</th>
+                    <th scope="col" class="th">Category</th>
+                    <th scope="col" class="th">Status</th>
+                    <th scope="col" class="th">Priority</th>
+                    <th scope="col" class="th">Due date</th>
+                    <th scope="col" class="th text-right"><span class="sr-only">Actions</span></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for r in rows %}{% with t=r.task %}
+                    <tr class="row">
+                      <td class="td"><a href="{% url 'task-detail' task_id=t.pk %}" class="block font-semibold hover:text-brand-navy hover:underline">{{ t.title }}</a><span class="mt-0.5 block text-[12px] text-ink-soft"><span class="font-medium text-brand-navy">{{ t.reference }}</span> · {{ t.service_version.definition.name }}</span></td>
+                      <td class="td"><span class="flex items-center gap-2.5"><span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg {{ r.tone }}">{% icon "briefcase" "h-4 w-4" %}</span><span class="leading-snug">{{ t.service_version.definition.category.name }}</span></span></td>
+                      <td class="td"><span class="chip-status {{ t.status|client_status_chip }}">{{ t.status|client_status }}</span></td>
+                      <td class="td"><span class="chip-status {{ r.priority.1 }}">{{ r.priority.0 }}</span></td>
+                      <td class="td whitespace-nowrap">{% if t.due_date %}<span class="{% if r.late %}font-semibold text-[#B42318]{% endif %}">{{ t.due_date|date:"j M Y" }}</span>{% if r.late %}<span class="block text-[11.5px] text-[#B42318]">Past due</span>{% endif %}{% else %}<span class="text-ink-muted">No deadline</span>{% endif %}</td>
+                      <td class="td"><div class="flex items-center justify-end"><a href="{% url 'task-detail' task_id=t.pk %}" class="btn-outline px-4 py-1.5 text-[13px]">View<span class="sr-only"> {{ t.title }}</span></a></div></td>
+                    </tr>
+                  {% endwith %}{% endfor %}
+                </tbody>
+              </table>
+            </div>
+            <ul class="mt-2 space-y-2.5 md:hidden">
+              {% for r in rows %}{% with t=r.task %}
+                <li class="rounded-2xl border border-cream-line p-4">
+                  <div class="flex items-start gap-3">
+                    <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl {{ r.tone }}">{% icon "briefcase" "h-[18px] w-[18px]" %}</span>
+                    <div class="min-w-0 flex-1"><a href="{% url 'task-detail' task_id=t.pk %}" class="block font-semibold leading-snug">{{ t.title }}</a><span class="mt-0.5 block text-[12px] text-ink-soft"><span class="font-medium text-brand-navy">{{ t.reference }}</span> · {{ t.service_version.definition.category.name }}</span></div>
+                  </div>
+                  <div class="mt-3 flex flex-wrap items-center gap-1.5"><span class="chip-status {{ t.status|client_status_chip }}">{{ t.status|client_status }}</span><span class="chip-status {{ r.priority.1 }}">{{ r.priority.0 }}</span><span class="ml-auto text-[12.5px] text-ink-muted">{% if t.due_date %}Due <span class="{% if r.late %}font-semibold text-[#B42318]{% endif %}">{{ t.due_date|date:"j M Y" }}</span>{% else %}No deadline{% endif %}</span></div>
+                  <div class="mt-3 border-t border-cream-line pt-3"><a href="{% url 'task-detail' task_id=t.pk %}" class="btn-outline px-4 py-1.5 text-[13px]">View<span class="sr-only"> {{ t.title }}</span></a></div>
+                </li>
+              {% endwith %}{% endfor %}
+            </ul>
+
+            {% if page.paginator.num_pages > 1 %}
+              <nav class="mt-4 flex items-center justify-between gap-3" aria-label="Pages">
+                <p class="text-[12.5px] text-ink-muted">Showing {{ page.start_index }}–{{ page.end_index }} of {{ page.paginator.count }}</p>
+                <div class="flex items-center gap-1.5">
+                  {% if page.has_previous %}<a class="page-b" href="?{% if keep %}{{ keep }}&amp;{% endif %}page={{ page.previous_page_number }}" aria-label="Previous page">{% icon "chevron-left" "h-4 w-4" %}</a>{% endif %}
+                  {% for n in page.paginator.page_range %}<a class="page-b" href="?{% if keep %}{{ keep }}&amp;{% endif %}page={{ n }}" {% if n == page.number %}aria-current="page"{% else %}aria-label="Page {{ n }}"{% endif %}>{{ n }}</a>{% endfor %}
+                  {% if page.has_next %}<a class="page-b" href="?{% if keep %}{{ keep }}&amp;{% endif %}page={{ page.next_page_number }}" aria-label="Next page">{% icon "chevron-right" "h-4 w-4" %}</a>{% endif %}
+                </div>
+              </nav>
+            {% elif page.paginator.count %}
+              <p class="mt-4 text-[12.5px] text-ink-muted">Showing {{ page.start_index }}–{{ page.end_index }} of {{ page.paginator.count }}</p>
+            {% endif %}
+          {% else %}
+            <div class="mt-3 flex flex-col items-center gap-2 rounded-2xl bg-cream-light px-4 py-10 text-center">
+              <span class="grid h-11 w-11 place-items-center rounded-full bg-white text-ink-soft">{% icon "search-x" "h-5 w-5" %}</span>
+              {% if filtered %}
+                <p class="font-semibold">No tasks match these filters</p>
+                <a href="{% url 'task-list' %}" class="btn-outline mt-1 py-2 text-[13px]">Clear filters</a>
+              {% else %}
+                <p class="font-semibold">No requests yet</p>
+                <a href="{% url 'task-submit' %}" class="btn-next mt-1 py-2 text-[13px]">Submit your first task</a>
+              {% endif %}
+            </div>
+          {% endif %}
+        </section>
+
+        <aside class="grid grid-cols-1 gap-3 md:grid-cols-2 [&>*]:min-w-0 2xl:grid-cols-1 2xl:self-start" aria-label="Shortcuts and help">
+          <section class="panel p-5" aria-labelledby="qa">
+            <h2 id="qa" class="font-display text-[17px] font-semibold">Quick actions</h2>
+            <div class="mt-3 grid grid-cols-2 gap-2.5">
+              <a href="{% url 'task-submit' %}" class="qa"><span class="qa-ic bg-brand-navy text-white">{% icon "plus" "h-4 w-4" %}</span><span class="qa-t">Submit a task</span><span class="qa-s">Start a new request</span></a>
+              <a href="{% url 'service-catalogue' %}" class="qa"><span class="qa-ic bg-pill-navyBg text-brand-navy">{% icon "layout-grid" "h-4 w-4" %}</span><span class="qa-t">Service catalogue</span><span class="qa-s">See all services</span></a>
+              <a href="{% url 'files-home' %}" class="qa"><span class="qa-ic bg-pill-orangeBg text-brand-orangeDark">{% icon "folder" "h-4 w-4" %}</span><span class="qa-t">Deliverables</span><span class="qa-s">Your finished files</span></a>
+              <a href="{% url 'messages-home' %}" class="qa"><span class="qa-ic bg-[#EFE9FB] text-[#5B3FA8]">{% icon "message-square" "h-4 w-4" %}</span><span class="qa-t">Messages</span><span class="qa-s">Talk to the team</span></a>
+            </div>
+          </section>
+          <section class="panel p-5" aria-labelledby="sg">
+            <h2 id="sg" class="font-display text-[17px] font-semibold">What each status means</h2>
+            <ul class="mt-3 space-y-2.5">
+              {% for s in guide %}<li class="flex gap-3"><span class="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full {{ s.dot }}"></span><span><span class="block text-[13.5px] font-medium">{{ s.label }}</span><span class="block text-[12px] text-ink-muted">{{ s.about }}</span></span></li>{% endfor %}
+            </ul>
+          </section>
+          <section class="relative overflow-hidden rounded-[22px] bg-brand-navy p-5 text-white md:col-span-2 2xl:col-span-1" aria-labelledby="nh">
+            <span aria-hidden="true" class="rings pointer-events-none absolute inset-0"></span>
+            <h2 id="nh" class="relative font-display text-[17px] font-semibold">Need help with a task?</h2>
+            <p class="relative mt-1 text-[13px] text-white/75">Message the team about changes, questions or cancelling.</p>
+            <a href="{% url 'support-new' %}" class="btn relative mt-3 bg-brand-cta px-4 py-2 text-[13px] text-white hover:bg-brand-ctaDark">Contact support {% icon "arrow-right" "h-4 w-4" %}</a>
+          </section>
+        </aside>
+      </div>
+{% endblock %}
