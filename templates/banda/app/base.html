@@ -1,0 +1,84 @@
+{% load static ui %}<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}Workspace{% endblock %} · B &amp; A Essentials</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='14'%20fill='%231C1712'/%3E%3Cpath%20d='M17%209h9v17a13%2013%200%201%201-9%2012z'%20fill='%23FDFBF6'/%3E%3Ccircle%20cx='39'%20cy='39'%20r='7'%20fill='%231C1712'/%3E%3Ccircle%20cx='31'%20cy='40'%20r='5'%20fill='%23D9662E'/%3E%3C/svg%3E" />
+  <link rel="preload" href="{% static 'banda/fonts/inter-latin-400-normal.woff2' %}" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="{% static 'banda/auth.css' %}" />
+  <link rel="stylesheet" href="{% static 'banda/shell.css' %}" />
+  <!-- The design preview's own stylesheet, used as built. Loaded last so utilities win. -->
+  <link rel="stylesheet" href="{% static 'banda/app.css' %}" />
+</head>
+
+<body class="font-sans text-ink antialiased">
+  <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-md focus:bg-white focus:px-4 focus:py-2">Skip to content</a>
+  <div id="scrim" class="fixed inset-0 z-40 bg-cocoa-deep/50 lg:hidden" hidden></div>
+
+  <aside id="sidebar" class="panel fixed left-3 z-50 flex w-[256px] flex-col overflow-hidden pb-4" style="padding-top:clamp(18px,3.4vh,30px)" aria-label="Main menu">
+    <div class="flex items-center justify-between px-[22px]">
+      <a href="{% if is_staff_member %}{% url 'staff-dashboard' %}{% else %}{% url 'client-overview' %}{% endif %}" class="logo logo--light ring-focus rounded" style="font-size:34px" aria-label="banda, B and A Essentials, home">
+        <span class="logo-word" aria-hidden="true"><span class="logo-b">b<i class="logo-dot"></i></span>anda</span>
+        <span class="logo-tag" aria-hidden="true" style="--logo-tag:#F0A77C">B<span class="amp" style="color:#F0A77C">&amp;</span>A ESSENTIALS</span>
+      </a>
+      <button type="button" id="closeMenu" class="grid h-9 w-9 place-items-center rounded-lg text-white/80 hover:bg-white/10 lg:hidden" aria-label="Close menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-x h-5 w-5"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button>
+    </div>
+
+    <nav class="no-scrollbar min-h-0 flex-1 overflow-y-auto" style="margin-top:clamp(16px,4vh,40px)" aria-label="{% if is_staff_member %}Staff{% else %}Client{% endif %}">
+      <div class="side-group">
+        <p class="side-label">{% if is_staff_member %}STAFF{% else %}MENU{% endif %}</p>
+        <ul>
+          {% for name, label, icon in nav_items %}
+            <li><a href="{% url name %}" class="side-link"{% if request.resolver_match.url_name == name %} aria-current="page"{% endif %}><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ icon }}"></path></svg>{{ label }}</a></li>
+          {% endfor %}
+        </ul>
+      </div>
+    </nav>
+
+    <div class="side-help relative mx-3 mt-4 shrink-0 overflow-hidden rounded-[18px] border border-white/15 bg-white/[.07] p-4 text-white">
+      <span aria-hidden="true" class="rings pointer-events-none absolute inset-0"></span>
+      <span class="help-extra relative grid h-8 w-8 place-items-center rounded-full bg-white text-brand-navy"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-headset h-4 w-4"><path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 1 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3Z"></path><path d="M21 16v2a4 4 0 0 1-4 4h-5"></path></svg></span>
+      <p class="help-title relative mt-3 font-display text-[16px] font-semibold leading-snug">Need a hand?</p>
+      <p class="help-extra relative mt-0.5 text-[12.5px] leading-snug text-white/75">Message the team about a request or a payment.</p>
+      <a href="{% url 'support-home' %}" class="btn relative mt-3 w-full bg-brand-cta py-2 text-[13px] hover:bg-brand-ctaDark">Contact support</a>
+    </div>
+  </aside>
+
+  <div class="min-h-screen p-3 lg:pl-[280px]">
+    <div class="topbar">
+    <header class="panel flex h-[68px] items-center gap-3 px-3 sm:px-4">
+      <button type="button" id="openMenu" class="grid h-10 w-10 shrink-0 place-items-center rounded-full text-ink hover:bg-cream lg:hidden" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-menu h-5 w-5"><path d="M4 5h16"></path><path d="M4 12h16"></path><path d="M4 19h16"></path></svg></button>
+      <p class="min-w-0 truncate font-display text-[16px] font-semibold">{% if is_staff_member %}Staff operations{% else %}{{ client_organization.name|default:"Your workspace" }}{% endif %}</p>
+      <div class="ml-auto flex items-center gap-2">
+        <a href="{% url 'notifications' %}" class="relative grid h-10 w-10 place-items-center rounded-full bg-cream-light text-ink ring-1 ring-cream-line hover:bg-cream" data-count-label="notes" aria-label="Notifications{% if unread_notifications %}, {{ unread_notifications }} unread{% endif %}"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-bell h-[18px] w-[18px]"><path d="M10.268 21a2 2 0 0 0 3.464 0"></path><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"></path></svg>{% if unread_notifications %}<span class="ping absolute right-2 top-2 h-2 w-2 rounded-full bg-brand-orange ring-2 ring-white"></span>{% endif %}</a>
+        <div class="relative ml-1">
+          <button type="button" id="userBtn" class="flex items-center gap-2.5 rounded-full py-1 pl-1 pr-1 hover:bg-cream sm:pr-3" aria-expanded="false" aria-controls="userMenu">
+            <span class="grid h-10 w-10 place-items-center rounded-full bg-brand-cta text-[13.5px] font-bold text-white">{{ request.user.full_name|default:request.user.email|initials }}</span>
+            <span class="hidden text-left md:block"><span class="block max-w-[180px] truncate text-[14px] font-semibold leading-tight">{{ request.user.full_name|default:request.user.email }}</span><span class="block text-[12px] text-ink-muted">{% if is_staff_member %}{{ staff_role_label }}{% else %}Client{% endif %}</span></span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-chevron-down hidden h-4 w-4 text-ink-muted md:block"><path d="m6 9 6 6 6-6"></path></svg>
+          </button>
+          <div id="userMenu" hidden class="absolute right-0 z-30 mt-2 w-52 overflow-hidden rounded-xl border border-cream-line bg-white py-1.5 text-[14px] shadow-[0_20px_40px_-20px_rgba(28,23,18,.35)]">
+            <a href="{% url 'security-home' %}" class="flex items-center gap-2.5 px-4 py-2.5 hover:bg-cream">Profile &amp; security</a>
+            <form method="post" action="{% url 'logout' %}" class="border-t border-cream-line">{% csrf_token %}<button type="submit" class="flex w-full items-center gap-2.5 px-4 py-2.5 text-left hover:bg-cream">Log out</button></form>
+          </div>
+        </div>
+      </div>
+    </header>
+    </div>
+
+    <main id="main" class="mt-3 rounded-[22px] bg-cream-light p-4 sm:p-6">
+      {% if messages %}
+        <div class="mb-3 space-y-2" role="status">
+          {% for message in messages %}
+            <p class="rounded-2xl {% if message.level_tag == 'error' %}bg-pill-orangeBg text-brand-orangeDark{% else %}bg-pill-navyBg text-brand-navy{% endif %} px-4 py-3 text-[14px]">{{ message }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+  <script src="{% static 'banda/shell.js' %}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

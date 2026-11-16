@@ -151,6 +151,8 @@ class ChallengePurpose(models.TextChoices):
     SIGN_IN = "sign_in", "Sign in"
     PHONE_VERIFICATION = "phone_verification", "Phone verification"
     STEP_UP = "step_up", "Confirm it's you"
+    EMAIL_CHANGE = "email_change", "Email change"
+    PHONE_CHANGE = "phone_change", "Phone change"
 
 
 class CodeChannel(models.TextChoices):
@@ -165,6 +167,9 @@ class VerificationChallenge(models.Model):
     )
     purpose = models.CharField(max_length=32, choices=ChallengePurpose.choices)
     channel = models.CharField(max_length=16, blank=True)
+    # Fingerprint of the address or number the code went to, so a code only ever
+    # confirms the destination it was sent to.
+    target_hash = models.CharField(max_length=64, blank=True)
     code_hash = models.CharField(max_length=64)
     salt = models.CharField(max_length=32)
     credential_version = models.PositiveIntegerField()

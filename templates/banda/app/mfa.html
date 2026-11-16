@@ -1,0 +1,34 @@
+{% extends "banda/app/base.html" %}
+{% block title %}Authenticator app{% endblock %}
+{% block content %}
+      <section class="panel mx-auto max-w-[520px] p-5 sm:p-7">
+        <a href="{% url 'security-home' %}" class="text-[13px] font-semibold text-brand-navy underline-offset-2 hover:underline">&larr; Profile &amp; security</a>
+        {% if enabled %}
+          <h1 class="mt-3 font-display text-[22px] font-semibold">Authenticator app is on</h1>
+          <p class="mt-1 text-[14px] text-ink-muted">You enter a code from the app each time you log in, and before sensitive changes.</p>
+          {% if can_turn_off %}
+            <form method="post" action="{% url 'security-mfa-off' %}" class="mt-6 border-t border-cream-line pt-5" novalidate>
+              {% csrf_token %}
+              <p class="text-[13.5px] text-ink-muted">To turn it off, enter a code from the app. You&rsquo;ll then log in with your one-time code only.</p>
+              <label for="code" class="lbl mt-4 block">Code from the app</label>
+              <input id="code" name="code" class="field mt-1.5 text-center font-display text-[20px] tracking-[0.4em]" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required />
+              <div class="mt-5"><button type="submit" class="btn-outline px-5 py-2 text-[13.5px]">Turn off</button></div>
+            </form>
+          {% endif %}
+        {% else %}
+          <h1 class="mt-3 font-display text-[22px] font-semibold">Set up an authenticator app</h1>
+          <ol class="mt-4 space-y-2.5 text-[13.5px] text-ink-muted">
+            <li class="flex gap-3"><span class="step-n">1</span>Open an authenticator app, such as Google Authenticator or Microsoft Authenticator.</li>
+            <li class="flex gap-3"><span class="step-n">2</span><span>Add an account and enter this key:{% if secret %}<span class="mt-1.5 block break-all rounded-lg bg-cream-light px-3 py-2 font-mono text-[14px] tracking-wider text-ink">{{ secret }}</span>{% endif %}</span></li>
+            <li class="flex gap-3"><span class="step-n">3</span>Enter the 6-digit code the app shows.</li>
+          </ol>
+          <form method="post" class="mt-5" novalidate>
+            {% csrf_token %}
+            <label for="code" class="lbl">Code from the app</label>
+            <input id="code" name="code" class="field mt-1.5 text-center font-display text-[20px] tracking-[0.4em]" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required aria-describedby="codeErr" {% if form.errors %}aria-invalid="true"{% endif %} />
+            <div id="codeErr">{% for e in form.code.errors %}<p class="err mt-1">{{ e }}</p>{% endfor %}{% for e in form.non_field_errors %}<p class="err mt-1">{{ e }}</p>{% endfor %}</div>
+            <div class="mt-5"><button type="submit" class="btn-next py-2.5 text-[13.5px]">Turn on</button></div>
+          </form>
+        {% endif %}
+      </section>
+{% endblock %}

@@ -222,7 +222,7 @@ def test_clients_confirm_sensitive_actions_with_a_code(client_user, mailoutbox):
 
 def test_security_page_shows_codes_not_password(client_user):
     body = login_client(client_user).get("/app/security/").content.decode()
-    assert "How you sign in" in body and "Change password" not in body
+    assert "You log in with a one-time code" in body and "Change password" not in body
     login_client(client_user).post("/app/security/codes/", {"channel": "sms"})
     client_user.refresh_from_db()
     assert client_user.code_channel == "sms"

@@ -407,26 +407,159 @@ def step_up(request):
     })
 
 
+def _needs_step_up(request, back: str = ""):
+    """Sensitive changes need a fresh "confirm it's you". Returns a redirect, or None.
+
+    After confirming, a GET page reopens itself; a button (POST) returns to `back`.
+    """
+    if services.has_fresh_step_up(request, request.user):
+        return None
+    target = request.get_full_path() if request.method == "GET" else (back or reverse("security-home"))
+    return redirect(f"{reverse('step-up')}?{urlencode({'next': target})}")
+
+
+def _keep_this_session(request, user):
+    """After a change that signs out other devices, keep this one signed in."""
+    request.session["cv"] = user.credential_version
+    services.mark_step_up(request, user)
+
+
 @login_required
 @require_http_methods(["GET"])
 def security_home(request):
     user = request.user
     sessions = UserSession.objects.filter(user=user, revoked_at__isnull=True)[:20]
     memberships = memberships_for(user).select_related("organization")
+    channels = codes.channels_for(user) if user.is_client_account else []
     return render(
         request,
-        "app/security/home.html",
+        "banda/app/security.html",
         {
             "sessions": sessions,
             "current_session_key": request.session.session_key,
             "memberships": memberships,
-            "step_up_fresh": services.has_fresh_step_up(request, user),
             "password_form": ChangePasswordForm() if user.has_usable_password() else None,
-            "channel_form": ChannelForm(initial={"channel": codes.preferred_channel(user)},
-                                        channels=codes.channels_for(user)) if user.is_client_account else None,
+            "channels": [(c, "SMS" if c == "sms" else CHANNEL_LABELS[c]) for c in channels],
+            "preferred": codes.preferred_channel(user) if channels else "",
             "masked_phone": phones.masked(user.phone),
+            "phone_ok": bool(codes.phone_channels()),
         },
     )
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def security_email(request):
+    """Change email: a code to the new address, then a notice to the old one."""
+    if (stop := _needs_step_up(request, reverse("security-email"))) is not None:
+        return stop
+    user = request.user
+    pending = request.session.get("pending_email_change")
+    form = VerifyForm(request.POST or None) if pending and request.POST.get("code") is not None else None
+    if request.method == "POST" and request.POST.get("email") is not None:
+        try:
+            to = codes.start_email_change(user, request.POST["email"], client_ip=_client_ip(request))
+        except (ValidationFailure, RateLimited) as exc:
+            return render(request, "banda/app/change_contact.html", {
+                "kind": "email", "value": request.POST.get("email", ""), "error": exc.message})
+        request.session["pending_email_change"] = {"value": request.POST["email"].strip().lower(), "to": to}
+        return redirect("security-email")
+    if form is not None and form.is_valid():
+        try:
+            user = codes.confirm_email_change(user, pending["value"], form.cleaned_data["code"])
+        except (ValidationFailure, RateLimited) as exc:
+            form.add_error("code", exc.message)
+        else:
+            request.session.pop("pending_email_change", None)
+            _keep_this_session(request, user)
+            messages.success(request, "Your email address is changed. We've told your old address, and signed out your other devices.")
+            return redirect("security-home")
+    if request.GET.get("restart"):
+        request.session.pop("pending_email_change", None)
+        return redirect("security-email")
+    return render(request, "banda/app/change_contact.html", {
+        "kind": "email", "pending": request.session.get("pending_email_change"), "form": form or VerifyForm()})
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def security_phone(request):
+    """Add or change the phone number: a code to the new number, then a notice to the old one."""
+    if (stop := _needs_step_up(request, reverse("security-phone"))) is not None:
+        return stop
+    user = request.user
+    pending = request.session.get("pending_phone_change")
+    form = VerifyForm(request.POST or None) if pending and request.POST.get("code") is not None else None
+    channels = [(c, "SMS" if c == "sms" else CHANNEL_LABELS[c]) for c in codes.phone_channels()]
+    if request.method == "POST" and request.POST.get("phone") is not None:
+        try:
+            to = codes.start_phone_change(user, request.POST["phone"], channel=request.POST.get("channel", ""),
+                                          client_ip=_client_ip(request))
+        except (ValidationFailure, RateLimited) as exc:
+            return render(request, "banda/app/change_contact.html", {
+                "kind": "phone", "value": request.POST.get("phone", ""), "error": exc.message, "channels": channels,
+                "phone_ok": bool(channels)})
+        request.session["pending_phone_change"] = {"value": phones.normalise(request.POST["phone"]), "to": to}
+        return redirect("security-phone")
+    if form is not None and form.is_valid():
+        try:
+            user = codes.confirm_phone_change(user, pending["value"], form.cleaned_data["code"])
+        except (ValidationFailure, RateLimited) as exc:
+            form.add_error("code", exc.message)
+        else:
+            request.session.pop("pending_phone_change", None)
+            _keep_this_session(request, user)
+            messages.success(request, "Your phone number is confirmed. You can log in with it now.")
+            return redirect("security-home")
+    if request.GET.get("restart"):
+        request.session.pop("pending_phone_change", None)
+        return redirect("security-phone")
+    return render(request, "banda/app/change_contact.html", {
+        "kind": "phone", "pending": request.session.get("pending_phone_change"), "form": form or VerifyForm(),
+        "channels": channels, "phone_ok": bool(channels)})
+
+
+@login_required
+@require_POST
+def security_phone_remove(request):
+    if (stop := _needs_step_up(request)) is not None:
+        return stop
+    try:
+        user = codes.remove_phone(request.user)
+    except ValidationFailure as exc:
+        messages.error(request, exc.message)
+    else:
+        _keep_this_session(request, user)
+        messages.success(request, "Your phone number is removed. Codes now come by email.")
+    return redirect("security-home")
+
+
+@login_required
+@require_POST
+def security_mfa_off(request):
+    """Clients can turn their optional authenticator off with a code from it."""
+    if (stop := _needs_step_up(request, reverse("security-mfa"))) is not None:
+        return stop
+    user = request.user
+    if not services.verify_mfa(user, request.POST.get("code", "")):
+        messages.error(request, "That authenticator code isn't right. Try the newest code in the app.")
+        return redirect("security-mfa")
+    try:
+        user = codes.disable_mfa(user)
+    except ValidationFailure as exc:
+        messages.error(request, exc.message)
+        return redirect("security-home")
+    _keep_this_session(request, user)
+    messages.success(request, "The authenticator app is turned off. You'll log in with your code only.")
+    return redirect("security-home")
+
+
+@login_required
+@require_POST
+def security_sessions_others(request):
+    count = services.revoke_other_sessions(request.user, request.session.session_key)
+    messages.success(request, f"Signed out of {count} other device{'' if count == 1 else 's'}." if count else "No other devices were signed in.")
+    return redirect("security-home")
 
 
 @login_required
@@ -478,7 +611,10 @@ def security_mfa(request):
             form.add_error("code", exc.message)
             secret = _enrollment_secret(user)
         else:
-            messages.success(request, "Two-factor authentication is active.")
+            audit_user = User.objects.get(pk=user.pk)
+            codes._notify_email(audit_user.email, "Authenticator app turned on",
+                                f"An authenticator app was set up for your B & A Essentials account. {codes._not_you()}")
+            messages.success(request, "The authenticator app is on. You'll enter a code from it each time you log in.")
             return redirect("security-home")
     elif request.method == "GET" and not user.mfa_enabled:
         secret = services.begin_mfa_enrollment(user)
@@ -490,8 +626,9 @@ def security_mfa(request):
         uri = mfa_helpers.provisioning_uri(secret, email=user.email)
     return render(
         request,
-        "app/security/mfa.html",
-        {"form": form, "secret": secret, "uri": uri, "enabled": user.mfa_enabled},
+        "banda/app/mfa.html",
+        {"form": form, "secret": secret, "uri": uri, "enabled": user.mfa_enabled,
+         "can_turn_off": user.is_client_account},
     )
 
 
@@ -507,9 +644,6 @@ def _enrollment_secret(user: User) -> str | None:
 @login_required
 @require_POST
 def revoke_session(request, session_key: str):
-    UserSession.objects.filter(user=request.user, session_key=session_key).update(
-        revoked_at=timezone.now()
-    )
     services.revoke_session(request.user, session_key)
     if session_key == request.session.session_key:
         services.end_session(request)

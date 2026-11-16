@@ -60,6 +60,13 @@ def _challenge_message(purpose: str) -> tuple[str, str]:
             "It expires in {minutes} minutes and can only be used once. Never share it.\n"
             "If you did not try to sign in, you can ignore this email.",
         )
+    if purpose == ChallengePurpose.EMAIL_CHANGE:
+        return (
+            "Confirm your new email address",
+            "Your code to confirm this as your B & A Essentials email is: {code}\n\n"
+            "It expires in {minutes} minutes. Never share it.\n"
+            "If you did not ask for this, you can ignore this email.",
+        )
     if purpose == ChallengePurpose.STEP_UP:
         return (
             "Confirm it's you",
@@ -82,7 +89,7 @@ def _challenge_message(purpose: str) -> tuple[str, str]:
     )
 
 
-def _send_code_email(user: User, purpose: str, code: str) -> None:
+def _send_code_email(user: User, purpose: str, code: str, to: str = "") -> None:
     subject, body = _challenge_message(purpose)
     minutes = max(1, settings.OTP_TTL_SECONDS // 60)
     try:
@@ -90,7 +97,7 @@ def _send_code_email(user: User, purpose: str, code: str) -> None:
             subject,
             body.format(code=code, minutes=minutes),
             settings.DEFAULT_FROM_EMAIL,
-            [user.email],
+            [to or user.email],
         )
     except Exception:
         logger.exception("challenge_email_failed purpose=%s user=%s", purpose, user.pk)
@@ -99,8 +106,14 @@ def _send_code_email(user: User, purpose: str, code: str) -> None:
         )
 
 
+def _target_hash(target: str) -> str:
+    if not target:
+        return ""
+    return hmac.new(settings.SECRET_KEY.encode(), f"target:{target.strip().lower()}".encode(), hashlib.sha256).hexdigest()
+
+
 def issue_challenge(
-    user: User, purpose: str, *, enforce_cooldown: bool = True, channel: str = ""
+    user: User, purpose: str, *, enforce_cooldown: bool = True, channel: str = "", target: str = ""
 ) -> VerificationChallenge:
     now = timezone.now()
     with transaction.atomic():
@@ -129,6 +142,7 @@ def issue_challenge(
             user=user,
             purpose=purpose,
             channel=channel,
+            target_hash=_target_hash(target),
             code_hash=_hash_code(code, salt, user.credential_version),
             salt=salt,
             credential_version=user.credential_version,
@@ -147,7 +161,8 @@ def send_challenge(user: User, purpose: str) -> None:
         del challenge.plaintext_code
 
 
-def verify_challenge(user: User, purpose: str, code: str) -> User:
+def verify_challenge(user: User, purpose: str, code: str, *, target: str = "") -> User:
+    """Check a code. With `target`, it must also be the code sent to that address or number."""
     now = timezone.now()
     failure: str | None = None
     too_many = False
@@ -166,6 +181,8 @@ def verify_challenge(user: User, purpose: str, code: str) -> User:
             .first()
         )
         if challenge is None or challenge.expires_at <= now:
+            raise ValidationFailure("That code is invalid or has expired.")
+        if target and not hmac.compare_digest(challenge.target_hash or "", _target_hash(target)):
             raise ValidationFailure("That code is invalid or has expired.")
         if challenge.attempts >= challenge.max_attempts:
             too_many = True
@@ -320,16 +337,41 @@ def end_session(request) -> None:
     django_logout(request)
 
 
+def _end_django_sessions(keys) -> None:
+    """Actually end the sessions, not just mark them: the device is signed out on its next request."""
+    from django.contrib.sessions.models import Session
+
+    Session.objects.filter(session_key__in=list(keys)).delete()
+
+
 def revoke_session(user: User, session_key: str) -> None:
-    UserSession.objects.filter(user=user, session_key=session_key).update(
-        revoked_at=timezone.now()
-    )
+    if not UserSession.objects.filter(user=user, session_key=session_key).exists():
+        return  # only your own sessions
+    # One transaction: if ending the session fails, the device stays listed and can be retried.
+    with transaction.atomic():
+        UserSession.objects.filter(user=user, session_key=session_key).update(
+            revoked_at=timezone.now()
+        )
+        _end_django_sessions([session_key])
     audit_service.record(
         action="auth.session_revoked",
         actor=user,
         resource_type="session",
         resource_id=session_key[-8:],
     )
+
+
+def revoke_other_sessions(user: User, keep_session_key: str) -> int:
+    with transaction.atomic():
+        keys = list(
+            UserSession.objects.select_for_update().filter(user=user, revoked_at__isnull=True)
+            .exclude(session_key=keep_session_key).values_list("session_key", flat=True)
+        )
+        UserSession.objects.filter(session_key__in=keys).update(revoked_at=timezone.now())
+        _end_django_sessions(keys)
+    audit_service.record(action="auth.other_sessions_revoked", actor=user, resource_type="user",
+                         resource_id=str(user.pk), metadata={"count": len(keys)})
+    return len(keys)
 
 
 def _password_reused(user: User, new_password: str) -> bool:

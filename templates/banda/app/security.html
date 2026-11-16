@@ -1,0 +1,116 @@
+{% extends "banda/app/base.html" %}
+{% load ui %}
+{% block title %}Profile &amp; security{% endblock %}
+{% block content %}
+      <section class="panel flex flex-wrap items-center gap-4 px-5 py-4 sm:px-6">
+        <span class="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-full bg-brand-cta font-display text-[19px] font-semibold text-white" aria-hidden="true">{{ user.full_name|default:user.email|initials }}</span>
+        <div class="min-w-0 flex-1">
+          <h1 class="font-display text-[22px] font-semibold leading-tight tracking-[-0.01em] sm:text-[24px]">Profile &amp; security</h1>
+          <p class="mt-0.5 text-[14px] text-ink-muted"><span class="font-medium text-ink">{{ user.full_name|default:user.email }}</span>{% for m in memberships %} · {{ m.organization.name }} · {{ m.get_role_display }}{% endfor %}</p>
+        </div>
+      </section>
+
+      <div class="mt-3 grid grid-cols-1 gap-3 xl:grid-cols-2">
+        <div class="grid content-start gap-3">
+          <section id="details" class="panel scroll-mt-24 p-5 sm:p-6" aria-labelledby="detT">
+            <h2 id="detT" class="font-display text-[18px] font-semibold">Your contact details</h2>
+            <p class="mt-1 text-[13.5px] text-ink-muted">Where your codes and messages go.</p>
+            <div class="mt-4 divide-y divide-cream-line rounded-2xl border border-cream-line">
+              {% if user.is_client_account %}
+              <div class="flex flex-wrap items-center gap-3 px-4 py-3.5">
+                <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-pill-greenBg text-pill-greenTx"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-message-circle h-[18px] w-[18px]"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"></path></svg></span>
+                <div class="min-w-0 flex-1 basis-[180px]"><p class="text-[12.5px] text-ink-muted">Phone and WhatsApp</p><p class="font-medium">{% if user.phone %}{{ masked_phone }}{% else %}Not added{% endif %}</p></div>
+                {% if user.phone %}{% if user.phone_verified %}<span class="chip-status bg-pill-greenBg text-pill-greenTx"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-badge-check h-3.5 w-3.5"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"></path><path d="m16 9-5.5 5.5L8 12"></path></svg>Confirmed</span>{% else %}<span class="chip-status bg-pill-orangeBg text-brand-orangeDark">Not confirmed</span>{% endif %}{% endif %}
+                {% if phone_ok %}<a href="{% url 'security-phone' %}" class="btn-outline px-4 py-1.5 text-[13px]">{% if user.phone and not user.phone_verified %}Confirm{% elif user.phone %}Change{% else %}Add{% endif %}<span class="sr-only"> phone number</span></a>{% endif %}
+                {% if user.phone %}
+                  <form method="post" action="{% url 'security-phone-remove' %}">{% csrf_token %}<button type="submit" class="btn-ghost px-3 py-1.5 text-[13px] text-[#B42318] hover:bg-[#FDECEC] hover:text-[#B42318]">Remove<span class="sr-only"> phone number</span></button></form>
+                {% endif %}
+              </div>
+              {% endif %}
+              <div class="flex flex-wrap items-center gap-3 px-4 py-3.5">
+                <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-pill-navyBg text-brand-navy"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-mail h-[18px] w-[18px]"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"></path><rect x="2" y="4" width="20" height="16" rx="2"></rect></svg></span>
+                <div class="min-w-0 flex-1 basis-[180px]"><p class="text-[12.5px] text-ink-muted">Email</p><p class="break-all font-medium">{{ user.email }}</p></div>
+                {% if user.email_verified %}<span class="chip-status bg-pill-greenBg text-pill-greenTx"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-badge-check h-3.5 w-3.5"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"></path><path d="m16 9-5.5 5.5L8 12"></path></svg>Confirmed</span>{% endif %}
+                {% if user.is_client_account %}<a href="{% url 'security-email' %}" class="btn-outline px-4 py-1.5 text-[13px]">Change<span class="sr-only"> email address</span></a>{% endif %}
+              </div>
+            </div>
+            <p class="mt-2 text-[12.5px] text-ink-muted">We check a new number or email with a code before we use it, and tell the old one about the change. You&rsquo;ll confirm it&rsquo;s you first.</p>
+          </section>
+
+          {% if channels %}
+          <section class="panel p-5 sm:p-6" aria-labelledby="ctT">
+            <h2 id="ctT" class="font-display text-[18px] font-semibold">How we send your codes</h2>
+            <form method="post" action="{% url 'security-channel' %}" class="mt-4">
+              {% csrf_token %}
+              <fieldset>
+                <legend class="lbl">Codes to confirm it&rsquo;s you go by</legend>
+                <div class="mt-2 grid grid-cols-3 gap-2">
+                  {% for value, label in channels %}
+                    <label class="choice"><input type="radio" name="channel" value="{{ value }}" class="sr-only" {% if value == preferred %}checked{% endif %} /><span>{{ label }}</span></label>
+                  {% endfor %}
+                </div>
+              </fieldset>
+              <button type="submit" class="btn-next mt-4 py-2.5 text-[13.5px]">Save</button>
+            </form>
+            <p class="mt-3 text-[12.5px] text-ink-muted">When you log in, you choose each time. Security messages, like changes to your contact details, are always sent.</p>
+          </section>
+          {% endif %}
+        </div>
+
+        <div class="grid content-start gap-3">
+          <section id="security" class="panel scroll-mt-24 p-5 sm:p-6" aria-labelledby="secT">
+            <h2 id="secT" class="font-display text-[18px] font-semibold">Sign-in &amp; security</h2>
+            {% if user.is_client_account %}
+            <div class="mt-4 flex items-start gap-3 rounded-2xl bg-pill-navyBg px-4 py-3.5">
+              <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-brand-navy"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-key-round h-[18px] w-[18px]"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"></path><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"></circle></svg></span>
+              <div class="min-w-0 flex-1"><p class="font-semibold text-brand-navy">You log in with a one-time code</p><p class="mt-0.5 text-[13px] text-ink-muted">No password to remember or leak. Each code works once and expires after 10 minutes. We&rsquo;ll never ask you for a code by phone or message.</p></div>
+            </div>
+            {% endif %}
+            <div class="mt-3 flex flex-wrap items-center gap-3 rounded-2xl border border-cream-line px-4 py-3.5">
+              <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-cream text-ink"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-smartphone h-[18px] w-[18px]"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"></rect><path d="M12 18h.01"></path></svg></span>
+              <div class="min-w-0 flex-1 basis-[200px]"><p class="font-medium">Authenticator app {% if user.mfa_enabled %}<span class="chip-status ml-1 bg-pill-greenBg text-pill-greenTx">On</span>{% else %}<span class="chip-status ml-1 bg-cream text-ink-muted">Off</span>{% endif %}</p><p class="text-[13px] text-ink-muted">{% if user.is_client_account %}Optional extra step: after your code, also enter one from an app like Google Authenticator. Protects you if someone gets hold of your SIM.{% else %}Required for staff accounts.{% endif %}</p></div>
+              <a href="{% url 'security-mfa' %}" class="btn-outline px-4 py-1.5 text-[13px]">{% if user.mfa_enabled %}Manage{% else %}Set up{% endif %}</a>
+            </div>
+          </section>
+
+          {% if password_form %}
+          <section class="panel p-5 sm:p-6" aria-labelledby="pwT">
+            <h2 id="pwT" class="font-display text-[18px] font-semibold">Change password</h2>
+            <p class="mt-1 text-[13.5px] text-ink-muted">Changing it signs out your other devices.</p>
+            <form method="post" action="{% url 'security-password' %}" class="mt-4 grid gap-4" novalidate>
+              {% csrf_token %}
+              <div><label for="id_current_password" class="lbl">Current password</label><input id="id_current_password" name="current_password" type="password" autocomplete="current-password" class="field mt-1.5" required /></div>
+              <div><label for="id_new_password1" class="lbl">New password</label><input id="id_new_password1" name="new_password1" type="password" autocomplete="new-password" class="field mt-1.5" required aria-describedby="pwHelp" /><p id="pwHelp" class="mt-1 text-[12.5px] text-ink-muted">At least 12 characters.</p></div>
+              <div><label for="id_new_password2" class="lbl">Confirm new password</label><input id="id_new_password2" name="new_password2" type="password" autocomplete="new-password" class="field mt-1.5" required /></div>
+              <div><button type="submit" class="btn-next py-2.5 text-[13.5px]">Update password</button></div>
+            </form>
+          </section>
+          {% endif %}
+
+          <section class="panel p-5 sm:p-6" aria-labelledby="sessT">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h2 id="sessT" class="font-display text-[18px] font-semibold">Where you&rsquo;re signed in</h2>
+              {% if sessions|length > 1 %}
+                <form method="post" action="{% url 'security-sessions-others' %}">{% csrf_token %}<button type="submit" class="text-[13px] font-semibold text-[#B42318] underline-offset-2 hover:underline">Sign out of all other devices</button></form>
+              {% endif %}
+            </div>
+            <ul class="mt-3 divide-y divide-cream-line">
+              {% for session in sessions %}
+                <li class="flex flex-wrap items-center justify-between gap-3 py-3">
+                  <div class="min-w-0">
+                    <p class="text-[14px] font-medium">{{ session.user_agent|default:"Unknown device"|truncatechars:60 }}{% if session.session_key == current_session_key %} <span class="chip-status ml-1 bg-pill-navyBg text-brand-navy">This device</span>{% endif %}</p>
+                    <p class="text-[12.5px] text-ink-muted">Signed in {{ session.created_at|date:"j M Y, H:i" }}</p>
+                  </div>
+                  {% if session.session_key != current_session_key %}
+                    <form method="post" action="{% url 'security-session-revoke' session_key=session.session_key %}">{% csrf_token %}<button type="submit" class="btn-ghost px-3 py-1.5 text-[13px] text-[#B42318] hover:bg-[#FDECEC] hover:text-[#B42318]">Sign out<span class="sr-only"> this device</span></button></form>
+                  {% endif %}
+                </li>
+              {% empty %}
+                <li class="py-3 text-[13.5px] text-ink-muted">No other devices.</li>
+              {% endfor %}
+            </ul>
+            <p class="mt-3 text-[12.5px] text-ink-muted">Something you don&rsquo;t recognise? Sign out of all other devices, then <a href="{% url 'support-home' %}" class="font-semibold text-brand-navy underline underline-offset-2">tell support</a>.</p>
+          </section>
+        </div>
+      </div>
+{% endblock %}
