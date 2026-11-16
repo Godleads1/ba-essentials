@@ -254,7 +254,7 @@ def test_finance_can_only_verify_the_exact_amount(
 
 
 def test_signed_webhook_marks_invoice_paid_once(
-    scoping_task, quote_approver, owner
+    scoping_task, quote_approver, owner, fake_paystack
 ):
     version = _send_quote(scoping_task, quote_approver)
     outcome = quotes.accept_quote(
@@ -269,6 +269,7 @@ def test_signed_webhook_marks_invoice_paid_once(
         currency=invoice.currency,
         status=PaymentStatus.INITIATED,
     )
+    fake_paystack.confirm("PS-REF-1", invoice.amount_minor)
     raw, signature = _signed_webhook(
         _charge_payload("PS-REF-1", invoice.amount_minor, 900001)
     )

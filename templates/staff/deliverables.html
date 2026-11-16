@@ -1,0 +1,51 @@
+{% extends "app/base.html" %}
+{% load ui %}
+{% block title %}Deliverables · B &amp; A Essentials{% endblock %}
+{% block page_title %}Deliverables{% endblock %}
+{% block mobile_title %}Deliverables{% endblock %}
+{% block content %}
+  <section class="card">
+    <div class="border-b border-slate-100 px-5 py-4">
+      <h2 class="text-sm font-semibold text-navy-900">In review and awaiting release</h2>
+      <p class="mt-1 text-xs text-slate-500">Drafts, rework and approved deliverables before they reach the client.</p>
+    </div>
+    {% if rows %}
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Reference</th><th>Request</th><th>Client</th><th>Status</th><th>Latest draft</th><th>Versions</th><th>Submitted</th><th></th></tr></thead>
+          <tbody>
+            {% for row in rows %}
+              <tr>
+                <td class="whitespace-nowrap font-mono text-xs text-slate-500">{{ row.task.reference }}</td>
+                <td>
+                  <a class="font-medium text-navy-900 hover:text-brand-700" href="{% url 'staff-task-detail' task_id=row.task.pk %}">{{ row.task.title }}</a>
+                  <p class="text-xs text-slate-400">{{ row.task.service_version.definition.name }}</p>
+                </td>
+                <td class="text-slate-600">{{ row.task.organization.name }}</td>
+                <td>{% include "partials/status_badge.html" with status=row.task.status %}</td>
+                <td class="whitespace-nowrap">
+                  {% if row.version %}
+                    <span class="text-sm font-medium text-navy-900">v{{ row.version.version_number }}</span>
+                    {% include "partials/status_badge.html" with status=row.version.status %}
+                  {% else %}
+                    <span class="text-xs text-slate-400">No draft submitted</span>
+                  {% endif %}
+                </td>
+                <td class="text-slate-600">{{ row.version_count }}</td>
+                <td class="whitespace-nowrap text-slate-500">
+                  {% if row.version %}{{ row.version.created_at|date:"j M, H:i" }}{% else %}—{% endif %}
+                </td>
+                <td class="text-right"><a class="btn-secondary btn-sm" href="{% url 'staff-task-detail' task_id=row.task.pk %}">Open</a></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="px-6 py-16 text-center">
+        <p class="text-sm font-medium text-navy-900">Nothing in the delivery pipeline.</p>
+        <p class="mt-1 text-sm text-slate-500">Cases appear here when work is submitted for review or approved for release.</p>
+      </div>
+    {% endif %}
+  </section>
+{% endblock %}

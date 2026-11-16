@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from django.contrib import messages
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Sum
 from django.http import Http404
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_GET, require_POST
@@ -9,20 +9,36 @@ from django.views.decorators.http import require_GET, require_POST
 from apps.accounts.decorators import staff_permission_required, staff_required
 from apps.accounts.models import StaffRole, User
 from apps.accounts.permissions import (
+    AUDIT_VIEW,
     CLIENT_VIEW,
+    FEES_APPROVE,
+    FEES_PREPARE,
+    FEES_SETTLE,
+    FILES_VIEW_ALL,
     QUOTE_SEND,
     REVIEW_DECIDE,
+    TASK_ASSIGN,
+    TASK_SCOPE,
+    TASK_TRIAGE,
     has_perm,
 )
-from apps.billing.models import Invoice
+from apps.audit.models import AuditEvent
+from apps.billing import fees
+from apps.billing.plan_rules import outside_plan_region
+from apps.billing.models import FeeRequest, Invoice
+from apps.communications import services as communications
+from apps.core.countries import choices as country_choices
+from apps.core.countries import name_for as country_name
 from apps.core.exceptions import DomainError
 from apps.core.views import handle_domain_error
-from apps.organizations.models import Organization
+from apps.organizations import services as organization_services
+from apps.organizations.models import AccountFlag, Organization
 from apps.quotes.forms import QuoteForm
-from apps.reviews.models import DeliverableVersionStatus
+from apps.reviews.models import DeliverableVersion, DeliverableVersionStatus
 from apps.tasks import services
 from apps.tasks.access import can_view_task, tasks_for
 from apps.tasks.models import (
+    Assignment,
     AssignmentStatus,
     OPEN_STATUSES,
     Task,
@@ -143,7 +159,14 @@ def task_detail(request, task_id):
     )
     quote = getattr(task, "quote", None)
     quote_versions = quote.versions.all() if quote is not None else []
-    invoice = Invoice.objects.filter(task=task).order_by("-issued_at").first()
+    invoice = (
+        Invoice.objects.filter(task=task, fee_request__isnull=True).order_by("-issued_at").first()
+    )
+    fee_requests = list(
+        FeeRequest.objects.filter(task=task)
+        .select_related("invoice", "prepared_by", "approved_by")
+        .prefetch_related("lines__evidence", "lines__receipt")
+    )
     pending_versions = [v for v in versions if v.status == DeliverableVersionStatus.PENDING_REVIEW]
     approved_version = next(
         (v for v in versions if v.status == DeliverableVersionStatus.APPROVED), None
@@ -168,6 +191,7 @@ def task_detail(request, task_id):
             "assign_form": AssignForm(),
             "work_form": WorkLogForm(),
             "invoice": invoice,
+            "thread": communications.task_thread(task, request.user),
             "specialists": User.objects.filter(
                 staff_role=StaffRole.SPECIALIST, is_active=True
             ).order_by("full_name"),
@@ -175,6 +199,18 @@ def task_detail(request, task_id):
             "can_quote": can_quote,
             "can_review": can_review,
             "can_release": Action.RELEASE.value in actions,
+            "work_country_name": country_name(task.work_country),
+            "outside_plan_region": outside_plan_region(task),
+            "can_confirm_country": has_perm(request.user, TASK_SCOPE) and task.status == TaskStatus.SCOPING,
+            "country_fixed": bool(task.service_version.definition.work_country),
+            "country_choices": country_choices(),
+            "account_flags": AccountFlag.objects.filter(organization=task.organization, resolved_at__isnull=True),
+            "can_resolve_flags": has_perm(request.user, QUOTE_SEND),
+            "fee_requests": fee_requests,
+            "fees_open": fees.has_open_fees(task),
+            "can_prepare_fees": has_perm(request.user, FEES_PREPARE) and task.status in fees.FEE_STATUSES,
+            "can_approve_fees": has_perm(request.user, FEES_APPROVE),
+            "can_settle_fees": has_perm(request.user, FEES_SETTLE),
             "is_active_specialist": bool(
                 assignment and assignment.specialist_id == request.user.pk
             ),
@@ -349,3 +385,224 @@ def clients(request):
         .order_by("name")[:200]
     )
     return render(request, "staff/clients.html", {"organizations": organizations})
+
+
+@staff_permission_required(TASK_TRIAGE)
+@require_GET
+def needs_information(request):
+    tasks = (
+        tasks_for(request.user)
+        .filter(status=TaskStatus.NEEDS_INFORMATION)
+        .select_related("organization", "service_version__definition")
+        .order_by("updated_at")[:200]
+    )
+    return render(request, "staff/needs_information.html", {"tasks": tasks})
+
+
+@staff_permission_required(TASK_SCOPE)
+@require_GET
+def scoping_queue(request):
+    tasks = (
+        tasks_for(request.user)
+        .filter(
+            status__in=[
+                TaskStatus.SCOPING,
+                TaskStatus.AWAITING_CLIENT_APPROVAL,
+                TaskStatus.AWAITING_PAYMENT,
+            ]
+        )
+        .select_related("organization", "service_version__definition")
+        .prefetch_related("quote__versions")
+        .order_by("updated_at")[:200]
+    )
+    rows = []
+    for task in tasks:
+        quote = getattr(task, "quote", None)
+        rows.append(
+            {
+                "task": task,
+                "version": quote.versions.first() if quote is not None else None,
+            }
+        )
+    return render(request, "staff/scoping.html", {"rows": rows})
+
+
+@staff_permission_required(TASK_ASSIGN)
+@require_GET
+def workload(request):
+    visible = tasks_for(request.user)
+    specialists = (
+        User.objects.filter(staff_role=StaffRole.SPECIALIST, is_active=True)
+        .annotate(
+            active_cases=Count(
+                "assignments",
+                filter=Q(
+                    assignments__status=AssignmentStatus.ACTIVE,
+                    assignments__task__status__in=OPEN_STATUSES,
+                ),
+                distinct=True,
+            ),
+            logged_minutes=Sum(
+                "assignments__work_logs__minutes",
+                filter=Q(assignments__status=AssignmentStatus.ACTIVE),
+            ),
+        )
+        .order_by("full_name", "email")
+    )
+    assignments = (
+        Assignment.objects.filter(
+            status=AssignmentStatus.ACTIVE,
+            task__in=visible,
+            task__status__in=OPEN_STATUSES,
+        )
+        .select_related("specialist", "task", "task__organization")
+        .order_by("specialist_id", "task__due_date")
+    )
+    cases_by_specialist: dict = {}
+    for assignment in assignments:
+        cases_by_specialist.setdefault(assignment.specialist_id, []).append(assignment.task)
+    roster = [
+        {"specialist": specialist, "cases": cases_by_specialist.get(specialist.pk, [])}
+        for specialist in specialists
+    ]
+    ready = (
+        visible.filter(status=TaskStatus.READY_FOR_ASSIGNMENT)
+        .select_related("organization", "service_version__definition")
+        .order_by("due_date")[:50]
+    )
+    return render(
+        request,
+        "staff/workload.html",
+        {"roster": roster, "ready": ready},
+    )
+
+
+@staff_permission_required(FILES_VIEW_ALL)
+@require_GET
+def deliverables_queue(request):
+    tasks = list(
+        tasks_for(request.user)
+        .filter(
+            status__in=[
+                TaskStatus.INTERNAL_REVIEW,
+                TaskStatus.REWORK_REQUIRED,
+                TaskStatus.APPROVED_FOR_RELEASE,
+            ]
+        )
+        .select_related("organization", "service_version__definition", "deliverable")
+        .order_by("-updated_at")[:200]
+    )
+    latest: dict = {}
+    counts: dict = {}
+    versions = (
+        DeliverableVersion.objects.filter(deliverable__task__in=tasks)
+        .select_related("file", "submitted_by")
+        .order_by("deliverable_id", "-version_number")
+    )
+    for version in versions:
+        counts[version.deliverable_id] = counts.get(version.deliverable_id, 0) + 1
+        latest.setdefault(version.deliverable_id, version)
+    rows = []
+    for task in tasks:
+        deliverable = getattr(task, "deliverable", None)
+        deliverable_id = deliverable.pk if deliverable is not None else None
+        rows.append(
+            {
+                "task": task,
+                "version": latest.get(deliverable_id),
+                "version_count": counts.get(deliverable_id, 0),
+            }
+        )
+    return render(request, "staff/deliverables.html", {"rows": rows})
+
+
+@staff_required
+@require_GET
+def my_cases(request):
+    assignments = (
+        Assignment.objects.filter(specialist=request.user, status=AssignmentStatus.ACTIVE)
+        .select_related("task", "task__organization", "task__service_version__definition")
+        .annotate(logged_minutes=Sum("work_logs__minutes"))
+        .order_by("task__due_date")
+    )
+    completed = (
+        Assignment.objects.filter(specialist=request.user, status=AssignmentStatus.COMPLETED)
+        .select_related("task", "task__organization")
+        .order_by("-completed_at")[:20]
+    )
+    return render(
+        request,
+        "staff/my_cases.html",
+        {"assignments": assignments, "completed": completed},
+    )
+
+
+@staff_permission_required(AUDIT_VIEW)
+@require_GET
+def audit_log(request):
+    events = AuditEvent.objects.select_related("actor", "organization")
+    action = (request.GET.get("action") or "").strip()
+    result = (request.GET.get("result") or "").strip()
+    query = (request.GET.get("q") or "").strip()
+    if action:
+        events = events.filter(action=action)
+    if result in AuditEvent.Result.values:
+        events = events.filter(result=result)
+    else:
+        result = ""
+    if query:
+        events = events.filter(
+            Q(resource_id__icontains=query)
+            | Q(reason__icontains=query)
+            | Q(actor__email__icontains=query)
+            | Q(organization__name__icontains=query)
+        )
+    actions = (
+        AuditEvent.objects.values_list("action", flat=True).distinct().order_by("action")
+    )
+    return render(
+        request,
+        "staff/audit.html",
+        {
+            "events": events[:200],
+            "actions": actions,
+            "result_choices": AuditEvent.Result.choices,
+            "selected_action": action,
+            "selected_result": result,
+            "query": query,
+        },
+    )
+
+
+@staff_required
+@require_POST
+def confirm_work_country(request, task_id):
+    def action(task):
+        services.confirm_work_country(
+            task, request.user, request.POST.get("country", ""), request.POST.get("reason", "")
+        )
+        messages.success(request, "Work country confirmed.")
+
+    return _run(request, task_id, action)
+
+
+@staff_required
+@require_POST
+def resolve_account_flag(request, flag_id):
+    flag = AccountFlag.objects.filter(pk=flag_id).select_related("organization").first()
+    import uuid
+
+    try:
+        task_id = uuid.UUID(request.POST.get("task", ""))
+    except ValueError:
+        task_id = None
+    back = redirect("staff-task-detail", task_id=task_id) if task_id else redirect("staff-clients")
+    if flag is None:
+        raise Http404("Flag not found")
+    try:
+        organization_services.resolve_flag(flag, request.user, request.POST.get("resolution", ""))
+    except DomainError as exc:
+        messages.error(request, exc.message)
+        return back
+    messages.success(request, "Flag resolved.")
+    return back

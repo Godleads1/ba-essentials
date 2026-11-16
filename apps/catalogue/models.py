@@ -5,6 +5,7 @@ import uuid
 from django.core.exceptions import ValidationError
 from django.db import models
 
+from apps.core.countries import choices as country_choices
 from apps.core.models import TimeStampedModel
 
 
@@ -15,6 +16,11 @@ class ServiceCategory(TimeStampedModel):
     summary = models.CharField(max_length=255, blank=True)
     sort_order = models.PositiveSmallIntegerField(default=0)
     is_active = models.BooleanField(default=True)
+    # 0 = open to every client, including those without a plan (quoted per request).
+    # Otherwise the client's plan rank must be at least this (Growth 2, Dedicated 3).
+    minimum_plan_rank = models.PositiveSmallIntegerField(default=0)
+    # Legal & IP work draws on the plan's legal review allowance, not the task allowance.
+    uses_legal_allowance = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["sort_order", "name"]
@@ -32,6 +38,9 @@ class ServiceDefinition(TimeStampedModel):
     name = models.CharField(max_length=150)
     slug = models.SlugField(max_length=100, unique=True)
     is_active = models.BooleanField(default=True)
+    # Set for services that are always for one country, such as a US trademark search.
+    # Requests for it are recorded as for that country, whatever the client picks.
+    work_country = models.CharField(max_length=2, blank=True, choices=country_choices)
 
     class Meta:
         ordering = ["category__sort_order", "name"]

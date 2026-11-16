@@ -1,0 +1,34 @@
+{% extends "app/base.html" %}
+{% block title %}Messages · B &amp; A Essentials{% endblock %}
+{% block page_title %}Messages{% endblock %}
+{% block mobile_title %}Messages{% endblock %}
+{% block content %}
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <p class="text-sm text-slate-500">Request threads with the B &amp; A team. Support tickets have their own inbox.</p>
+    <div class="flex gap-2">
+      <a href="{% url 'notifications' %}" class="btn-secondary btn-sm">Notifications{% if unread_notifications %} ({{ unread_notifications }}){% endif %}</a>
+      <a href="{% url 'support-home' %}" class="btn-secondary btn-sm">Help &amp; Support</a>
+    </div>
+  </div>
+
+  <section class="card">
+    <div class="border-b border-slate-100 px-5 py-4">
+      <h2 class="text-sm font-semibold text-navy-900">Request threads</h2>
+    </div>
+    <ul class="divide-y divide-slate-100">
+      {% for task in tasks %}
+        <li class="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+          <div class="min-w-0">
+            <a href="{% url 'task-detail' task_id=task.pk %}#messages" class="truncate text-sm font-semibold text-navy-900 hover:text-brand-700">{{ task.title }}</a>
+            <p class="mt-0.5 text-xs text-slate-400">{{ task.reference }} · {{ task.service_version.definition.name }} · last message {{ task.last_message_at|date:"j M Y, H:i" }}</p>
+          </div>
+          {% include "partials/status_badge.html" with status=task.status %}
+        </li>
+      {% empty %}
+        <li class="px-5 py-8 text-sm text-slate-500">
+          No request messages yet. Open a request from <a class="font-medium text-brand-700 hover:underline" href="{% url 'task-submit' %}">Submit a Task</a>.
+        </li>
+      {% endfor %}
+    </ul>
+  </section>
+{% endblock %}

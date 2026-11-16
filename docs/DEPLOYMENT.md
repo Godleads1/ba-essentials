@@ -31,11 +31,15 @@ user, and drops privileges after fixing the persistent-disk ownership.
 
 1. A Render account with access to the private GitHub repository
    `Godleads1/ba-essentials`, and the Render GitHub app installed for it.
-2. A Resend account and an API key with sending permission.
-3. A verified sending domain in Resend, or, for a first test, Resend's
+2. A payment method on the Render workspace. The Blueprint's paid plans are
+   rejected at validation with `need_payment_info` until billing is set up;
+   there is no free-tier variant that keeps the production fail-closed checks
+   (shared cache, real SMTP, real scanner, private service, cron) intact.
+3. A Resend account and an API key with sending permission.
+4. A verified sending domain in Resend, or, for a first test, Resend's
    `onboarding@resend.dev` sender (which can only deliver to the account
    owner's address).
-4. The Render CLI (`winget install --id Render.CLI -e`) for validation and
+5. The Render CLI (`winget install --id Render.CLI -e`) for validation and
    deploy inspection.
 
 ## First deployment
@@ -55,6 +59,37 @@ user, and drops privileges after fixing the persistent-disk ownership.
    start. Uploads attempted before clamd is ready are marked failed, not clean.
 5. Confirm the web deploy became live. `preDeployCommand` runs
    `python manage.py migrate --noinput` before the new instance starts.
+6. In a Render shell on the web service, load the synthetic catalogue and
+   create a break-glass staff account:
+
+   ```bash
+   python manage.py bootstrap_catalogue docs/catalogue.example.json
+   python manage.py create_staff ops@example.test --role admin --admin
+   ```
+
+   The catalogue file is synthetic. Replace it with a founder-approved
+   manifest before using staging for realistic service scenarios.
+
+   Create the three published plans (Starter, Growth, Dedicated) with their
+   list prices, task allowances and legal review allowances:
+
+   ```bash
+   python manage.py seed_plans
+   ```
+
+   For US dollar payments, set `FLUTTERWAVE_SECRET_KEY` and
+   `FLUTTERWAVE_WEBHOOK_HASH` (the "secret hash" you choose in the Flutterwave
+   dashboard under Webhooks), and point the Flutterwave webhook at
+   `https://<host>/webhooks/flutterwave/`. Production refuses to start with
+   payments enabled and either value missing. The yearly discount, extra legal
+   review fees and the rest-of-Africa amount are under Billing settings in
+   Django admin, for super admins only.
+
+   Each category in a manifest can set `minimum_plan_rank` (0 = every client,
+   2 = Growth and above, 3 = Dedicated only) and `uses_legal_allowance`
+   (true for Legal & IP work). The founder-approved split is: Business & Admin
+   and Legal & IP at 0, Operations & Logistics, Creator Essentials and Tax
+   Readiness at 2, Specialized Add-Ons at 3.
 
 `RENDER_EXTERNAL_HOSTNAME` is adopted automatically by
 `config.settings.staging`, so a service-name suffix does not break host or CSRF
@@ -126,7 +161,9 @@ PostgreSQL snapshot before a destructive change.
 - **Payments are disabled.** Paystack checkout initialization is not
   implemented; enabling payments requires the Paystack secrets and a finance
   review.
-- **No in-app messaging or CMS.** Those surfaces are Phase 5+.
+- **Integrations are in-app only.** Messaging, notifications, support and the
+  text CMS run against the database. Outbound message email, SMS (Termii),
+  Paystack checkout and object storage are not wired yet.
 - **HSTS preload is off** (`security.W021`). It is a long-lived commitment and
   needs an explicit decision.
 - **Synthetic data only.** Staging is not a production environment and its
@@ -143,3 +180,18 @@ render blueprints validate ./render.yaml
 
 `--ignore "src/*"` keeps the Tailwind source file out of the hashed static
 build; the compiled `static/css/app.css` is still collected.
+
+Blueprint validation against the workspace (`render blueprints validate`) passed
+YAML, schema, plan, and region checks. The only reported errors were
+`need_payment_info` for the PostgreSQL instance, the web service, the private
+ClamAV service, and the cron job. Those clear once billing is configured; no
+Blueprint change is needed.
+
+## Renewals job
+
+`python manage.py run_renewals` sends renewal reminders, charges saved cards,
+and moves unpaid plans through grace, pause and ending. It is safe to run
+repeatedly and should run at least daily (hourly is fine). It is **not** in the
+Render Blueprint yet, because a new cron service is billed separately; add it
+(same settings as the outbox cron, `schedule: "17 * * * *"`) or a systemd timer
+on Lightsail when renewals go live.

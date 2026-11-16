@@ -5,6 +5,7 @@ from datetime import timedelta
 from django.conf import settings
 from django.db import transaction
 from django.db.models import F, Max
+from django.utils import timezone
 
 from apps.accounts.models import StaffRole
 from apps.audit import services as audit_service
@@ -54,6 +55,7 @@ def create_request(
     priority: str = Priority.MEDIUM,
     due_date=None,
     files: list | None = None,
+    work_country: str = "",
 ) -> Task:
     from apps.files.models import FilePurpose
     from apps.files.services import store_upload
@@ -69,6 +71,20 @@ def create_request(
         raise ValidationFailure("That service is not accepting new requests.")
     if priority not in Priority.values:
         raise ValidationFailure("Choose a valid priority.")
+    # The plan decides which service categories can be requested (Growth and
+    # Dedicated categories stay locked on smaller plans).
+    from apps.billing.plan_rules import require_category, require_not_paused
+
+    require_not_paused(organization)
+    require_category(organization, version.definition.category)
+
+    # Where the work is for: fixed by the service if it has a country, else the client's
+    # answer, else the business's own country. Staff confirm it during scoping.
+    from apps.core.countries import BY_CODE
+
+    work_country = (version.definition.work_country or work_country or organization.country or "").upper()
+    if work_country and work_country not in BY_CODE:
+        raise ValidationFailure("Choose the country this work is for.")
 
     task = Task.objects.create(
         reference=_task_reference(),
@@ -82,6 +98,7 @@ def create_request(
         due_date=due_date,
         status=TaskStatus.DRAFT,
         revision_allowance_remaining=version.revision_allowance,
+        work_country=work_country,
     )
 
     for uploaded in files or []:
@@ -286,3 +303,43 @@ def submit_deliverable(task: Task, actor, uploaded_file, notes: str = ""):
         metadata={"version": next_number},
     )
     return version
+
+
+def confirm_work_country(task: Task, actor, country: str, reason: str = "") -> Task:
+    """Staff confirm (or correct) the country the work is for, from the documents.
+
+    Required before a quote is sent. A change needs a reason and is audited, so a
+    client who picked their own country for foreign work is caught here.
+    """
+    from apps.accounts.permissions import TASK_SCOPE, require_perm
+    from apps.audit import services as audit_service
+    from apps.core.countries import BY_CODE
+
+    require_perm(actor, TASK_SCOPE)
+    country = (country or "").upper()
+    if country not in BY_CODE:
+        raise ValidationFailure("Choose the country this work is for.")
+    with transaction.atomic():
+        task = Task.objects.select_for_update().select_related("service_version__definition").get(pk=task.pk)
+        if task.status != TaskStatus.SCOPING:
+            raise ValidationFailure("The work country is confirmed while the request is being scoped.")
+        fixed = task.service_version.definition.work_country
+        if fixed and country != fixed:
+            raise ValidationFailure("This service is always for one country.")
+        previous = task.work_country
+        if previous and country != previous and not (reason or "").strip():
+            raise ValidationFailure("Say why the country is changing.")
+        task.work_country = country
+        task.work_country_confirmed_at = timezone.now()
+        task.work_country_confirmed_by = actor
+        task.save(update_fields=["work_country", "work_country_confirmed_at", "work_country_confirmed_by", "updated_at"])
+        audit_service.record(
+            action="task.work_country_changed" if previous and country != previous else "task.work_country_confirmed",
+            actor=actor,
+            organization_id=task.organization_id,
+            resource_type="task",
+            resource_id=str(task.pk),
+            reason=(reason or "").strip()[:500],
+            metadata={"from": previous, "to": country},
+        )
+    return task
