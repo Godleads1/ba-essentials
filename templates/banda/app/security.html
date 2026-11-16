@@ -86,6 +86,34 @@
             <p class="mt-3 text-[12.5px] text-ink-muted">Security messages, like sign-in codes and changes to your contact details, and billing notices such as renewal reminders are always sent.</p>
           </section>
           {% endif %}
+
+          {% if user.is_client_account %}
+          <section id="privacy" class="panel scroll-mt-24 p-5 sm:p-6" aria-labelledby="privT">
+            <h2 id="privT" class="font-display text-[18px] font-semibold">Privacy &amp; data</h2>
+            <div class="mt-4 divide-y divide-cream-line rounded-2xl border border-cream-line">
+              <div class="flex flex-wrap items-center gap-3 px-4 py-3.5">
+                <div class="min-w-0 flex-1 basis-[220px]"><p class="font-medium">Download your data</p><p class="text-[13px] text-ink-muted">Your account, requests, messages and invoices in one file (JSON). You&rsquo;ll confirm it&rsquo;s you first.</p></div>
+                <a href="{% url 'security-data-download' %}" class="btn-outline px-4 py-1.5 text-[13px]">Download</a>
+              </div>
+              <div class="flex flex-wrap items-center gap-3 px-4 py-3.5">
+                <div class="min-w-0 flex-1 basis-[220px]"><p class="font-medium">Make a data request</p><p class="text-[13px] text-ink-muted">Correct, delete or limit how we use your data, and more. We reply within 30 days.</p></div>
+                <a href="{% url 'security-data-request' %}" class="btn-outline px-4 py-1.5 text-[13px]">Make a request</a>
+              </div>
+            </div>
+            {% if data_requests %}
+              <ul class="mt-3 space-y-2 text-[13px]">
+                {% for r in data_requests %}
+                  <li class="rounded-lg bg-cream-light px-3 py-2">
+                    <span class="font-medium">{{ r.get_kind_display }}</span> <span class="text-ink-muted">· {{ r.reference }}</span>
+                    {% if r.status == "open" %}<span class="block text-ink-muted">Sent {{ r.created_at|date:"j M Y" }} · reply by {{ r.reply_by|date:"j M Y" }}</span>
+                    {% else %}<span class="block text-ink-muted">{{ r.get_status_display }} {{ r.resolved_at|date:"j M Y" }}</span>{% if r.outcome %}<span class="mt-1 block whitespace-pre-line">{{ r.outcome }}</span>{% endif %}{% endif %}
+                  </li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+            <p class="mt-3 text-[12.5px] text-ink-muted">Questions about your data? Email our data protection contact at <span class="font-medium text-ink">{{ dpo_email }}</span>.</p>
+          </section>
+          {% endif %}
         </div>
 
         <div class="grid content-start gap-3">
