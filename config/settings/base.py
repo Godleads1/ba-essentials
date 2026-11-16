@@ -206,6 +206,8 @@ LOGIN_LOCK_SECONDS = env_int("LOGIN_LOCK_SECONDS", 900)
 # The base URL is the one shown in your Termii dashboard; WhatsApp needs Termii to
 # switch on its WhatsApp OTP route and a WhatsApp device name.
 SUPPORT_EMAIL = env("SUPPORT_EMAIL", "support@bandaessentials.com")
+# The data protection contact (Privacy Policy). Data requests are sent here.
+DPO_EMAIL = env("DPO_EMAIL", "dpo@bandaessentials.com")
 TERMII_API_KEY = env("TERMII_API_KEY", "")
 TERMII_BASE_URL = env("TERMII_BASE_URL", "")
 TERMII_SENDER_ID = env("TERMII_SENDER_ID", "")
