@@ -244,3 +244,26 @@ def test_a_bad_phone_entry_shows_the_error_not_unavailable(client_user):
     c = _fresh(login_client(client_user), client_user)
     body = c.post("/app/security/phone/", {"phone": "12", "channel": "sms"}).content.decode()
     assert "Enter a valid phone number" in body and "aren&rsquo;t available" not in body
+
+
+def test_the_setup_key_stays_the_same_until_set_up_is_finished(db):
+    """Background requests used to replace the key the person was typing into their app."""
+    import re as _re
+
+    staff = make_user("newadmin@example.test", staff_role=StaffRole.OPERATIONS, is_staff=True)
+    c = login_client(staff)
+    _fresh(c, staff)
+    key = lambda body: _re.search(r"tracking-wider text-ink\">([A-Z2-7]{16,})<", body).group(1)  # noqa: E731
+    first = key(c.get("/app/security/mfa/").content.decode())
+    c.get("/favicon.ico")  # redirected to set-up for staff without an authenticator
+    c.get("/meta.json")
+    assert key(c.get("/app/security/mfa/").content.decode()) == first
+    staff.refresh_from_db()
+    c.post("/app/security/mfa/", {"code": pyotp.TOTP(first).now()})
+    staff.refresh_from_db()
+    assert staff.mfa_enabled
+    # Asking for a new key on purpose still works.
+    other = make_user("newadmin2@example.test", staff_role=StaffRole.OPERATIONS, is_staff=True)
+    c2 = _fresh(login_client(other), other)
+    k1 = key(c2.get("/app/security/mfa/").content.decode())
+    assert key(c2.get("/app/security/mfa/?new=1").content.decode()) != k1

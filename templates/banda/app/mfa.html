@@ -29,6 +29,7 @@
             <div id="codeErr">{% for e in form.code.errors %}<p class="err mt-1">{{ e }}</p>{% endfor %}{% for e in form.non_field_errors %}<p class="err mt-1">{{ e }}</p>{% endfor %}</div>
             <div class="mt-5"><button type="submit" class="btn-next py-2.5 text-[13.5px]">Turn on</button></div>
           </form>
+          <p class="mt-4 text-[12.5px] text-ink-muted">Codes not working? Check your phone&rsquo;s time is set automatically. Or <a href="?new=1" class="font-semibold text-brand-navy underline underline-offset-2">start again with a new key</a> (remove the old one from your app first).</p>
         {% endif %}
       </section>
 {% endblock %}
