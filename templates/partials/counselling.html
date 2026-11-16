@@ -1,0 +1,9 @@
+{% load static %}{% comment %}
+  "Need Counselling?" button for clients (bottom-right). The details come from the
+  super admin's Counselling & prayer settings, as data, not code. Nothing records
+  who opens it or what they click.
+{% endcomment %}{% if counselling %}
+<link rel="stylesheet" href="{% static 'banda/counsel.css' %}" />
+{{ counselling|json_script:"bandaCounselConfig" }}
+<script src="{% static 'banda/counsel.js' %}" defer></script>
+{% endif %}

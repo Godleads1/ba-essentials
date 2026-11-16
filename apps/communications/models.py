@@ -179,3 +179,55 @@ class Notification(models.Model):
     @property
     def is_read(self) -> bool:
         return self.read_at is not None
+
+
+def _https_only(value: str) -> None:
+    from django.core.exceptions import ValidationError
+
+    if value and not value.lower().startswith("https://"):
+        raise ValidationError("Use a secure link that starts with https://.")
+
+
+class CounsellingSettings(models.Model):
+    """The "Need Counselling?" button clients see. One row only (pk=1).
+
+    The super admin changes these without a code change. An empty value hides
+    that line. Nothing records who opens the panel or what they click.
+    """
+
+    enabled = models.BooleanField(default=True, help_text="Show the button to clients.")
+    button_label = models.CharField(max_length=40, default="Need Counselling?")
+    counselling_email = models.EmailField(default="counselingunit@bandaessentials.com")
+    counselling_phone = models.CharField(
+        max_length=32, blank=True, help_text="Optional. When added, a Call button appears. E.g. +234 800 000 0000."
+    )
+    prayer_link = models.URLField(
+        max_length=500, blank=True, validators=[_https_only],
+        help_text="The free conference call link for the Business Prayer Hour (https://…). Empty shows 'coming soon'.",
+    )
+    prayer_when = models.CharField(
+        max_length=120, blank=True, help_text="Optional. E.g. Every Monday, 7:00–8:00am (WAT)."
+    )
+    emergency_number = models.CharField(max_length=16, default="112", help_text="Shown as 'In an emergency, call …'.")
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
+    )
+
+    class Meta:
+        verbose_name = "counselling & prayer settings"
+        verbose_name_plural = "counselling & prayer settings"
+
+    def __str__(self) -> str:
+        return "Counselling & prayer settings"
+
+    @classmethod
+    def current(cls) -> "CounsellingSettings":
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+    def as_widget_config(self) -> dict:
+        return {
+            "label": self.button_label, "email": self.counselling_email, "phone": self.counselling_phone,
+            "prayerLink": self.prayer_link, "prayerWhen": self.prayer_when, "emergency": self.emergency_number,
+        }

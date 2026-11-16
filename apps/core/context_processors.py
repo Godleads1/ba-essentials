@@ -59,6 +59,7 @@ def navigation(request):
         "staff_role_label": "",
         "unread_notifications": 0,
         "nav_items": (),
+        "counselling": None,
     }
     if user is None or not user.is_authenticated:
         return context
@@ -100,4 +101,10 @@ def navigation(request):
         )
         context["client_organization"] = selected
     context["nav_items"] = context["client_nav"] or tuple(n for n in CLIENT_NAV if n[0] == "security-home")
+    # The "Need Counselling?" button: clients only. Nothing records who opens it.
+    from apps.communications.models import CounsellingSettings
+
+    if getattr(user, "is_client_account", False):
+        counselling = CounsellingSettings.current()
+        context["counselling"] = counselling.as_widget_config() if counselling.enabled else None
     return context

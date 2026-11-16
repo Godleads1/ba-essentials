@@ -193,5 +193,6 @@ class BillingSettingsAdmin(admin.ModelAdmin):
             actor=request.user,
             resource_type="billing_settings",
             resource_id="1",
-            metadata={"changed": {f: [before.get(f, ""), str(getattr(obj, f))] for f in form.changed_data}},
+            # One "old → new" entry per changed field (the audit log keeps flat values only).
+            metadata={f: f"{before.get(f, '')} → {getattr(obj, f)}" for f in form.changed_data},
         )
