@@ -142,6 +142,18 @@ def save_payment_method(invoice: Invoice, attempt: PaymentAttempt, confirmed: di
     return method
 
 
+def owed_renewal(organization_id) -> Invoice | None:
+    """An unpaid renewal from a plan that ended unpaid. It stays owed (Terms 5.6.6)."""
+    return (
+        Invoice.objects.filter(
+            organization_id=organization_id, status=InvoiceStatus.ISSUED, renews_period_end__isnull=False,
+        )
+        .exclude(organization__subscription__status__in=(SubscriptionStatus.ACTIVE, SubscriptionStatus.PAST_DUE))
+        .order_by("-issued_at")
+        .first()
+    )
+
+
 def saved_card(organization_id) -> PaymentMethod | None:
     return PaymentMethod.objects.filter(organization_id=organization_id, removed_at__isnull=True).first()
 
@@ -170,6 +182,12 @@ def cancel_renewal(organization, membership) -> Subscription:
         sub = _owner_subscription(organization, membership)
         if sub.cancel_at_period_end:
             return sub
+        if timezone.now() > sub.period_end:
+            # The renewal date has passed and the renewal is unpaid: cancelling now
+            # can't wipe out what's owed for the grace period (Terms 5.5.5, 5.6).
+            raise ValidationFailure(
+                "Your renewal date has passed. Pay the renewal first, or contact support to end your plan."
+            )
         sub.cancel_at_period_end = True
         sub.cancel_requested_at = timezone.now()
         sub.save(update_fields=["cancel_at_period_end", "cancel_requested_at", "updated_at"])
@@ -408,11 +426,12 @@ def _step(sub: Subscription, now, counts: dict) -> None:
             Subscription.objects.filter(pk=sub.pk, status=SubscriptionStatus.PAST_DUE).update(
                 status=SubscriptionStatus.CANCELLED, updated_at=now
             )
-            _void_unpaid_renewals(sub)
+            # The unpaid renewal stays owed (Terms 5.6.6); paying it restarts the plan from that day.
             _audit("billing.plan_ended_unpaid", None, sub)
             _tell_owners(sub, "Your plan has ended", (
                 "Your renewal is still unpaid 30 days after your service was paused, so your plan has ended. "
-                "You can still see your records, and you can choose a plan again "
+                "The renewal amount is still owed. You can still see your records. Paying it restarts your "
+                "plan from the day you pay: "
                 f"at any time: {_plan_link()}"))
             counts["ended"] += 1
         return

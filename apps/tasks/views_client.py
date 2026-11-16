@@ -159,6 +159,12 @@ def task_submit(request):
     return render(request, "app/task_submit.html", {"form": form, "locked_categories": locked})
 
 
+def _is_paused(organization):
+    from apps.billing.plan_rules import is_paused
+
+    return is_paused(organization)
+
+
 @client_required
 def task_detail(request, task_id):
     task = _task_for_org(request, task_id)
@@ -204,6 +210,7 @@ def task_detail(request, task_id):
             "invoice": invoice,
             "fee_requests": fee_requests,
             "outside_plan_region": plan_rules_outside(task),
+            "service_paused": _is_paused(task.organization),
             "work_country_name": country_name(task.work_country),
             "payments_enabled": settings.PAYMENTS_ENABLED,
             "can_pay": billing.can_pay_invoice(invoice, request.membership) if invoice else False,

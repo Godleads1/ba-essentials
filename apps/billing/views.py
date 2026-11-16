@@ -83,6 +83,7 @@ def plan_home(request):
             "paused": paused,
             "renewal_invoice": renewal_invoice,
             "saved_card": renewals.saved_card(request.organization.pk),
+            "owed_renewal": renewals.owed_renewal(request.organization.pk) if not subscription and not paused else None,
             "downgrades": (
                 Plan.objects.filter(is_active=True, price_minor__gt=0, rank__lt=subscription.plan.rank).order_by("rank")
                 if subscription else []

@@ -92,6 +92,13 @@
           <p class="mt-2 text-xs text-slate-500">Your new period starts the day you pay.</p>
         {% elif not can_buy %}<p class="mt-3 text-xs text-slate-500">Only the business owner can pay the renewal.</p>{% endif %}
         <a class="btn-secondary btn-sm mt-4" href="{% url 'billing-home' %}">View invoices</a>
+      {% elif owed_renewal %}
+        <div class="mt-3 rounded-xl bg-amber-50 px-3.5 py-2.5 text-sm text-amber-800" role="alert">
+          Your plan ended because the renewal wasn&rsquo;t paid. {{ owed_renewal.amount_minor|money_minor:owed_renewal.currency }} ({{ owed_renewal.number }}) is still owed. Paying it restarts your {{ owed_renewal.plan.name }} plan from the day you pay.
+        </div>
+        {% if can_buy and payments_enabled %}
+          <form class="mt-3" method="post" action="{% url 'invoice-checkout' invoice_id=owed_renewal.pk %}">{% csrf_token %}<button class="btn-primary btn-sm">Pay {{ owed_renewal.amount_minor|money_minor:owed_renewal.currency }}</button></form>
+        {% endif %}
       {% else %}
         <p class="mt-3 text-sm text-slate-500">No active plan. Each request is quoted and invoiced individually.</p>
         {% if rate_error %}<p class="mt-3 rounded-xl bg-amber-50 px-3.5 py-2.5 text-sm text-amber-800">{{ rate_error }}</p>{% endif %}

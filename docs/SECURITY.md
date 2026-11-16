@@ -158,8 +158,10 @@ without authorization and a rollback procedure.
   before a yearly renewal, charges the saved card about a day before, and only a
   confirmed webhook renews anything. A failed or missing payment starts five
   business days' grace (service continues, up to three charge attempts, notices
-  on the first and last day), then pauses service (no new requests), and ends
-  the plan 30 days later. Cancelling stops the next charge and keeps access to
+  on the first and last day), then pauses service: no new requests, and staff
+  can't move existing requests forward (Terms 5.6.4). The plan ends 30 days
+  later; the unpaid renewal stays owed, and a new plan can't be bought until
+  it's paid (5.6.6). Cancelling is refused once the renewal date has passed. Cancelling stops the next charge and keeps access to
   the end of the paid period; a downgrade starts at the next renewal. Only the
   owner can cancel, downgrade or remove the saved card, and each is audited.
 
