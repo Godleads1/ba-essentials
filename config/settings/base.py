@@ -122,6 +122,11 @@ CSRF_COOKIE_SECURE = env_bool("SECURE_COOKIE", False)
 CSRF_COOKIE_SAMESITE = "Lax"
 CSRF_FAILURE_VIEW = "apps.core.views.csrf_failure"
 SESSION_IDLE_TIMEOUT = env_int("SESSION_IDLE_TIMEOUT", 60 * 60)
+# "Keep me signed in on this device" (clients only): the sign-in survives closing the
+# browser for up to 30 days, and ends after 7 days without use. Without it, the sign-in
+# ends when the browser closes, or after the normal idle timeout. Staff never get it.
+REMEMBER_ME_SECONDS = env_int("REMEMBER_ME_SECONDS", 60 * 60 * 24 * 30)
+REMEMBER_ME_IDLE_TIMEOUT = env_int("REMEMBER_ME_IDLE_TIMEOUT", 60 * 60 * 24 * 7)
 LOGIN_URL = "/login"
 LOGIN_REDIRECT_URL = "/app/"
 LOGOUT_REDIRECT_URL = "/login"

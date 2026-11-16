@@ -75,7 +75,7 @@ def test_unknown_accounts_get_the_same_answer(client_user, mailoutbox, fake_term
     c = Client()
     c.post("/login/", {"identifier": "nobody@example.test"})
     body = c.get("/login/code/").content.decode()
-    assert "If there&rsquo;s an account for" in body
+    assert "We&rsquo;ve sent a 6-digit code to" in body
     r = c.post("/login/code/", {"code": "123456"})
     assert "invalid or has expired" in r.content.decode()
 
@@ -152,7 +152,7 @@ def test_codes_are_not_logged_and_a_failed_send_does_not_reveal_the_account(clie
 @override_settings(TERMII_API_KEY="")
 def test_without_termii_clients_use_email(client_user, mailoutbox):
     body = Client().get("/login/").content.decode()
-    assert "by email" in body and "WhatsApp" not in body
+    assert "you@company.com" in body and "WhatsApp" not in body
     with pytest.raises(ValidationFailure, match="Enter your email"):
         codes.request_sign_in(PHONE)
 
@@ -238,3 +238,21 @@ def test_existing_client_passwords_stop_working(db):
     client.refresh_from_db()
     staff.refresh_from_db()
     assert not client.has_usable_password() and staff.check_password(PASSWORD)
+
+
+def test_keep_me_signed_in(client_user, mailoutbox):
+    c = Client()
+    c.post("/login/", {"identifier": client_user.email, "remember": "on"})
+    c.post("/login/code/", {"code": _mail_code(mailoutbox)})
+    assert c.session.get_expiry_age() >= 60 * 60 * 24 * 29 and c.session["remember"] is True
+    other = Client()
+    VerificationChallenge.objects.update(created_at=timezone.now() - timedelta(minutes=2))
+    other.post("/login/", {"identifier": client_user.email})
+    other.post("/login/code/", {"code": _mail_code(mailoutbox)})
+    assert other.session.get_expire_at_browser_close() and other.session["remember"] is False
+
+
+def test_pages_use_the_banda_design(db):
+    for path in ("/login/", "/signup/", "/login/staff/", "/password-reset/"):
+        body = Client().get(path).content.decode()
+        assert "banda/app.css" in body and "logo-word" in body, path

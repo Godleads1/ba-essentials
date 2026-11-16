@@ -282,9 +282,12 @@ def clear_login_failures(user: User) -> None:
         user.failed_login_count, user.locked_until, user.login_lockouts = 0, None, 0
 
 
-def establish_session(request, user: User) -> None:
+def establish_session(request, user: User, *, remember: bool = False) -> None:
     django_login(request, user, backend="django.contrib.auth.backends.ModelBackend")
     request.session["cv"] = user.credential_version
+    remember = remember and user.is_client_account
+    request.session["remember"] = remember
+    request.session.set_expiry(settings.REMEMBER_ME_SECONDS if remember else 0)
     request.session["last_seen"] = int(time.time())
     request.session.cycle_key()
     UserSession.objects.update_or_create(
