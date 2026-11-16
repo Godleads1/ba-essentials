@@ -3,7 +3,7 @@ from __future__ import annotations
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -14,7 +14,7 @@ from apps.core import ratelimit
 from apps.core.exceptions import PermissionFailure, RateLimited, ValidationFailure
 from apps.organizations.access import current_membership, memberships_for
 
-from . import codes, phones, profile, services
+from . import codes, phones, privacy, profile, services
 from .forms import (
     ContactPreferencesForm,
     DetailsForm,
@@ -31,7 +31,7 @@ from .forms import (
     StepUpForm,
     VerifyForm,
 )
-from .models import ChallengePurpose, User, UserSession
+from .models import ChallengePurpose, DataRequest, DataRequestKind, User, UserSession
 
 
 def _client_ip(request) -> str:
@@ -448,8 +448,50 @@ def security_home(request):
             "masked_phone": phones.masked(user.phone),
             "phone_ok": bool(codes.phone_channels()),
             "membership": current_membership(request) if user.is_client_account else None,
+            "data_requests": DataRequest.objects.filter(user=user)[:3] if user.is_client_account else [],
+            "dpo_email": settings.DPO_EMAIL,
         },
     )
+
+
+@login_required
+@require_http_methods(["GET"])
+def security_data_download(request):
+    """Download my data, as JSON. Confirm it's you first: it holds everything."""
+    if not request.user.is_client_account:
+        raise Http404
+    if (stop := _needs_step_up(request)) is not None:
+        return stop
+    response = HttpResponse(privacy.export_json(request.user), content_type="application/json; charset=utf-8")
+    response["Content-Disposition"] = f'attachment; filename="banda-my-data-{timezone.now():%Y-%m-%d}.json"'
+    response["Cache-Control"] = "no-store"
+    return response
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def security_data_request(request):
+    if not request.user.is_client_account:
+        raise Http404
+    kinds = DataRequestKind.choices
+    chosen, details, error = request.POST.get("kind", ""), request.POST.get("details", ""), ""
+    if request.method == "POST":
+        if not ratelimit.hit("data-request", str(request.user.pk), limit=10, window_seconds=3600):
+            error = "Too many requests. Try again later."
+        else:
+            membership = current_membership(request)
+            try:
+                made = privacy.make_request(request.user, chosen, details,
+                                            organization=membership.organization if membership else None)
+            except (ValidationFailure, PermissionFailure) as exc:
+                error = exc.message
+            else:
+                messages.success(request, f"Request {made.reference} sent. We'll reply by {made.reply_by:%d %b %Y}.")
+                return redirect(reverse("security-home") + "#privacy")
+    return render(request, "banda/app/data_request.html", {
+        "kinds": kinds, "chosen": chosen, "details": details, "error": error,
+        "needs_details": sorted(privacy.NEEDS_DETAILS), "dpo_email": settings.DPO_EMAIL,
+    }, status=400 if error else 200)
 
 
 @login_required

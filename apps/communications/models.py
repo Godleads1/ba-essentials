@@ -142,6 +142,7 @@ class NotificationKind(models.TextChoices):
     TASK_MESSAGE = "task_message", "Request message"
     SUPPORT = "support", "Support"
     BILLING = "billing", "Billing"
+    PRIVACY = "privacy", "Data request"
 
 
 class Notification(models.Model):
