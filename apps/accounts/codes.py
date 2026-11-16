@@ -86,11 +86,12 @@ def _text(purpose: str, code: str) -> str:
     what = {
         ChallengePurpose.PHONE_VERIFICATION: "to confirm your phone number",
         ChallengePurpose.STEP_UP: "to confirm it's you",
+        ChallengePurpose.PHONE_CHANGE: "to confirm your new phone number",
     }.get(purpose, "to sign in")
     return f"Your B&A Essentials code {what} is {code}. It expires in {minutes} minutes. Never share it."
 
 
-def send_code(user: User, purpose: str, channel: str, *, phone: str = "") -> str:
+def send_code(user: User, purpose: str, channel: str, *, phone: str = "", email: str = "") -> str:
     """Issue a code and send it. Returns where it went, masked. The code is never kept in plain text."""
     phone = phone or user.phone
     if channel in (CodeChannel.SMS, CodeChannel.WHATSAPP) and not (phone and channel in phone_channels()):
@@ -100,8 +101,8 @@ def send_code(user: User, purpose: str, channel: str, *, phone: str = "") -> str
     del challenge.plaintext_code
     try:
         if channel == CodeChannel.EMAIL:
-            services._send_code_email(user, purpose, code)
-            return phones.masked_email(user.email)
+            services._send_code_email(user, purpose, code, to=email)
+            return phones.masked_email(email or user.email)
         if channel == CodeChannel.SMS:
             termii.send_sms(phone, _text(purpose, code))
         else:
@@ -291,3 +292,140 @@ def purge_old_codes() -> int:
     cutoff = timezone.now() - timedelta(hours=CODE_RECORD_HOURS)
     deleted, _ = VerificationChallenge.objects.filter(created_at__lt=cutoff).delete()
     return deleted
+
+
+# ---------- changing contact details (step 4b) ----------
+# The view asks for a fresh "confirm it's you" first. The code goes to the NEW
+# email or number, and a notice goes to the old one. A detail another account
+# already uses gets the same answer and no code, so this never reveals who has
+# an account. Changing either signs out the account's other devices.
+
+def _notify_email(to: str, subject: str, body: str) -> None:
+    from django.core.mail import send_mail
+
+    try:
+        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [to])
+    except Exception:  # a notice must never block the change itself
+        logger.warning("security_notice_failed subject=%s", subject)
+
+
+def _notify_phone(phone: str, text: str) -> None:
+    if not termii.sms_enabled():
+        return
+    try:
+        termii.send_sms(phone, text)
+    except termii.TermiiError:
+        logger.warning("security_notice_sms_failed")
+
+
+def _not_you() -> str:
+    return f"If this wasn't you, email {settings.SUPPORT_EMAIL} straight away."
+
+
+def start_email_change(user: User, new_email: str, *, client_ip: str = "") -> str:
+    from django.core.exceptions import ValidationError
+    from django.core.validators import validate_email
+
+    new = (new_email or "").strip().lower()
+    try:
+        validate_email(new)
+    except ValidationError as exc:
+        raise ValidationFailure("Enter a valid email address, like name@company.com.") from exc
+    if new == user.email:
+        raise ValidationFailure("That's already your email address.")
+    _limit_sends(new, client_ip)
+    with _minimum_time():
+        if not User.objects.filter(email=new).exclude(pk=user.pk).exists():
+            send_code(user, ChallengePurpose.EMAIL_CHANGE, CodeChannel.EMAIL, email=new)
+    return phones.masked_email(new)
+
+
+def confirm_email_change(user: User, new_email: str, code: str) -> User:
+    new = (new_email or "").strip().lower()
+    user = services.verify_challenge(user, ChallengePurpose.EMAIL_CHANGE, code)
+    old = user.email
+    now = timezone.now()
+    try:
+        with transaction.atomic():
+            User.objects.filter(pk=user.pk).update(email=new, email_verified_at=now, updated_at=now)
+    except IntegrityError as exc:
+        raise ValidationFailure(INVALID) from exc
+    user.bump_credential_version()
+    user.refresh_from_db()
+    audit_service.record(action="auth.email_changed", actor=user, resource_type="user", resource_id=str(user.pk))
+    _notify_email(old, "Your B & A Essentials email address was changed",
+                  f"The email address on your B & A Essentials account was changed to {phones.masked_email(new)}. "
+                  f"From now on, codes and messages go there. {_not_you()}")
+    return user
+
+
+def start_phone_change(user: User, raw_phone: str, *, channel: str = "", client_ip: str = "") -> str:
+    if not phone_channels():
+        raise ValidationFailure("Codes by phone aren't available yet.")
+    new = phones.normalise(raw_phone)
+    if new == user.phone and user.phone_verified:
+        raise ValidationFailure("That's already your phone number.")
+    if channel not in phone_channels():
+        channel = phone_channels()[0]
+    _limit_sends(new, client_ip)
+    with _minimum_time():
+        taken = User.objects.filter(phone=new, phone_verified_at__isnull=False).exclude(pk=user.pk).exists()
+        if not taken:
+            try:
+                send_code(user, ChallengePurpose.PHONE_CHANGE, channel, phone=new)
+            except ValidationFailure:
+                raise ValidationFailure("We couldn't send a code to that number just now. Try again, or choose the other way.")
+    return phones.masked(new)
+
+
+def confirm_phone_change(user: User, new_phone: str, code: str) -> User:
+    new = phones.normalise(new_phone)
+    user = services.verify_challenge(user, ChallengePurpose.PHONE_CHANGE, code)
+    old, old_verified = user.phone, user.phone_verified
+    now = timezone.now()
+    try:
+        with transaction.atomic():
+            User.objects.filter(phone=new, phone_verified_at__isnull=True).exclude(pk=user.pk).update(phone="")
+            User.objects.filter(pk=user.pk).update(phone=new, phone_verified_at=now, updated_at=now)
+    except IntegrityError as exc:
+        raise ValidationFailure(INVALID) from exc
+    user.bump_credential_version()
+    user.refresh_from_db()
+    audit_service.record(action="auth.phone_changed", actor=user, resource_type="user", resource_id=str(user.pk))
+    if old and old_verified and old != new:
+        _notify_phone(old, f"Your B&A Essentials phone number was changed to {phones.masked(new)}. {_not_you()}")
+    _notify_email(user.email, "Your B & A Essentials phone number was changed",
+                  f"The phone number on your account is now {phones.masked(new)}. You can sign in with it. {_not_you()}")
+    return user
+
+
+def remove_phone(user: User) -> User:
+    old, old_verified = user.phone, user.phone_verified
+    if not old:
+        raise ValidationFailure("There's no phone number to remove.")
+    User.objects.filter(pk=user.pk).update(phone="", phone_verified_at=None, code_channel=CodeChannel.EMAIL,
+                                           updated_at=timezone.now())
+    user.bump_credential_version()
+    user.refresh_from_db()
+    audit_service.record(action="auth.phone_removed", actor=user, resource_type="user", resource_id=str(user.pk))
+    if old_verified:
+        _notify_phone(old, f"Your number was removed from your B&A Essentials account. {_not_you()}")
+    _notify_email(user.email, "Your phone number was removed",
+                  f"Your phone number was removed from your B & A Essentials account. Codes now come by email. {_not_you()}")
+    return user
+
+
+def disable_mfa(user: User) -> User:
+    """Clients may turn their optional authenticator off. Staff must keep theirs."""
+    if not user.is_client_account:
+        raise ValidationFailure("Staff accounts must keep their authenticator app.")
+    if not user.mfa_enabled:
+        return user
+    User.objects.filter(pk=user.pk).update(mfa_enabled=False, mfa_secret_encrypted="", mfa_confirmed_at=None,
+                                           mfa_last_timestep=None, updated_at=timezone.now())
+    user.bump_credential_version()
+    user.refresh_from_db()
+    audit_service.record(action="auth.mfa_disabled", actor=user, resource_type="user", resource_id=str(user.pk))
+    _notify_email(user.email, "Authenticator app turned off",
+                  f"The authenticator app was turned off for your B & A Essentials account. {_not_you()}")
+    return user

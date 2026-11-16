@@ -58,6 +58,7 @@ def navigation(request):
         "client_organization": None,
         "staff_role_label": "",
         "unread_notifications": 0,
+        "nav_items": (),
     }
     if user is None or not user.is_authenticated:
         return context
@@ -80,6 +81,7 @@ def navigation(request):
                 continue
             allowed.append((name, label, icon))
         context["staff_nav"] = tuple(allowed)
+        context["nav_items"] = context["staff_nav"]
         context["is_staff_member"] = True
         context["staff_role_label"] = StaffRole(staff_role).label
         return context
@@ -97,4 +99,5 @@ def navigation(request):
             memberships[0].organization,
         )
         context["client_organization"] = selected
+    context["nav_items"] = context["client_nav"] or tuple(n for n in CLIENT_NAV if n[0] == "security-home")
     return context

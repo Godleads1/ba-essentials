@@ -204,6 +204,7 @@ LOGIN_LOCK_SECONDS = env_int("LOGIN_LOCK_SECONDS", 900)
 # One-time codes by SMS and WhatsApp (Termii). Without these, clients get codes by email.
 # The base URL is the one shown in your Termii dashboard; WhatsApp needs Termii to
 # switch on its WhatsApp OTP route and a WhatsApp device name.
+SUPPORT_EMAIL = env("SUPPORT_EMAIL", "support@bandaessentials.com")
 TERMII_API_KEY = env("TERMII_API_KEY", "")
 TERMII_BASE_URL = env("TERMII_BASE_URL", "")
 TERMII_SENDER_ID = env("TERMII_SENDER_ID", "")

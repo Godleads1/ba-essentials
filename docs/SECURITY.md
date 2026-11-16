@@ -62,6 +62,17 @@ silently accepting localhost in production.
   the next sign-up for that email.
 - Clients confirm sensitive actions (step-up) with a fresh code, plus their
   authenticator code if they set one up.
+- Changing the email or phone number needs a fresh step-up, then a code sent
+  to the **new** address or number; the old one gets a notice (email, and SMS
+  for a confirmed old number). A detail another account already uses gets the
+  same answer and no code. Each change bumps the credential version, so other
+  devices are signed out and outstanding codes stop working. Removing the
+  phone and turning the client authenticator on or off also send a notice;
+  turning it off needs a code from the app. Staff can't turn theirs off.
+- "Sign out" on a device, and "Sign out of all other devices", delete the
+  server-side session, not just the list entry; you can only end your own.
+- "Keep me signed in" (clients only): up to 30 days, ending after 7 days
+  without use (`REMEMBER_ME_SECONDS`, `REMEMBER_ME_IDLE_TIMEOUT`).
 - Codes are never logged, put in URLs or kept in plain text; code records are
   deleted after a day by `process_outbox` (Privacy Policy).
 - Passwords (staff) use Django's configured hashers and validators (minimum 12

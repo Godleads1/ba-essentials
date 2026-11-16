@@ -151,6 +151,8 @@ class ChallengePurpose(models.TextChoices):
     SIGN_IN = "sign_in", "Sign in"
     PHONE_VERIFICATION = "phone_verification", "Phone verification"
     STEP_UP = "step_up", "Confirm it's you"
+    EMAIL_CHANGE = "email_change", "Email change"
+    PHONE_CHANGE = "phone_change", "Phone change"
 
 
 class CodeChannel(models.TextChoices):

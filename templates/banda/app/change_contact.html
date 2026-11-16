@@ -1,0 +1,48 @@
+{% extends "banda/app/base.html" %}
+{% block title %}{% if kind == "email" %}Change email{% else %}Phone number{% endif %}{% endblock %}
+{% block content %}
+      <section class="panel mx-auto max-w-[520px] p-5 sm:p-7">
+        <a href="{% url 'security-home' %}" class="text-[13px] font-semibold text-brand-navy underline-offset-2 hover:underline">&larr; Profile &amp; security</a>
+        {% if pending %}
+          <h1 class="mt-3 font-display text-[22px] font-semibold">Enter the code</h1>
+          <p class="mt-1 text-[14px] text-ink-muted">We&rsquo;ve sent a 6-digit code to <strong class="text-ink">{{ pending.to }}</strong>. Enter it to confirm {% if kind == "email" %}this is your new email address{% else %}this number is yours{% endif %}.</p>
+          <form method="post" class="mt-5" novalidate>
+            {% csrf_token %}
+            <label for="code" class="lbl">Code</label>
+            <input id="code" name="code" class="field mt-1.5 text-center font-display text-[20px] tracking-[0.4em]" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required aria-describedby="codeErr" {% if form.errors %}aria-invalid="true"{% endif %} />
+            <div id="codeErr">{% for e in form.code.errors %}<p class="err mt-1">{{ e }}</p>{% endfor %}</div>
+            <div class="mt-5 flex flex-wrap items-center gap-3">
+              <button type="submit" class="btn-next py-2.5 text-[13.5px]">Confirm</button>
+              <a href="?restart=1" class="btn-ghost py-2.5 text-[13.5px]">Use a different {% if kind == "email" %}email{% else %}number{% endif %}</a>
+            </div>
+          </form>
+        {% elif kind == "phone" and not phone_ok %}
+          <h1 class="mt-3 font-display text-[22px] font-semibold">Phone number</h1>
+          <p class="mt-3 rounded-xl bg-pill-navyBg px-4 py-3 text-[13.5px] text-brand-navy">Codes by phone aren&rsquo;t available yet. Your codes come by email for now.</p>
+        {% else %}
+          <h1 class="mt-3 font-display text-[22px] font-semibold">{% if kind == "email" %}Change your email{% elif user.phone %}Change your phone number{% else %}Add a phone number{% endif %}</h1>
+          <p class="mt-1 text-[14px] text-ink-muted">We&rsquo;ll send a code to the new {% if kind == "email" %}address{% else %}number{% endif %} to check it&rsquo;s yours{% if kind == "email" or user.phone %}, and tell the old one about the change{% endif %}.</p>
+          <form method="post" class="mt-5" novalidate>
+            {% csrf_token %}
+            {% if kind == "email" %}
+              <label for="val" class="lbl">New email address</label>
+              <input id="val" name="email" type="email" autocomplete="email" autocapitalize="none" spellcheck="false" class="field mt-1.5" value="{{ value|default:'' }}" required aria-describedby="valErr" {% if error %}aria-invalid="true"{% endif %} />
+            {% else %}
+              <label for="val" class="lbl">{% if user.phone %}New phone or WhatsApp number{% else %}Phone or WhatsApp number{% endif %}</label>
+              <input id="val" name="phone" type="tel" autocomplete="tel" class="field mt-1.5" value="{{ value|default:'' }}" placeholder="0801 234 5678" required aria-describedby="valErr valHelp" {% if error %}aria-invalid="true"{% endif %} />
+              <p id="valHelp" class="mt-1 text-[12.5px] text-ink-muted">Outside Nigeria? Start with + and your country code.</p>
+              <fieldset class="mt-4">
+                <legend class="lbl">Send the code by</legend>
+                <div class="mt-2 grid grid-cols-2 gap-2">
+                  {% for value, label in channels %}
+                    <label class="choice"><input type="radio" name="channel" value="{{ value }}" class="sr-only" {% if forloop.first %}checked{% endif %} /><span>{{ label }}</span></label>
+                  {% endfor %}
+                </div>
+              </fieldset>
+            {% endif %}
+            <p id="valErr" class="err mt-1" {% if not error %}hidden{% endif %}>{{ error }}</p>
+            <div class="mt-5"><button type="submit" class="btn-next py-2.5 text-[13.5px]">Send code</button></div>
+          </form>
+        {% endif %}
+      </section>
+{% endblock %}

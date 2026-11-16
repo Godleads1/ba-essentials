@@ -60,6 +60,13 @@ def _challenge_message(purpose: str) -> tuple[str, str]:
             "It expires in {minutes} minutes and can only be used once. Never share it.\n"
             "If you did not try to sign in, you can ignore this email.",
         )
+    if purpose == ChallengePurpose.EMAIL_CHANGE:
+        return (
+            "Confirm your new email address",
+            "Your code to confirm this as your B & A Essentials email is: {code}\n\n"
+            "It expires in {minutes} minutes. Never share it.\n"
+            "If you did not ask for this, you can ignore this email.",
+        )
     if purpose == ChallengePurpose.STEP_UP:
         return (
             "Confirm it's you",
@@ -82,7 +89,7 @@ def _challenge_message(purpose: str) -> tuple[str, str]:
     )
 
 
-def _send_code_email(user: User, purpose: str, code: str) -> None:
+def _send_code_email(user: User, purpose: str, code: str, to: str = "") -> None:
     subject, body = _challenge_message(purpose)
     minutes = max(1, settings.OTP_TTL_SECONDS // 60)
     try:
@@ -90,7 +97,7 @@ def _send_code_email(user: User, purpose: str, code: str) -> None:
             subject,
             body.format(code=code, minutes=minutes),
             settings.DEFAULT_FROM_EMAIL,
-            [user.email],
+            [to or user.email],
         )
     except Exception:
         logger.exception("challenge_email_failed purpose=%s user=%s", purpose, user.pk)
@@ -320,16 +327,38 @@ def end_session(request) -> None:
     django_logout(request)
 
 
+def _end_django_sessions(keys) -> None:
+    """Actually end the sessions, not just mark them: the device is signed out on its next request."""
+    from django.contrib.sessions.models import Session
+
+    Session.objects.filter(session_key__in=list(keys)).delete()
+
+
 def revoke_session(user: User, session_key: str) -> None:
+    if not UserSession.objects.filter(user=user, session_key=session_key).exists():
+        return  # only your own sessions
     UserSession.objects.filter(user=user, session_key=session_key).update(
         revoked_at=timezone.now()
     )
+    _end_django_sessions([session_key])
     audit_service.record(
         action="auth.session_revoked",
         actor=user,
         resource_type="session",
         resource_id=session_key[-8:],
     )
+
+
+def revoke_other_sessions(user: User, keep_session_key: str) -> int:
+    keys = list(
+        UserSession.objects.filter(user=user, revoked_at__isnull=True)
+        .exclude(session_key=keep_session_key).values_list("session_key", flat=True)
+    )
+    UserSession.objects.filter(session_key__in=keys).update(revoked_at=timezone.now())
+    _end_django_sessions(keys)
+    audit_service.record(action="auth.other_sessions_revoked", actor=user, resource_type="user",
+                         resource_id=str(user.pk), metadata={"count": len(keys)})
+    return len(keys)
 
 
 def _password_reused(user: User, new_password: str) -> bool:
