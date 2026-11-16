@@ -1,0 +1,41 @@
+/* "Need Counselling?" button and panel (client workspace pages). */
+
+  .bc-help{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));z-index:60;font:14px/1.5 Inter,system-ui,sans-serif;color:#241A15}
+  .bc-help-btn{display:inline-flex;align-items:center;gap:9px;border:0;border-radius:999px;background:#1C1712;color:#fff;padding:12px 18px 12px 14px;font:600 14px/1 Inter,system-ui,sans-serif;cursor:pointer;box-shadow:0 18px 36px -16px rgba(28,23,18,.6),0 0 0 4px rgba(255,255,255,.65)}
+  .bc-help-btn:hover{background:#3B251C}
+  .bc-help-btn:focus-visible,.bc-help a:focus-visible,.bc-help button:focus-visible{outline:2px solid #D9662E;outline-offset:3px}
+  .bc-help-btn .bc-ic{width:20px;height:20px;color:#F0A77C;flex:none}
+  .bc-help-panel{position:absolute;right:0;bottom:calc(100% + 12px);width:min(360px,calc(100vw - 32px));max-height:calc(100vh - 110px);overflow:auto;border-radius:20px;background:#fff;border:1px solid #ECE5DA;box-shadow:0 30px 60px -24px rgba(28,23,18,.45);padding:18px 18px 14px;animation:bcUp .22s cubic-bezier(.22,1,.36,1)}
+  @keyframes bcUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){.bc-help-panel{animation:none}}
+  .bc-help-head{display:flex;align-items:flex-start;gap:10px}
+  .bc-help-title{margin:0;font:600 18px/1.25 Lexend,Inter,system-ui,sans-serif;letter-spacing:-.01em;flex:1}
+  .bc-help-close{display:grid;place-items:center;width:32px;height:32px;margin:-4px -6px 0 0;border:0;border-radius:999px;background:transparent;color:#5C534D;cursor:pointer}
+  .bc-help-close:hover{background:#F4EFE6}
+  .bc-help-close svg{width:18px;height:18px}
+  .bc-help-sub{margin:4px 0 0;color:#5C534D;font-size:13.5px}
+  .bc-card{margin-top:12px;border:1px solid #ECE5DA;border-radius:16px;padding:14px}
+  .bc-card-h{display:flex;align-items:center;gap:10px}
+  .bc-card-ic{display:grid;place-items:center;width:34px;height:34px;border-radius:999px;flex:none}
+  .bc-card-ic svg{width:18px;height:18px}
+  .bc-card h3{margin:0;font:600 15px/1.3 Lexend,Inter,system-ui,sans-serif}
+  .bc-card p{margin:6px 0 0;color:#5C534D;font-size:13px}
+  .bc-addr{display:flex;align-items:center;gap:8px;margin-top:10px;border-radius:12px;background:#FBF9F5;padding:8px 8px 8px 12px}
+  .bc-addr span{flex:1;min-width:0;overflow-wrap:break-word;font-weight:500;font-size:13.5px;color:#241A15}
+  .bc-mini{border:1px solid #ECE5DA;border-radius:999px;background:#fff;padding:6px 12px;font:600 12.5px/1 Inter,system-ui,sans-serif;color:#33397F;cursor:pointer;white-space:nowrap}
+  .bc-mini:hover{border-color:#33397F}
+  .bc-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .bc-go{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:12px;padding:9px 14px;font:600 13.5px/1 Inter,system-ui,sans-serif;text-decoration:none;cursor:pointer;border:0}
+  .bc-go--navy{background:#33397F;color:#fff}.bc-go--navy:hover{background:#2A2F6B}
+  .bc-go--cta{background:#BE5928;color:#fff}.bc-go--cta:hover{background:#A34A1F}
+  .bc-go--line{background:#fff;color:#33397F;border:1px solid #ECE5DA}.bc-go--line:hover{border-color:#33397F}
+  .bc-soon{display:inline-block;margin-top:10px;border-radius:999px;background:#F4EFE6;padding:5px 10px;font-size:12.5px;font-weight:500;color:#5C534D}
+  .bc-foot{margin:12px 2px 0;font-size:12px;color:#5C534D}
+  .bc-foot b{color:#241A15}
+  @media (max-width:639px){.bc-help-btn{padding:12px 16px 12px 13px}}
+  @media print{.bc-help{display:none}}
+  
+  .bc-card-ic--navy{background:#ECEDF8;color:#33397F}
+  .bc-card-ic--orange{background:#FDF0E8;color:#AD4C1D}
+  .bc-when{color:#241A15 !important;font-weight:500}
+  .bc-vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
