@@ -1,0 +1,103 @@
+/* banda sign-in pages: the page styles from the design preview (login.html),
+   plus the fonts served from the app itself (the security policy blocks Google Fonts).
+   Inter and Lexend are under the SIL Open Font License (see fonts/). */
+@font-face { font-family: Inter; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/inter-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: Inter; font-style: normal; font-weight: 500; font-display: swap; src: url("fonts/inter-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: Inter; font-style: normal; font-weight: 600; font-display: swap; src: url("fonts/inter-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: Inter; font-style: normal; font-weight: 800; font-display: swap; src: url("fonts/inter-latin-800-normal.woff2") format("woff2"); }
+@font-face { font-family: Lexend; font-style: normal; font-weight: 500; font-display: swap; src: url("fonts/lexend-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: Lexend; font-style: normal; font-weight: 600; font-display: swap; src: url("fonts/lexend-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: Lexend; font-style: normal; font-weight: 700; font-display: swap; src: url("fonts/lexend-latin-700-normal.woff2") format("woff2"); }
+
+    html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { scrollbar-width: none; }
+
+    /* ---------- banda logo (HTML/CSS, crisp at any size) ---------- */
+    .logo { display: inline-flex; flex-direction: column; align-items: flex-start; font-size: 36px; line-height: 1; text-decoration: none; }
+    .logo-word { font-family: Inter, system-ui, sans-serif; font-weight: 800; line-height: .82; letter-spacing: -.035em; color: var(--logo-word, #1C1712); }
+    .logo-b { position: relative; display: inline-block; }
+    .logo-dot { position: absolute; left: .215em; top: .43em; width: .18em; height: .18em; border-radius: 50%; background: #D9662E; transition: transform .35s cubic-bezier(.34,1.56,.64,1); }
+    .logo:hover .logo-dot { transform: scale(1.18); }
+    .logo-tag { font-family: Inter, system-ui, sans-serif; font-weight: 600; font-size: .2em; letter-spacing: .5em; margin-top: .55em; white-space: nowrap; color: var(--logo-tag, #33397F); }
+    .logo-tag .amp { color: #D9662E; letter-spacing: .3em; }
+    .logo--light { --logo-word: #FDFBF6; --logo-tag: #B8BBE6; }
+    /* large lockup (hero/brand use) keeps the original airy tagline */
+    .logo--lg .logo-tag { font-weight: 500; font-size: .172em; letter-spacing: .66em; margin-top: .62em; }
+
+    /* ---------- motion ---------- */
+    .reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s ease, transform .6s ease; }
+    .reveal.in { opacity: 1; transform: none; }
+    .bar { width: 0; transition: width 1.2s cubic-bezier(.22,1,.36,1) .3s; }
+    .float { animation: float 7s ease-in-out infinite; }
+    @keyframes float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-6px) } }
+    .hero-underline path { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .9s cubic-bezier(.22,1,.36,1) .5s; }
+    .reveal.in .hero-underline path { stroke-dashoffset: 0; }
+    /* Log in: on laptop and desktop screens the whole page, quote card included,
+       fits in the window with no scrolling. Every size scales with the window
+       height, so it holds from short laptop windows (about 540px tall) upwards. */
+    @media (min-width: 1024px) {
+      .fit { height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; }
+      .fit > * { min-height: 0; padding-block: clamp(18px, 4.2vh, 48px); }
+      .fit .logo { font-size: clamp(28px, 4.6vh, 44px) !important; }
+      .fit h1 { font-size: clamp(24px, 5vh, 46px); margin-top: clamp(12px, 3.4vh, 40px); }
+      .fit .lede { font-size: clamp(13.5px, 2vh, 18px); margin-top: clamp(6px, 1.6vh, 20px); line-height: 1.45; }
+      .fit .feats { margin-top: clamp(12px, 3vh, 34px); }
+      .fit .feats > li + li { margin-top: clamp(6px, 1.7vh, 20px); }
+      .fit .feats .ico { width: clamp(32px, 5vh, 48px); height: clamp(32px, 5vh, 48px); }
+      .fit .feats .ico svg { width: clamp(15px, 2.1vh, 20px); height: clamp(15px, 2.1vh, 20px); }
+      .fit .feats .t { font-size: clamp(13.5px, 1.95vh, 17px); line-height: 1.25; }
+      .fit .feats .d { font-size: clamp(12px, 1.6vh, 14px); line-height: 1.35; }
+      .fit .quote { padding: clamp(12px, 2.4vh, 24px) clamp(16px, 2.4vh, 24px); margin-top: auto; }
+      .fit .feats { margin-bottom: clamp(12px, 3vh, 40px); }
+      .fit .quote .qi { width: clamp(20px, 3vh, 28px); height: clamp(20px, 3vh, 28px); }
+      .fit .quote blockquote { font-size: clamp(12.5px, 1.75vh, 15px); line-height: 1.5; }
+      .fit .quote figcaption { margin-top: clamp(8px, 1.8vh, 20px); }
+      .fit .quote .av { width: clamp(30px, 4.4vh, 40px); height: clamp(30px, 4.4vh, 40px); font-size: clamp(9.5px, 1.3vh, 11px); }
+      .fit .quote .qn { font-size: clamp(12.5px, 1.7vh, 14px); }
+      .fit .quote .qr { font-size: clamp(11.5px, 1.5vh, 12.5px); }
+      .fit .tagline { margin-bottom: 0; }
+      .fit .formwrap { padding-block: 0; }
+      .fit .formwrap h2 { font-size: clamp(25px, 4.3vh, 38px); }
+      .fit .formwrap .sub { font-size: clamp(13.5px, 1.9vh, 16.5px); }
+      .fit form { margin-top: clamp(14px, 3.4vh, 36px); }
+      .fit form label { font-size: clamp(13px, 1.75vh, 14px); }
+      .fit form input:not([type=checkbox]) { padding-block: clamp(8px, 1.5vh, 14px); font-size: clamp(14px, 1.8vh, 15px); }
+      .fit form .gap { margin-top: clamp(9px, 2vh, 20px); }
+      .fit form .submit { margin-top: clamp(12px, 2.7vh, 28px); padding-block: clamp(10px, 1.8vh, 16px); }
+      .fit .signup { margin-top: clamp(10px, 2.6vh, 32px); }
+    }
+    /* Square grid: thin lines forming squares, faded out towards the edges. */
+    .grid-lines {
+      --gl: rgba(51,57,127,.12);
+      --cell: 64px;
+      background-image:
+        linear-gradient(to right, var(--gl) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--gl) 1px, transparent 1px);
+      background-size: var(--cell) var(--cell);
+      background-position: center top;
+    }
+    .grid-lines--light { --gl: rgba(255,255,255,.085); }
+    .grid-fade {
+      -webkit-mask-image: radial-gradient(ellipse 72% 68% at 50% 42%, #000 35%, transparent 78%);
+              mask-image: radial-gradient(ellipse 72% 68% at 50% 42%, #000 35%, transparent 78%);
+    }
+    /* a few squares filled in, like the reference */
+    .grid-cell { position: absolute; width: var(--cell, 64px); height: var(--cell, 64px); background: rgba(51,57,127,.035); }
+    .chan span { display: block; border-radius: 12px; border: 1.5px solid #ECE5DA; background: #fff; padding: 11px 6px; text-align: center; font-size: 14.5px; font-weight: 500; cursor: pointer; transition: all .15s; }
+    .chan input:checked + span { border-color: #33397F; background: #ECEDF8; color: #33397F; font-weight: 600; }
+    .chan input:focus-visible + span { outline: 2px solid #33397F; outline-offset: 2px; }
+    [hidden] { display: none !important; }
+    .dot-grid { background-image: radial-gradient(rgba(51,57,127,.13) 1px, transparent 1px); background-size: 18px 18px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .reveal { opacity: 1; transform: none; }
+      .hero-underline path { stroke-dashoffset: 0; }
+    }
+  
+/* Server-rendered messages and errors */
+.errorlist { margin: 6px 0 0; padding: 0; list-style: none; font-size: 13px; font-weight: 500; color: #B42318; }
+.chan-sms-only .chan span { padding-inline: 10px; }
+.fit form.link-form { margin-top: 0; }

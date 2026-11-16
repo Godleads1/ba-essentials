@@ -1,0 +1,88 @@
+{% load static %}<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}Log in{% endblock %} · B &amp; A Essentials</title>
+  <meta name="robots" content="noindex" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='14'%20fill='%231C1712'/%3E%3Cpath%20d='M17%209h9v17a13%2013%200%201%201-9%2012z'%20fill='%23FDFBF6'/%3E%3Ccircle%20cx='39'%20cy='39'%20r='7'%20fill='%231C1712'/%3E%3Ccircle%20cx='31'%20cy='40'%20r='5'%20fill='%23D9662E'/%3E%3C/svg%3E" />
+  <link rel="preload" href="{% static 'banda/fonts/inter-latin-400-normal.woff2' %}" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="{% static 'banda/auth.css' %}" />
+  <!-- The design preview's own stylesheet, used as built. Loaded last so utilities win. -->
+  <link rel="stylesheet" href="{% static 'banda/app.css' %}" />
+</head>
+
+<body class="bg-cream-light font-sans text-ink antialiased">
+  <div class="{% block fit %}fit {% endblock %}grid min-h-screen lg:grid-cols-[1.22fr_1fr]">
+
+    <aside class="relative overflow-hidden bg-cocoa-deep px-6 py-8 text-white sm:px-10 lg:px-14 lg:py-12">
+      <div aria-hidden="true" class="grid-lines grid-lines--light pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_80%_75%_at_30%_40%,black,transparent_80%)]"></div>
+      <!-- rings and sun, cut off by the panel edge -->
+      <div aria-hidden="true" class="pointer-events-none absolute right-0 top-[38%] hidden translate-x-1/2 -translate-y-1/2 lg:block">
+        <span class="absolute left-1/2 top-1/2 h-[480px] w-[480px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-brand-orange/50"></span>
+        <span class="absolute left-1/2 top-1/2 h-[330px] w-[330px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-brand-orange/50"></span>
+        <span class="absolute left-1/2 top-1/2 h-[112px] w-[112px] -translate-x-[62%] -translate-y-1/2 rounded-full bg-brand-orange"></span>
+      </div>
+
+      <div class="relative flex h-full flex-col">
+        <a href="{% url 'landing' %}" class="logo logo--light" style="font-size:44px" aria-label="banda, B and A Essentials, home">
+          <span class="logo-word" aria-hidden="true"><span class="logo-b">b<i class="logo-dot"></i></span>anda</span>
+          <span class="logo-tag" aria-hidden="true">B<span class="amp">&amp;</span>A ESSENTIALS</span>
+        </a>
+
+        <h1 class="mt-8 max-w-[12.6em] font-display text-[30px] font-semibold leading-[1.1] tracking-[-0.02em] sm:text-[40px]">
+          Get your business tasks done &mdash; <span class="whitespace-nowrap text-[#F0A77C]">the easy way.</span>
+        </h1>
+        <p class="lede mt-5 max-w-[340px] text-[16px] leading-relaxed text-white/75">Professional support, real people. Reliable results.</p>
+
+        <ul class="feats hidden lg:block">
+          <li class="flex items-center gap-4">
+            <span class="ico grid h-12 w-12 shrink-0 place-items-center rounded-full bg-brand-navy text-white"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-file-text h-5 w-5"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path><path d="M14 2v5a1 1 0 0 0 1 1h5"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg></span>
+            <span><span class="t block font-display text-[17px] font-semibold text-white">Vetted Specialists</span><span class="d mt-0.5 block text-[14px] text-white/70">Skilled professionals, carefully selected.</span></span>
+          </li>
+          <li class="flex items-center gap-4">
+            <span class="ico grid h-12 w-12 shrink-0 place-items-center rounded-full bg-brand-navy text-white"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-shield h-5 w-5"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path></svg></span>
+            <span><span class="t block font-display text-[17px] font-semibold text-white">Secure &amp; Confidential</span><span class="d mt-0.5 block text-[14px] text-white/70">Stored privately, seen only by your task team.</span></span>
+          </li>
+          <li class="flex items-center gap-4">
+            <span class="ico grid h-12 w-12 shrink-0 place-items-center rounded-full bg-brand-navy text-white"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-clock h-5 w-5"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg></span>
+            <span><span class="t block font-display text-[17px] font-semibold text-white">On-Time Delivery</span><span class="d mt-0.5 block text-[14px] text-white/70">We keep your business moving.</span></span>
+          </li>
+          <li class="flex items-center gap-4">
+            <span class="ico grid h-12 w-12 shrink-0 place-items-center rounded-full bg-brand-navy text-white"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-badge-check h-5 w-5"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"></path><path d="m16 9-5.5 5.5L8 12"></path></svg></span>
+            <span><span class="t block font-display text-[17px] font-semibold text-white">Quality Checked</span><span class="d mt-0.5 block text-[14px] text-white/70">We review before you receive.</span></span>
+          </li>
+        </ul>
+
+        <!-- Message from the team. Swap for a real, consented client quote when you have one. -->
+        <figure class="quote hidden max-w-[470px] rounded-2xl border border-white/15 bg-white/[.06] p-6 lg:mt-auto lg:block">
+          <div class="flex gap-4">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote qi h-7 w-7 shrink-0 text-[#F0A77C]" aria-hidden="true"><path d="M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"></path><path d="M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"></path></svg>
+            <blockquote class="text-[15px] leading-relaxed text-white/90">Tell us what you need. A real person does the work, and a second person checks it before it reaches you.</blockquote>
+          </div>
+          <figcaption class="mt-5 flex items-center gap-3">
+            <span class="av grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand-navy text-[11px] font-bold text-white">B&amp;A</span>
+            <span><span class="qn block text-[14px] font-semibold text-white">The B &amp; A Essentials team</span><span class="qr block text-[12.5px] text-white/60">How we work</span></span>
+          </figcaption>
+        </figure>
+      </div>
+    </aside>
+
+    <main class="flex flex-col px-6 py-8 sm:px-10 lg:px-14 lg:py-12">
+      <p class="tagline hidden items-center gap-3 self-end text-[14px] text-ink-muted lg:flex"><span class="h-4 w-[3px] rounded bg-brand-orange"></span>Your business. Our priority.</p>
+
+      <div class="formwrap mx-auto my-auto w-full max-w-[440px] py-6">
+        {% if messages %}
+          <div class="mb-4 space-y-2" role="status">
+            {% for message in messages %}
+              <p class="rounded-lg {% if message.level_tag == 'error' %}bg-pill-orangeBg text-brand-orangeDark{% else %}bg-pill-navyBg text-brand-navy{% endif %} px-4 py-3 text-[13.5px]">{{ message }}</p>
+            {% endfor %}
+          </div>
+        {% endif %}
+        {% block form %}{% endblock %}
+      </div>
+    </main>
+  </div>
+  <script src="{% static 'banda/auth.js' %}"></script>
+</body>
+</html>

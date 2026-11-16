@@ -1,0 +1,40 @@
+{% extends "banda/auth/base.html" %}
+{% block title %}Log in{% endblock %}
+{% block form %}
+        <h2 class="font-display text-[34px] font-semibold leading-tight tracking-[-0.02em] sm:text-[38px]"> Welcome back</h2>
+        <p class="sub mt-1.5 text-[16.5px] text-ink-muted">Log in to your B &amp; A Essentials account</p>
+
+        <!-- Sign in with a one-time code. No passwords. -->
+        <form method="post" class="mt-9" novalidate>
+          {% csrf_token %}
+          <label for="ident" class="block text-[14px] font-semibold">{% if phone_ok %}Phone, WhatsApp number or email{% else %}Email{% endif %}</label>
+          <div class="relative mt-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-at-sign pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-ink-soft"><circle cx="12" cy="12" r="4"></circle><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"></path></svg>
+            <input id="ident" name="identifier" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required value="{{ form.identifier.value|default:'' }}" placeholder="{% if phone_ok %}0801 234 5678 or you@company.com{% else %}you@company.com{% endif %}" aria-describedby="identError" {% if form.errors %}aria-invalid="true"{% endif %} class="w-full rounded-xl border border-cream-line bg-white py-3.5 pl-12 pr-4 text-[15px] text-ink placeholder:text-ink-soft transition focus:border-brand-navy focus:outline-none focus:ring-4 focus:ring-brand-navy/10 aria-[invalid=true]:border-red-600" />
+          </div>
+          <p id="identError" class="mt-1.5 text-[13px] font-medium text-red-700" aria-live="polite" {% if not form.non_field_errors %}hidden{% endif %}><span id="identMsg">{% for e in form.non_field_errors %}{{ e }}{% endfor %}</span> <button type="button" id="identFix" class="font-semibold text-brand-navy underline underline-offset-2 hover:no-underline" hidden></button></p>
+
+          {% if phone_ok %}
+          <fieldset id="chanSet" class="gap mt-5">
+            <legend class="block text-[14px] font-semibold">Send my code by</legend>
+            <div class="mt-2 grid grid-cols-2 gap-2">
+              {% for value, label in form.fields.channel.choices %}
+                <label class="chan"><input type="radio" name="channel" value="{{ value }}" class="sr-only" {% if form.channel.value == value or not form.channel.value and forloop.first %}checked{% endif %} /><span>{% if value == "sms" %}SMS{% else %}{{ label }}{% endif %}</span></label>
+              {% endfor %}
+            </div>
+          </fieldset>
+          {% endif %}
+
+          <label class="gap mt-5 flex cursor-pointer items-center gap-2.5 text-[14px] text-ink">
+            <input type="checkbox" name="remember" {% if form.remember.value %}checked{% endif %} class="h-[18px] w-[18px] rounded border-cream-line accent-[#33397F]" />
+            Keep me signed in on this device
+          </label>
+
+          <button type="submit" class="submit group mt-7 flex w-full items-center justify-center gap-2.5 rounded-xl bg-brand-cta py-4 text-[15.5px] font-semibold text-white shadow-lg shadow-brand-orange/25 transition hover:bg-brand-ctaDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">
+            Send my code <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-[18px] w-[18px] transition-transform group-hover:translate-x-0.5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+          </button>
+        </form>
+
+        <p class="signup mt-8 text-center text-[14.5px] text-ink-muted">Don't have an account? <a href="{% url 'signup' %}" class="font-semibold text-brand-navy underline-offset-4 hover:underline">Sign up</a></p>
+        <p class="mt-4 text-center text-[12.5px] text-ink-muted"><a href="{% url 'staff-login' %}" class="hover:text-ink hover:underline">Staff log in</a></p>
+{% endblock %}

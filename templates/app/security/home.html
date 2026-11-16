@@ -19,7 +19,7 @@
             <legend class="text-xs font-medium text-slate-600">Send codes to confirm it&rsquo;s me by</legend>
             <div class="mt-2 flex flex-wrap gap-2">
               {% for radio in channel_form.channel %}
-                <label class="flex cursor-pointer items-center gap-2 rounded-xl border border-slate-300 px-3 py-1.5 text-sm text-slate-700 has-[:checked]:border-emerald-600 has-[:checked]:bg-emerald-50">{{ radio.tag }} {{ radio.choice_label }}</label>
+                <label class="flex cursor-pointer items-center gap-2 rounded-xl border border-slate-300 px-3 py-1.5 text-sm text-slate-700">{{ radio.tag }} {{ radio.choice_label }}</label>
               {% endfor %}
             </div>
           </fieldset>

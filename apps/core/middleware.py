@@ -96,7 +96,9 @@ class SessionValidationMiddleware:
 
         now = int(time.time())
         last_seen = session.get("last_seen")
-        if last_seen and now - int(last_seen) > settings.SESSION_IDLE_TIMEOUT:
+        # "Keep me signed in" (clients only) allows a longer quiet spell; see settings.
+        idle_limit = settings.REMEMBER_ME_IDLE_TIMEOUT if session.get("remember") else settings.SESSION_IDLE_TIMEOUT
+        if last_seen and now - int(last_seen) > idle_limit:
             logout(request)
             return self._expired(request)
 
