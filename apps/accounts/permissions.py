@@ -79,10 +79,12 @@ ROLE_PERMISSIONS: dict[str, frozenset[str]] = {
     # Specialists only ever see their own assigned case; that is enforced by
     # assignment lookups, not by a broad "view all" permission.
     StaffRole.SPECIALIST: frozenset(),
-    StaffRole.REVIEWER: frozenset({TASK_VIEW_ALL, REVIEW_DECIDE, FILES_VIEW_ALL}),
-    StaffRole.SUPPORT: frozenset({TASK_VIEW_ALL, CLIENT_VIEW, SUPPORT_HANDLE}),
+    # Reviewers, support and finance don't get TASK_VIEW_ALL: what they may open
+    # is worked out per request in apps/tasks/access.py (need to know).
+    StaffRole.REVIEWER: frozenset({REVIEW_DECIDE, FILES_VIEW_ALL}),
+    StaffRole.SUPPORT: frozenset({CLIENT_VIEW, SUPPORT_HANDLE}),
     StaffRole.FINANCE: frozenset(
-        {FINANCE_VIEW, FINANCE_VERIFY_PAYMENT, CLIENT_VIEW, TASK_VIEW_ALL, FEES_APPROVE, FEES_SETTLE}
+        {FINANCE_VIEW, FINANCE_VERIFY_PAYMENT, CLIENT_VIEW, FEES_APPROVE, FEES_SETTLE}
     ),
     StaffRole.ADMIN: ALL_PERMISSIONS,
     StaffRole.WEBSITE_EDITOR: frozenset({WEBSITE_EDIT}),

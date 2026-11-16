@@ -105,8 +105,16 @@ without authorization and a rollback procedure.
 
 - Client queries are scoped to the active organization membership in the access
   layer, not only in views.
-- Staff visibility is permission-based; specialists only see requests with an
-  active assignment to them.
+- Staff see a client's request (brief, messages, files) only on a need-to-know
+  basis (`apps/tasks/access.py`): operations, quote approvers and administrators
+  see all; specialists their active assignments; reviewers requests in review;
+  support requests from businesses whose open tickets they handle (access ends
+  when the ticket is resolved); finance only a request's invoices, fees and fee
+  evidence, never its contents. Deactivated staff see nothing.
+- Every staff look at client data is in the audit log: `staff.task_opened` (with
+  the client organisation and whether it was the full or money-only view) and
+  `staff.list_viewed` for queues, lists, searches, the finance page, support
+  tickets and the audit log itself. Search words are not stored.
 - `available_actions()` is a rendering projection. Every mutation re-checks
   authorization in the service layer.
 - Cross-tenant task, quote, file, and download access is covered by regression
