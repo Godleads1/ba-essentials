@@ -24,8 +24,8 @@ from apps.accounts.permissions import (
 )
 from apps.audit.models import AuditEvent
 from apps.billing import fees
-from apps.billing.plan_rules import outside_plan_region
 from apps.billing.models import FeeRequest, Invoice
+from apps.billing.plan_rules import outside_plan_region
 from apps.communications import services as communications
 from apps.core.countries import choices as country_choices
 from apps.core.countries import name_for as country_name
@@ -36,17 +36,18 @@ from apps.organizations.models import AccountFlag, Organization
 from apps.quotes.forms import QuoteForm
 from apps.reviews.models import DeliverableVersion, DeliverableVersionStatus
 from apps.tasks import services
-from apps.tasks.access import can_view_task, tasks_for
+from apps.tasks.access import can_view_task, can_view_task_money, tasks_for
 from apps.tasks.models import (
+    OPEN_STATUSES,
     Assignment,
     AssignmentStatus,
-    OPEN_STATUSES,
     Task,
     TaskStatus,
     TaskStatusEvent,
 )
 from apps.tasks.transitions import Action, available_actions
 
+from . import staff_access
 from .forms import AssignForm, WorkLogForm
 
 ACTIVE_GROUPS = {
@@ -102,6 +103,7 @@ def dashboard(request):
         .select_related("task", "actor")
         .order_by("-created_at")[:12]
     )
+    staff_access.log_list(request, "dashboard", count=len(events))
     return render(
         request,
         "staff/dashboard.html",
@@ -132,11 +134,13 @@ def queue(request):
             assignments__specialist=request.user,
             assignments__status=AssignmentStatus.ACTIVE,
         )
+    rows = list(tasks.distinct()[:200])
+    staff_access.log_list(request, "queue", count=len(rows), searched=bool(query))
     return render(
         request,
         "staff/queue.html",
         {
-            "tasks": tasks.distinct()[:200],
+            "tasks": rows,
             "statuses": TaskStatus.choices,
             "selected_status": status,
             "query": query,
@@ -154,7 +158,15 @@ def _is_paused(organization):
 @staff_required
 @require_GET
 def task_detail(request, task_id):
+    task = (
+        Task.objects.filter(pk=task_id)
+        .select_related("organization", "created_by", "service_version__definition")
+        .first()
+    )
+    if task is not None and not can_view_task(request.user, task) and can_view_task_money(request.user, task):
+        return _task_money(request, task)
     task = _task(request, task_id)
+    staff_access.log_task_opened(request, task, view="full")
     actions = available_actions(task, request.user)
     assignment = task.active_assignment
     deliverable = getattr(task, "deliverable", None)
@@ -223,6 +235,25 @@ def task_detail(request, task_id):
             ),
         },
     )
+
+
+def _task_money(request, task):
+    """Finance: the request's invoices and third-party fees, without its contents."""
+    staff_access.log_task_opened(request, task, view="money")
+    fee_requests = list(
+        FeeRequest.objects.filter(task=task)
+        .select_related("invoice", "prepared_by", "approved_by")
+        .prefetch_related("lines__evidence", "lines__receipt")
+    )
+    return render(request, "staff/task_money.html", {
+        "task": task,
+        "invoices": Invoice.objects.filter(task=task).order_by("-issued_at"),
+        "fee_requests": fee_requests,
+        "fees_open": fees.has_open_fees(task),
+        "can_prepare_fees": False,
+        "can_approve_fees": has_perm(request.user, FEES_APPROVE),
+        "can_settle_fees": has_perm(request.user, FEES_SETTLE),
+    })
 
 
 def _run(request, task_id, func):
@@ -391,6 +422,7 @@ def clients(request):
         )
         .order_by("name")[:200]
     )
+    staff_access.log_list(request, "clients", count=len(organizations))
     return render(request, "staff/clients.html", {"organizations": organizations})
 
 
@@ -403,6 +435,7 @@ def needs_information(request):
         .select_related("organization", "service_version__definition")
         .order_by("updated_at")[:200]
     )
+    staff_access.log_list(request, "needs_information", count=len(tasks))
     return render(request, "staff/needs_information.html", {"tasks": tasks})
 
 
@@ -431,6 +464,7 @@ def scoping_queue(request):
                 "version": quote.versions.first() if quote is not None else None,
             }
         )
+    staff_access.log_list(request, "scoping", count=len(rows))
     return render(request, "staff/scoping.html", {"rows": rows})
 
 
@@ -477,6 +511,7 @@ def workload(request):
         .select_related("organization", "service_version__definition")
         .order_by("due_date")[:50]
     )
+    staff_access.log_list(request, "workload", count=len(ready))
     return render(
         request,
         "staff/workload.html",
@@ -520,6 +555,7 @@ def deliverables_queue(request):
                 "version_count": counts.get(deliverable_id, 0),
             }
         )
+    staff_access.log_list(request, "deliverables", count=len(rows))
     return render(request, "staff/deliverables.html", {"rows": rows})
 
 
@@ -537,6 +573,7 @@ def my_cases(request):
         .select_related("task", "task__organization")
         .order_by("-completed_at")[:20]
     )
+    staff_access.log_list(request, "my_cases", count=len(assignments))
     return render(
         request,
         "staff/my_cases.html",
@@ -567,11 +604,13 @@ def audit_log(request):
     actions = (
         AuditEvent.objects.values_list("action", flat=True).distinct().order_by("action")
     )
+    events = list(events[:200])
+    staff_access.log_list(request, "audit_log", count=len(events), searched=bool(query))
     return render(
         request,
         "staff/audit.html",
         {
-            "events": events[:200],
+            "events": events,
             "actions": actions,
             "result_choices": AuditEvent.Result.choices,
             "selected_action": action,

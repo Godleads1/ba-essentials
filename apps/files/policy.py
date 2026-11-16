@@ -71,9 +71,12 @@ def can_view_file(user, private_file: PrivateFile) -> bool:
         .first()
     )
     if line is not None:
+        from apps.tasks.access import can_view_task_money
+
         task = line.fee_request.task
         if getattr(user, "staff_role", ""):
-            return can_view_task(user, task)
+            # Fee evidence and receipts are money records: finance may see them.
+            return can_view_task_money(user, task)
         if membership_for(user, task.organization_id) is None:
             return False
         # Clients see fee evidence and receipts once a second person has approved the fees.

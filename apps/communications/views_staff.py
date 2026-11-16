@@ -15,6 +15,7 @@ from apps.accounts.permissions import SUPPORT_HANDLE
 from apps.core import ratelimit
 from apps.core.exceptions import DomainError, ValidationFailure
 from apps.core.views import handle_domain_error
+from apps.operations import staff_access
 from apps.tasks.access import can_view_task
 from apps.tasks.models import Task
 
@@ -51,11 +52,13 @@ def support_queue(request):
             ),
         ),
     )
+    rows = list(tickets.order_by("-last_message_at")[:200])
+    staff_access.log_list(request, "support", count=len(rows))
     return render(
         request,
         "staff/support.html",
         {
-            "tickets": tickets.order_by("-last_message_at")[:200],
+            "tickets": rows,
             "counts": counts,
             "statuses": SupportTicketStatus.choices,
             "selected_status": status,
@@ -113,6 +116,7 @@ def support_detail(request, ticket_id):
             )
         return redirect("staff-support-detail", ticket_id=ticket.pk)
 
+    staff_access.log_list(request, "support_ticket", count=1, organization=ticket.organization)
     agents = User.objects.filter(
         staff_role__in=[StaffRole.SUPPORT, StaffRole.OPERATIONS, StaffRole.ADMIN],
         is_active=True,

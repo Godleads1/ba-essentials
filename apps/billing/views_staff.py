@@ -40,6 +40,9 @@ def finance_home(request):
         .select_related("invoice", "invoice__organization")
         .order_by("-updated_at")[:50]
     )
+    from apps.operations import staff_access
+
+    staff_access.log_list(request, "finance", count=len(issued) + len(recent_paid) + len(refunds_due))
     return render(
         request,
         "staff/finance.html",
@@ -84,11 +87,12 @@ def verify_payment(request, invoice_id):
 # ---------- third-party fees ----------
 
 def _staff_task(request, task_id):
-    from apps.tasks.access import can_view_task
+    from apps.tasks.access import can_view_task_money
     from apps.tasks.models import Task
 
     task = Task.objects.filter(pk=task_id).select_related("organization").first()
-    if task is None or not can_view_task(request.user, task):
+    # Finance handles fees without seeing the request's contents.
+    if task is None or not can_view_task_money(request.user, task):
         raise Http404("Request not found")
     return task
 

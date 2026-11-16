@@ -9,6 +9,7 @@ from apps.accounts.decorators import staff_permission_required
 from apps.accounts.permissions import REVIEW_DECIDE, TASK_RELEASE
 from apps.core.exceptions import DomainError
 from apps.core.views import handle_domain_error
+from apps.operations import staff_access
 from apps.tasks.access import can_view_task
 from apps.tasks.models import Task
 
@@ -34,6 +35,7 @@ def review_queue(request):
         )
         .order_by("created_at")
     )
+    staff_access.log_list(request, "reviews", count=len(versions))
     return render(
         request,
         "staff/reviews.html",
