@@ -3,13 +3,16 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>{% block title %}Workspace{% endblock %} · B &amp; A Essentials</title>
+  <title>{% block full_title %}{% block title %}Workspace{% endblock %} · B &amp; A Essentials{% endblock %}</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='14'%20fill='%231C1712'/%3E%3Cpath%20d='M17%209h9v17a13%2013%200%201%201-9%2012z'%20fill='%23FDFBF6'/%3E%3Ccircle%20cx='39'%20cy='39'%20r='7'%20fill='%231C1712'/%3E%3Ccircle%20cx='31'%20cy='40'%20r='5'%20fill='%23D9662E'/%3E%3C/svg%3E" />
   <link rel="preload" href="{% static 'banda/fonts/inter-latin-400-normal.woff2' %}" as="font" type="font/woff2" crossorigin />
+  {% block stylesheets %}
   <link rel="stylesheet" href="{% static 'banda/auth.css' %}" />
   <link rel="stylesheet" href="{% static 'banda/shell.css' %}" />
   <!-- The design preview's own stylesheet, used as built. Loaded last so utilities win. -->
   <link rel="stylesheet" href="{% static 'banda/app.css' %}" />
+  {% endblock %}
+  {% block head_scripts %}{% endblock %}
 </head>
 
 <body class="font-sans text-ink antialiased">
@@ -75,7 +78,7 @@
           {% endfor %}
         </div>
       {% endif %}
-      {% block content %}{% endblock %}
+      {% block main %}{% block content %}{% endblock %}{% endblock %}
     </main>
   </div>
   <script src="{% static 'banda/shell.js' %}"></script>

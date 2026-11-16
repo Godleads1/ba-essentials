@@ -1,0 +1,101 @@
+/* banda colours and type for the workspace pages.
+   static/css/app.css is used exactly as built; its colours are CSS variables,
+   so redefining them here re-colours every page without rebuilding it.
+   Unlayered, so these win over the app's theme layer. */
+:root {
+  /* app "brand" (was green) -> banda navy */
+  --color-brand-50: #EEEFF8;
+  --color-brand-100: #E7E8F3;
+  --color-brand-200: #CFD1EC;
+  --color-brand-300: #B8BBE6;
+  --color-brand-400: #7E83C4;
+  --color-brand-500: #4A50A0;
+  --color-brand-600: #33397F;
+  --color-brand-700: #2A2F6B;
+  --color-brand-800: #22265A;
+  --color-brand-900: #1A1D45;
+
+  /* app "navy" (headings, dark panels) -> banda ink and cocoa */
+  --color-navy-950: #1C1712;
+  --color-navy-900: #241A15;
+  --color-navy-800: #3B251C;
+  --color-navy-700: #4A3A31;
+
+  /* slate greys -> banda warm neutrals */
+  --color-slate-50: #FBF9F5;
+  --color-slate-100: #F5F0E8;
+  --color-slate-200: #ECE5DA;
+  --color-slate-300: #DDD4C6;
+  --color-slate-400: #857A71;
+  --color-slate-500: #6E645D;
+  --color-slate-600: #5C534D;
+  --color-slate-700: #463D37;
+  --color-slate-800: #33291F;
+  --color-slate-900: #241A15;
+
+  /* success -> banda green pill */
+  --color-emerald-50: #EAF5F1;
+  --color-emerald-100: #DDF1EC;
+  --color-emerald-200: #BFE3D8;
+  --color-emerald-500: #2E9A7E;
+  --color-emerald-600: #1E7761;
+  --color-emerald-700: #1E7761;
+
+  /* errors and alerts -> banda orange */
+  --color-rose-50: #FDF0E8;
+  --color-rose-200: #F6CDB5;
+  --color-rose-500: #D9662E;
+  --color-rose-600: #BE5928;
+  --color-rose-700: #AD4C1D;
+  --color-rose-800: #8F3E17;
+
+  /* info -> banda soft navy */
+  --color-sky-50: #EEEFF8;
+  --color-sky-200: #CFD1EC;
+  --color-sky-700: #33397F;
+  --color-sky-800: #2A2F6B;
+
+  --font-sans: Inter, system-ui, sans-serif;
+}
+
+.legacy-title { font: 600 26px/1.2 Lexend, Inter, system-ui, sans-serif; letter-spacing: -.01em; color: #241A15; text-wrap: balance; }
+.legacy h1, .legacy h2, .legacy h3 { font-family: Lexend, Inter, system-ui, sans-serif; letter-spacing: -.01em; }
+
+/* Cards: white, softer corners, hairline border, no drop shadow. */
+.legacy .card { border-radius: 20px; border-color: #ECE5DA; box-shadow: none; }
+
+/* Buttons: banda pills. */
+.legacy .btn-primary, .legacy .btn-secondary, .legacy .btn-ghost, .legacy .btn-danger { border-radius: 999px; font-size: 14px; padding: 10px 18px; }
+.legacy .btn-sm { font-size: 12.5px; padding: 6px 12px; }
+.legacy .btn-primary { background: #33397F; color: #fff; box-shadow: none; }
+.legacy .btn-primary:hover { background: #282D68; }
+.legacy .btn-secondary { background: #fff; color: #33397F; border: 1px solid #ECE5DA; }
+.legacy .btn-secondary:hover { border-color: #33397F; background: #fff; }
+.legacy .btn-ghost { background: transparent; color: #5C534D; }
+.legacy .btn-ghost:hover { background: #F5F0E8; color: #241A15; }
+.legacy .btn-danger { background: #fff; color: #AD4C1D; border: 1px solid #F6CDB5; }
+.legacy .btn-danger:hover { background: #FDF0E8; }
+
+/* Tables */
+.legacy .data-table thead th { background: #FBF9F5; color: #5C534D; letter-spacing: .08em; }
+
+/* Form fields: banda focus ring */
+.legacy input:focus-visible, .legacy select:focus-visible, .legacy textarea:focus-visible { outline: 2px solid #33397F; outline-offset: 1px; }
+
+/* The banda sidebar and top bar. Their responsive classes come from the banda stylesheet,
+   which sits below the app's classes, so a plain class from the app (p-3, hidden) would
+   otherwise beat them. Repeated here for the shell only (not page content). */
+.focus\:left-4:not(.legacy *):focus{left:1rem}
+.focus\:not-sr-only:not(.legacy *):focus{position:static;width:auto;height:auto;padding:0;margin:0;overflow:visible;clip:auto;white-space:normal}
+.focus\:px-4:not(.legacy *):focus{padding-left:1rem;padding-right:1rem}
+.focus\:rounded-md:not(.legacy *):focus{border-radius:.375rem}
+.hover\:bg-brand-ctaDark:not(.legacy *):hover{--tw-bg-opacity:1;background-color:rgb(163 74 31/var(--tw-bg-opacity,1))}
+@media (min-width:1024px){.lg\:hidden:not(.legacy *){display:none}}
+@media (min-width:1024px){.lg\:pl-\[280px\]:not(.legacy *){padding-left:280px}}
+@media (min-width:768px){.md\:block:not(.legacy *){display:block}}
+@media (min-width:640px){.sm\:p-6:not(.legacy *){padding:1.5rem}}
+@media (min-width:640px){.sm\:pr-3:not(.legacy *){padding-right:.75rem}}
+@media (min-width:640px){.sm\:px-4:not(.legacy *){padding-left:1rem;padding-right:1rem}}
+
+/* Let wide tables scroll inside their card instead of pushing the page wider on phones. */
+.legacy .grid > * { min-width: 0; }

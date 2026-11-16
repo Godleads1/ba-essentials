@@ -1,0 +1,7 @@
+/* Cascade order for workspace pages that load both stylesheets. Must load before
+   static/css/app.css so this order is the one used.
+   The banda utilities sit above the app's reset but below the app's own components
+   and utilities, so page content looks exactly as the app's classes say, and the
+   banda classes fill in everything the app's stylesheet doesn't have. */
+@layer properties, theme, base, banda, components, utilities;
+@import url("shell-utilities.css") layer(banda);
