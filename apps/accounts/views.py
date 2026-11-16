@@ -497,7 +497,8 @@ def security_phone(request):
                                           client_ip=_client_ip(request))
         except (ValidationFailure, RateLimited) as exc:
             return render(request, "banda/app/change_contact.html", {
-                "kind": "phone", "value": request.POST.get("phone", ""), "error": exc.message, "channels": channels})
+                "kind": "phone", "value": request.POST.get("phone", ""), "error": exc.message, "channels": channels,
+                "phone_ok": bool(channels)})
         request.session["pending_phone_change"] = {"value": phones.normalise(request.POST["phone"]), "to": to}
         return redirect("security-phone")
     if form is not None and form.is_valid():

@@ -71,8 +71,9 @@ silently accepting localhost in production.
   turning it off needs a code from the app. Staff can't turn theirs off.
 - "Sign out" on a device, and "Sign out of all other devices", delete the
   server-side session, not just the list entry; you can only end your own.
-- "Keep me signed in" (clients only): up to 30 days, ending after 7 days
-  without use (`REMEMBER_ME_SECONDS`, `REMEMBER_ME_IDLE_TIMEOUT`).
+- "Keep me signed in" (clients only): by default up to 30 days, ending after
+  7 days without use. These are defaults, not enforced caps: operators can
+  change them with `REMEMBER_ME_SECONDS` and `REMEMBER_ME_IDLE_TIMEOUT`.
 - Codes are never logged, put in URLs or kept in plain text; code records are
   deleted after a day by `process_outbox` (Privacy Policy).
 - Passwords (staff) use Django's configured hashers and validators (minimum 12

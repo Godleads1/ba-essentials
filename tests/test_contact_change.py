@@ -8,7 +8,7 @@ from datetime import timedelta
 import pyotp
 import pytest
 from django.contrib.sessions.models import Session
-from django.test import Client
+from django.test import Client, override_settings
 from django.utils import timezone
 
 from apps.accounts import codes, services
@@ -192,3 +192,55 @@ def test_you_cannot_sign_out_someone_elses_session(client_user, mailoutbox):
 def test_security_page_uses_the_banda_design(client_user):
     body = login_client(client_user).get("/app/security/").content.decode()
     assert "banda/app.css" in body and "Your contact details" in body and "Where you&rsquo;re signed in" in body
+
+
+def test_a_code_only_works_for_the_address_it_was_sent_to(client_user, mailoutbox):
+    make_user("taken3@example.test")
+    codes.start_email_change(client_user, "mine@example.test")
+    code_for_mine = _mail_code(mailoutbox, "mine@example.test")
+    VerificationChallenge.objects.update(created_at=timezone.now() - timedelta(minutes=2))
+    codes.start_email_change(client_user, "taken3@example.test")
+    with pytest.raises(ValidationFailure):
+        codes.confirm_email_change(client_user, "mine@example.test", code_for_mine)
+
+
+def test_a_code_for_one_address_cannot_confirm_another(client_user, mailoutbox):
+    # Two tabs: one asks for X, the other for Y. Y's code must not confirm X.
+    codes.start_email_change(client_user, "x@example.test")
+    VerificationChallenge.objects.update(created_at=timezone.now() - timedelta(minutes=2))
+    codes.start_email_change(client_user, "y@example.test")
+    code_for_y = _mail_code(mailoutbox, "y@example.test")
+    with pytest.raises(ValidationFailure):
+        codes.confirm_email_change(client_user, "x@example.test", code_for_y)
+    assert codes.confirm_email_change(client_user, "y@example.test", code_for_y).email == "y@example.test"
+
+
+@override_settings(OTP_RESEND_COOLDOWN_SECONDS=60)
+def test_the_resend_wait_is_the_same_for_taken_and_free_addresses(client_user, mailoutbox):
+    from apps.core.exceptions import RateLimited
+
+    make_user("taken4@example.test")
+    codes.start_email_change(client_user, "first@example.test")
+    for address in ("taken4@example.test", "free@example.test"):
+        with pytest.raises(RateLimited):
+            codes.start_email_change(client_user, address)
+
+
+def test_a_failed_sign_out_can_be_retried(client_user, mailoutbox, monkeypatch):
+    d = Client()
+    d.post("/login/", {"identifier": client_user.email})
+    d.post("/login/code/", {"code": _mail_code(mailoutbox)})
+    key = d.session.session_key
+    monkeypatch.setattr(services, "_end_django_sessions", lambda keys: (_ for _ in ()).throw(RuntimeError("db down")))
+    with pytest.raises(RuntimeError):
+        services.revoke_other_sessions(client_user, "another-key")
+    assert UserSession.objects.get(session_key=key).revoked_at is None  # still listed, so it can be retried
+    monkeypatch.undo()
+    assert services.revoke_other_sessions(client_user, "another-key") == 1
+    assert not Session.objects.filter(session_key=key).exists()
+
+
+def test_a_bad_phone_entry_shows_the_error_not_unavailable(client_user):
+    c = _fresh(login_client(client_user), client_user)
+    body = c.post("/app/security/phone/", {"phone": "12", "channel": "sms"}).content.decode()
+    assert "Enter a valid phone number" in body and "aren&rsquo;t available" not in body

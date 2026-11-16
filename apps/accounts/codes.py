@@ -96,7 +96,8 @@ def send_code(user: User, purpose: str, channel: str, *, phone: str = "", email:
     phone = phone or user.phone
     if channel in (CodeChannel.SMS, CodeChannel.WHATSAPP) and not (phone and channel in phone_channels()):
         raise ValidationFailure("Codes can't be sent that way right now. Choose another way.")
-    challenge = services.issue_challenge(user, purpose, channel=channel)
+    destination = (email or user.email) if channel == CodeChannel.EMAIL else phone
+    challenge = services.issue_challenge(user, purpose, channel=channel, target=destination)
     code = challenge.plaintext_code  # type: ignore[attr-defined]
     del challenge.plaintext_code
     try:
@@ -251,7 +252,7 @@ def send_phone_code(user: User, *, client_ip: str = "", channel: str = "") -> st
 
 
 def confirm_phone(user: User, code: str) -> User:
-    user = services.verify_challenge(user, ChallengePurpose.PHONE_VERIFICATION, code)
+    user = services.verify_challenge(user, ChallengePurpose.PHONE_VERIFICATION, code, target=user.phone)
     now = timezone.now()
     try:
         with transaction.atomic():
@@ -335,14 +336,24 @@ def start_email_change(user: User, new_email: str, *, client_ip: str = "") -> st
         raise ValidationFailure("That's already your email address.")
     _limit_sends(new, client_ip)
     with _minimum_time():
-        if not User.objects.filter(email=new).exclude(pk=user.pk).exists():
+        if User.objects.filter(email=new).exclude(pk=user.pk).exists():
+            _issue_unsent(user, ChallengePurpose.EMAIL_CHANGE, CodeChannel.EMAIL, new)
+        else:
             send_code(user, ChallengePurpose.EMAIL_CHANGE, CodeChannel.EMAIL, email=new)
     return phones.masked_email(new)
 
 
+def _issue_unsent(user: User, purpose: str, channel: str, target: str) -> None:
+    """For a detail another account uses: go through the same steps as a real send
+    (the resend wait, cancelling the last code) but send nothing, so the answer
+    is the same either way."""
+    challenge = services.issue_challenge(user, purpose, channel=channel, target=target)
+    del challenge.plaintext_code
+
+
 def confirm_email_change(user: User, new_email: str, code: str) -> User:
     new = (new_email or "").strip().lower()
-    user = services.verify_challenge(user, ChallengePurpose.EMAIL_CHANGE, code)
+    user = services.verify_challenge(user, ChallengePurpose.EMAIL_CHANGE, code, target=new)
     old = user.email
     now = timezone.now()
     try:
@@ -370,7 +381,9 @@ def start_phone_change(user: User, raw_phone: str, *, channel: str = "", client_
     _limit_sends(new, client_ip)
     with _minimum_time():
         taken = User.objects.filter(phone=new, phone_verified_at__isnull=False).exclude(pk=user.pk).exists()
-        if not taken:
+        if taken:
+            _issue_unsent(user, ChallengePurpose.PHONE_CHANGE, channel, new)
+        else:
             try:
                 send_code(user, ChallengePurpose.PHONE_CHANGE, channel, phone=new)
             except ValidationFailure:
@@ -380,7 +393,7 @@ def start_phone_change(user: User, raw_phone: str, *, channel: str = "", client_
 
 def confirm_phone_change(user: User, new_phone: str, code: str) -> User:
     new = phones.normalise(new_phone)
-    user = services.verify_challenge(user, ChallengePurpose.PHONE_CHANGE, code)
+    user = services.verify_challenge(user, ChallengePurpose.PHONE_CHANGE, code, target=new)
     old, old_verified = user.phone, user.phone_verified
     now = timezone.now()
     try:
