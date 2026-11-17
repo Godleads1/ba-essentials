@@ -1,0 +1,35 @@
+{% extends "banda/staff/base.html" %}
+{% load ui %}
+{% block title %}{{ task.reference }} · Staff{% endblock %}
+{% block page_title %}{{ task.reference }}{% endblock %}
+{% block content %}
+  <section class="panel p-5">
+    <div class="flex flex-wrap items-center gap-2">
+      {% include "banda/staff/_status_badge.html" with status=task.status %}
+      <span class="text-xs font-medium uppercase tracking-wide text-ink-soft">{{ task.organization.name }}</span>
+    </div>
+    <p class="mt-2 text-sm text-ink-muted">{{ task.service_version.definition.name }} · {{ task.reference }}</p>
+    <p class="mt-3 text-xs text-ink-muted">You&rsquo;re seeing this request&rsquo;s invoices and third-party fees only. Its brief, messages and files are limited to the people working on it.</p>
+  </section>
+
+  <section class="panel">
+    <div class="border-b border-cream-line px-5 py-4"><h3 class="text-sm font-semibold text-ink">Invoices</h3></div>
+    {% if invoices %}
+      <ul class="divide-y divide-cream-line">
+        {% for invoice in invoices %}
+          <li class="flex items-center justify-between gap-3 px-5 py-3">
+            <div class="min-w-0">
+              <p class="text-sm text-ink">{{ invoice.number }}</p>
+              <p class="text-xs text-ink-soft">{{ invoice.amount_minor|money_minor:invoice.currency }}{% if invoice.due_at %} · due {{ invoice.due_at|date:"j M Y" }}{% endif %}</p>
+            </div>
+            {% include "banda/staff/_status_badge.html" with status=invoice.status %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="px-5 py-4 text-sm text-ink-muted">No invoices on this request.</p>
+    {% endif %}
+  </section>
+
+  {% include "banda/staff/_fees.html" %}
+{% endblock %}

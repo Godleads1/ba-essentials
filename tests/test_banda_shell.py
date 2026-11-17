@@ -7,25 +7,23 @@ from django.conf import settings
 
 from .conftest import login_client
 
-LEGACY_CSS = ("banda/legacy-layers.css", "css/app.css", "banda/shell.css", "banda/legacy.css")
+STAFF_PAGES = ("/staff/", "/staff/queue/", "/staff/my-cases/", "/staff/assignments/", "/staff/needs-information/",
+               "/staff/scoping/", "/staff/reviews/", "/staff/deliverables/", "/staff/clients/", "/staff/support/",
+               "/staff/finance/", "/staff/audit/", "/staff/catalogue/", "/staff/website/", "/staff/website/new/", "/staff/leads/",
+               "/app/notifications/")
 
 
-def _uses_banda_shell(body: str) -> None:
-    assert 'id="sidebar"' in body and "logo-word" in body  # banda sidebar and logo
-    positions = [body.index(f"/static/{name}") for name in LEGACY_CSS]
-    assert positions == sorted(positions), "the cascade-order file must load before app.css"
-    assert 'class="legacy-title"' in body
-    assert body.count("<main") == 1
+def test_staff_pages_use_only_the_banda_stylesheets(db):
+    from .conftest import make_user
 
-
-def test_staff_notifications_keep_the_legacy_wrapper_for_now(ops_user):
-    _uses_banda_shell(login_client(ops_user).get("/app/notifications/").content.decode())
-
-
-def test_staff_pages_use_the_banda_shell(ops_user):
-    c = login_client(ops_user)
-    for path in ("/staff/", "/staff/queue/"):
-        _uses_banda_shell(c.get(path).content.decode())
+    admin = make_user("admin@example.test", staff_role="admin", mfa=True)
+    c = login_client(admin)
+    for path in STAFF_PAGES:
+        response = c.get(path)
+        assert response.status_code == 200, path
+        body = response.content.decode()
+        assert 'id="sidebar"' in body and "/static/banda/staff.css" in body, path
+        assert "/static/css/app.css" not in body and "legacy" not in body, path
 
 
 def test_page_titles_are_not_doubled(client, owner):

@@ -114,8 +114,7 @@ def notifications(request):
     items = Notification.objects.filter(user=request.user).select_related("task", "ticket")
     unread = services.unread_count(request.user)
     if not request.user.is_client_account:
-        # Staff keep the old page until the staff screens are redesigned.
-        return render(request, "app/notifications.html",
+        return render(request, "banda/staff/notifications.html",
                       {"notifications": items[:100], "unread_notifications": unread})
     show = request.GET.get("show", "")
     if show == "unread":

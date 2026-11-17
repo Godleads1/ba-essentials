@@ -1,0 +1,47 @@
+{% extends "banda/staff/base.html" %}
+{% load ui %}
+{% block title %}Review queue{% endblock %}
+{% block page_title %}Review queue{% endblock %}
+{% block content %}
+  {% if versions %}
+    <div class="space-y-4">
+      {% for version in versions %}
+        <section class="panel p-5">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-wide text-ink-soft">{{ version.deliverable.task.organization.name }} · {{ version.deliverable.task.reference }}</p>
+              <a class="mt-1 block text-lg font-semibold text-ink hover:text-brand-navy" href="{% url 'staff-task-detail' task_id=version.deliverable.task_id %}">{{ version.deliverable.task.title }}</a>
+              <p class="mt-1 text-sm text-ink-muted">Deliverable v{{ version.version_number }} · submitted by {{ version.submitted_by.full_name|default:version.submitted_by.email }} · {{ version.created_at|date:"j M Y, H:i" }}</p>
+            </div>
+            <a class="btn-outline btn-sm" href="{% url 'file-download' file_id=version.file.pk %}">Download draft</a>
+          </div>
+          {% if version.notes %}<p class="mt-3 rounded-xl bg-cream-light p-3 text-sm text-ink-muted">{{ version.notes }}</p>{% endif %}
+
+          <div class="mt-4 grid gap-3 sm:grid-cols-2">
+            <form method="post" action="{% url 'staff-review-decide' task_id=version.deliverable.task_id %}" class="rounded-xl border border-brand-lavender bg-pill-navyBg p-3">
+              {% csrf_token %}
+              <input type="hidden" name="version_id" value="{{ version.pk }}">
+              <input type="hidden" name="decision" value="approve">
+              <p class="text-sm font-semibold text-brand-navy">Approve for release</p>
+              <textarea name="findings" rows="2" class="mt-2 w-full rounded-lg border border-cream-line px-2.5 py-1.5 text-xs" placeholder="Review notes (optional)"></textarea>
+              <button type="submit" class="btn-next btn-sm mt-2 w-full">Approve</button>
+            </form>
+            <form method="post" action="{% url 'staff-review-decide' task_id=version.deliverable.task_id %}" class="rounded-xl border border-[#F5C2C0] bg-[#FDECEC] p-3">
+              {% csrf_token %}
+              <input type="hidden" name="version_id" value="{{ version.pk }}">
+              <input type="hidden" name="decision" value="rework">
+              <p class="text-sm font-semibold text-[#B42318]">Request rework</p>
+              <textarea name="findings" rows="2" required class="mt-2 w-full rounded-lg border border-cream-line px-2.5 py-1.5 text-xs" placeholder="What must change?"></textarea>
+              <button type="submit" class="btn-danger btn-sm mt-2 w-full">Send back</button>
+            </form>
+          </div>
+        </section>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="panel px-6 py-16 text-center">
+      <p class="text-sm font-medium text-ink">Nothing awaiting review.</p>
+      <p class="mt-1 text-sm text-ink-muted">Deliverables submitted by specialists appear here.</p>
+    </div>
+  {% endif %}
+{% endblock %}

@@ -116,7 +116,7 @@ def test_catalogue_searches_and_filters(client, service_version):
 
 # ---------- Notifications ----------
 
-def test_notifications_filter_unread_and_staff_keep_the_old_page(client, owner, organization, ops_user):
+def test_notifications_filter_unread_and_staff_get_their_own_page(client, owner, organization, ops_user):
     Notification.objects.create(user=owner, organization=organization, kind=NotificationKind.BILLING,
                                 title="Synthetic unread note")
     Notification.objects.create(user=owner, organization=organization, kind=NotificationKind.SUPPORT,
@@ -129,7 +129,7 @@ def test_notifications_filter_unread_and_staff_keep_the_old_page(client, owner, 
     assert "Synthetic unread note" in unread and "Synthetic read note" not in unread
 
     staff_page = login_client(ops_user).get(reverse("notifications"))
-    assert staff_page.templates[0].name == "app/notifications.html"
+    assert staff_page.templates[0].name == "banda/staff/notifications.html"
 
 
 # ---------- Organization & Team ----------

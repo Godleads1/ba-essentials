@@ -1,0 +1,51 @@
+{% extends "banda/staff/base.html" %}
+{% load ui %}
+{% block title %}Service catalogue{% endblock %}
+{% block page_title %}Service catalogue{% endblock %}
+{% block content %}
+  <div class="rounded-2xl border border-brand-lavender bg-pill-navyBg p-4 text-xs leading-relaxed text-brand-navy">
+    Availability changes apply to the current version only. Existing requests keep the version they were submitted against.
+  </div>
+
+  <div class="space-y-4">
+    {% for definition in definitions %}
+      <section class="panel">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-cream-line px-5 py-4">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-wide text-ink-soft">{{ definition.category.name }}</p>
+            <h2 class="mt-0.5 text-sm font-semibold text-ink">{{ definition.name }}</h2>
+          </div>
+          <span class="text-xs text-ink-soft">{{ definition.versions.all|length }} version{{ definition.versions.all|length|pluralize }}</span>
+        </div>
+        <ul class="divide-y divide-cream-line">
+          {% for version in definition.versions.all %}
+            <li class="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+              <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="text-sm font-medium text-ink">v{{ version.version_number }}</span>
+                  {% include "banda/staff/_status_badge.html" with status=version.state %}
+                  {% if version.is_current %}<span class="badge bg-pill-navyBg text-brand-navy ring-brand-lavender">Current</span>{% endif %}
+                </div>
+                <p class="mt-1 line-clamp-2 max-w-2xl text-xs text-ink-muted">{{ version.scope_summary }}</p>
+                <p class="mt-1 text-xs text-ink-soft">{{ version.turnaround_days }} days · {{ version.revision_allowance }} revision{{ version.revision_allowance|pluralize }} · {{ version.deliverables_summary|truncatechars:70 }}</p>
+              </div>
+              {% if version.is_current %}
+                <form method="post" action="{% url 'staff-catalogue-state' version_id=version.pk %}" class="flex items-center gap-2">
+                  {% csrf_token %}
+                  <select name="state" class="rounded-lg border border-cream-line px-2.5 py-1.5 text-xs">
+                    {% for value, label in states %}
+                      <option value="{{ value }}" {% if value == version.state %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                  </select>
+                  <button type="submit" class="btn-outline btn-sm">Update</button>
+                </form>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      </section>
+    {% empty %}
+      <div class="panel p-5 text-sm text-ink-muted">No services configured. Publish a version through the Django admin or a bootstrap script.</div>
+    {% endfor %}
+  </div>
+{% endblock %}

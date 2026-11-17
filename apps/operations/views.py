@@ -106,7 +106,7 @@ def dashboard(request):
     staff_access.log_list(request, "dashboard", count=len(events))
     return render(
         request,
-        "staff/dashboard.html",
+        "banda/staff/dashboard.html",
         {"counts": counts, "events": events, "groups": ACTIVE_GROUPS},
     )
 
@@ -138,7 +138,7 @@ def queue(request):
     staff_access.log_list(request, "queue", count=len(rows), searched=bool(query))
     return render(
         request,
-        "staff/queue.html",
+        "banda/staff/queue.html",
         {
             "tasks": rows,
             "statuses": TaskStatus.choices,
@@ -193,7 +193,7 @@ def task_detail(request, task_id):
     can_review = has_perm(request.user, REVIEW_DECIDE) and bool(pending_versions)
     return render(
         request,
-        "staff/task_detail.html",
+        "banda/staff/task_detail.html",
         {
             "task": task,
             "events": task.status_events.select_related("actor")[:50],
@@ -245,7 +245,7 @@ def _task_money(request, task):
         .select_related("invoice", "prepared_by", "approved_by")
         .prefetch_related("lines__evidence", "lines__receipt")
     )
-    return render(request, "staff/task_money.html", {
+    return render(request, "banda/staff/task_money.html", {
         "task": task,
         "invoices": Invoice.objects.filter(task=task).order_by("-issued_at"),
         "fee_requests": fee_requests,
@@ -423,7 +423,7 @@ def clients(request):
         .order_by("name")[:200]
     )
     staff_access.log_list(request, "clients", count=len(organizations))
-    return render(request, "staff/clients.html", {"organizations": organizations})
+    return render(request, "banda/staff/clients.html", {"organizations": organizations})
 
 
 @staff_permission_required(TASK_TRIAGE)
@@ -436,7 +436,7 @@ def needs_information(request):
         .order_by("updated_at")[:200]
     )
     staff_access.log_list(request, "needs_information", count=len(tasks))
-    return render(request, "staff/needs_information.html", {"tasks": tasks})
+    return render(request, "banda/staff/needs_information.html", {"tasks": tasks})
 
 
 @staff_permission_required(TASK_SCOPE)
@@ -465,7 +465,7 @@ def scoping_queue(request):
             }
         )
     staff_access.log_list(request, "scoping", count=len(rows))
-    return render(request, "staff/scoping.html", {"rows": rows})
+    return render(request, "banda/staff/scoping.html", {"rows": rows})
 
 
 @staff_permission_required(TASK_ASSIGN)
@@ -514,7 +514,7 @@ def workload(request):
     staff_access.log_list(request, "workload", count=len(ready))
     return render(
         request,
-        "staff/workload.html",
+        "banda/staff/workload.html",
         {"roster": roster, "ready": ready},
     )
 
@@ -556,7 +556,7 @@ def deliverables_queue(request):
             }
         )
     staff_access.log_list(request, "deliverables", count=len(rows))
-    return render(request, "staff/deliverables.html", {"rows": rows})
+    return render(request, "banda/staff/deliverables.html", {"rows": rows})
 
 
 @staff_required
@@ -576,7 +576,7 @@ def my_cases(request):
     staff_access.log_list(request, "my_cases", count=len(assignments))
     return render(
         request,
-        "staff/my_cases.html",
+        "banda/staff/my_cases.html",
         {"assignments": assignments, "completed": completed},
     )
 
@@ -622,7 +622,7 @@ def audit_log(request):
     staff_access.log_list(request, "audit_log", count=len(events), searched=bool(query))
     return render(
         request,
-        "staff/audit.html",
+        "banda/staff/audit.html",
         {
             "events": events,
             "actions": actions,

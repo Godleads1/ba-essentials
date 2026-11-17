@@ -1,0 +1,58 @@
+{% extends "banda/staff/base.html" %}
+{% load ui %}
+{% block title %}Website pages{% endblock %}
+{% block page_title %}Website pages{% endblock %}
+{% block content %}
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <p class="text-sm text-ink-muted">Drafts stay private until a publisher releases them. Every saved revision is kept.</p>
+    <a class="btn-next btn-sm" href="{% url 'staff-website-create' %}">New page</a>
+  </div>
+
+  <section class="panel">
+    {% if rows %}
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Address</th><th>Title</th><th>Public</th><th>Latest</th><th>Updated</th><th></th></tr></thead>
+          <tbody>
+            {% for row in rows %}
+              <tr>
+                <td class="whitespace-nowrap font-medium text-xs text-ink-muted">/{{ row.page.slug }}/</td>
+                <td>
+                  <a class="font-medium text-ink hover:text-brand-navy" href="{% url 'staff-website-edit' page_id=row.page.pk %}">{{ row.latest.title|default:"Untitled" }}</a>
+                  {% if row.latest.summary %}<p class="max-w-md truncate text-xs text-ink-soft">{{ row.latest.summary }}</p>{% endif %}
+                </td>
+                <td>
+                  {% if row.page.published_revision_id %}
+                    {% include "banda/staff/_status_badge.html" with status="published" %}
+                  {% else %}
+                    {% include "banda/staff/_status_badge.html" with status="draft" %}
+                  {% endif %}
+                </td>
+                <td class="whitespace-nowrap text-ink-muted">
+                  {% if row.latest %}v{{ row.latest.revision_number }}{% else %}—{% endif %}
+                  {% if row.page.published_revision_id == row.latest.pk %}
+                    <span class="text-xs text-brand-navy">live</span>
+                  {% elif row.latest %}
+                    <span class="text-xs text-brand-orangeDark">unpublished</span>
+                  {% endif %}
+                </td>
+                <td class="whitespace-nowrap text-ink-muted">{{ row.page.updated_at|date:"j M Y, H:i" }}</td>
+                <td class="text-right">
+                  <div class="flex flex-wrap justify-end gap-2">
+                    <a class="btn-ghost btn-sm" href="{% url 'staff-website-history' page_id=row.page.pk %}">History</a>
+                    <a class="btn-outline btn-sm" href="{% url 'staff-website-edit' page_id=row.page.pk %}">Edit</a>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="px-6 py-16 text-center">
+        <p class="text-sm font-medium text-ink">No pages yet.</p>
+        <p class="mt-1 text-sm text-ink-muted">Create an About, Terms or Privacy page to get started.</p>
+      </div>
+    {% endif %}
+  </section>
+{% endblock %}

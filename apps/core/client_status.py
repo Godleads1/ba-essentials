@@ -99,6 +99,25 @@ TICKET_STATUS = {
     "resolved": ("Resolved", "bg-pill-greenBg text-pill-greenTx"),
     "closed": ("Closed", "bg-cream text-ink-muted"),
 }
+
+# Staff status chips: the old app's status tones, in banda colours (see the status_chip filter).
+STAFF_CHIP = {
+    "slate": "bg-cream text-ink-muted",
+    "navy": "bg-pill-navyBg text-brand-navy",
+    "orange": "bg-pill-orangeBg text-brand-orangeDark",
+    "red": "bg-[#FDECEC] text-[#B42318]",
+    "green": "bg-pill-greenBg text-pill-greenTx",
+}
+STAFF_TONE_FAMILY = {"slate": "slate", "sky": "navy", "blue": "navy", "indigo": "navy", "violet": "navy",
+                     "cyan": "navy", "amber": "orange", "orange": "orange", "rose": "red", "emerald": "green",
+                     "brand": "green"}
+
+
+def staff_chip(tone_classes: str) -> str:
+    family = tone_classes.split("-")[1] if "-" in tone_classes else "slate"
+    return STAFF_CHIP[STAFF_TONE_FAMILY.get(family, "slate")]
+
+
 INVOICE_STATUS = {
     "issued": ("Due", "bg-pill-orangeBg text-brand-orangeDark"),
     "overdue": ("Overdue", "bg-[#FDECEC] text-[#B42318]"),

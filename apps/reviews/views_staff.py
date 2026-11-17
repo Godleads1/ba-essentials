@@ -38,7 +38,7 @@ def review_queue(request):
     staff_access.log_list(request, "reviews", count=len(versions))
     return render(
         request,
-        "staff/reviews.html",
+        "banda/staff/reviews.html",
         {"versions": versions, "decisions": ReviewDecision.choices},
     )
 
