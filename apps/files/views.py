@@ -17,28 +17,90 @@ from .storage import get_storage
 @client_required
 @require_GET
 def files_home(request):
+    """Deliverables & Files: delivered work and the files the business uploaded, in one list."""
+    from django.core.paginator import Paginator
+
     from apps.reviews.models import DeliverableVersion, DeliverableVersionStatus
-    from apps.tasks.models import TaskAttachment
+    from apps.tasks.models import TaskAttachment, TaskStatus
 
     organization = request.organization
-    attachments = (
-        TaskAttachment.objects.filter(task__organization=organization)
-        .select_related("file", "task")
-        .order_by("-created_at")
-    )
-    deliverables = (
-        DeliverableVersion.objects.filter(
-            deliverable__task__organization=organization,
-            status=DeliverableVersionStatus.RELEASED,
-        )
-        .select_related("file", "deliverable__task")
-        .order_by("-released_at")
-    )
-    return render(
-        request,
-        "app/files.html",
-        {"attachments": attachments, "deliverables": deliverables},
-    )
+    delivered = (DeliverableVersion.objects.filter(deliverable__task__organization=organization,
+                                                    status=DeliverableVersionStatus.RELEASED)
+                 .select_related("file", "deliverable__task__service_version__definition__category"))
+    uploads = (TaskAttachment.objects.filter(task__organization=organization)
+               .select_related("file", "task__service_version__definition__category"))
+    rows = [_file_row(v.file, v.deliverable.task, "delivered", v.released_at or v.created_at,
+                      waiting=v.deliverable.task.status == TaskStatus.DELIVERED, version=v.version_number)
+            for v in delivered]
+    rows += [_file_row(a.file, a.task, "uploaded", a.created_at) for a in uploads]
+    rows.sort(key=lambda r: r["added"], reverse=True)
+
+    counts = {
+        "all": len(rows),
+        "delivered": sum(r["kind"] == "delivered" for r in rows),
+        "waiting": sum(r["waiting"] for r in rows),
+        "uploaded": sum(r["kind"] == "uploaded" for r in rows),
+    }
+    categories = sorted({r["category"] for r in rows if r["category"]})
+    kind = request.GET.get("kind", "")
+    category = request.GET.get("category", "")
+    ftype = request.GET.get("type", "")
+    query = (request.GET.get("q") or "").strip()[:100].lower()
+    if kind == "waiting":
+        rows = [r for r in rows if r["waiting"]]
+    elif kind in ("delivered", "uploaded"):
+        rows = [r for r in rows if r["kind"] == kind]
+    else:
+        kind = ""
+    if category:
+        rows = [r for r in rows if r["category"] == category]
+    if ftype in FILE_TYPES:
+        rows = [r for r in rows if r["type"] == ftype]
+    else:
+        ftype = ""
+    if query:
+        rows = [r for r in rows if query in r["file"].original_name.lower()
+                or query in r["task"].reference.lower() or query in r["task"].title.lower()]
+    page = Paginator(rows, 10).get_page(request.GET.get("page"))
+    keep = request.GET.copy()
+    keep.pop("page", None)
+    return render(request, "banda/app/files.html", {
+        "page": page, "counts": counts, "categories": categories, "file_types": FILE_TYPES,
+        "kind": kind, "category": category, "ftype": ftype, "query": request.GET.get("q", "").strip()[:100],
+        "filtered": bool(kind or category or ftype or query), "keep": keep.urlencode(),
+    })
+
+
+FILE_TYPES = {"pdf": "PDF", "doc": "Document", "sheet": "Spreadsheet", "image": "Image", "other": "Other"}
+EXTENSIONS = {"pdf": "pdf", "doc": "doc", "docx": "doc", "odt": "doc", "txt": "doc", "xls": "sheet",
+              "xlsx": "sheet", "csv": "sheet", "ods": "sheet", "jpg": "image", "jpeg": "image", "png": "image",
+              "gif": "image", "webp": "image"}
+TYPE_TONES = {"pdf": "bg-[#FDECEC] text-[#B42318]", "doc": "bg-pill-navyBg text-brand-navy",
+              "sheet": "bg-pill-greenBg text-pill-greenTx", "image": "bg-pill-orangeBg text-brand-orangeDark",
+              "other": "bg-cream text-ink-muted"}
+
+
+def _file_row(private_file, task, kind, added, *, waiting=False, version=None):
+    ext = private_file.original_name.rsplit(".", 1)[-1].lower() if "." in private_file.original_name else ""
+    ftype = EXTENSIONS.get(ext, "other")
+    if private_file.purged_at:
+        status = ("Deleted after 6 years", "bg-[#F1EFEC] text-ink-muted")
+    elif private_file.scan_status == ScanStatus.PENDING:
+        status = ("Being checked", "bg-[#EFE9FB] text-[#5B3FA8]")
+    elif private_file.scan_status != ScanStatus.CLEAN:
+        status = ("Blocked by the safety check", "bg-[#FDECEC] text-[#B42318]")
+    elif waiting:
+        status = ("Needs your approval", "bg-pill-orangeBg text-brand-orangeDark")
+    elif kind == "delivered":
+        status = ("Ready to download", "bg-pill-greenBg text-pill-greenTx")
+    else:
+        status = ("Your upload", "bg-cream text-ink")
+    return {
+        "file": private_file, "task": task, "kind": kind, "added": added, "waiting": waiting, "version": version,
+        "type": ftype, "type_label": FILE_TYPES[ftype], "tone": TYPE_TONES[ftype], "status": status,
+        "category": task.service_version.definition.category.name,
+        "downloadable": private_file.is_downloadable and not private_file.purged_at,
+    }
 
 
 @login_required
