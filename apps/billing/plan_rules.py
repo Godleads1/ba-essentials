@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from django.db.models import Sum
 from django.utils import timezone
 
+from apps.core.dates import local
 from apps.core.exceptions import ValidationFailure
 
 from .models import Plan, Subscription, SubscriptionStatus, UsageKind, UsageLedger
@@ -200,7 +201,7 @@ def preview(organization, version, units: int | None = None, *, plan_balances=Fa
     nouns = noun + ("s" if units != 1 else "")
     if after >= 0:
         out["text"] = (f"This will use {units} {nouns} of your {total} ({after} left this {period}, "
-                       f"until {until:%d %b}).")
+                       f"until {local(until):%d %b}).")
     else:
         out["text"] = (f"This uses {units} {nouns}, and you have {left} left this {period}. "
                        "Send it anyway: we'll quote the extra before any work starts.")

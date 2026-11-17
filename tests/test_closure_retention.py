@@ -13,6 +13,7 @@ from apps.billing import renewals
 from apps.billing.models import Invoice, SubscriptionStatus
 from apps.communications.models import SupportTicket, SupportTicketStatus, TaskMessage
 from apps.core import retention
+from apps.core.dates import local
 from apps.core.exceptions import PermissionFailure, ValidationFailure
 from apps.organizations import closure
 from apps.organizations.models import Membership, Organization
@@ -99,7 +100,7 @@ def test_close_page_needs_confirmation_and_a_tick(client, owner, organization, s
     assert client.get("/app/security/close/")["Location"].startswith("/step-up/")
     _stepped_up(client, owner)
     body = client.get("/app/security/close/").content.decode()
-    assert "Close the" in body and subscription.period_end.strftime("%-d %b %Y") in body
+    assert "Close the" in body and local(subscription.period_end).strftime("%-d %b %Y") in body
     assert client.post("/app/security/close/", {}).status_code == 400
     r = client.post("/app/security/close/", {"confirm": "yes"})
     assert r.status_code == 302

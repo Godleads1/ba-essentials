@@ -12,6 +12,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from apps.audit import services as audit_service
+from apps.core.dates import local
 from apps.core.exceptions import PermissionFailure, ValidationFailure
 
 from .models import Membership, MembershipRole, Organization
@@ -97,7 +98,7 @@ def request_closure(organization, membership) -> Organization:
         else:
             _tell_owners(org, "Your account will close",
                          f"You asked to close the {org.name} account. Your plan won't renew and nothing more "
-                         f"will be charged. You have full access until {closes_at:%d %b %Y}, then the account "
+                         f"will be charged. You have full access until {local(closes_at):%d %b %Y}, then the account "
                          "closes. You can change your mind until then in Profile & security.")
     return org
 
