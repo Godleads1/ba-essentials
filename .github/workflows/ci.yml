@@ -81,7 +81,7 @@ jobs:
           cd requirements
           cp prod.txt /tmp/prod.txt && cp dev.txt /tmp/dev.txt
           pip-compile -q --generate-hashes --allow-unsafe --strip-extras --no-emit-index-url -o /tmp/prod.txt prod.in
-          pip-compile -q --generate-hashes --allow-unsafe --strip-extras --no-emit-index-url -o /tmp/dev.txt dev.in prod.in
+          pip-compile -q --generate-hashes --allow-unsafe --strip-extras --no-emit-index-url -o /tmp/dev.txt dev.in
           diff -I '^#' prod.txt /tmp/prod.txt
           diff -I '^#' dev.txt /tmp/dev.txt
 

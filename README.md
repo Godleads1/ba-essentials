@@ -111,7 +111,7 @@ supplies inert values for the check.
 
 ### Python packages
 
-`requirements/*.in` list what the app needs; `requirements/*.txt` (made by
+`requirements/*.in` list what the app needs (`dev.in` includes `prod.in`, so each lock file comes from one input, which is what Dependabot expects); `requirements/*.txt` (made by
 pip-tools) pin every package, including the ones those pull in, with SHA-256
 hashes. Installs use `--require-hashes`, so a changed or swapped package fails
 instead of installing. Edit only the `.in` files, then regenerate the `.txt`
@@ -120,7 +120,7 @@ files (CI checks they match):
 ```bash
 cd requirements
 pip-compile --generate-hashes --allow-unsafe --strip-extras --no-emit-index-url -o prod.txt prod.in
-pip-compile --generate-hashes --allow-unsafe --strip-extras --no-emit-index-url -o dev.txt dev.in prod.in
+pip-compile --generate-hashes --allow-unsafe --strip-extras --no-emit-index-url -o dev.txt dev.in
 ```
 
 ## Deployment
