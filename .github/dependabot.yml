@@ -21,6 +21,12 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    ignore:
+      # Tailwind 4 moved its command to @tailwindcss/cli and dropped the
+      # `important: '.staff'` setting the staff stylesheet relies on. Moving to
+      # it is a planned change with a visual check, not an automatic update.
+      - dependency-name: "tailwindcss"
+        update-types: ["version-update:semver-major"]
     groups:
       npm-minor:
         patterns: ["*"]
