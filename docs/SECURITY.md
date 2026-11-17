@@ -332,3 +332,11 @@ migration check, deploy check, and dependency audit.
   edge header the proxy overwrites (`CLIENT_IP_HEADER`). `check --deploy` warns
   (`banda.W001`) when neither is set.
 - Regression tests: `tests/test_security_audit_fixes.py`.
+- Security alerts (`apps/audit/alerts.py`), emailed through the outbox to
+  `SECURITY_ALERT_EMAILS` and throttled to one an hour per rule and account:
+  a staff account locked out or turning off its second factor; 5 wrong
+  authenticator codes in 15 minutes; 3 refused file downloads in an hour;
+  any change to staff roles or admin access (`apps/audit/signals.py`, however
+  it is made); a payment notification with the wrong amount; 5 with a bad
+  signature or unknown reference in an hour. `check --deploy` warns
+  (`banda.W002`) when no recipient is set. Tests: `tests/test_security_alerts.py`.

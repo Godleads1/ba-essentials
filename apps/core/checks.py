@@ -16,3 +16,16 @@ def client_ip_source(app_configs, **kwargs):
              "to a header the edge proxy overwrites (HTTP_CF_CONNECTING_IP for Cloudflare).",
         id="banda.W001",
     )]
+
+
+@register(Tags.security, deploy=True)
+def security_alert_recipients(app_configs, **kwargs):
+    """Security alerts (apps/audit/alerts.py) need somewhere to go."""
+    if getattr(settings, "SECURITY_ALERT_EMAILS", None):
+        return []
+    return [Warning(
+        "SECURITY_ALERT_EMAILS is empty, so security alerts are only logged.",
+        hint="Set SECURITY_ALERT_EMAILS to the address(es) that should hear about lockouts, "
+             "staff access changes and repeated refused downloads.",
+        id="banda.W002",
+    )]

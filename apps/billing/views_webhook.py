@@ -6,6 +6,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
+from apps.audit import alerts
 from apps.core.exceptions import DomainError, PermissionFailure, ValidationFailure
 
 from . import services
@@ -28,6 +29,7 @@ def paystack_webhook(request):
         )
     except PermissionFailure:
         logger.warning("Rejected paystack webhook with an invalid signature")
+        alerts.count("billing.webhook_bad_signature", "paystack", {"provider": "Paystack"})
         return JsonResponse({"detail": "Invalid signature."}, status=401)
     except ValidationFailure as exc:
         logger.warning("Rejected malformed paystack webhook: %s", exc.message)
@@ -64,6 +66,7 @@ def flutterwave_webhook(request):
         )
     except PermissionFailure:
         logger.warning("Rejected flutterwave webhook with an invalid hash")
+        alerts.count("billing.webhook_bad_signature", "flutterwave", {"provider": "Flutterwave"})
         return JsonResponse({"detail": "Invalid signature."}, status=401)
     except ValidationFailure as exc:
         logger.warning("Rejected malformed flutterwave webhook: %s", exc.message)
