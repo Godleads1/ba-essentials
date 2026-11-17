@@ -99,3 +99,9 @@ TICKET_STATUS = {
     "resolved": ("Resolved", "bg-pill-greenBg text-pill-greenTx"),
     "closed": ("Closed", "bg-cream text-ink-muted"),
 }
+INVOICE_STATUS = {
+    "issued": ("Due", "bg-pill-orangeBg text-brand-orangeDark"),
+    "overdue": ("Overdue", "bg-[#FDECEC] text-[#B42318]"),
+    "paid": ("Paid", "bg-pill-greenBg text-pill-greenTx"),
+    "void": ("Cancelled", "bg-cream text-ink-muted"),
+}
