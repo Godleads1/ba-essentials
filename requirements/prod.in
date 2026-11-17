@@ -1,5 +1,5 @@
 -r base.in
 gunicorn==27.0.1
-psycopg[binary]==3.3.8
+psycopg[binary]==3.3.9
 redis==8.1.0
-boto3==1.43.123
+boto3==1.44.3
