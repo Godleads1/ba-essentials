@@ -56,11 +56,35 @@ def test_confirm_its_you_returns_to_the_page_asked_for(owner, monkeypatch):
 
 @pytest.mark.parametrize("target", EVIL)
 def test_staff_sign_in_never_leads_off_site(target, db):
-    staff = make_user("staff.redirect@example.test", staff_role="operations")
     from .conftest import PASSWORD
 
+    staff = make_user("staff.redirect@example.test", staff_role="operations")
     response = Client().post(f"/login/staff/?next={target}", {"email": staff.email, "password": PASSWORD})
-    assert not response.get("Location", "").lstrip("/").startswith(("evil", "\\")) and "evil" not in response.get("Location", "")
+    assert response.status_code == 302 and response["Location"] == "/app/"
+
+
+def test_staff_sign_in_still_returns_to_a_page_on_this_site(db):
+    from .conftest import PASSWORD
+
+    staff = make_user("staff.control@example.test", staff_role="operations")
+    response = Client().post("/login/staff/?next=/staff/", {"email": staff.email, "password": PASSWORD})
+    assert response.status_code == 302 and response["Location"] == "/staff/"
+
+
+@pytest.mark.parametrize("target", EVIL)
+def test_staff_with_an_authenticator_never_leads_off_site(target, db, monkeypatch):
+    """Real staff have a second factor: password, then code, then the redirect."""
+    from apps.accounts import services
+
+    from .conftest import PASSWORD
+
+    staff = make_user("staff.mfa@example.test", staff_role="operations", mfa=True)
+    monkeypatch.setattr(services, "verify_mfa", lambda user, code: True)
+    c = Client()
+    first = c.post(f"/login/staff/?next={target}", {"email": staff.email, "password": PASSWORD})
+    assert first["Location"] == "/login/mfa/"
+    response = c.post("/login/mfa/", {"code": "123456"})
+    assert response.status_code == 302 and response["Location"] == "/app/"
 
 
 # ---------- F2: the visitor's address can't be forged ----------
