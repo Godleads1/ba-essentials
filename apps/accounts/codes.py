@@ -306,7 +306,7 @@ def _notify_email(to: str, subject: str, body: str) -> None:
 
     try:
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [to])
-    except Exception:  # a notice must never block the change itself
+    except Exception:  # noqa: BLE001 - a notice must never block the change itself
         logger.warning("security_notice_failed subject=%s", subject)
 
 

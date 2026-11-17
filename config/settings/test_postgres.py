@@ -5,7 +5,7 @@ from django.core.exceptions import ImproperlyConfigured
 
 from config.env import env
 
-from .test import *  # noqa: F401,F403
+from .test import *
 
 _url = env("DATABASE_URL", "")
 if not _url.startswith(("postgres://", "postgresql://")):

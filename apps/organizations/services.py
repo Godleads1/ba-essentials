@@ -7,12 +7,12 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.core.mail import send_mail
-from django.db import IntegrityError, transaction
+from django.db import transaction
 from django.utils import timezone
 from django.utils.text import slugify
 
 from apps.audit import services as audit_service
-from apps.core.exceptions import PermissionFailure, ValidationFailure
+from apps.core.exceptions import ValidationFailure
 
 from .access import require_owner
 from .models import (
@@ -119,7 +119,7 @@ def invite_member(
             settings.DEFAULT_FROM_EMAIL,
             [email],
         )
-    except Exception:  # pragma: no cover - provider failure path
+    except Exception:  # noqa: BLE001  # pragma: no cover - an email failure must not undo the invitation
         logger.warning("invitation_email_failed invitation=%s", invitation.pk)
     return invitation, link
 

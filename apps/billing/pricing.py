@@ -100,7 +100,7 @@ def plan_price(plan: Plan, region: str, interval: str = BillingInterval.MONTH, *
     year = Decimal(monthly * 12) * (Decimal(100 - discount) / 100)
     # Whole naira or whole dollars, except converted rest-of-Africa prices, which keep cents.
     unit = 1 if region == REGION_AFRICA else 100
-    amount = _round(year, unit) if unit > 1 else int(year.quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+    amount = _round(year, unit) if unit > 1 else int(year.quantize(Decimal(1), rounding=ROUND_HALF_UP))
     return Price(amount, currency, BillingInterval.YEAR, rate)
 
 

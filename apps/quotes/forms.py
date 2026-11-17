@@ -24,7 +24,7 @@ class QuoteForm(StyledFormMixin, forms.Form):
         label="Amount (NGN)",
         max_digits=12,
         decimal_places=2,
-        min_value=Decimal("0"),
+        min_value=Decimal(0),
     )
     turnaround_days = forms.IntegerField(
         label="Turnaround (days)", min_value=1, max_value=365

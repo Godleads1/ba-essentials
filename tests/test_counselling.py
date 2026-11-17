@@ -14,7 +14,7 @@ from .conftest import login_client, make_user
 
 
 def _config(body: str):
-    m = re.search(r'<script id="bandaCounselConfig" type="application/json">(.*?)</script>', body, re.S)
+    m = re.search(r'<script id="bandaCounselConfig" type="application/json">(.*?)</script>', body, re.DOTALL)
     return json.loads(m.group(1)) if m else None
 
 

@@ -7,8 +7,8 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_http_methods
 
-from apps.core.client_ip import client_ip
 from apps.core import ratelimit
+from apps.core.client_ip import client_ip
 
 from . import services
 from .forms import ContactForm

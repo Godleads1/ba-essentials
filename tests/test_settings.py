@@ -54,6 +54,7 @@ def _import_production(overrides: dict[str, str | None]) -> subprocess.Completed
         capture_output=True,
         text=True,
         timeout=60,
+        check=False,
     )
 
 
@@ -62,11 +63,11 @@ def test_staging_adopts_the_render_hostname():
         [
             sys.executable,
             "-c",
-            "from config.settings import staging as s; "
+            ("from config.settings import staging as s; "
             "print(s.APP_BASE_URL); "
             "print(','.join(s.ALLOWED_HOSTS)); "
             "print(','.join(s.CSRF_TRUSTED_ORIGINS)); "
-            "print(','.join(s.SECURE_REDIRECT_EXEMPT))",
+            "print(','.join(s.SECURE_REDIRECT_EXEMPT))"),
         ],
         cwd=BASE_DIR,
         env=_clean_environment(
@@ -75,6 +76,7 @@ def test_staging_adopts_the_render_hostname():
         capture_output=True,
         text=True,
         timeout=60,
+        check=False,
     )
 
     assert result.returncode == 0, result.stderr

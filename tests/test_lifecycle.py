@@ -3,7 +3,6 @@ from __future__ import annotations
 import uuid
 
 import pytest
-from django.utils import timezone
 
 from apps.billing import services as billing
 from apps.core.exceptions import PermissionFailure, ValidationFailure

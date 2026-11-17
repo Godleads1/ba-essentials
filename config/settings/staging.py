@@ -11,7 +11,7 @@ import re
 
 from config.env import env
 
-from .production import *  # noqa: F401,F403
+from .production import *
 
 _render_host = env("RENDER_EXTERNAL_HOSTNAME", "").strip()
 if re.fullmatch(r"[a-z0-9.-]+", _render_host or ""):

@@ -6,7 +6,6 @@ from enum import StrEnum
 from django.db import transaction
 from django.utils import timezone
 
-from apps.accounts.models import StaffRole
 from apps.accounts.permissions import (
     FINANCE_VERIFY_PAYMENT,
     QUOTE_SEND,
@@ -31,9 +30,9 @@ from apps.core.exceptions import (
 from apps.organizations.access import membership_for
 
 from .models import (
-    AssignmentStatus,
     HOLDABLE_STATUSES,
     OPEN_STATUSES,
+    AssignmentStatus,
     Task,
     TaskStatus,
     TaskStatusEvent,

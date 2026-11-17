@@ -6,7 +6,6 @@ from datetime import timedelta
 
 import pyotp
 import pytest
-from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 from django.utils import timezone
 

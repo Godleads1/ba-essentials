@@ -194,9 +194,9 @@ def scoping_task(submitted_task, ops_user, quote_approver) -> Task:
 
 def login_client(user):
     """Force-login a client and stamp the credential version the middleware expects."""
-    from django.test import Client
-
     import time
+
+    from django.test import Client
 
     c = Client()
     c.force_login(user)

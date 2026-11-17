@@ -12,8 +12,8 @@ from apps.accounts.permissions import (
     FEES_APPROVE,
     FEES_PREPARE,
     FEES_SETTLE,
-    FINANCE_VIEW,
     FINANCE_VERIFY_PAYMENT,
+    FINANCE_VIEW,
 )
 from apps.core.exceptions import DomainError
 from apps.core.views import handle_domain_error

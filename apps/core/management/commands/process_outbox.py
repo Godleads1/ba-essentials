@@ -42,7 +42,7 @@ class Command(BaseCommand):
         for event in events:
             try:
                 self._dispatch(event)
-            except Exception as exc:  # keep the queue moving; record safely
+            except Exception as exc:  # noqa: BLE001 - keep the queue moving; record safely
                 failed += 1
                 event.attempts += 1
                 event.last_error = f"{type(exc).__name__}: {str(exc)[:400]}"

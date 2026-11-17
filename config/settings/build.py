@@ -7,7 +7,7 @@ hashed asset names generated here match what templates request.
 
 from __future__ import annotations
 
-from .base import *  # noqa: F401,F403
+from .base import *
 
 DEBUG = False
 

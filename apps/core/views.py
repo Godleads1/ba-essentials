@@ -9,7 +9,6 @@ from django.shortcuts import redirect, render
 from django.views.decorators.http import require_GET
 
 from .exceptions import DomainError
-from .middleware import _safe_next
 
 
 @require_GET
@@ -91,7 +90,7 @@ def health(request):
         with connection.cursor() as cursor:
             cursor.execute("SELECT 1")
             cursor.fetchone()
-    except Exception:  # pragma: no cover - depends on infrastructure
+    except Exception:  # noqa: BLE001  # pragma: no cover - any database failure means "unavailable"
         return JsonResponse({"status": "unavailable"}, status=503)
     return JsonResponse({"status": "ok"})
 

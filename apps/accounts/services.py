@@ -46,7 +46,7 @@ def _dummy_hash() -> str:
 
 
 def _hash_code(code: str, salt: str, credential_version: int) -> str:
-    message = f"{salt}:{credential_version}:{code}".encode("utf-8")
+    message = f"{salt}:{credential_version}:{code}".encode()
     return hmac.new(
         settings.SECRET_KEY.encode("utf-8"), message, hashlib.sha256
     ).hexdigest()
@@ -56,36 +56,46 @@ def _challenge_message(purpose: str) -> tuple[str, str]:
     if purpose == ChallengePurpose.SIGN_IN:
         return (
             "Your B & A Essentials sign-in code",
-            "Your code to sign in is: {code}\n\n"
-            "It expires in {minutes} minutes and can only be used once. Never share it.\n"
-            "If you did not try to sign in, you can ignore this email.",
+            (
+                "Your code to sign in is: {code}\n\n"
+                "It expires in {minutes} minutes and can only be used once. Never share it.\n"
+                "If you did not try to sign in, you can ignore this email."
+            ),
         )
     if purpose == ChallengePurpose.EMAIL_CHANGE:
         return (
             "Confirm your new email address",
-            "Your code to confirm this as your B & A Essentials email is: {code}\n\n"
-            "It expires in {minutes} minutes. Never share it.\n"
-            "If you did not ask for this, you can ignore this email.",
+            (
+                "Your code to confirm this as your B & A Essentials email is: {code}\n\n"
+                "It expires in {minutes} minutes. Never share it.\n"
+                "If you did not ask for this, you can ignore this email."
+            ),
         )
     if purpose == ChallengePurpose.STEP_UP:
         return (
             "Confirm it's you",
-            "Your code to confirm it's you is: {code}\n\n"
-            "It expires in {minutes} minutes. Never share it.\n"
-            "If you did not ask for this, sign in and check your account's security page.",
+            (
+                "Your code to confirm it's you is: {code}\n\n"
+                "It expires in {minutes} minutes. Never share it.\n"
+                "If you did not ask for this, sign in and check your account's security page."
+            ),
         )
     if purpose == ChallengePurpose.PASSWORD_RESET:
         return (
             "Reset your B & A Essentials password",
-            "Use this code to reset your password: {code}\n\n"
-            "It expires in {minutes} minutes and can only be used once.\n"
-            "If you did not ask for this, you can ignore this email.",
+            (
+                "Use this code to reset your password: {code}\n\n"
+                "It expires in {minutes} minutes and can only be used once.\n"
+                "If you did not ask for this, you can ignore this email."
+            ),
         )
     return (
         "Verify your B & A Essentials email address",
-        "Use this code to finish creating your account: {code}\n\n"
-        "It expires in {minutes} minutes and can only be used once.\n"
-        "If you did not ask for this, you can ignore this email.",
+        (
+            "Use this code to finish creating your account: {code}\n\n"
+            "It expires in {minutes} minutes and can only be used once.\n"
+            "If you did not ask for this, you can ignore this email."
+        ),
     )
 
 
@@ -529,9 +539,7 @@ def verify_mfa(user: User, code: str) -> bool:
 
 
 def verify_step_up_password(user: User, password: str) -> bool:
-    if not user.check_password(password or ""):
-        return False
-    return True
+    return user.check_password(password or "")
 
 
 # --- Step-up --------------------------------------------------------------

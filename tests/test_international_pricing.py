@@ -3,6 +3,7 @@ Flutterwave elsewhere (the rest of Africa at the day's rate). Monthly or yearly 
 super admin's discount. Flutterwave payments count only once Flutterwave confirms them."""
 from __future__ import annotations
 
+import io
 import json
 from decimal import Decimal
 
@@ -31,7 +32,7 @@ HASH = "synthetic-flutterwave-hash"
 
 @pytest.fixture
 def plans(db):
-    call_command("seed_plans", stdout=open("/dev/null", "w"))
+    call_command("seed_plans", stdout=io.StringIO())
     return {p.slug: p for p in Plan.objects.all()}
 
 
@@ -70,7 +71,7 @@ def test_prices_by_region_and_interval(plans):
     assert pricing.plan_price(growth, "ng").amount_minor == 9_750_000
     assert pricing.plan_price(growth, "intl").amount_minor == 8_900
     # (₦97,500 + ₦100) ÷ ₦1,550 = $62.97 (rounded up to the cent)
-    africa = pricing.plan_price(growth, "africa", rate=Decimal("1550"))
+    africa = pricing.plan_price(growth, "africa", rate=Decimal(1550))
     assert (africa.amount_minor, africa.currency) == (6_297, "USD")
     # Yearly, 15% off: whole naira and whole dollars
     assert pricing.plan_price(growth, "ng", "year").amount_minor == 99_450_000  # ₦994,500
@@ -84,7 +85,7 @@ def test_super_admin_settings_change_prices(plans):
     settings.africa_surcharge_ngn_minor = 50_000
     settings.save()
     assert pricing.plan_price(plans["growth"], "intl", "year").amount_minor == 85_500  # 89×12×0.8 = 854.4 → $855
-    assert pricing.plan_price(plans["growth"], "africa", rate=Decimal("1550")).amount_minor == 6_323  # (97,500+500)/1,550
+    assert pricing.plan_price(plans["growth"], "africa", rate=Decimal(1550)).amount_minor == 6_323  # (97,500+500)/1,550
 
 
 def test_africa_price_uses_the_live_rate_and_caches_it(plans, fake_flutterwave):
@@ -99,9 +100,9 @@ def test_no_rate_and_no_fallback_stops_dollar_checkout(plans, fake_flutterwave):
     with pytest.raises(ValidationFailure, match="exchange rate"):
         pricing.plan_price(plans["starter"], "africa")
     settings = BillingSettings.current()
-    settings.fallback_ngn_per_usd = Decimal("1500")
+    settings.fallback_ngn_per_usd = Decimal(1500)
     settings.save()
-    assert pricing.plan_price(plans["starter"], "africa").rate == Decimal("1500")
+    assert pricing.plan_price(plans["starter"], "africa").rate == Decimal(1500)
 
 
 def test_an_implausible_rate_is_refused(plans, fake_flutterwave):

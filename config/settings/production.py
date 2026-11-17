@@ -4,7 +4,7 @@ from django.core.exceptions import ImproperlyConfigured
 
 from config.env import env, env_bool, env_int
 
-from .base import *  # noqa: F401,F403
+from .base import *
 
 DEBUG = False
 
