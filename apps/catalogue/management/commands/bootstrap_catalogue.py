@@ -115,6 +115,21 @@ class Command(BaseCommand):
             if code and code not in BY_CODE:
                 raise CommandError(f"work_country for {name} must be a known country code, like US or GB.")
             service_defaults["work_country"] = code
+        for key, limit in (("code", 16), ("subtype", 120), ("role", 80)):
+            if key in data:
+                service_defaults[key] = str(data[key] or "").strip()[:limit]
+        if "industries" in data:
+            from apps.catalogue.models import INDUSTRIES
+
+            tags = [str(t).upper() for t in (data["industries"] or [])]
+            unknown = [t for t in tags if t not in INDUSTRIES]
+            if unknown:
+                raise CommandError(f"Unknown industry tag(s) {unknown} for {name}.")
+            service_defaults["industries"] = ",".join(tags)
+        if "creator" in data:
+            service_defaults["creator"] = bool(data["creator"])
+        if "note" in data:
+            service_defaults["note"] = str(data["note"] or "").strip()
         definition, _ = ServiceDefinition.objects.update_or_create(slug=slug, defaults=service_defaults)
         settings_payload = {
             "scope_summary": scope,
@@ -123,7 +138,17 @@ class Command(BaseCommand):
             "revision_allowance": int(data.get("revision_allowance") or 1),
             "requires_quote": bool(data.get("requires_quote", True)),
             "state": state,
+            "allowance_lane": data.get("allowance_lane") or "general",
+            "weight": int(data.get("weight", 1)),
+            "size_rule": str(data.get("size_rule") or "").strip()[:255],
+            "client_provides": str(data.get("client_provides") or "").strip()[:255],
         }
+        from apps.catalogue.models import AllowanceLane
+
+        if settings_payload["allowance_lane"] not in AllowanceLane.values:
+            raise CommandError(f"Unknown allowance_lane {settings_payload['allowance_lane']!r} for {name}.")
+        if not 0 <= settings_payload["weight"] <= 10:
+            raise CommandError(f"weight for {name} must be between 0 and 10.")
         current = definition.versions.filter(is_current=True).first()
         if current is not None and all(
             getattr(current, key) == value for key, value in settings_payload.items()
@@ -140,6 +165,10 @@ class Command(BaseCommand):
                 requires_quote=settings_payload["requires_quote"],
                 state=state,
                 actor=None,
+                allowance_lane=settings_payload["allowance_lane"],
+                weight=settings_payload["weight"],
+                size_rule=settings_payload["size_rule"],
+                client_provides=settings_payload["client_provides"],
             )
         self.stdout.write(
             f"  {name}: published v{version.version_number} ({state})."

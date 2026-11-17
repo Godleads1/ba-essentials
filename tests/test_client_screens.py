@@ -14,7 +14,7 @@ from .conftest import pdf_upload
 def test_catalogue_lists_open_services_and_prefills_the_request_form(
     client, service_version
 ):
-    response = client.get(reverse("service-catalogue"))
+    response = client.get(reverse("service-catalogue"), {"category": service_version.definition.category.slug})
 
     assert response.status_code == 200
     assert "Logo Refresh" in response.content.decode()
