@@ -208,7 +208,7 @@
     /* ---------- my tasks / request detail ---------- */
     .stat-f { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 12px; row-gap: 2px; border-radius: 20px; background: #fff; padding: 16px 18px; text-align: left; border: 1.5px solid transparent; transition: border-color .2s, transform .2s, box-shadow .2s; }
     .stat-f:hover { transform: translateY(-2px); box-shadow: 0 18px 34px -26px rgba(51,57,127,.5); }
-    .stat-f[aria-pressed="true"] { border-color: #33397F; }
+    .stat-f[aria-pressed="true"], .stat-f[aria-current="true"] { border-color: #33397F; }
     .stat-f:focus-visible { outline: 2px solid #33397F; outline-offset: 2px; }
     .stat-ic { grid-row: span 1; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 999px; }
     .stat-label { font-size: 14.5px; font-weight: 500; }
@@ -285,3 +285,11 @@
 .sw:focus-visible { outline: 2px solid #33397F; outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .sw, .sw::after { transition: none; } }
 @media (forced-colors: active) { .sw { border: 1px solid CanvasText; } .sw:checked { background: Highlight; } }
+
+/* Category cards on Submit a Task are links (no JavaScript): the chosen one is aria-current. */
+a.cat { color: inherit; text-decoration: none; }
+.cat[aria-current="true"] { border-color: #33397F; box-shadow: 0 0 0 3px #ECEDF8; }
+.cat[aria-current="true"] .cat-check { border-color: #33397F; background: #33397F; color: #fff; }
+a.cat:focus-visible { outline: 2px solid #33397F; outline-offset: 2px; }
+.cat.is-soon { cursor: default; background: #FBF9F5; }
+.cat.is-soon:hover { border-color: #ECE5DA; transform: none; }

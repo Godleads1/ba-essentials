@@ -96,3 +96,42 @@ def plan_usage(organization, subscription) -> dict | None:
         "legal_used": max(0, legal_total - legal_reviews_remaining(organization)) if legal_total else 0,
         "legal_every": subscription.plan.legal_review_period_months,
     }
+
+
+# ---------- one request: the client's progress timeline ----------
+
+FLOW = [("submitted", "Request submitted"), ("scoping", "Reviewed and scoped"), ("progress", "Work in progress"),
+        ("checking", "Quality check"), ("delivered", "Delivered")]
+STEP_OF = {"submitted": 0, "scoping": 1, "input": 2, "progress": 2, "hold": 2, "checking": 3, "delivered": 4}
+
+
+def timeline(task, events) -> list[dict]:
+    """Steps with real dates from the status history. Waiting on the client or on
+    hold shows as an extra orange step; a cancelled request stops."""
+    from apps.core import client_status as cs
+
+    group = cs.group(task.status)
+    first_in: dict[str, object] = {"submitted": task.created_at}
+    last_wait = None
+    for e in sorted(events, key=lambda e: e.created_at):
+        g = cs.group(e.to_status)
+        g = "scoping" if e.to_status in ("awaiting_client_approval", "awaiting_payment") else g
+        first_in.setdefault(g, e.created_at)
+        if g in ("input", "hold"):
+            last_wait = e.created_at
+    if group == "cancelled":
+        return [{"label": "Request submitted", "state": "done", "date": task.created_at},
+                {"label": "Cancelled", "state": "stop", "date": task.updated_at}]
+    at = STEP_OF.get(group, 0)
+    if task.status in ("awaiting_client_approval", "awaiting_payment"):
+        at = 1
+    steps = []
+    for i, (g, label) in enumerate(FLOW):
+        state = "done" if i < at else "now" if i == at else "next"
+        if i == 4 and group == "delivered":
+            state = "done"
+        steps.append({"label": label, "state": state, "date": first_in.get(g) if i <= at else None})
+    if group in ("input", "hold") or task.status in ("awaiting_client_approval", "awaiting_payment"):
+        steps.insert(min(at + 1, len(steps)), {"label": cs.label(task.status), "state": "wait",
+                                               "date": last_wait or task.updated_at})
+    return steps

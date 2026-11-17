@@ -125,8 +125,9 @@ def test_posting_a_locked_service_directly_is_refused(plans, services, organizat
 def test_the_form_and_catalogue_show_locked_categories(plans, services, organization, owner, client):
     _subscribe(organization, plans["starter"])
     form_page = client.get("/app/tasks/new/").content.decode()
-    assert "Operations &amp; Logistics service" not in form_page.split("Not in your plan")[0]
-    assert "Not in your plan" in form_page and "from Growth" in form_page
+    service_list = form_page.split('id="id_service_version"')[1].split("</select>")[0]
+    assert "Operations &amp; Logistics service" not in service_list
+    assert "Not in your plan" in form_page and "On Growth" in form_page
     catalogue = client.get("/app/catalogue/").content.decode()
     assert "On Growth" in catalogue and "Upgrade to Growth" in catalogue and "On Dedicated" in catalogue
 

@@ -1,0 +1,280 @@
+{% extends "banda/app/base.html" %}
+{% load ui icons %}
+{% block title %}{{ task.reference }}{% endblock %}
+{% block content %}
+      <a href="{% url 'task-list' %}" class="inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-brand-navy hover:underline">{% icon "arrow-left" "h-4 w-4" %}Back to My Tasks</a>
+
+      <section class="panel mt-3 px-5 py-5 sm:px-6">
+        <div class="flex flex-wrap items-start gap-x-4 gap-y-3">
+          <div class="min-w-0 flex-1">
+            <div class="flex flex-wrap items-center gap-2.5">
+              <h1 class="font-display text-[22px] font-semibold leading-tight tracking-[-0.01em] sm:text-[26px]">{{ task.title }}</h1>
+              <span class="chip-status {{ task.status|client_status_chip }}">{{ task.status|client_status }}</span>
+            </div>
+            <p class="mt-1.5 text-[13.5px] text-ink-muted"><span class="font-semibold text-brand-navy">{{ task.reference }}</span> · {{ task.service_version.definition.name }} · {{ task.service_version.definition.category.name }}</p>
+            <p class="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-[13px] text-ink-muted">
+              <span class="inline-flex items-center gap-1.5">{% icon "calendar" "h-4 w-4" %}Submitted <span class="font-medium text-ink">{{ task.created_at|date:"j M Y" }}</span></span>
+              <span class="inline-flex items-center gap-1.5">{% icon "flag" "h-4 w-4" %}Deadline <span class="font-medium text-ink">{% if task.due_date %}{{ task.due_date|date:"j M Y" }}{% else %}None set{% endif %}</span></span>
+              <span class="inline-flex items-center gap-1.5">Priority <span class="chip-status {{ priority.1 }}">{{ priority.0 }}</span></span>
+            </p>
+          </div>
+          {% if can_cancel %}
+            <details class="group">
+              <summary class="btn-ghost cursor-pointer list-none border border-[#F3C7C3] py-2 text-[13px] text-[#B42318] hover:bg-[#FDECEC] hover:text-[#B42318]">{% icon "circle-x" "h-4 w-4" %}Cancel request</summary>
+              <form method="post" action="{% url 'task-cancel' task_id=task.pk %}" class="mt-3 w-full rounded-2xl border border-cream-line bg-white p-4 sm:w-[320px]">
+                {% csrf_token %}
+                <label for="cancelReason" class="lbl">Why are you cancelling?</label>
+                <textarea id="cancelReason" name="reason" rows="2" required maxlength="500" class="field mt-1.5 resize-y"></textarea>
+                <p class="mt-1.5 text-[12px] text-ink-muted">This closes the request. Any plan allowance it used is given back.</p>
+                <button type="submit" class="mt-3 rounded-full bg-[#B42318] px-4 py-2 text-[13px] font-semibold text-white hover:bg-[#912018]">Cancel request</button>
+              </form>
+            </details>
+          {% endif %}
+        </div>
+
+        {% if service_paused %}
+          <div class="mt-4 rounded-2xl bg-pill-orangeBg px-4 py-3 text-[13.5px] text-brand-orangeDark" role="alert"><span class="font-semibold">Your service is paused.</span> Your plan renewal is unpaid, so work on this request is paused. Nothing is cancelled: it carries on when you pay. <a class="font-semibold underline" href="{% url 'plan-home' %}">Pay your renewal</a></div>
+        {% endif %}
+        {% if outside_plan_region %}
+          <p class="mt-4 rounded-2xl bg-pill-navyBg px-4 py-3 text-[13.5px] text-brand-navy"><span class="font-semibold">One-off fee first.</span> This work is for {{ work_country_name }}, outside Africa, so your plan doesn&rsquo;t include it. We&rsquo;ll send a quote before any work starts, and nothing is charged unless you accept it.</p>
+        {% endif %}
+        {% if task.priority == "high" and task.status in "submitted,triage,scoping" %}
+          <p class="mt-4 rounded-2xl bg-pill-orangeBg px-4 py-3 text-[13.5px] text-brand-orangeDark"><span class="font-semibold">Marked urgent.</span> We&rsquo;ll confirm whether we can meet your timeline before we start.</p>
+        {% endif %}
+        {% if can_provide_information %}
+          <div class="mt-4 rounded-2xl bg-pill-orangeBg px-4 py-4">
+            <p class="flex items-center gap-2 text-[13.5px] font-semibold text-brand-orangeDark">{% icon "hourglass" "h-4 w-4" %}We need something from you</p>
+            {% if task.needs_info_question %}<p class="mt-1.5 whitespace-pre-line text-[13.5px] text-ink">{{ task.needs_info_question }}</p>{% endif %}
+            <form method="post" action="{% url 'task-provide-information' task_id=task.pk %}" class="mt-3">
+              {% csrf_token %}
+              <label for="info" class="sr-only">Your answer</label>
+              <textarea id="info" name="information" rows="3" required maxlength="4000" class="field resize-y" placeholder="Add the details we asked for"></textarea>
+              <button type="submit" class="btn-next mt-2.5 bg-brand-cta py-2 text-[13px] hover:bg-brand-ctaDark">Send information</button>
+            </form>
+          </div>
+        {% endif %}
+      </section>
+
+      <div class="mt-3 grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1fr)_330px]">
+        <div class="min-w-0 space-y-3">
+          <section class="panel p-5 sm:p-6" aria-labelledby="rdT">
+            <h2 id="rdT" class="font-display text-[17px] font-semibold">Request details</h2>
+            <dl class="mt-4 grid grid-cols-1 gap-4 text-[14px] sm:grid-cols-[150px_minmax(0,1fr)] [&>*]:min-w-0">
+              <dt class="text-ink-muted">Category</dt><dd class="font-medium">{{ task.service_version.definition.category.name }}</dd>
+              <dt class="text-ink-muted">Service</dt><dd class="font-medium">{{ task.service_version.definition.name }}</dd>
+              <dt class="text-ink-muted">Description</dt><dd class="whitespace-pre-line break-words leading-relaxed">{{ task.brief }}</dd>
+              {% if task.desired_outcome %}<dt class="text-ink-muted">What you want back</dt><dd class="whitespace-pre-line break-words leading-relaxed">{{ task.desired_outcome }}</dd>{% endif %}
+              {% if task.client_information %}<dt class="text-ink-muted">Information you added</dt><dd class="whitespace-pre-line break-words leading-relaxed">{{ task.client_information }}</dd>{% endif %}
+              <dt class="text-ink-muted">Your files</dt>
+              <dd>
+                {% if attachments %}
+                  <ul class="space-y-2">
+                    {% for a in attachments %}
+                      <li class="flex items-center gap-3 rounded-xl border border-cream-line bg-white px-3 py-2.5 text-[13px]">
+                        <span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#FDECEC] text-[#B42318]">{% icon "file-text" "h-4 w-4" %}</span>
+                        <span class="min-w-0 flex-1"><span class="block truncate font-medium">{{ a.file.original_name }}</span><span class="block text-[11.5px] text-ink-soft">{{ a.file.size_bytes|filesizeformat }}{% if a.file.scan_status != "clean" %} · {{ a.file.get_scan_status_display }}{% endif %}</span></span>
+                        {% if a.file.scan_status == "clean" %}<a href="{% url 'file-download' file_id=a.file.pk %}" class="shrink-0 text-[12.5px] font-semibold text-brand-navy hover:underline">Download<span class="sr-only"> {{ a.file.original_name }}</span></a>{% endif %}
+                      </li>
+                    {% endfor %}
+                  </ul>
+                {% else %}<span class="text-ink-muted">None attached</span>{% endif %}
+              </dd>
+            </dl>
+          </section>
+
+          {% if sent_quote or invoice or fee_requests %}
+            <section id="quote" class="panel scroll-mt-24 p-5 sm:p-6" aria-labelledby="qT">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <h2 id="qT" class="font-display text-[17px] font-semibold">Quote &amp; payment</h2>
+                {% if sent_quote %}<span class="chip-status bg-pill-orangeBg text-brand-orangeDark">Quote to approve</span>
+                {% elif invoice.status == "issued" %}<span class="chip-status bg-pill-orangeBg text-brand-orangeDark">Payment needed</span>
+                {% elif invoice.status == "paid" %}<span class="chip-status bg-pill-greenBg text-pill-greenTx">Paid</span>{% endif %}
+              </div>
+
+              {% if sent_quote %}
+                <p class="mt-1 text-[13.5px] text-ink-muted">This work is priced separately from your plan, so we&rsquo;ve sent a quote. Nothing is charged unless you accept it.</p>
+                <div class="mt-4 rounded-2xl bg-cream-light px-4 py-4">
+                  <div class="flex flex-wrap items-end justify-between gap-3">
+                    <div><p class="text-[12px] text-ink-muted">Quoted cost</p><p class="font-display text-[26px] font-semibold leading-tight">{{ sent_quote.amount_minor|money_minor:sent_quote.currency }}</p></div>
+                    {% if sent_quote.expires_at %}<p class="text-[12.5px] text-ink-muted">Valid until {{ sent_quote.expires_at|date:"j M Y" }}</p>{% endif %}
+                  </div>
+                  <dl class="mt-4 space-y-3 text-[13.5px]">
+                    <div><dt class="text-[12px] text-ink-muted">What&rsquo;s included</dt><dd class="mt-0.5 whitespace-pre-line">{{ sent_quote.scope_summary }}</dd></div>
+                    {% if sent_quote.exclusions %}<div><dt class="text-[12px] text-ink-muted">Not included</dt><dd class="mt-0.5 whitespace-pre-line">{{ sent_quote.exclusions }}</dd></div>{% endif %}
+                  </dl>
+                  <dl class="mt-3 grid grid-cols-1 gap-3 text-[13.5px] sm:grid-cols-3">
+                    <div><dt class="text-[12px] text-ink-muted">Turnaround</dt><dd class="mt-0.5 font-medium">{{ sent_quote.turnaround_days }} days</dd></div>
+                    <div><dt class="text-[12px] text-ink-muted">Changes included</dt><dd class="mt-0.5 font-medium">{{ sent_quote.revision_allowance }}</dd></div>
+                    <div><dt class="text-[12px] text-ink-muted">Payment</dt><dd class="mt-0.5 font-medium">{{ sent_quote.payment_terms|default:"Per invoice" }}</dd></div>
+                  </dl>
+                </div>
+                <div class="mt-4 flex flex-wrap items-start gap-3">
+                  <form method="post" action="{% url 'quote-accept' version_id=sent_quote.pk %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">
+                    <button type="submit" class="btn-next">Accept quote {% icon "arrow-right" "h-4 w-4" %}</button>
+                  </form>
+                  <details>
+                    <summary class="btn-outline cursor-pointer list-none">Decline</summary>
+                    <form method="post" action="{% url 'quote-reject' version_id=sent_quote.pk %}" class="mt-3 w-full sm:w-[320px]">
+                      {% csrf_token %}
+                      <label for="declineReason" class="lbl">What doesn&rsquo;t work for you?</label>
+                      <textarea id="declineReason" name="reason" rows="2" required maxlength="1000" class="field mt-1.5 resize-y"></textarea>
+                      <button type="submit" class="btn-ghost mt-2 border border-[#F3C7C3] py-2 text-[13px] text-[#B42318] hover:bg-[#FDECEC] hover:text-[#B42318]">Decline the quote</button>
+                    </form>
+                  </details>
+                </div>
+              {% endif %}
+
+              {% if invoice %}
+                <div class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-cream-line px-4 py-3">
+                  <div><p class="font-medium">Invoice {{ invoice.number }}</p><p class="text-[12.5px] text-ink-muted">{{ invoice.amount_minor|money_minor:invoice.currency }}{% if invoice.due_at and invoice.status == "issued" %} · due {{ invoice.due_at|date:"j M Y" }}{% endif %}{% if invoice.paid_at %} · paid {{ invoice.paid_at|date:"j M Y" }}{% endif %}</p></div>
+                  {% if invoice.status == "issued" %}
+                    {% if payments_enabled and can_pay %}
+                      <form method="post" action="{% url 'invoice-checkout' invoice_id=invoice.pk %}">{% csrf_token %}<button class="btn-next">Pay {{ invoice.amount_minor|money_minor:invoice.currency }}</button></form>
+                    {% endif %}
+                  {% endif %}
+                </div>
+                {% if invoice.status == "issued" %}
+                  <p class="mt-2 text-[12.5px] text-ink-muted">{% if payments_enabled and can_pay %}You&rsquo;ll pay in Paystack&rsquo;s secure window. The invoice shows as paid once Paystack confirms the payment to us.{% else %}Pay by bank transfer using {{ invoice.number }} as the reference. It shows as paid once our finance team confirms it.{% endif %}</p>
+                {% endif %}
+              {% endif %}
+
+              {% for fr in fee_requests %}
+                <div class="mt-5" id="fees">
+                  <h3 class="text-[14px] font-semibold">Third-party fees</h3>
+                  <p class="mt-0.5 text-[13px] text-ink-muted">Paid to the organisations below, at cost. We don&rsquo;t file or book anything until they&rsquo;re paid.</p>
+                  <div class="mt-3 overflow-hidden rounded-2xl border border-cream-line">
+                    <table class="w-full text-left text-[13.5px]">
+                      <caption class="sr-only">Third-party fees for this request</caption>
+                      <thead class="bg-cream-light text-[12px] text-ink-muted"><tr><th scope="col" class="px-4 py-2.5 font-medium">Paid to</th><th scope="col" class="px-4 py-2.5 text-right font-medium">Amount</th></tr></thead>
+                      <tbody class="divide-y divide-cream-line">
+                        {% for line in fr.lines.all %}
+                          <tr><td class="px-4 py-2.5"><span class="font-medium">{{ line.payee }}</span><span class="block text-[12px] text-ink-muted">{{ line.description }}</span><a href="{% url 'file-download' file_id=line.evidence.pk %}" class="mt-1 inline-block break-all text-[12.5px] font-medium text-brand-navy underline underline-offset-2 hover:no-underline">Evidence: {{ line.evidence.original_name }}</a>{% if line.receipt %}<span class="mt-1 block text-[12px] text-ink-muted">Paid {{ line.paid_to_payee_at|date:"j M Y" }} · <a href="{% url 'file-download' file_id=line.receipt.pk %}" class="font-medium text-brand-navy underline underline-offset-2">Official receipt</a></span>{% endif %}</td><td class="whitespace-nowrap px-4 py-2.5 text-right align-top tabular-nums">{{ line.amount_minor|money_minor:fr.currency }}</td></tr>
+                        {% endfor %}
+                      </tbody>
+                      <tfoot class="border-t border-cream-line">
+                        <tr><th scope="row" class="px-4 py-2.5 text-left font-medium">Payment processing (Paystack)<span class="block text-[12px] font-normal text-ink-muted">Paystack&rsquo;s charge, added so the full fees reach the organisations above</span></th><td class="whitespace-nowrap px-4 py-2.5 text-right align-top tabular-nums">{{ fr.processing_minor|money_minor:fr.currency }}</td></tr>
+                        <tr class="bg-cream-light"><th scope="row" class="px-4 py-3 text-left font-semibold">Total to pay</th><td class="whitespace-nowrap px-4 py-3 text-right font-display text-[17px] font-semibold tabular-nums">{{ fr.total_minor|money_minor:fr.currency }}</td></tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                  <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
+                    <p class="text-[13px]">
+                      {% if fr.status == "sent" %}<span class="chip-status bg-pill-orangeBg text-brand-orangeDark">Payment needed</span>
+                      {% elif fr.status == "settled" %}<span class="chip-status bg-pill-greenBg text-pill-greenTx">Paid to the organisations</span>
+                      {% else %}<span class="chip-status bg-pill-greenBg text-pill-greenTx">Paid</span> <span class="text-ink-muted">We&rsquo;ll add the official receipts here once we&rsquo;ve paid the organisations.</span>{% endif %}
+                    </p>
+                    {% if fr.status == "sent" and fr.invoice and payments_enabled and can_pay_fees %}
+                      <form method="post" action="{% url 'invoice-checkout' invoice_id=fr.invoice.pk %}">{% csrf_token %}<button class="btn-next">Approve and pay {{ fr.total_minor|money_minor:fr.currency }}</button></form>
+                    {% endif %}
+                  </div>
+                  {% if fr.status == "sent" and fr.invoice %}
+                    {% if not payments_enabled %}<p class="mt-2 text-[12.5px] text-ink-muted">Card payment isn&rsquo;t open yet. Pay by bank transfer using {{ fr.invoice.number }} as the reference.</p>
+                    {% elif not can_pay_fees %}<p class="mt-2 text-[12.5px] text-ink-muted">Only the business owner can pay these fees.</p>{% endif %}
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </section>
+          {% endif %}
+
+          {% url 'task-message-post' task_id=task.pk as task_message_url %}
+          <section id="messages" class="panel scroll-mt-24 p-5 sm:p-6" aria-labelledby="mT">
+            <h2 id="mT" class="font-display text-[17px] font-semibold">Messages</h2>
+            {% if thread %}
+              <ol class="mt-4 space-y-4">
+                {% for m in thread %}
+                  <li class="flex gap-3 {% if m.mine %}flex-row-reverse text-right{% endif %}">
+                    <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[12px] font-bold text-white {% if m.mine %}bg-brand-cta{% else %}bg-brand-navy{% endif %}" aria-hidden="true">{% if m.author_role == "staff" %}BA{% else %}{{ m.author_name|default:"You"|initials }}{% endif %}</span>
+                    <div class="min-w-0 max-w-[85%]">
+                      <p class="text-[12px] text-ink-muted"><span class="font-semibold text-ink">{% if m.mine %}You{% elif m.author_role == "staff" %}B &amp; A team{% else %}{{ m.author_name }}{% endif %}</span> · <time datetime="{{ m.created_at|date:'c' }}">{{ m.created_at|date:"j M Y, H:i" }}</time></p>
+                      <p class="mt-1 inline-block whitespace-pre-line break-words rounded-2xl px-3.5 py-2.5 text-left text-[13.5px] leading-relaxed {% if m.mine %}rounded-tr-md bg-pill-navyBg{% else %}rounded-tl-md bg-cream-light{% endif %}">{{ m.body }}</p>
+                    </div>
+                  </li>
+                {% endfor %}
+              </ol>
+            {% else %}
+              <p class="mt-3 rounded-2xl bg-cream-light px-4 py-5 text-center text-[13.5px] text-ink-muted">No messages yet. Questions about this request go here.</p>
+            {% endif %}
+            {% if is_cancelled %}
+              <p class="mt-5 rounded-2xl bg-cream-light px-4 py-3 text-[13px] text-ink-muted">This request was cancelled, so messaging is closed. Submit a new task if you still need help.</p>
+            {% else %}
+              <form method="post" action="{{ task_message_url }}" class="mt-5">
+                {% csrf_token %}
+                <label for="msg" class="lbl">Send information or a question</label>
+                <textarea id="msg" name="body" rows="3" maxlength="4000" required class="field mt-1.5 resize-y leading-relaxed" placeholder="Type your message to the team"></textarea>
+                <div class="mt-2.5 flex flex-wrap items-center justify-between gap-3">
+                  <p class="text-[12px] text-ink-soft">Your business and the B &amp; A team can see these messages. We usually reply within one business day.</p>
+                  <button type="submit" class="btn-next py-2.5">{% icon "send" "h-4 w-4" %}Send</button>
+                </div>
+              </form>
+            {% endif %}
+          </section>
+        </div>
+
+        <aside class="space-y-3 xl:self-start" aria-label="Progress and files">
+          <section class="panel p-5" aria-labelledby="tlT">
+            <h2 id="tlT" class="font-display text-[17px] font-semibold">Progress</h2>
+            <ol class="mt-4">
+              {% for st in timeline %}
+                <li class="relative flex gap-3 pb-5 last:pb-0" {% if st.state == "now" or st.state == "wait" %}aria-current="step"{% endif %}>
+                  {% if not forloop.last %}<span class="absolute left-[13px] top-7 h-[calc(100%-24px)] w-0.5 {% if st.state == 'done' %}bg-brand-navy{% else %}bg-cream-line{% endif %}" aria-hidden="true"></span>{% endif %}
+                  <span class="grid h-7 w-7 shrink-0 place-items-center rounded-full {% if st.state == 'done' %}bg-brand-navy text-white{% elif st.state == 'now' %}bg-white text-brand-navy ring-2 ring-brand-navy{% elif st.state == 'wait' %}bg-brand-orange text-white{% elif st.state == 'stop' %}bg-[#B42318] text-white{% else %}bg-white text-ink-soft ring-1 ring-cream-line{% endif %}">{% if st.state == "done" %}{% icon "check" "h-3.5 w-3.5" %}{% elif st.state == "now" %}{% icon "loader" "h-3.5 w-3.5" %}{% elif st.state == "wait" %}{% icon "hourglass" "h-3.5 w-3.5" %}{% elif st.state == "stop" %}{% icon "x" "h-3.5 w-3.5" %}{% else %}{% icon "circle-dashed" "h-3.5 w-3.5" %}{% endif %}</span>
+                  <span class="pt-0.5"><span class="block text-[13.5px] {% if st.state == 'next' %}text-ink-muted{% else %}font-semibold{% endif %}">{{ st.label }}<span class="sr-only">, {% if st.state == "done" %}done{% elif st.state == "now" %}current step{% elif st.state == "wait" %}waiting{% elif st.state == "stop" %}stopped{% else %}not started{% endif %}</span></span>{% if st.date %}<span class="block text-[12px] text-ink-soft">{{ st.date|date:"j M Y, H:i" }}</span>{% endif %}</span>
+                </li>
+              {% endfor %}
+            </ol>
+          </section>
+
+          <section class="panel p-5" aria-labelledby="dvT">
+            <div class="flex items-center justify-between gap-3"><h2 id="dvT" class="font-display text-[17px] font-semibold">Deliverables</h2><a href="{% url 'files-home' %}" class="text-[13px] font-semibold text-brand-navy hover:underline">All files</a></div>
+            {% if released_versions %}
+              <ul class="mt-3 space-y-2">
+                {% for v in released_versions %}
+                  <li class="rounded-xl border border-cream-line bg-white px-3 py-2.5 text-[13px]">
+                    <div class="flex items-center gap-3">
+                      <span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-pill-greenBg text-pill-greenTx">{% icon "file-check" "h-4 w-4" %}</span>
+                      <span class="min-w-0 flex-1"><span class="block truncate font-medium">{{ v.file.original_name }}</span><span class="block text-[11.5px] text-ink-soft">Version {{ v.version_number }} · {{ v.file.size_bytes|filesizeformat }}{% if v.released_at %} · {{ v.released_at|date:"j M Y" }}{% endif %}</span><span class="block text-[11.5px] text-ink-muted">Checked by the B &amp; A quality team, within the scope agreed on this request</span></span>
+                    </div>
+                    {% if v.notes %}<p class="mt-2 whitespace-pre-line text-[12.5px] text-ink-muted">{{ v.notes }}</p>{% endif %}
+                    <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5"><span class="chip-status bg-pill-greenBg text-pill-greenTx">Ready to download</span><a href="{% url 'file-download' file_id=v.file.pk %}" class="text-[12.5px] font-semibold text-brand-navy hover:underline">Download<span class="sr-only"> {{ v.file.original_name }}</span></a></div>
+                  </li>
+                {% endfor %}
+              </ul>
+              {% if can_decide_deliverable and released_version %}
+                <div class="mt-3 rounded-xl bg-cream-light px-3 py-3">
+                  <p class="text-[13px] font-semibold">Happy with the work?</p>
+                  <p class="mt-0.5 text-[12px] text-ink-muted">Accepting completes the request. Changes included left: {{ task.revision_allowance_remaining }}.</p>
+                  <div class="mt-2.5 flex flex-wrap items-start gap-2">
+                    <form method="post" action="{% url 'deliverable-decide' task_id=task.pk %}">{% csrf_token %}<input type="hidden" name="version_id" value="{{ released_version.pk }}"><input type="hidden" name="decision" value="accept"><button type="submit" class="btn-next py-2 text-[13px]">Accept</button></form>
+                    <details class="w-full">
+                      <summary class="btn-outline cursor-pointer list-none py-2 text-[13px]">Ask for changes</summary>
+                      <form method="post" action="{% url 'deliverable-decide' task_id=task.pk %}" class="mt-2.5">
+                        {% csrf_token %}<input type="hidden" name="version_id" value="{{ released_version.pk }}"><input type="hidden" name="decision" value="revision">
+                        <label for="revNote" class="lbl">What should change?</label>
+                        <textarea id="revNote" name="note" rows="3" required maxlength="4000" class="field mt-1.5 resize-y"></textarea>
+                        <button type="submit" class="btn-next mt-2 py-2 text-[13px]">Send</button>
+                      </form>
+                    </details>
+                  </div>
+                </div>
+              {% endif %}
+              <p class="mt-3 rounded-xl bg-cream-light px-3 py-2.5 text-[12px] text-ink-muted">Each delivered task includes one round of changes, asked for within 2 days of delivery and within the agreed scope.</p>
+            {% else %}
+              <div class="mt-3 flex flex-col items-center gap-1.5 rounded-2xl bg-cream-light px-4 py-6 text-center">
+                <span class="grid h-10 w-10 place-items-center rounded-full bg-white text-ink-soft">{% icon "file-check" "h-[18px] w-[18px]" %}</span>
+                <p class="text-[13px] font-medium">No deliverables yet</p>
+                <p class="text-[12px] text-ink-muted">Finished files appear here once they&rsquo;ve been checked.</p>
+              </div>
+            {% endif %}
+          </section>
+
+          <section class="relative overflow-hidden rounded-[22px] bg-brand-navy p-5 text-white" aria-labelledby="hT">
+            <span aria-hidden="true" class="rings pointer-events-none absolute inset-0"></span>
+            <h2 id="hT" class="relative font-display text-[17px] font-semibold">Need help with this request?</h2>
+            <p class="relative mt-1 text-[13px] text-white/75">Message the team above, or contact support for anything about your account.</p>
+            <a href="{% url 'support-new' %}" class="btn relative mt-3 bg-brand-cta px-4 py-2 text-[13px] text-white hover:bg-brand-ctaDark">Contact support {% icon "arrow-right" "h-4 w-4" %}</a>
+          </section>
+        </aside>
+      </div>
+{% endblock %}

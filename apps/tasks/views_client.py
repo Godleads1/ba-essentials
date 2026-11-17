@@ -31,6 +31,23 @@ from .models import TaskStatus
 from .transitions import Action, available_actions
 
 
+def _is_uuid(value) -> bool:
+    import uuid
+
+    try:
+        uuid.UUID(str(value))
+    except (TypeError, ValueError):
+        return False
+    return True
+
+
+def _mark_mine(messages, user):
+    rows = list(messages)
+    for m in rows:
+        m.mine = m.author_id == user.pk
+    return rows
+
+
 def _task_for_org(request, task_id):
     task = (
         tasks_for(request.user)
@@ -80,34 +97,75 @@ def overview(request):
 
 @client_required
 def task_list(request):
-    tasks = (
-        tasks_for(request.user)
-        .filter(organization=request.organization)
-        .select_related("service_version__definition")
-    )
+    """My tasks: search and filter on the server, 10 to a page."""
+    from datetime import timedelta
+
+    from django.core.paginator import Paginator
+    from django.utils import timezone
+
+    from apps.catalogue.models import ServiceCategory
+    from apps.core import client_status as cs
+
+    all_tasks = tasks_for(request.user).filter(organization=request.organization)
+    tasks = all_tasks.select_related("service_version__definition__category").order_by("-created_at")
+    group_choices = [(k, v[0]) for k, v in cs.GROUPS.items()]
+    group = request.GET.get("group", "")
+    if group == "active":
+        tasks = tasks.filter(status__in=cs.statuses_in("progress", "checking"))
+    elif group in cs.GROUPS:
+        tasks = tasks.filter(status__in=cs.statuses_in(group))
+    else:
+        group = ""
     status = request.GET.get("status", "")
     if status in TaskStatus.values:
         tasks = tasks.filter(status=status)
-    group = request.GET.get("group", "")
-    if group:
-        from apps.core.client_status import STATUS as CLIENT_STATUS
-
-        tasks = tasks.filter(status__in=[s for s, (g, _) in CLIENT_STATUS.items() if g == group])
-    query = (request.GET.get("q") or "").strip()
+    categories = list(ServiceCategory.objects.filter(
+        services__versions__tasks__organization=request.organization).distinct().order_by("name"))
+    tones = {c.pk: cs.CATEGORY_TONES[i % len(cs.CATEGORY_TONES)] for i, c in enumerate(categories)}
+    category = request.GET.get("category", "")
+    if category:
+        tasks = tasks.filter(service_version__definition__category__slug=category)
+    days = request.GET.get("days", "")
+    if days in ("7", "30", "90"):
+        tasks = tasks.filter(created_at__gte=timezone.now() - timedelta(days=int(days)))
+    else:
+        days = ""
+    query = (request.GET.get("q") or "").strip()[:100]
     if query:
         tasks = tasks.filter(
             Q(title__icontains=query)
             | Q(reference__icontains=query)
-            | Q(brief__icontains=query)
+            | Q(service_version__definition__name__icontains=query)
         )
+    page = Paginator(tasks, 10).get_page(request.GET.get("page"))
+    rows = [
+        {"task": t, "tone": tones.get(t.service_version.definition.category_id, cs.CATEGORY_TONES[0]),
+         "priority": cs.PRIORITY.get(t.priority, cs.PRIORITY["medium"]),
+         "late": bool(t.due_date and t.due_date < timezone.localdate()
+                      and t.status not in cs.statuses_in("delivered", "cancelled"))}
+        for t in page.object_list
+    ]
+    filtered = bool(query or group or category or days or status)
+    keep = request.GET.copy()
+    keep.pop("page", None)
     return render(
         request,
-        "app/tasks_list.html",
+        "banda/app/tasks_list.html",
         {
-            "tasks": tasks[:200],
-            "statuses": TaskStatus.choices,
-            "selected_status": status,
-            "query": query,
+            "rows": rows,
+            "page": page,
+            "keep": keep.urlencode(),
+            "counts": {
+                "all": all_tasks.count(),
+                "active": all_tasks.filter(status__in=cs.statuses_in("progress", "checking")).count(),
+                "input": all_tasks.filter(status__in=cs.statuses_in("input")).count(),
+                "delivered": all_tasks.filter(status__in=cs.statuses_in("delivered")).count(),
+            },
+            "group_choices": group_choices,
+            "categories": categories,
+            "guide": cs.guide(),
+            "group": group, "category": category, "days": days, "query": query,
+            "filtered": filtered,
         },
     )
 
@@ -148,14 +206,28 @@ def task_submit(request):
             return redirect("task-detail", task_id=task.pk)
     from apps.billing import plan_rules
     from apps.catalogue.models import ServiceCategory
+    from apps.core import client_status as cs
 
-    locked = [
-        (category, access)
-        for category in ServiceCategory.objects.filter(is_active=True, minimum_plan_rank__gt=0)
-        for access in [plan_rules.category_access(request.organization, category)]
-        if not access.allowed
-    ]
-    return render(request, "app/task_submit.html", {"form": form, "locked_categories": locked})
+    # Category cards: open ones link to ?category=<slug>, which narrows the service
+    # list on the server (no JavaScript needed). Locked ones say which plan has them.
+    chosen_version = form.fields["service_version"].queryset.filter(pk=form["service_version"].value() or None).first() \
+        if _is_uuid(form["service_version"].value()) else None
+    category_slug = request.GET.get("category", "") or (chosen_version.definition.category.slug if chosen_version else "")
+    cards = []
+    for i, category in enumerate(ServiceCategory.objects.filter(is_active=True, services__is_active=True).distinct()):
+        access = plan_rules.category_access(request.organization, category)
+        cards.append({"category": category, "access": access, "selected": category.slug == category_slug,
+                      "tone": cs.CATEGORY_TONES[i % len(cs.CATEGORY_TONES)]})
+    selected = next((c for c in cards if c["selected"] and c["access"].allowed), None)
+    if selected is not None:
+        form.fields["service_version"].queryset = form.fields["service_version"].queryset.filter(
+            definition__category=selected["category"])
+    return render(request, "banda/app/task_submit.html", {
+        "form": form, "cards": cards, "selected": selected, "chosen_version": chosen_version,
+        "any_locked": any(not c["access"].allowed for c in cards),
+        "paused": _is_paused(request.organization),
+        "priority_value": form["priority"].value() or "medium",
+    })
 
 
 def _is_paused(organization):
@@ -196,11 +268,24 @@ def task_detail(request, task_id):
         .prefetch_related("lines__evidence", "lines__receipt")
     )
     actions = available_actions(task, request.user)
+    from apps.core import client_status as cs
+
+    from .dashboard import timeline
+
+    released_versions = (
+        list(deliverable.versions.filter(status=DeliverableVersionStatus.RELEASED).select_related("file")
+             .order_by("-version_number"))
+        if deliverable is not None else []
+    )
     return render(
         request,
-        "app/task_detail.html",
+        "banda/app/task_detail.html",
         {
             "task": task,
+            "timeline": timeline(task, list(events)),
+            "released_versions": released_versions,
+            "priority": cs.PRIORITY.get(task.priority, cs.PRIORITY["medium"]),
+            "is_cancelled": task.status == "cancelled",
             "events": events,
             "attachments": attachments,
             "quote_versions": quote_versions,
@@ -217,7 +302,7 @@ def task_detail(request, task_id):
                 billing.can_pay_invoice(fr.invoice, request.membership) for fr in fee_requests if fr.invoice
             ),
             "actions": actions,
-            "thread": communications.task_thread(task, request.user),
+            "thread": _mark_mine(communications.task_thread(task, request.user), request.user),
             "can_provide_information": Action.PROVIDE_INFORMATION.value in actions,
             "can_cancel": Action.CANCEL_CLIENT.value in actions,
             "can_decide_deliverable": Action.CLIENT_ACCEPT.value in actions,
