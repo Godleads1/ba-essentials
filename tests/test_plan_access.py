@@ -129,7 +129,9 @@ def test_the_form_and_catalogue_show_locked_categories(plans, services, organiza
     assert "Operations &amp; Logistics service" not in service_list
     assert "Not in your plan" in form_page and "On Growth" in form_page
     catalogue = client.get("/app/catalogue/").content.decode()
-    assert "On Growth" in catalogue and "Upgrade to Growth" in catalogue and "On Dedicated" in catalogue
+    assert "On Growth" in catalogue and "On Dedicated" in catalogue
+    locked = client.get("/app/catalogue/", {"category": services["ops"].definition.category.slug}).content.decode()
+    assert "Upgrade to Growth" in locked
 
 
 def test_cancelling_and_downgrading_never_unlocks_bigger_categories(plans, services, organization, owner, make_task):

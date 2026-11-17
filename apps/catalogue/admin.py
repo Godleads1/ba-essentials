@@ -14,17 +14,17 @@ class ServiceCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(ServiceDefinition)
 class ServiceDefinitionAdmin(admin.ModelAdmin):
-    list_display = ("name", "category", "is_active")
-    list_filter = ("is_active", "category")
-    search_fields = ("name", "slug")
+    list_display = ("code", "name", "category", "role", "creator", "is_active")
+    list_filter = ("is_active", "category", "creator", "role")
+    search_fields = ("name", "slug", "code", "subtype")
 
 
 @admin.register(ServiceVersion)
 class ServiceVersionAdmin(admin.ModelAdmin):
     """Published versions are immutable; use the catalogue workflow to change state."""
 
-    list_display = ("definition", "version_number", "state", "is_current", "created_at")
-    list_filter = ("state", "is_current")
+    list_display = ("definition", "version_number", "state", "allowance_lane", "weight", "is_current", "created_at")
+    list_filter = ("state", "is_current", "allowance_lane")
     search_fields = ("definition__name",)
     readonly_fields = (
         "definition",
@@ -35,6 +35,10 @@ class ServiceVersionAdmin(admin.ModelAdmin):
         "revision_allowance",
         "requires_quote",
         "state",
+        "allowance_lane",
+        "weight",
+        "size_rule",
+        "client_provides",
         "is_current",
         "created_at",
     )

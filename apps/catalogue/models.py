@@ -41,6 +41,14 @@ class ServiceDefinition(TimeStampedModel):
     # Set for services that are always for one country, such as a US trademark search.
     # Requests for it are recorded as for that country, whatever the client picks.
     work_country = models.CharField(max_length=2, blank=True, choices=country_choices)
+    # From the task bank (Service Catalogue v2.1): the task code, its subtype, the work
+    # queue it goes to, industry tags for display and filtering only, and a staff note.
+    code = models.CharField(max_length=16, blank=True, db_index=True)
+    subtype = models.CharField(max_length=120, blank=True)
+    role = models.CharField(max_length=80, blank=True, help_text="The work queue this task goes to.")
+    industries = models.CharField(max_length=64, blank=True, help_text="Industry tags, comma separated, e.g. GEN,FIN.")
+    creator = models.BooleanField(default=False, help_text="Shown under Creator Essentials.")
+    note = models.TextField(blank=True, help_text="For staff. Not shown to clients.")
 
     class Meta:
         ordering = ["category__sort_order", "name"]
@@ -51,6 +59,26 @@ class ServiceDefinition(TimeStampedModel):
     @property
     def current_version(self):
         return self.versions.filter(is_current=True).first()
+
+
+INDUSTRIES = {
+    "GEN": "General business and startups",
+    "FIN": "Fintech and payments",
+    "VAS": "Virtual assets and Web3",
+    "PRO": "Property",
+    "OGE": "Oil, gas and energy",
+    "CRE": "Creators and media",
+    "HLT": "Healthcare and wellness",
+    "ECO": "E-commerce and retail",
+}
+
+
+class AllowanceLane(models.TextChoices):
+    GENERAL = "general", "Task allowance"
+    LEGAL = "legal", "Legal & IP allowance"
+    QUOTED = "quoted", "Quoted"
+    WORKSPACE = "workspace", "Workspace (included)"
+    SCOPING = "scoping", "Scoping"
 
 
 class ServiceState(models.TextChoices):
@@ -76,6 +104,12 @@ class ServiceVersion(models.Model):
         max_length=16, choices=ServiceState.choices, default=ServiceState.SCOPING_ONLY
     )
     is_current = models.BooleanField(default=True)
+    # How a request is counted against the plan, from the task bank. Stored now; counting
+    # requests by weight comes in a later change, so today every request still uses one.
+    allowance_lane = models.CharField(max_length=12, choices=AllowanceLane.choices, default=AllowanceLane.GENERAL)
+    weight = models.PositiveSmallIntegerField(default=1, help_text="Tasks or legal units a standard request uses.")
+    size_rule = models.CharField(max_length=255, blank=True)
+    client_provides = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

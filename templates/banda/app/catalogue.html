@@ -14,23 +14,52 @@
       <div class="mt-3 grid grid-cols-1 gap-3 2xl:grid-cols-[minmax(0,1fr)_320px]">
         <section class="min-w-0" aria-labelledby="catTitle">
           <div class="panel p-4 sm:p-5">
-            <form method="get" role="search" aria-label="Search services" class="flex gap-2">
+            <form method="get" role="search" aria-label="Search services" class="flex flex-wrap gap-2">
               {% if chosen %}<input type="hidden" name="category" value="{{ chosen }}" />{% endif %}
-              <div class="relative min-w-0 flex-1">
+              {% if creator %}<input type="hidden" name="view" value="creator" />{% endif %}
+              <div class="relative min-w-0 flex-1 basis-[220px]">
                 <label for="sq" class="sr-only">Search services</label>
                 {% icon "search" "pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-ink-muted" %}
-                <input id="sq" name="q" type="search" value="{{ query }}" class="field pl-10" placeholder="Search services, for example invoice or logo" autocomplete="off" />
+                <input id="sq" name="q" type="search" value="{{ query }}" class="field pl-10" placeholder="Search tasks, for example invoice, NDA or CAC" autocomplete="off" />
+              </div>
+              <div class="relative">
+                <label for="sind" class="sr-only">Your industry</label>
+                <select id="sind" name="industry" class="field appearance-none pr-9"><option value="">Any industry</option>{% for tag, label in industries.items %}<option value="{{ tag }}" {% if tag == industry %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+                {% icon "chevron-down" "pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" %}
               </div>
               <button type="submit" class="btn-outline py-2.5 text-[13.5px]">Search</button>
             </form>
             <nav class="mt-3 flex flex-wrap gap-2" aria-label="Show category">
-              <a href="{% url 'service-catalogue' %}{% if query %}?q={{ query|urlencode }}{% endif %}" class="choice-pill {% if not chosen %}is-on{% endif %}" {% if not chosen %}aria-current="true"{% endif %}>All services</a>
-              {% for c in categories %}<a href="?category={{ c.slug }}{% if query %}&amp;q={{ query|urlencode }}{% endif %}" class="choice-pill {% if c.slug == chosen %}is-on{% endif %}" {% if c.slug == chosen %}aria-current="true"{% endif %}>{{ c.name }}</a>{% endfor %}
+              <a href="{% url 'service-catalogue' %}" class="choice-pill {% if not filtered %}is-on{% endif %}" {% if not filtered %}aria-current="true"{% endif %}>All categories</a>
+              {% for c in categories %}<a href="?category={{ c.slug }}{% if industry %}&amp;industry={{ industry }}{% endif %}" class="choice-pill {% if c.slug == chosen %}is-on{% endif %}" {% if c.slug == chosen %}aria-current="true"{% endif %}>{{ c.name }}</a>{% endfor %}
+              {% if creator_total %}<a href="?view=creator{% if industry %}&amp;industry={{ industry }}{% endif %}" class="choice-pill {% if creator %}is-on{% endif %}" {% if creator %}aria-current="true"{% endif %}>Creator Essentials</a>{% endif %}
             </nav>
           </div>
 
           <h2 id="catTitle" class="sr-only">Services</h2>
-          {% if filtered %}<p class="mt-3 px-1 text-[13px] text-ink-muted" role="status">{{ versions|length }} of {{ total }} service{{ total|pluralize }}{% if query %} match &ldquo;{{ query }}&rdquo;{% endif %} · <a href="{% url 'service-catalogue' %}" class="font-semibold text-brand-navy underline">Show all</a></p>{% endif %}
+          {% if filtered %}<p class="mt-3 px-1 text-[13px] text-ink-muted" role="status">{{ versions|length }} task{{ versions|length|pluralize }}{% if creator %} in Creator Essentials{% endif %}{% if industry %} for {{ industry_label }}{% endif %}{% if query %} matching &ldquo;{{ query }}&rdquo;{% endif %} · <a href="{% url 'service-catalogue' %}" class="font-semibold text-brand-navy underline">Back to all categories</a></p>{% endif %}
+
+          {% if not filtered %}
+            <div class="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
+              {% for c in categories %}
+                <a href="?category={{ c.slug }}" class="panel flex flex-col p-5 hover:bg-cream-light">
+                  <div class="flex flex-wrap items-start justify-between gap-2">
+                    <h3 class="font-display text-[17px] font-semibold">{{ c.name }}</h3>
+                    {% if c.access.allowed %}<span class="chip-status bg-pill-greenBg text-pill-greenTx">In your plan</span>{% else %}<span class="chip-status bg-cream text-ink-muted">On {{ c.access.required_plan.name|default:"a bigger plan" }}</span>{% endif %}
+                  </div>
+                  <p class="mt-1.5 text-[13.5px] text-ink-muted">{{ c.summary }}</p>
+                  <span class="mt-4 inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-brand-navy">See {{ c.count }} task{{ c.count|pluralize }} {% icon "arrow-right" "h-4 w-4" %}</span>
+                </a>
+              {% endfor %}
+              {% if creator_total %}
+                <a href="?view=creator" class="panel flex flex-col p-5 hover:bg-cream-light">
+                  <h3 class="font-display text-[17px] font-semibold">Creator Essentials</h3>
+                  <p class="mt-1.5 text-[13.5px] text-ink-muted">For creators and solopreneurs: brand deal filing, sponsor invoices, collaborator coordination and shoot logistics.</p>
+                  <span class="mt-4 inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-brand-navy">See {{ creator_total }} task{{ creator_total|pluralize }} {% icon "arrow-right" "h-4 w-4" %}</span>
+                </a>
+              {% endif %}
+            </div>
+          {% endif %}
 
           {% regroup versions by definition.category as groups %}
           {% for group in groups %}
@@ -39,38 +68,42 @@
                 <h3 id="g{{ forloop.counter }}" class="font-display text-[18px] font-semibold">{{ group.grouper.name }}</h3>
                 {% if group.grouper.summary %}<p class="mt-0.5 text-[13px] text-ink-muted">{{ group.grouper.summary }}</p>{% endif %}
               </div>
-              <div class="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
-                {% for v in group.list %}
-                  <article class="panel flex flex-col p-5">
-                    <div class="flex flex-wrap items-start justify-between gap-2">
-                      <h4 class="font-display text-[16px] font-semibold leading-snug">{{ v.definition.name }}</h4>
-                      {% if not v.access.allowed %}<span class="chip-status bg-cream text-ink-muted">On {{ v.access.required_plan.name|default:"a bigger plan" }}</span>{% elif v.state == "scoping_only" %}<span class="chip-status bg-pill-orangeBg text-brand-orangeDark">Quoted first</span>{% else %}<span class="chip-status bg-pill-greenBg text-pill-greenTx">Available</span>{% endif %}
-                    </div>
-                    <p class="mt-2 whitespace-pre-line text-[13.5px] text-ink-muted">{{ v.scope_summary }}</p>
-                    <div class="mt-3 rounded-2xl bg-cream-light px-3.5 py-2.5">
-                      <p class="text-[11.5px] font-semibold uppercase tracking-[0.06em] text-ink-soft">You get</p>
-                      <p class="mt-0.5 whitespace-pre-line text-[13px]">{{ v.deliverables_summary }}</p>
-                    </div>
-                    <ul class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[12.5px] text-ink-muted">
-                      <li class="flex items-center gap-1.5">{% icon "clock" "h-3.5 w-3.5" %}About {{ v.turnaround_days }} day{{ v.turnaround_days|pluralize }}</li>
-                      <li class="flex items-center gap-1.5">{% icon "repeat" "h-3.5 w-3.5" %}{{ v.revision_allowance }} round{{ v.revision_allowance|pluralize }} of changes</li>
-                      {% if v.requires_quote %}<li class="flex items-center gap-1.5">{% icon "file-text" "h-3.5 w-3.5" %}Quote before work</li>{% endif %}
-                    </ul>
-                    <div class="mt-4 flex-1"></div>
-                    {% if v.access.allowed %}
-                      <a class="btn-next self-start py-2 text-[13px]" href="{% url 'task-submit' %}?service={{ v.pk }}">Request this<span class="sr-only">: {{ v.definition.name }}</span></a>
-                    {% else %}
-                      <a class="btn-outline self-start py-2 text-[13px]" href="{% url 'plan-home' %}#upgrade">Upgrade to {{ v.access.required_plan.name|default:"request this" }}<span class="sr-only"> for {{ v.definition.name }}</span></a>
-                    {% endif %}
-                  </article>
-                {% endfor %}
-              </div>
+              {% regroup group.list by definition.subtype as subtypes %}
+              {% for sub in subtypes %}
+                {% if sub.grouper and sub.grouper != group.grouper.name %}<h4 class="mt-4 px-1 text-[12px] font-semibold uppercase tracking-[0.08em] text-ink-soft">{{ sub.grouper }}</h4>{% endif %}
+                <div class="mt-2 grid grid-cols-1 gap-3 lg:grid-cols-2">
+                  {% for v in sub.list %}
+                    <article class="panel flex flex-col p-5">
+                      <div class="flex flex-wrap items-start justify-between gap-2">
+                        <h5 class="font-display text-[16px] font-semibold leading-snug">{{ v.definition.name }}</h5>
+                        {% if not v.access.allowed %}<span class="chip-status bg-cream text-ink-muted">On {{ v.access.required_plan.name|default:"a bigger plan" }}</span>{% elif v.state == "scoping_only" %}<span class="chip-status bg-pill-orangeBg text-brand-orangeDark">Quoted first</span>{% else %}<span class="chip-status bg-pill-greenBg text-pill-greenTx">Available</span>{% endif %}
+                      </div>
+                      {% if v.scope_summary != v.deliverables_summary %}<p class="mt-2 whitespace-pre-line text-[13.5px] text-ink-muted">{{ v.scope_summary }}</p>{% endif %}
+                      <div class="mt-3 rounded-2xl bg-cream-light px-3.5 py-2.5">
+                        <p class="text-[11.5px] font-semibold uppercase tracking-[0.06em] text-ink-soft">You get</p>
+                        <p class="mt-0.5 whitespace-pre-line text-[13px]">{{ v.deliverables_summary }}</p>
+                      </div>
+                      {% if v.client_provides %}<p class="mt-2.5 text-[12.5px] text-ink-muted"><span class="font-semibold text-ink">What we need from you:</span> {{ v.client_provides }}</p>{% endif %}
+                      <ul class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[12.5px] text-ink-muted">
+                        {% if v.definition.code %}<li class="font-medium text-ink-soft">{{ v.definition.code }}</li>{% endif %}
+                        {% if v.requires_quote %}<li class="flex items-center gap-1.5">{% icon "file-text" "h-3.5 w-3.5" %}Quote before work</li>{% elif v.allowance_lane == "legal" %}<li class="flex items-center gap-1.5">{% icon "scale" "h-3.5 w-3.5" %}Uses your Legal &amp; IP allowance</li>{% elif v.allowance_lane == "workspace" %}<li class="flex items-center gap-1.5">{% icon "circle-check" "h-3.5 w-3.5" %}Included, uses no tasks</li>{% endif %}
+                      </ul>
+                      <div class="mt-4 flex-1"></div>
+                      {% if v.access.allowed %}
+                        <a class="btn-next self-start py-2 text-[13px]" href="{% url 'task-submit' %}?service={{ v.pk }}">Request this<span class="sr-only">: {{ v.definition.name }}</span></a>
+                      {% else %}
+                        <a class="btn-outline self-start py-2 text-[13px]" href="{% url 'plan-home' %}#upgrade">Upgrade to {{ v.access.required_plan.name|default:"request this" }}<span class="sr-only"> for {{ v.definition.name }}</span></a>
+                      {% endif %}
+                    </article>
+                  {% endfor %}
+                </div>
+              {% endfor %}
             </section>
-          {% empty %}
+          {% empty %}{% if filtered or not categories %}
             <div class="panel mt-3 flex flex-col items-center gap-2 px-4 py-10 text-center">
               <span class="grid h-11 w-11 place-items-center rounded-full bg-cream-light text-ink-soft">{% icon "search" "h-5 w-5" %}</span>
               {% if filtered %}
-                <p class="font-semibold">No service matches that</p>
+                <p class="font-semibold">No task matches that</p>
                 <p class="max-w-sm text-[13px] text-ink-muted">Try another word, or describe what you need and the team will find the right service.</p>
                 <a href="{% url 'service-catalogue' %}" class="btn-outline mt-1 py-2 text-[13px]">Show all services</a>
               {% else %}
@@ -78,7 +111,7 @@
                 <p class="max-w-sm text-[13px] text-ink-muted">Contact support and the team will confirm what's available.</p>
                 <a href="{% url 'support-new' %}?topic=tasks" class="btn-outline mt-1 py-2 text-[13px]">Contact support</a>
               {% endif %}
-            </div>
+            </div>{% endif %}
           {% endfor %}
         </section>
 

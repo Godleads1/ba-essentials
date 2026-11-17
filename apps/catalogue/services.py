@@ -45,6 +45,10 @@ def publish_version(
     requires_quote: bool = True,
     state: str = ServiceState.SCOPING_ONLY,
     actor=None,
+    allowance_lane: str = "general",
+    weight: int = 1,
+    size_rule: str = "",
+    client_provides: str = "",
 ) -> ServiceVersion:
     if not scope_summary.strip() or not deliverables_summary.strip():
         raise ValidationFailure("Scope and deliverables are required to publish a version.")
@@ -62,6 +66,10 @@ def publish_version(
         requires_quote=requires_quote,
         state=state,
         is_current=True,
+        allowance_lane=allowance_lane,
+        weight=weight,
+        size_rule=size_rule,
+        client_provides=client_provides,
     )
     audit_service.record(
         action="catalogue.version_published",

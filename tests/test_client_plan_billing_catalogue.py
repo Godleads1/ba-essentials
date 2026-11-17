@@ -102,12 +102,17 @@ def test_a_member_cannot_change_the_renewal(organization, member, subscription):
 def test_catalogue_searches_and_filters(client, service_version):
     page = client.get(reverse("service-catalogue"))
     assert page.templates[0].name == "banda/app/catalogue.html"
+    category = service_version.definition.category
+    from django.utils.html import escape
+
+    assert escape(category.name) in page.content.decode()  # the start page lists categories
     name = service_version.definition.name
-    assert name in page.content.decode()
-    assert f"?service={service_version.pk}" in page.content.decode()
+    found = client.get(reverse("service-catalogue"), {"q": name})
+    assert name in found.content.decode()
+    assert f"?service={service_version.pk}" in found.content.decode()
 
     miss = client.get(reverse("service-catalogue"), {"q": "zzz-no-such-service"})
-    assert miss.context["versions"] == [] and "No service matches that" in miss.content.decode()
+    assert miss.context["versions"] == [] and "No task matches that" in miss.content.decode()
 
     slug = service_version.definition.category.slug
     hit = client.get(reverse("service-catalogue"), {"category": slug})
