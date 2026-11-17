@@ -317,5 +317,7 @@ migration check, deploy check, and dependency audit.
   SQLite remains development-only, while CI runs the full suite on PostgreSQL.
 - HSTS preload is intentionally not enabled. It is a long-lived commitment and
   needs an explicit decision.
-- A production incident-response runbook, data-retention schedule, and
-  independent penetration test are still required before launch.
+- An independent penetration test is still required before launch. The
+  incident and data breach response plan is in
+  [INCIDENT_RESPONSE.md](INCIDENT_RESPONSE.md) (draft for legal review), and
+  data retention runs daily with `manage.py run_retention`.
