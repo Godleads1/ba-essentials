@@ -9,7 +9,8 @@ transactional domain data, and the request-to-acceptance lifecycle.
 
 - Python 3.13 / Django 5.2 LTS
 - Server-rendered templates + HTMX (vendored)
-- Tailwind CSS v4 CLI (compiled to `static/css/app.css`)
+- The banda design: prebuilt `static/banda/app.css` from the design preview, plus
+  `static/banda/staff.css` for the staff pages (Tailwind 3 in `tools/banda-css`)
 - SQLite locally and in tests; PostgreSQL in production
 - pytest + pytest-django; pip-audit and gitleaks in CI
 
@@ -31,7 +32,7 @@ apps/
   audit/           append-only audit events
   core/            middleware, idempotency, rate limits, outbox, sequences
 templates/         base shells, auth, client app, staff app, public, errors
-static/            Tailwind source, compiled CSS, htmx
+static/            banda stylesheets, fonts and scripts; htmx
 tests/             settings, auth, transitions, billing, files, isolation, views
 docs/              security notes and deployment guidance
 ```
@@ -46,8 +47,6 @@ what to do when something goes wrong.
 python -m venv .venv
 source .venv/Scripts/activate      # Windows Git Bash
 pip install --require-hashes -r requirements/dev.txt
-npm install
-npm run css:build
 
 cp .env.example .env
 python manage.py migrate

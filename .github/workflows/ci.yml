@@ -34,15 +34,14 @@ jobs:
         with:
           node-version: "22"
           cache: npm
+          cache-dependency-path: tools/banda-css/package-lock.json
 
-      - name: Install frontend dependencies
-        run: npm ci
+      - name: Build the staff stylesheet
+        working-directory: tools/banda-css
+        run: npm ci && npm run build
 
-      - name: Build CSS
-        run: npm run css:build
-
-      - name: Verify compiled CSS is committed
-        run: git diff --exit-code -- static/css/app.css
+      - name: Verify the staff stylesheet is committed
+        run: git diff --exit-code -- static/banda/staff.css
 
       - name: Django tests
         run: python -m pytest

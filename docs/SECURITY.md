@@ -294,8 +294,8 @@ On 2026-10-28, against Python 3.13:
   enabled), deliberately not changed.
 - `pip-audit -r requirements/base.txt` and `-r requirements/prod.txt` — no known
   vulnerabilities after updating Django to 5.2.18 and cryptography to 50.0.2.
-- `npm audit --audit-level=high` — 0 vulnerabilities.
-- `npm run css:build` — succeeded.
+- `npm audit --audit-level=high` in `tools/banda-css` (build-time only; nothing
+  from npm is served).
 
 The gitleaks job is configured in CI but was not run locally because Docker is
 not installed on the development host. It passes on GitHub for each push,
