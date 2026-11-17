@@ -1,0 +1,20 @@
+{% extends "banda/auth/base.html" %}
+{% block title %}Invitation{% endblock %}
+{% block fit %}{% endblock %}
+{% block form %}
+        {% if messages %}<div class="mb-6 space-y-2">{% for m in messages %}<p class="rounded-xl bg-pill-navyBg px-4 py-3 text-[14px] text-brand-navy" role="status">{{ m }}</p>{% endfor %}</div>{% endif %}
+        {% if valid and invitation %}
+          <p class="text-[13px] font-semibold uppercase tracking-[0.08em] text-brand-orangeDark">Invitation</p>
+          <h2 class="mt-2 font-display text-[34px] font-semibold leading-tight tracking-[-0.02em] sm:text-[38px]">Join {{ invitation.organization.name }}</h2>
+          <p class="sub mt-1.5 text-[16.5px] text-ink-muted">You've been invited as {{ invitation.get_role_display|lower }} on B &amp; A Essentials. You'll see the business's requests, files and messages.</p>
+          <form method="post" class="mt-9">
+            {% csrf_token %}
+            <button type="submit" class="submit flex w-full items-center justify-center gap-2.5 rounded-xl bg-brand-cta py-4 text-[15.5px] font-semibold text-white shadow-lg shadow-brand-orange/25 transition hover:bg-brand-ctaDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">Accept invitation</button>
+          </form>
+          <p class="mt-4 text-center text-[13.5px] text-ink-muted">Not expecting this? You can close this page. Nothing changes until you accept.</p>
+        {% else %}
+          <h2 class="font-display text-[34px] font-semibold leading-tight tracking-[-0.02em] sm:text-[38px]">This invitation is no longer valid</h2>
+          <p class="sub mt-1.5 text-[16.5px] text-ink-muted">It may have expired, been withdrawn or already been accepted. Ask the business owner to send a new one.</p>
+          <a href="{% url 'client-overview' %}" class="submit mt-9 flex w-full items-center justify-center rounded-xl border border-cream-line bg-white py-4 text-[15.5px] font-semibold text-brand-navy transition hover:border-brand-navy">Go to your dashboard</a>
+        {% endif %}
+{% endblock %}

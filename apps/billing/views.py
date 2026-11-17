@@ -57,13 +57,28 @@ def plan_home(request):
             rate = monthly.rate
             plans.append((plan, monthly, yearly))
     legal_fee, legal_currency = pricing.extra_legal_fee(region)
+    from apps.tasks.dashboard import plan_usage
+
+    entries = list(usage.select_related("task__service_version__definition__category").order_by("-created_at")[:100])
+    by_category: dict[str, int] = {}
+    for entry in entries:
+        if entry.task_id:
+            name = entry.task.service_version.definition.category.name
+            by_category[name] = by_category.get(name, 0) + entry.units
+    spent = sum(by_category.values()) or 1
+    gauge = plan_usage(request.organization, subscription)
     return render(
         request,
-        "app/plan.html",
+        "banda/app/plan.html",
         {
+            "gauge": gauge,
+            "used_pct": min(100, gauge["percent"]) if gauge else 0,
+            "days_left": max(0, (subscription.period_end - timezone.now()).days) if subscription else None,
+            "by_category": [(name, n, round(n / spent * 100)) for name, n in
+                            sorted(by_category.items(), key=lambda kv: -kv[1])],
             "subscription": subscription,
             "allowance_remaining": billing.allowance_remaining(request.organization),
-            "usage": usage.order_by("-created_at")[:100],
+            "usage": entries,
             "plans": plans,
             "rate_error": rate_error,
             "region": region,
@@ -250,17 +265,75 @@ def plan_checkout_return(request):
 @client_required
 @require_GET
 def billing_home(request):
-    invoices = (
-        Invoice.objects.filter(organization=request.organization)
-        .select_related("task", "quote_version")
-        .order_by("-issued_at")[:100]
-    )
-    return render(
-        request,
-        "app/billing.html",
-        {
-            "invoices": invoices,
-            "subscription": billing.active_subscription(request.organization),
-            "allowance_remaining": billing.allowance_remaining(request.organization),
-        },
-    )
+    """Billing & Invoices: what's owed, what's paid, the invoices, and how the plan renews."""
+    from collections import defaultdict
+
+    from django.db.models import Q
+
+    from apps.billing.models import InvoiceStatus
+    from apps.core import client_status
+
+    organization = request.organization
+    every = Invoice.objects.filter(organization=organization).select_related("task", "plan")
+    year_start = timezone.localtime().replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+    owed, paid = defaultdict(int), defaultdict(int)
+    owed_count = 0
+    for status, amount, currency, paid_at in every.values_list("status", "amount_minor", "currency", "paid_at"):
+        if status == InvoiceStatus.ISSUED:
+            owed[currency] += amount
+            owed_count += 1
+        elif status == InvoiceStatus.PAID and paid_at and paid_at >= year_start:
+            paid[currency] += amount
+
+    show = request.GET.get("status", "")
+    query = (request.GET.get("q") or "").strip()[:60]
+    invoices = every
+    if show == "open":
+        invoices = invoices.filter(status=InvoiceStatus.ISSUED)
+    elif show == "paid":
+        invoices = invoices.filter(status=InvoiceStatus.PAID)
+    else:
+        show = ""
+    if query:
+        invoices = invoices.filter(Q(number__icontains=query) | Q(task__reference__icontains=query)
+                                   | Q(task__title__icontains=query) | Q(plan__name__icontains=query))
+    now = timezone.now()
+    rows = []
+    for invoice in invoices.order_by("-issued_at")[:100]:
+        state = invoice.status
+        if state == InvoiceStatus.ISSUED and invoice.due_at and invoice.due_at < now:
+            state = "overdue"
+        rows.append({
+            "invoice": invoice,
+            "about": _invoice_about(invoice),
+            "status": client_status.INVOICE_STATUS.get(state, client_status.INVOICE_STATUS["issued"]),
+            "payable": (settings.PAYMENTS_ENABLED and invoice.status == InvoiceStatus.ISSUED
+                        and billing.can_pay_invoice(invoice, request.membership)
+                        and (invoice.plan_id is None or invoice.renews_period_end is not None)
+                        and invoice.currency in ("NGN", "USD")),
+        })
+    subscription = billing.active_subscription(organization)
+    return render(request, "banda/app/billing.html", {
+        "rows": rows, "show": show, "query": query, "filtered": bool(show or query),
+        "owed": dict(owed), "owed_count": owed_count, "paid": dict(paid), "year": year_start.year,
+        "subscription": subscription,
+        "allowance_remaining": billing.allowance_remaining(organization),
+        "renewal_price": _renewal_price(subscription),
+        "saved_card": renewals.saved_card(organization.pk),
+        "can_buy": request.membership.role == "owner",
+        "payments_enabled": settings.PAYMENTS_ENABLED,
+        "provider_name": "Paystack" if organization.region == "ng" else "Flutterwave",
+    })
+
+
+def _invoice_about(invoice) -> str:
+    if invoice.task_id:
+        return f"{invoice.task.reference} · {invoice.task.title}"
+    if invoice.renews_period_end:
+        return f"{invoice.plan.name} plan renewal" if invoice.plan_id else "Plan renewal"
+    if invoice.upgrade_from_id:
+        return f"Upgrade to {invoice.plan.name}" if invoice.plan_id else "Plan upgrade"
+    if invoice.plan_id:
+        return f"{invoice.plan.name} plan, {'yearly' if invoice.interval == 'year' else 'monthly'}"
+    return "Invoice"
+

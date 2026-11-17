@@ -9,7 +9,7 @@ from django.views.decorators.http import require_http_methods, require_POST
 from apps.core.exceptions import DomainError
 
 from . import services
-from .access import client_required, current_membership, membership_for, require_owner
+from .access import client_required, current_membership, membership_for
 from .forms import InviteMemberForm, OrganizationForm
 from .models import Invitation, Membership
 
@@ -51,7 +51,7 @@ def team_home(request):
     )
     return render(
         request,
-        "app/team.html",
+        "banda/app/team.html",
         {
             "members": members,
             "invitations": invitations,
@@ -64,7 +64,9 @@ def team_home(request):
 @client_required
 @require_POST
 def invite_member(request):
-    require_owner(request.membership)
+    if not request.membership.is_owner:
+        messages.error(request, "Only the business owner can change the team.")
+        return redirect("team-home")
     form = InviteMemberForm(request.POST)
     if form.is_valid():
         try:
@@ -87,7 +89,9 @@ def invite_member(request):
 @client_required
 @require_POST
 def revoke_invitation(request, invitation_id):
-    require_owner(request.membership)
+    if not request.membership.is_owner:
+        messages.error(request, "Only the business owner can change the team.")
+        return redirect("team-home")
     try:
         services.revoke_invitation(request.organization, invitation_id, request.user)
     except DomainError as exc:
@@ -100,7 +104,9 @@ def revoke_invitation(request, invitation_id):
 @client_required
 @require_POST
 def remove_member(request, membership_id):
-    require_owner(request.membership)
+    if not request.membership.is_owner:
+        messages.error(request, "Only the business owner can change the team.")
+        return redirect("team-home")
     membership = get_object_or_404(
         Membership, pk=membership_id, organization=request.organization
     )
@@ -151,6 +157,6 @@ def accept_invitation(request, token):
     )
     return render(
         request,
-        "app/invitation.html",
+        "banda/auth/invitation.html",
         {"invitation": invitation, "valid": valid, "token": token},
     )

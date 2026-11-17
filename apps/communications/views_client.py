@@ -111,14 +111,20 @@ def post_task_message(request, task_id):
 @login_required
 @require_GET
 def notifications(request):
-    items = Notification.objects.filter(user=request.user).select_related(
-        "task", "ticket"
-    )[:100]
-    return render(
-        request,
-        "app/notifications.html",
-        {"notifications": items, "unread_notifications": services.unread_count(request.user)},
-    )
+    items = Notification.objects.filter(user=request.user).select_related("task", "ticket")
+    unread = services.unread_count(request.user)
+    if not request.user.is_client_account:
+        # Staff keep the old page until the staff screens are redesigned.
+        return render(request, "app/notifications.html",
+                      {"notifications": items[:100], "unread_notifications": unread})
+    show = request.GET.get("show", "")
+    if show == "unread":
+        items = items.filter(read_at__isnull=True)
+    else:
+        show = ""
+    return render(request, "banda/app/notifications.html", {
+        "notifications": items[:100], "unread_notifications": unread, "show": show,
+    })
 
 
 @login_required
