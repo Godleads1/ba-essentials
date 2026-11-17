@@ -23,6 +23,7 @@ RESERVED_SLUGS = frozenset(
         "media",
         "password-reset",
         "robots.txt",
+        "services",
         "signup",
         "sitemap.xml",
         "staff",

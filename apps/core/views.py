@@ -21,11 +21,28 @@ def landing(request):
 
     categories = ServiceCategory.objects.filter(is_active=True).order_by("sort_order", "name")
     pricing_data, prices = _landing_prices()
+    service_counts, service_total = _service_counts()
+    from apps.catalogue import guides
+
     return render(
         request,
         "banda/public/landing.html",
-        {"categories": categories, "site_pages": published_pages(), "pricing_data": pricing_data, "prices": prices},
+        {"categories": categories, "site_pages": published_pages(), "pricing_data": pricing_data, "prices": prices,
+         "service_counts": service_counts, "service_total": service_total, "guides": guides.industries()},
     )
+
+
+def _service_counts():
+    """How many tasks each category on the landing page links to (by slug, with - as _), and the total."""
+    from django.db.models import Count
+
+    from apps.catalogue.services import submittable_versions
+
+    every = submittable_versions()
+    counts = {row["definition__category__slug"].replace("-", "_"): row["n"]
+              for row in every.order_by().values("definition__category__slug").annotate(n=Count("pk"))}
+    counts["creator"] = every.filter(definition__creator=True).count()
+    return counts, every.count()
 
 
 def _landing_prices():
