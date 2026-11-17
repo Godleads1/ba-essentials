@@ -27,6 +27,7 @@ from apps.billing.models import (
     SubscriptionStatus,
 )
 from apps.communications.models import Notification
+from apps.core.dates import local
 from apps.core.exceptions import PermissionFailure, ValidationFailure
 from apps.core.models import OutboxEvent
 
@@ -131,7 +132,7 @@ def test_reminder_and_invoice_three_days_before_and_only_once(plans, organizatio
     assert owner.email in email.payload["to"]
     body = email.payload["body"]
     assert "Plans don't renew by themselves" in body and "/app/plan/" in body
-    assert f"{renewals.grace_end(sub.period_end):%-d %b %Y}" in body  # when the pause would start
+    assert f"{local(renewals.grace_end(sub.period_end)):%-d %b %Y}" in body  # when the pause would start
     assert Notification.objects.filter(user=owner, kind="billing").exists()
 
 
@@ -353,7 +354,7 @@ def test_an_old_saved_card_can_be_removed(plans, organization, owner):
 def test_plan_page_explains_manual_renewal(plans, organization, owner):
     sub = _subscribe(organization, plans["growth"])
     body = login_client(owner).get("/app/plan/").content.decode()
-    assert "It doesn't renew by itself" in body and f"{sub.period_end - timedelta(days=3):%-d %b}" in body
+    assert "It doesn't renew by itself" in body and f"{local(sub.period_end - timedelta(days=3)):%-d %b}" in body
     assert "I won't renew" in body and "Move down at renewal" in body and 'name="renews"' not in body
 
 
@@ -402,3 +403,24 @@ def test_after_an_unpaid_plan_ends_a_new_plan_can_be_chosen(plans, organization,
     url = billing.start_plan_checkout(organization=organization, membership=owner.memberships.get(),
                                       plan_slug="growth", return_url="https://x.test/")
     assert url.startswith("https://checkout.paystack.com/")
+
+
+# ---------- dates are Lagos dates (failed on main at 23:05 UTC, 17 Nov 2026) ----------
+
+def test_reminder_email_uses_the_lagos_date_late_at_night_utc(plans, organization, owner):
+    from datetime import UTC, datetime
+
+    sub = _subscribe(organization, plans["starter"])
+    # 23:30 UTC on 1 Dec is 00:30 on 2 Dec in Lagos: the customer's plan ends on 2 Dec.
+    sub.period_end = datetime(2026, 12, 1, 23, 30, tzinfo=UTC)
+    sub.save()
+    renewals.run(datetime(2026, 11, 29, 12, 0, tzinfo=UTC))
+    email = OutboxEvent.objects.get(topic=OutboxEvent.Topic.EMAIL).payload
+    assert "ends on 2 Dec 2026" in email["subject"] and "1 Dec" not in email["body"]
+
+
+def test_local_leaves_dates_and_missing_values_alone():
+    from datetime import UTC, date, datetime
+
+    assert local(datetime(2026, 12, 31, 23, 30, tzinfo=UTC)).year == 2027  # invoice numbers use the Lagos year
+    assert local(date(2026, 12, 1)) == date(2026, 12, 1) and local(None) is None

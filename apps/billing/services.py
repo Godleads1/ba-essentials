@@ -16,6 +16,7 @@ from django.utils import timezone
 
 from apps.audit import services as audit_service
 from apps.audit.models import AuditEvent
+from apps.core.dates import local
 from apps.core.exceptions import (
     PermissionFailure,
     ValidationFailure,
@@ -173,7 +174,7 @@ def ensure_invoice(task, quote_version) -> Invoice:
         return existing
     number = next_value("invoice.number", start=1000)
     invoice = Invoice.objects.create(
-        number=f"INV-{timezone.now():%Y}-{number}",
+        number=f"INV-{local(timezone.now()):%Y}-{number}",
         organization_id=task.organization_id,
         task=task,
         quote_version=quote_version,
@@ -401,7 +402,7 @@ def start_plan_checkout(
         if invoice is None:
             number = next_value("invoice.number", start=1000)
             invoice = Invoice.objects.create(
-                number=f"INV-{timezone.now():%Y}-{number}",
+                number=f"INV-{local(timezone.now()):%Y}-{number}",
                 organization=organization,
                 plan=plan,
                 amount_minor=price.amount_minor,
@@ -504,7 +505,7 @@ def start_upgrade_checkout(
         amount = charge.amount_minor
         number = next_value("invoice.number", start=1000)
         invoice = Invoice.objects.create(
-            number=f"INV-{now:%Y}-{number}",
+            number=f"INV-{local(now):%Y}-{number}",
             organization=organization,
             plan=target,
             upgrade_from=current,

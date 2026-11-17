@@ -13,6 +13,7 @@ from django.views.decorators.http import require_GET, require_http_methods, requ
 from apps.audit.activity import own_activity
 from apps.core import ratelimit
 from apps.core.client_ip import client_ip
+from apps.core.dates import local
 from apps.core.exceptions import PermissionFailure, RateLimited, ValidationFailure
 from apps.organizations.access import current_membership, memberships_for
 
@@ -486,7 +487,7 @@ def security_close(request):
                 if org.closed_at:
                     messages.success(request, "Your account is closed. You can still sign in to view and download your files and invoices.")
                 else:
-                    messages.success(request, f"Your account will close on {org.closes_at:%d %b %Y}. Nothing more will be charged.")
+                    messages.success(request, f"Your account will close on {local(org.closes_at):%d %b %Y}. Nothing more will be charged.")
                 return redirect(reverse("security-home") + "#close")
     return render(request, "banda/app/close_account.html", {
         "organization": org, "closes_at": closure.paid_until(org), "open_requests": closure.open_requests(org),
@@ -518,7 +519,7 @@ def security_data_download(request):
     if (stop := _needs_step_up(request)) is not None:
         return stop
     response = HttpResponse(privacy.export_json(request.user), content_type="application/json; charset=utf-8")
-    response["Content-Disposition"] = f'attachment; filename="banda-my-data-{timezone.now():%Y-%m-%d}.json"'
+    response["Content-Disposition"] = f'attachment; filename="banda-my-data-{local(timezone.now()):%Y-%m-%d}.json"'
     response["Cache-Control"] = "no-store"
     return response
 
@@ -541,7 +542,7 @@ def security_data_request(request):
             except (ValidationFailure, PermissionFailure) as exc:
                 error = exc.message
             else:
-                messages.success(request, f"Request {made.reference} sent. We'll reply by {made.reply_by:%d %b %Y}.")
+                messages.success(request, f"Request {made.reference} sent. We'll reply by {local(made.reply_by):%d %b %Y}.")
                 return redirect(reverse("security-home") + "#privacy")
     return render(request, "banda/app/data_request.html", {
         "kinds": kinds, "chosen": chosen, "details": details, "error": error,

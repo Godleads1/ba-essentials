@@ -28,6 +28,7 @@ from apps.accounts.permissions import (
     require_perm,
 )
 from apps.audit import services as audit_service
+from apps.core.dates import local
 from apps.core.exceptions import ValidationFailure
 from apps.core.sequences import next_value
 
@@ -242,7 +243,7 @@ def approve(fee_request: FeeRequest, actor) -> FeeRequest:
         number = next_value("invoice.number", start=1000)
         now = timezone.now()
         invoice = Invoice.objects.create(
-            number=f"INV-{now:%Y}-{number}",
+            number=f"INV-{local(now):%Y}-{number}",
             organization_id=fee_request.task.organization_id,
             task=fee_request.task,
             amount_minor=total,

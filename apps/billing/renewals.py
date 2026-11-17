@@ -23,6 +23,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from apps.audit import services as audit_service
+from apps.core.dates import local
 from apps.core.exceptions import PermissionFailure, ValidationFailure
 
 from .models import (
@@ -238,7 +239,7 @@ def _create_renewal_invoice(sub: Subscription) -> Invoice:
     plan, price = renewal_price(sub)
     number = next_value("invoice.number", start=1000)
     return Invoice.objects.create(
-        number=f"INV-{timezone.now():%Y}-{number}",
+        number=f"INV-{local(timezone.now()):%Y}-{number}",
         organization_id=sub.organization_id,
         plan=plan,
         amount_minor=price.amount_minor,
@@ -321,11 +322,11 @@ def _step(sub: Subscription, now, counts: dict) -> None:
     if now < sub.period_end:
         if sub.reminder_sent_for != sub.period_end:
             pause_on = grace_end(sub.period_end)
-            _tell_owners(sub, f"Your plan ends on {sub.period_end:%-d %b %Y}", (
-                f"Your B&A Essentials {invoice.plan.name} plan ends on {sub.period_end:%-d %b %Y}. "
+            _tell_owners(sub, f"Your plan ends on {local(sub.period_end):%-d %b %Y}", (
+                f"Your B&A Essentials {invoice.plan.name} plan ends on {local(sub.period_end):%-d %b %Y}. "
                 f"Plans don't renew by themselves: pay {_money(invoice.amount_minor, invoice.currency)} "
                 f"to keep it going for another {'year' if sub.interval == BillingInterval.YEAR else 'month'}: "
-                f"{_plan_link()}\n\nIf it isn't paid by {pause_on:%-d %b %Y}, your account is paused until you pay. "
+                f"{_plan_link()}\n\nIf it isn't paid by {local(pause_on):%-d %b %Y}, your account is paused until you pay. "
                 "If you don't want to continue, you don't need to do anything."))
             Subscription.objects.filter(pk=sub.pk).update(reminder_sent_for=sub.period_end, updated_at=now)
             sub.reminder_sent_for = sub.period_end
@@ -340,9 +341,9 @@ def _step(sub: Subscription, now, counts: dict) -> None:
         sub.grace_until = grace
         _audit("billing.renewal_unpaid", None, sub, invoice=invoice.number, grace_until=grace.isoformat())
         _tell_owners(sub, "Your plan period has ended", (
-            f"Your {invoice.plan.name} plan period ended on {sub.period_end:%-d %b %Y} and the renewal "
+            f"Your {invoice.plan.name} plan period ended on {local(sub.period_end):%-d %b %Y} and the renewal "
             f"({_money(invoice.amount_minor, invoice.currency)}) isn't paid yet. Your service continues until "
-            f"{grace:%-d %b %Y}; after that your account is paused until you pay: {_plan_link()}"))
+            f"{local(grace):%-d %b %Y}; after that your account is paused until you pay: {_plan_link()}"))
         counts["grace"] += 1
         return
 
@@ -362,5 +363,5 @@ def _step(sub: Subscription, now, counts: dict) -> None:
     if not sub.grace_last_day_reminded and sub.grace_until - now <= timedelta(days=1):
         Subscription.objects.filter(pk=sub.pk).update(grace_last_day_reminded=True, updated_at=now)
         _tell_owners(sub, "Last day to pay your renewal", (
-            f"Your account is paused after {sub.grace_until:%-d %b %Y} unless your renewal is paid. "
+            f"Your account is paused after {local(sub.grace_until):%-d %b %Y} unless your renewal is paid. "
             f"Pay here: {_plan_link()}"))
