@@ -41,6 +41,9 @@ class QuoteVersion(models.Model):
     turnaround_days = models.PositiveSmallIntegerField()
     revision_allowance = models.PositiveSmallIntegerField(default=1)
     payment_terms = models.TextField(blank=True)
+    # Plan tasks (or legal reviews) this request uses if the plan covers it, for a request
+    # bigger than standard (the catalogue's size bands). Empty: the catalogue weight.
+    plan_units = models.PositiveSmallIntegerField(null=True, blank=True)
     status = models.CharField(
         max_length=16, choices=QuoteStatus.choices, default=QuoteStatus.DRAFT
     )

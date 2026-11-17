@@ -32,6 +32,13 @@ class QuoteForm(StyledFormMixin, forms.Form):
     revision_allowance = forms.IntegerField(
         label="Included revisions", min_value=0, max_value=10, initial=1
     )
+    plan_units = forms.IntegerField(
+        label="Plan tasks this uses",
+        required=False,
+        min_value=1,
+        max_value=10,
+        help_text="Leave empty to use the catalogue weight. Set it when the request is bigger than standard.",
+    )
     payment_terms = forms.CharField(
         label="Payment terms",
         required=False,

@@ -42,6 +42,7 @@ def create_quote(request, task_id):
             turnaround_days=form.cleaned_data["turnaround_days"],
             revision_allowance=form.cleaned_data["revision_allowance"],
             payment_terms=form.cleaned_data["payment_terms"],
+            plan_units=form.cleaned_data.get("plan_units"),
         )
     except DomainError as exc:
         return handle_domain_error(

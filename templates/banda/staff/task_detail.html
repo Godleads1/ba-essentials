@@ -82,7 +82,7 @@
                 <li class="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
                   <div>
                     <p class="text-sm font-medium text-ink">v{{ version.version_number }} · {{ version.amount_minor|money_minor:version.currency }}</p>
-                    <p class="text-xs text-ink-soft">{{ version.turnaround_days }} days · {{ version.revision_allowance }} revisions{% if version.expires_at %} · expires {{ version.expires_at|date:"j M Y" }}{% endif %}</p>
+                    <p class="text-xs text-ink-soft">{{ version.turnaround_days }} days · {{ version.revision_allowance }} revisions{% if version.plan_units %} · uses {{ version.plan_units }} plan task{{ version.plan_units|pluralize }}{% endif %}{% if version.expires_at %} · expires {{ version.expires_at|date:"j M Y" }}{% endif %}</p>
                   </div>
                   <div class="flex items-center gap-2">
                     {% include "banda/staff/_status_badge.html" with status=version.status %}
@@ -107,6 +107,11 @@
                 {% include "banda/staff/_field.html" with field=quote_form.turnaround_days %}
                 {% include "banda/staff/_field.html" with field=quote_form.revision_allowance %}
               </div>
+              <div class="rounded-xl bg-cream-light px-3.5 py-3 text-xs text-ink-muted">
+                <p><span class="font-semibold text-ink">Catalogue:</span> {% if task.service_version.definition.code %}{{ task.service_version.definition.code }} · {% endif %}{{ task.service_version.get_allowance_lane_display }}{% if task.service_version.allowance_lane == "general" or task.service_version.allowance_lane == "legal" %}, weight {{ task.service_version.weight }}{% endif %}{% if task.service_version.definition.role %} · {{ task.service_version.definition.role }}{% endif %}</p>
+                {% if task.service_version.size_rule %}<p class="mt-1"><span class="font-semibold text-ink">Size rule:</span> {{ task.service_version.size_rule }}</p>{% endif %}
+              </div>
+              {% include "banda/staff/_field.html" with field=quote_form.plan_units %}
               {% include "banda/staff/_field.html" with field=quote_form.payment_terms %}
               <button class="btn-next btn-sm">Save quote draft</button>
             </form>

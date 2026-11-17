@@ -35,6 +35,8 @@ def terms_fingerprint(version: QuoteVersion) -> str:
             str(version.revision_allowance),
             version.payment_terms,
         ]
+        # Only quotes that set it carry it, so fingerprints of older acceptances still match.
+        + ([f"units:{version.plan_units}"] if version.plan_units else [])
     )
     return hashlib.sha256(material.encode("utf-8")).hexdigest()
 
@@ -50,6 +52,7 @@ def create_version(
     turnaround_days: int,
     revision_allowance: int,
     payment_terms: str = "",
+    plan_units: int | None = None,
 ) -> QuoteVersion:
     require_perm(actor, QUOTE_SEND)
     if task.status != TaskStatus.SCOPING:
@@ -62,6 +65,8 @@ def create_version(
         raise ValidationFailure("Turnaround must be between 1 and 365 days.")
     if not 0 <= revision_allowance <= 10:
         raise ValidationFailure("Revision allowance must be between 0 and 10.")
+    if plan_units is not None and not 1 <= plan_units <= 10:
+        raise ValidationFailure("Plan tasks must be between 1 and 10.")
 
     quote, _ = Quote.objects.get_or_create(task=task, defaults={"created_by": actor})
     next_number = (quote.versions.aggregate(highest=Max("version_number"))["highest"] or 0) + 1
@@ -75,6 +80,7 @@ def create_version(
         turnaround_days=turnaround_days,
         revision_allowance=revision_allowance,
         payment_terms=(payment_terms or "").strip(),
+        plan_units=plan_units,
         created_by=actor,
     )
     audit_service.record(
@@ -181,7 +187,7 @@ def accept_quote(
         locked_version.save(update_fields=["status"])
 
         covered = locked_version.amount_minor == 0 or billing.reserve_allowance(
-            locked_task
+            locked_task, locked_version
         )
         invoice: Invoice | None = None
         fields = {"revision_allowance_remaining": locked_version.revision_allowance}

@@ -222,8 +222,14 @@ def task_submit(request):
     if selected is not None:
         form.fields["service_version"].queryset = form.fields["service_version"].queryset.filter(
             definition__category=selected["category"])
+    # What each service would use from the plan, shown before sending (Points rules).
+    plan_balances = plan_rules.balances(request.organization)
+    previews = {str(v.pk): plan_rules.preview(request.organization, v, plan_balances=plan_balances)["text"]
+                for v in form.fields["service_version"].queryset.select_related("definition__category")}
     return render(request, "banda/app/task_submit.html", {
         "form": form, "cards": cards, "selected": selected, "chosen_version": chosen_version,
+        "plan_balances": plan_balances, "previews": previews,
+        "chosen_preview": previews.get(str(chosen_version.pk)) if chosen_version else "",
         "any_locked": any(not c["access"].allowed for c in cards),
         "paused": _is_paused(request.organization),
         "priority_value": form["priority"].value() or "medium",
@@ -249,6 +255,13 @@ def task_detail(request, task_id):
     sent_quote = (
         quote.versions.filter(status=QuoteStatus.SENT).first() if quote is not None else None
     )
+    quote_plan = None
+    if sent_quote is not None and sent_quote.amount_minor > 0:
+        from apps.billing import plan_rules
+
+        if not plan_rules.outside_plan_region(task):
+            quote_plan = plan_rules.preview(request.organization, task.service_version,
+                                            plan_rules.units_for(task.service_version, sent_quote))
 
     deliverable = getattr(task, "deliverable", None)
     released_version = None
@@ -290,6 +303,7 @@ def task_detail(request, task_id):
             "attachments": attachments,
             "quote_versions": quote_versions,
             "sent_quote": sent_quote,
+            "quote_plan": quote_plan,
             "released_version": released_version,
             "invoice": invoice,
             "fee_requests": fee_requests,
