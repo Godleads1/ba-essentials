@@ -1,0 +1,13 @@
+  <footer class="bg-cocoa-deep text-white">
+    <div class="mx-auto flex max-w-[1100px] flex-col gap-3 px-5 py-6 text-[13px] text-white/75 sm:flex-row sm:items-center sm:justify-between">
+      <p>© {% now "Y" %} B &amp; A Essentials. All rights reserved.</p>
+      <ul class="flex flex-wrap gap-x-5 gap-y-2">
+        <li><a href="{% url 'contact' %}" class="hover:text-white">Contact</a></li>
+        {% for item in site_pages %}<li><a href="{% url 'website-page' slug=item.slug %}" class="hover:text-white">{{ item.published_revision.title }}</a></li>{% endfor %}
+        <li><a href="{% url 'terms' %}" class="hover:text-white">Terms</a></li>
+        <li><a href="{% url 'privacy' %}" class="hover:text-white">Privacy</a></li>
+        <li><a href="{% url 'cookies' %}" class="hover:text-white">Cookies</a></li>
+        <li><button type="button" data-cookie-settings class="hover:text-white">Cookie settings</button></li>
+      </ul>
+    </div>
+  </footer>

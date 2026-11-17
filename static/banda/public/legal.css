@@ -1,0 +1,82 @@
+/* From the design preview's terms, privacy and cookie pages. */
+
+    html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { scrollbar-width: none; }
+
+    /* ---------- banda logo (HTML/CSS, crisp at any size) ---------- */
+    .logo { display: inline-flex; flex-direction: column; align-items: flex-start; font-size: 36px; line-height: 1; text-decoration: none; }
+    .logo-word { font-family: Inter, system-ui, sans-serif; font-weight: 800; line-height: .82; letter-spacing: -.035em; color: var(--logo-word, #1C1712); }
+    .logo-b { position: relative; display: inline-block; }
+    .logo-dot { position: absolute; left: .215em; top: .43em; width: .18em; height: .18em; border-radius: 50%; background: #D9662E; transition: transform .35s cubic-bezier(.34,1.56,.64,1); }
+    .logo:hover .logo-dot { transform: scale(1.18); }
+    .logo-tag { font-family: Inter, system-ui, sans-serif; font-weight: 600; font-size: .2em; letter-spacing: .5em; margin-top: .55em; white-space: nowrap; color: var(--logo-tag, #33397F); }
+    .logo-tag .amp { color: #D9662E; letter-spacing: .3em; }
+    .logo--light { --logo-word: #FDFBF6; --logo-tag: #B8BBE6; }
+    /* large lockup (hero/brand use) keeps the original airy tagline */
+    .logo--lg .logo-tag { font-weight: 500; font-size: .172em; letter-spacing: .66em; margin-top: .62em; }
+
+    /* ---------- motion ---------- */
+    .reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s ease, transform .6s ease; }
+    .reveal.in { opacity: 1; transform: none; }
+    .bar { width: 0; transition: width 1.2s cubic-bezier(.22,1,.36,1) .3s; }
+    .float { animation: float 7s ease-in-out infinite; }
+    @keyframes float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-6px) } }
+    .hero-underline path { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .9s cubic-bezier(.22,1,.36,1) .5s; }
+    .reveal.in .hero-underline path { stroke-dashoffset: 0; }
+    details > summary { list-style: none; cursor: pointer; }
+    details > summary::-webkit-details-marker { display: none; }
+    details[open] .faq-plus { transform: rotate(45deg); }
+    /* Square grid: thin lines forming squares, faded out towards the edges. */
+    .grid-lines {
+      --gl: rgba(51,57,127,.12);
+      --cell: 64px;
+      background-image:
+        linear-gradient(to right, var(--gl) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--gl) 1px, transparent 1px);
+      background-size: var(--cell) var(--cell);
+      background-position: center top;
+    }
+    .grid-lines--light { --gl: rgba(255,255,255,.085); }
+    .grid-fade {
+      -webkit-mask-image: radial-gradient(ellipse 72% 68% at 50% 42%, #000 35%, transparent 78%);
+              mask-image: radial-gradient(ellipse 72% 68% at 50% 42%, #000 35%, transparent 78%);
+    }
+    /* a few squares filled in, like the reference */
+    .grid-cell { position: absolute; width: var(--cell, 64px); height: var(--cell, 64px); background: rgba(51,57,127,.035); }
+    .dot-grid { background-image: radial-gradient(rgba(51,57,127,.13) 1px, transparent 1px); background-size: 18px 18px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .reveal { opacity: 1; transform: none; }
+      .hero-underline path { stroke-dashoffset: 0; }
+    }
+  
+
+    .doc h2 { margin: 40px 0 12px; scroll-margin-top: 90px; font-family: Lexend, system-ui, sans-serif; font-size: 21px; font-weight: 600; letter-spacing: -.01em; color: #241A15; }
+    .doc h2:first-child { margin-top: 0; }
+    .doc p, .doc li { font-size: 15.5px; line-height: 1.75; color: #3D332D; }
+    .doc p { margin: 12px 0; }
+    .doc p.clause { padding-left: 0; }
+    .doc ul { margin: 10px 0 14px; padding-left: 22px; list-style: disc; }
+    .doc li { margin: 4px 0; }
+    .doc strong { color: #241A15; font-weight: 600; }
+    .doc a { color: #33397F; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+    .doc .var { color: #5C534D; font-weight: 600; }
+    .doc mark { background: #FBE6DA; color: #AD4C1D; border-radius: 4px; padding: 0 3px; }
+    .doc .box { display: inline-block; width: 14px; height: 14px; border: 1.5px solid #736C66; border-radius: 3px; vertical-align: -2px; margin-right: 2px; }
+    .doc .tbl { margin: 16px 0; overflow-x: auto; border: 1px solid #ECE5DA; border-radius: 14px; position: relative; }
+    .doc .tbl:focus-visible { outline: 2px solid #33397F; outline-offset: 2px; }
+    .doc table { width: 100%; min-width: 560px; border-collapse: collapse; font-size: 14px; }
+    .doc th { background: #F5F0E8; text-align: left; font-weight: 600; padding: 10px 14px; color: #241A15; }
+    .doc td { border-top: 1px solid #ECE5DA; padding: 10px 14px; vertical-align: top; line-height: 1.55; color: #3D332D; }
+    .toc a { display: block; border-radius: 8px; padding: 6px 10px; font-size: 13.5px; color: #5C534D; }
+    .toc a:hover { background: #F5F0E8; color: #241A15; }
+    .toc a.is-here { background: #ECEDF8; color: #33397F; font-weight: 600; }
+    .doc-tab { border-radius: 999px; border: 1.5px solid #ECE5DA; background: #fff; padding: 7px 14px; font-size: 13px; font-weight: 600; color: #5C534D; white-space: nowrap; }
+    .doc-tab:hover { border-color: #B8BBE6; }
+    .doc-tab[aria-current="page"] { border-color: #33397F; background: #33397F; color: #fff; }
+    a:focus-visible, .doc-tab:focus-visible { outline: 2px solid #33397F; outline-offset: 2px; }
+    @media print { header, aside, footer, .no-print { display: none !important; } body { background: #fff; } }
+  
