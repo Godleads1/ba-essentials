@@ -60,7 +60,7 @@ def active_subscription(organization) -> Subscription | None:
 
 
 def in_paid_time(subscription: Subscription, now=None) -> bool:
-    """Inside the paid period, or in the grace period after a failed renewal (Terms 5.6.3)."""
+    """Inside the paid period, or in the 3-day grace period after it ended unpaid (Terms 5.6.3)."""
     now = now or timezone.now()
     if subscription.period_start <= now <= subscription.period_end:
         return True
@@ -353,7 +353,6 @@ def _refuse_if_closing(organization) -> None:
 
 def start_plan_checkout(
     *, organization, membership, plan_slug: str, return_url: str, interval: str = "month",
-    renewal_consent: bool = False,
 ) -> str:
     """Create the plan invoice and payment record, then start Paystack checkout.
 
@@ -377,13 +376,6 @@ def start_plan_checkout(
         raise ValidationFailure("Choose monthly or yearly.")
     if active_subscription(organization) is not None:
         raise ValidationFailure("Your business already has an active plan.")
-    owed = renewals.owed_renewal(organization.pk)
-    if owed is not None:
-        raise ValidationFailure(
-            f"Your last renewal ({owed.number}) is still unpaid. Pay it to restart your plan."
-        )
-    if not renewal_consent:
-        raise ValidationFailure("Tick the box to agree to automatic renewal before you pay.")
     # The business's country decides the price and currency, never the browser.
     price = pricing.plan_price(plan, organization.region, interval)
 
@@ -419,14 +411,6 @@ def start_plan_checkout(
                 status=InvoiceStatus.ISSUED,
                 due_at=timezone.now() + timedelta(days=1),
             )
-        # Created under the invoice lock, so a parallel checkout that fails can't
-        # void this invoice while this attempt is about to use it.
-        months = 12 if price.interval == BillingInterval.YEAR else 1
-        renewals.record_consent(
-            invoice, user,
-            renewals.consent_wording(plan, price.amount_minor, price.currency, price.interval,
-                                     add_months(timezone.now(), months)),
-        )
         metadata = {"invoice": invoice.number, "plan": plan.slug, "interval": price.interval}
         attempt = _create_attempt(invoice, user, metadata)
     return _start_checkout(attempt, user, return_url=return_url, metadata=metadata, void_on_failure=True)
@@ -476,7 +460,7 @@ def upgrade_options(organization) -> list[tuple[Plan, int]]:
 
 
 def start_upgrade_checkout(
-    *, organization, membership, plan_slug: str, return_url: str, renewal_consent: bool = False
+    *, organization, membership, plan_slug: str, return_url: str
 ) -> str:
     """Move up to a bigger plan mid-cycle. Today's charge covers the rest of the period.
 
@@ -493,8 +477,6 @@ def start_upgrade_checkout(
     target = Plan.objects.filter(slug=plan_slug, is_active=True).first()
     if target is None:
         raise ValidationFailure("That plan isn't available.")
-    if not renewal_consent:
-        raise ValidationFailure("Tick the box to agree to the new renewal price before you pay.")
     user = membership.user
     with transaction.atomic():
         now = timezone.now()
@@ -533,12 +515,6 @@ def start_upgrade_checkout(
             fx_ngn_per_usd=charge.rate,
             status=InvoiceStatus.ISSUED,
             due_at=now + timedelta(days=1),
-        )
-        renewal = pricing.plan_price(target, organization.region, subscription.interval, rate=charge.rate)
-        renewals.record_consent(
-            invoice, user,
-            renewals.consent_wording(target, renewal.amount_minor, renewal.currency, subscription.interval,
-                                     subscription.period_end),
         )
         metadata = {"invoice": invoice.number, "plan": target.slug, "upgrade_from": current.slug}
         attempt = _create_attempt(invoice, user, metadata)
@@ -853,7 +829,6 @@ def _apply_charge_success(event: ProviderWebhookEvent, data: dict, confirmed: di
                 return "refund_due"
         else:
             _activate_subscription(invoice)
-        renewals.save_payment_method(invoice, attempt, confirmed)
 
     _flag_card_country(invoice, confirmed)
     audit_service.record(
@@ -941,8 +916,8 @@ def _activate_subscription(invoice: Invoice) -> Subscription:
             interval=invoice.interval,
         )
     else:
-        # A payment made while the period is still running, or during the grace
-        # period after a failed renewal, carries on from the end of the paid
+        # A payment made while the period is still running, or during the 3-day grace
+        # period after it, carries on from the end of the paid
         # period, so paying early never loses days and grace isn't free time.
         # Once service is paused or the plan has ended, the new period starts
         # the day they pay (Terms 5.6.5).

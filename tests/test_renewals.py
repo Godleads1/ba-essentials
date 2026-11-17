@@ -1,5 +1,6 @@
-"""Automatic renewal and cancelling (Terms 5.4–5.8): consent before the first payment,
-reminders, the saved-card charge, grace, pause and ending, cancel and downgrade."""
+"""Manual renewal (Terms 5.5–5.8): nothing is charged automatically. A reminder and a pay link
+3 days before the period ends, 3 days' grace after it, then the account is paused (read-only
+except paying); 30 days later the plan ends and nothing is owed. Cancelling and downgrades."""
 from __future__ import annotations
 
 import hashlib
@@ -20,7 +21,6 @@ from apps.billing.models import (
     InvoiceStatus,
     PaymentAttempt,
     PaymentMethod,
-    PaymentStatus,
     Plan,
     RenewalConsent,
     Subscription,
@@ -38,7 +38,7 @@ AUTH = {"authorization_code": "AUTH_synthetic123", "reusable": True, "last4": "4
 
 @pytest.fixture
 def plans(db, organization):
-    call_command("seed_plans", stdout=open("/dev/null", "w"))
+    call_command("seed_plans", stdout=open("/dev/null", "w"))  # noqa: SIM115
     organization.country = "NG"
     organization.save(update_fields=["country"])
     return {p.slug: p for p in Plan.objects.all()}
@@ -67,13 +67,14 @@ def _subscribe(organization, plan, *, ends_in=timedelta(days=20), interval="mont
     )
 
 
-def _save_card(organization, owner):
+def _old_saved_card(organization, owner):
+    """A card saved before renewals became manual."""
     invoice = Invoice.objects.create(number=f"INV-T-{PaymentMethod.objects.count()}", organization=organization,
                                      amount_minor=100, currency="NGN")
     consent = RenewalConsent.objects.create(organization=organization, user=owner, invoice=invoice,
-                                            wording="I agree", terms_version=renewals.TERMS_VERSION)
+                                            wording="I agree", terms_version="2026-11")
     return PaymentMethod.objects.create(
-        organization=organization, provider="paystack", token_encrypted=renewals.encrypt_secret("AUTH_synthetic123"),
+        organization=organization, provider="paystack", token_encrypted="synthetic-encrypted-token",
         brand="Visa", last4="4081", exp_month=12, exp_year=2030, email="owner@example.test", consent=consent,
     )
 
@@ -82,159 +83,137 @@ def _charges(fake_paystack):
     return [c for c in fake_paystack.calls if c[1] == "/transaction/charge_authorization"]
 
 
-# ---------- consent and the saved card ----------
+def _pause(sub):
+    Subscription.objects.filter(pk=sub.pk).update(
+        status=SubscriptionStatus.PAST_DUE, paused_at=timezone.now(), period_end=timezone.now() - timedelta(days=4)
+    )
+    sub.refresh_from_db()
+    return sub
+
+
+# ---------- buying: no renewal box, no saved card ----------
 
 @override_settings(PAYMENTS_ENABLED=True)
-def test_a_plan_cannot_be_bought_without_ticking_renewal(plans, organization, owner):
-    c = login_client(owner)
-    c.post("/app/plan/checkout/starter/", {"interval": "month"})
-    assert not Invoice.objects.exists()
-    c.post("/app/plan/checkout/starter/", {"interval": "month", "renews": "on"})
-    consent = RenewalConsent.objects.get()
-    assert consent.user == owner and consent.terms_version == renewals.TERMS_VERSION
-    assert "renews automatically every month at ₦" in consent.wording and "until I cancel" in consent.wording
-
-
-@override_settings(PAYMENTS_ENABLED=True)
-def test_a_confirmed_payment_saves_the_card_encrypted(plans, organization, owner, fake_paystack):
-    login_client(owner).post("/app/plan/checkout/starter/", {"interval": "month", "renews": "on"})
-    attempt = PaymentAttempt.objects.get()
-    _pay(attempt, fake_paystack, 9001, authorization=AUTH)
-    method = PaymentMethod.objects.get()
-    assert method.label.startswith("Visa ending 4081") and method.exp_year == 2030
-    assert "AUTH_synthetic123" not in method.token_encrypted
-    assert renewals.decrypt_secret(method.token_encrypted) == "AUTH_synthetic123"
-    assert RenewalConsent.objects.get().provider_reference == attempt.reference
+def test_a_plan_is_bought_without_any_renewal_agreement(plans, organization, owner):
+    response = login_client(owner).post("/app/plan/checkout/starter/", {"interval": "month"})
+    assert response.status_code == 302 and response["Location"].startswith("https://checkout.paystack.com/")
+    assert Invoice.objects.filter(plan__slug="starter").exists()
+    assert not RenewalConsent.objects.exists()
 
 
 @override_settings(PAYMENTS_ENABLED=True)
-def test_a_card_that_cannot_be_reused_is_not_saved(plans, organization, owner, fake_paystack):
-    login_client(owner).post("/app/plan/checkout/starter/", {"interval": "month", "renews": "on"})
-    _pay(PaymentAttempt.objects.get(), fake_paystack, 9002, authorization={**AUTH, "reusable": False})
+def test_a_paid_plan_never_saves_the_card(plans, organization, owner, fake_paystack):
+    login_client(owner).post("/app/plan/checkout/starter/", {"interval": "month"})
+    _pay(PaymentAttempt.objects.get(), fake_paystack, 9001, authorization=AUTH)
+    assert Subscription.objects.get(organization=organization).status == SubscriptionStatus.ACTIVE
     assert not PaymentMethod.objects.exists()
 
 
 @override_settings(PAYMENTS_ENABLED=True)
-def test_an_upgrade_also_asks_for_consent(plans, organization, owner):
+def test_an_upgrade_needs_no_renewal_agreement(plans, organization, owner):
     _subscribe(organization, plans["starter"])
-    with pytest.raises(ValidationFailure, match="Tick the box"):
-        billing.start_upgrade_checkout(organization=organization, membership=owner.memberships.get(),
-                                       plan_slug="growth", return_url="https://x.test/")
-    billing.start_upgrade_checkout(renewal_consent=True, organization=organization,
-                                   membership=owner.memberships.get(), plan_slug="growth", return_url="https://x.test/")
-    assert "Growth plan renews automatically" in RenewalConsent.objects.get().wording
+    url = billing.start_upgrade_checkout(organization=organization, membership=owner.memberships.get(),
+                                         plan_slug="growth", return_url="https://x.test/")
+    assert url.startswith("https://checkout.paystack.com/") and not RenewalConsent.objects.exists()
 
 
-# ---------- reminders ----------
+# ---------- 3 days before: reminder and pay link ----------
 
-def test_monthly_reminder_five_days_before_and_only_once(plans, organization, owner):
-    sub = _subscribe(organization, plans["starter"], ends_in=timedelta(days=6))
-    assert renewals.run()["reminded"] == 0
+def test_reminder_and_invoice_three_days_before_and_only_once(plans, organization, owner):
+    sub = _subscribe(organization, plans["starter"], ends_in=timedelta(days=4))
+    assert renewals.run()["reminded"] == 0 and not Invoice.objects.exists()
     later = timezone.now() + timedelta(days=1, hours=1)
     assert renewals.run(later)["reminded"] == 1
     assert renewals.run(later + timedelta(hours=1))["reminded"] == 0
+    invoice = Invoice.objects.get(renews_period_end=sub.period_end)
+    assert invoice.status == InvoiceStatus.ISSUED and invoice.amount_minor == plans["starter"].price_minor
     email = OutboxEvent.objects.get(topic=OutboxEvent.Topic.EMAIL)
     assert owner.email in email.payload["to"]
-    assert "renews on" in email.payload["body"] and "To cancel" in email.payload["body"]
+    body = email.payload["body"]
+    assert "Plans don't renew by themselves" in body and "/app/plan/" in body
+    assert f"{sub.period_end + timedelta(days=3):%-d %b %Y}" in body  # when the pause would start
     assert Notification.objects.filter(user=owner, kind="billing").exists()
-    sub.refresh_from_db()
-    assert sub.reminder_sent_for == sub.period_end
 
 
-def test_yearly_reminder_thirty_days_before(plans, organization, owner):
-    _subscribe(organization, plans["starter"], ends_in=timedelta(days=29), interval="year")
-    assert renewals.run()["reminded"] == 1
+def test_yearly_plans_are_also_reminded_three_days_before(plans, organization, owner):
+    _subscribe(organization, plans["starter"], ends_in=timedelta(days=4), interval="year")
+    assert renewals.run()["reminded"] == 0
+    assert renewals.run(timezone.now() + timedelta(days=1, hours=1))["reminded"] == 1
+    assert "another year" in OutboxEvent.objects.get().payload["body"]
 
 
-# ---------- the renewal charge ----------
-
-def test_saved_card_is_charged_the_day_before_and_the_webhook_renews(plans, organization, owner, fake_paystack):
+def test_nothing_is_ever_charged_even_with_an_old_saved_card(plans, organization, owner, fake_paystack):
     sub = _subscribe(organization, plans["starter"], ends_in=timedelta(hours=20))
-    _save_card(organization, owner)
-    old_end = sub.period_end
-    counts = renewals.run()
-    assert counts["charged"] == 1
-    (_, _, payload), = _charges(fake_paystack)
-    invoice = Invoice.objects.get(renews_period_end=old_end)
-    assert payload["amount"] == invoice.amount_minor == plans["starter"].price_minor
-    assert payload["authorization_code"] == "AUTH_synthetic123"
-    # Charged once only, however often the job runs.
-    renewals.run()
-    assert len(_charges(fake_paystack)) == 1
-    # Nothing is renewed until the provider confirms.
+    _old_saved_card(organization, owner)
+    for step in (timedelta(0), timedelta(days=1), timedelta(days=3), timedelta(days=5)):
+        renewals.run(timezone.now() + step)
+    assert not _charges(fake_paystack)
     sub.refresh_from_db()
-    assert sub.period_end == old_end
-    _pay(invoice.payment_attempts.get(), fake_paystack, 9101)
+    assert sub.status == SubscriptionStatus.PAST_DUE
+
+
+def test_paying_early_carries_on_from_the_end_of_the_period(plans, organization, owner, fake_paystack):
+    sub = _subscribe(organization, plans["starter"], ends_in=timedelta(days=2))
+    renewals.run()
+    invoice = Invoice.objects.get(renews_period_end=sub.period_end)
+    old_end = sub.period_end
+    _pay(billing._create_attempt(invoice, owner, {}), fake_paystack, 9101)
     sub.refresh_from_db()
     assert sub.period_start == old_end and sub.period_end > old_end + timedelta(days=27)
-    assert Invoice.objects.get(pk=invoice.pk).status == InvoiceStatus.PAID
+    assert renewals.run(old_end + timedelta(days=1)) == {"reminded": 0, "grace": 0, "paused": 0, "ended": 0}
 
 
-def test_a_declined_renewal_starts_grace_retries_then_pauses_and_ends(plans, organization, owner, fake_paystack, make_task):
+# ---------- after the end: 3 days' grace, then paused ----------
+
+def test_unpaid_end_gives_three_days_then_pauses_then_ends_owing_nothing(plans, organization, owner, make_task):
     sub = _subscribe(organization, plans["starter"], ends_in=timedelta(hours=20))
-    _save_card(organization, owner)
-    fake_paystack.charge_status = "failed"
-    counts = renewals.run()
-    assert counts["grace"] == 1
+    renewals.run()
+    after_end = sub.period_end + timedelta(minutes=1)
+    assert renewals.run(after_end)["grace"] == 1
     sub.refresh_from_db()
-    # Five business days after the period ends; service continues meanwhile.
-    assert sub.grace_until == renewals.add_business_days(sub.period_end, 5)
-    assert Notification.objects.filter(title__icontains="didn't go through").exists()
-    assert PaymentAttempt.objects.get().status == PaymentStatus.FAILED
-    in_grace = sub.period_end + timedelta(days=1)
-    assert billing.in_paid_time(sub, in_grace)
+    assert sub.grace_until == sub.period_end + timedelta(days=3)
+    assert billing.in_paid_time(sub, sub.period_end + timedelta(days=2))
+    assert Notification.objects.filter(title="Your plan period has ended").exists()
 
-    # Up to three tries in all, at least two days apart.
-    renewals.run(in_grace)
-    renewals.run(in_grace + timedelta(hours=1))
-    renewals.run(in_grace + timedelta(days=2, hours=1))
-    renewals.run(in_grace + timedelta(days=4, hours=2))
-    assert len(_charges(fake_paystack)) == 3
-
-    # Last-day reminder, then pause.
     renewals.run(sub.grace_until - timedelta(hours=12))
     assert Notification.objects.filter(title="Last day to pay your renewal").count() == 1
-    after = sub.grace_until + timedelta(minutes=1)
-    assert renewals.run(after)["paused"] == 1
+
+    paused_at = sub.grace_until + timedelta(minutes=1)
+    assert renewals.run(paused_at)["paused"] == 1
     sub.refresh_from_db()
-    assert sub.status == SubscriptionStatus.PAST_DUE and sub.paused_at == after
+    assert sub.status == SubscriptionStatus.PAST_DUE and sub.paused_at == paused_at
+    assert "nothing else can be done until you pay" in OutboxEvent.objects.last().payload["body"]
     with pytest.raises(ValidationFailure, match="paused"):
         make_task(organization, owner)
 
-    # Thirty days paused: the plan ends.
-    assert renewals.run(after + timedelta(days=30, minutes=1))["ended"] == 1
+    assert renewals.run(paused_at + timedelta(days=30, minutes=1))["ended"] == 1
     sub.refresh_from_db()
     assert sub.status == SubscriptionStatus.CANCELLED
-    # The unpaid renewal stays owed (Terms 5.6.6).
-    owed = renewals.owed_renewal(organization.pk)
-    assert owed is not None and owed.status == InvoiceStatus.ISSUED
-    assert "still owed" in OutboxEvent.objects.last().payload["body"]
+    # Not renewing isn't a debt: the renewal invoice can't be paid any more.
+    assert not Invoice.objects.filter(organization=organization, status=InvoiceStatus.ISSUED).exists()
+    assert "Nothing is owed" in OutboxEvent.objects.last().payload["body"]
+
+
+def test_a_missed_reminder_still_issues_the_invoice_at_the_end(plans, organization, owner):
+    sub = _subscribe(organization, plans["starter"], ends_in=timedelta(days=10))
+    renewals.run(sub.period_end + timedelta(hours=1))
+    assert Invoice.objects.filter(renews_period_end=sub.period_end, status=InvoiceStatus.ISSUED).exists()
 
 
 def test_paying_during_grace_continues_from_the_old_end(plans, organization, owner, fake_paystack):
     sub = _subscribe(organization, plans["starter"], ends_in=timedelta(hours=20))
-    renewals.run()  # no card: nothing charged yet
+    renewals.run(sub.period_end + timedelta(minutes=1))
     sub.refresh_from_db()
-    Subscription.objects.filter(pk=sub.pk).update(
-        period_end=timezone.now() - timedelta(days=1), grace_until=timezone.now() + timedelta(days=3)
-    )
-    sub.refresh_from_db()
-    assert billing.active_subscription(organization) == sub
-    invoice = renewals._create_renewal_invoice(sub)
-    attempt = billing._create_attempt(invoice, owner, {})
-    _pay(attempt, fake_paystack, 9201)
+    assert billing.in_paid_time(sub, sub.period_end + timedelta(days=1))
+    invoice = Invoice.objects.get(renews_period_end=sub.period_end)
     old_end = sub.period_end
+    _pay(billing._create_attempt(invoice, owner, {}), fake_paystack, 9201)
     sub.refresh_from_db()
-    assert sub.period_start == old_end and sub.grace_until is None and sub.renewal_attempts == 0
+    assert sub.period_start == old_end and sub.grace_until is None
 
 
 def test_paying_while_paused_starts_the_period_that_day(plans, organization, owner, fake_paystack):
-    sub = _subscribe(organization, plans["starter"])
-    Subscription.objects.filter(pk=sub.pk).update(
-        status=SubscriptionStatus.PAST_DUE, period_end=timezone.now() - timedelta(days=9),
-        paused_at=timezone.now() - timedelta(days=2),
-    )
-    sub.refresh_from_db()
+    sub = _pause(_subscribe(organization, plans["starter"]))
     invoice = renewals._create_renewal_invoice(sub)
     before = timezone.now()
     _pay(billing._create_attempt(invoice, owner, {}), fake_paystack, 9301)
@@ -243,35 +222,60 @@ def test_paying_while_paused_starts_the_period_that_day(plans, organization, own
 
 
 @override_settings(PAYMENTS_ENABLED=True)
-def test_without_a_card_the_renewal_is_paid_by_link(plans, organization, owner, fake_paystack):
-    sub = _subscribe(organization, plans["starter"], ends_in=timedelta(hours=20))
+def test_the_renewal_is_paid_by_link(plans, organization, owner):
+    sub = _subscribe(organization, plans["starter"], ends_in=timedelta(days=2))
     renewals.run()
-    assert not _charges(fake_paystack)
     invoice = Invoice.objects.get(renews_period_end=sub.period_end)
-    renewals.run(sub.period_end + timedelta(minutes=1))
-    sub.refresh_from_db()
-    assert sub.grace_until is not None
     response = login_client(owner).post(f"/app/billing/invoices/{invoice.pk}/pay/")
     assert response.status_code == 302 and response["Location"].startswith("https://checkout.paystack.com/")
 
 
 def test_a_bad_subscription_does_not_stop_the_others(plans, organization, owner, monkeypatch):
-    _subscribe(organization, plans["starter"], ends_in=timedelta(days=4))
+    _subscribe(organization, plans["starter"], ends_in=timedelta(days=2))
     monkeypatch.setattr(renewals, "_step", lambda *a: (_ for _ in ()).throw(RuntimeError("boom")))
     assert renewals.run()["reminded"] == 0  # logged, not raised
 
 
-# ---------- cancelling and downgrades ----------
+# ---------- a paused account is read-only, except paying ----------
 
-def test_cancel_stops_the_charge_and_keeps_access_to_the_end(plans, organization, owner, fake_paystack):
-    sub = _subscribe(organization, plans["starter"], ends_in=timedelta(hours=20))
-    _save_card(organization, owner)
+@override_settings(PAYMENTS_ENABLED=True)
+def test_a_paused_account_can_only_view_and_pay(plans, organization, owner, submitted_task):
+    sub = _pause(_subscribe(organization, plans["starter"]))
+    invoice = renewals._create_renewal_invoice(sub)
     c = login_client(owner)
-    c.post("/app/plan/cancel/")
+    # Viewing still works, with a notice on every page.
+    page = c.get(f"/app/tasks/{submitted_task.pk}/")
+    assert page.status_code == 200 and "Your account is paused." in page.content.decode()
+    # Other actions are refused and sent to the plan page.
+    for url, data in [
+        ("/app/tasks/new/", {"title": "A synthetic request"}),
+        (f"/app/tasks/{submitted_task.pk}/cancel/", {"reason": "No longer needed"}),
+        ("/app/team/invite/", {"email": "new.person@example.test", "role": "member"}),
+        ("/app/plan/downgrade/", {"plan": "starter"}),
+    ]:
+        response = c.post(url, data)
+        assert response.status_code == 302 and response["Location"] == "/app/plan/", url
+    submitted_task.refresh_from_db()
+    assert submitted_task.status != "cancelled"
+    # Paying the renewal is allowed.
+    response = c.post(f"/app/billing/invoices/{invoice.pk}/pay/")
+    assert response["Location"].startswith("https://checkout.paystack.com/")
+
+
+def test_an_active_account_is_not_blocked(plans, organization, owner, submitted_task):
+    _subscribe(organization, plans["starter"])
+    response = login_client(owner).post(f"/app/tasks/{submitted_task.pk}/cancel/", {"reason": "No longer needed"})
+    assert response["Location"] != "/app/plan/"
+
+
+# ---------- not renewing and downgrades ----------
+
+def test_saying_you_wont_renew_stops_reminders_and_ends_at_the_end(plans, organization, owner):
+    sub = _subscribe(organization, plans["starter"], ends_in=timedelta(days=2))
+    login_client(owner).post("/app/plan/cancel/")
     sub.refresh_from_db()
     assert sub.cancel_at_period_end
-    renewals.run()
-    assert not _charges(fake_paystack)
+    assert renewals.run()["reminded"] == 0
     assert billing.active_subscription(organization) == sub
     assert renewals.run(sub.period_end + timedelta(minutes=1))["ended"] == 1
     sub.refresh_from_db()
@@ -279,7 +283,18 @@ def test_cancel_stops_the_charge_and_keeps_access_to_the_end(plans, organization
     assert "ended as you asked" in OutboxEvent.objects.last().payload["body"]
 
 
-def test_undo_cancel_and_only_the_owner_can_cancel(plans, organization, owner, member):
+def test_not_renewing_during_grace_ends_the_plan_owing_nothing(plans, organization, owner):
+    sub = _subscribe(organization, plans["starter"], ends_in=timedelta(hours=1))
+    renewals.run(sub.period_end + timedelta(minutes=1))
+    with pytest.MonkeyPatch.context() as mp:
+        later = sub.period_end + timedelta(hours=1)
+        mp.setattr(timezone, "now", lambda: later)
+        renewals.cancel_renewal(organization, owner.memberships.get())
+    assert renewals.run(sub.period_end + timedelta(hours=2))["ended"] == 1
+    assert not Invoice.objects.filter(organization=organization, status=InvoiceStatus.ISSUED).exists()
+
+
+def test_undo_and_only_the_owner_can_say_they_wont_renew(plans, organization, owner, member):
     sub = _subscribe(organization, plans["starter"])
     with pytest.raises(PermissionFailure):
         renewals.cancel_renewal(organization, member.memberships.get())
@@ -289,8 +304,8 @@ def test_undo_cancel_and_only_the_owner_can_cancel(plans, organization, owner, m
     assert not sub.cancel_at_period_end
 
 
-def test_cancelling_voids_a_prepared_renewal_invoice(plans, organization, owner):
-    sub = _subscribe(organization, plans["starter"], ends_in=timedelta(hours=20))
+def test_not_renewing_voids_a_prepared_renewal_invoice(plans, organization, owner):
+    sub = _subscribe(organization, plans["starter"], ends_in=timedelta(days=2))
     renewals.run()
     invoice = Invoice.objects.get(renews_period_end=sub.period_end)
     renewals.cancel_renewal(organization, owner.memberships.get())
@@ -299,82 +314,55 @@ def test_cancelling_voids_a_prepared_renewal_invoice(plans, organization, owner)
 
 
 def test_downgrade_takes_effect_at_renewal(plans, organization, owner, fake_paystack):
-    sub = _subscribe(organization, plans["growth"], ends_in=timedelta(hours=20))
-    _save_card(organization, owner)
+    sub = _subscribe(organization, plans["growth"], ends_in=timedelta(days=2))
+    renewals.run()  # an invoice at the Growth price is issued first
     with pytest.raises(ValidationFailure):
         renewals.schedule_downgrade(organization, owner.memberships.get(), "dedicated")
     login_client(owner).post("/app/plan/downgrade/", {"plan": "starter"})
     sub.refresh_from_db()
     assert sub.next_plan.slug == "starter" and sub.plan.slug == "growth"
-    renewals.run()
-    invoice = Invoice.objects.get(renews_period_end=sub.period_end)
+    renewals.run()  # the old invoice was voided; a new one at the Starter price is issued
+    invoice = Invoice.objects.get(renews_period_end=sub.period_end, status=InvoiceStatus.ISSUED)
     assert invoice.plan.slug == "starter" and invoice.amount_minor == plans["starter"].price_minor
-    _pay(invoice.payment_attempts.get(), fake_paystack, 9401)
+    _pay(billing._create_attempt(invoice, owner, {}), fake_paystack, 9401)
     sub.refresh_from_db()
     assert sub.plan.slug == "starter" and sub.next_plan is None
 
 
-def test_removing_the_card_means_no_automatic_charge(plans, organization, owner, fake_paystack):
-    sub = _subscribe(organization, plans["starter"], ends_in=timedelta(hours=20))
-    _save_card(organization, owner)
+def test_an_old_saved_card_can_be_removed(plans, organization, owner):
+    _subscribe(organization, plans["starter"])
+    _old_saved_card(organization, owner)
     login_client(owner).post("/app/plan/card/remove/")
     assert renewals.saved_card(organization.pk) is None
-    renewals.run()
-    assert not _charges(fake_paystack)
-    assert Invoice.objects.filter(renews_period_end=sub.period_end).exists()
-
-
-def test_an_unreadable_saved_token_falls_back_to_a_pay_link(plans, organization, owner, fake_paystack):
-    _subscribe(organization, plans["starter"], ends_in=timedelta(hours=20))
-    method = _save_card(organization, owner)
-    PaymentMethod.objects.filter(pk=method.pk).update(token_encrypted="not-a-token")
-    renewals.run()
-    assert not _charges(fake_paystack)
 
 
 # ---------- the plan page ----------
 
 @override_settings(PAYMENTS_ENABLED=True)
-def test_plan_page_shows_renewal_and_controls(plans, organization, owner):
-    _subscribe(organization, plans["growth"])
-    _save_card(organization, owner)
+def test_plan_page_explains_manual_renewal(plans, organization, owner):
+    sub = _subscribe(organization, plans["growth"])
     body = login_client(owner).get("/app/plan/").content.decode()
-    assert "Renews on" in body and "Visa ending 4081" in body
-    assert "Cancel renewal" in body and "Move down at renewal" in body and 'name="renews"' in body
+    assert "It doesn't renew by itself" in body and f"{sub.period_end - timedelta(days=3):%-d %b}" in body
+    assert "I won't renew" in body and "Move down at renewal" in body and 'name="renews"' not in body
+
+
+@override_settings(PAYMENTS_ENABLED=True)
+def test_plan_page_offers_renew_now_once_the_invoice_is_out(plans, organization, owner):
+    _subscribe(organization, plans["growth"], ends_in=timedelta(days=2))
+    renewals.run()
+    body = login_client(owner).get("/app/plan/").content.decode()
+    assert "Renew now" in body and "paying early loses nothing" in body
 
 
 @override_settings(PAYMENTS_ENABLED=True)
 def test_plan_page_when_paused(plans, organization, owner):
-    sub = _subscribe(organization, plans["starter"])
-    Subscription.objects.filter(pk=sub.pk).update(
-        status=SubscriptionStatus.PAST_DUE, paused_at=timezone.now(), period_end=timezone.now() - timedelta(days=8)
-    )
-    sub.refresh_from_db()
+    sub = _pause(_subscribe(organization, plans["starter"]))
     renewals._create_renewal_invoice(sub)
     body = login_client(owner).get("/app/plan/").content.decode()
-    assert "Your service is paused" in body and "to resume" in body
+    assert "Your account is paused" in body and "to resume" in body and "nothing is owed after that" in body
 
 
-def test_flutterwave_saved_card_charge_maps_its_status(fake_flutterwave):
-    from apps.billing import flutterwave
-
-    status = flutterwave.charge_saved_card(token="flw-t-synthetic", email="o@example.test", amount_minor=5500,
-                                           currency="USD", reference="BA-T1", metadata={"invoice": "INV-1"})
-    assert status == "success"
-    (_, _path, payload), = [c for c in fake_flutterwave.calls if c[1] == "/tokenized-charges"]
-    assert payload["amount"] == "55.00" and payload["token"] == "flw-t-synthetic"
-    assert flutterwave._expiry("09/32") == (9, 2032) and flutterwave._expiry(None) == (None, None)
-
-
-# ---------- Terms 5.6.4–5.6.6: paused work and what's owed ----------
-
-def _pause(sub):
-    Subscription.objects.filter(pk=sub.pk).update(
-        status=SubscriptionStatus.PAST_DUE, paused_at=timezone.now(), period_end=timezone.now() - timedelta(days=8)
-    )
-    sub.refresh_from_db()
-    return sub
-
+# ---------- Terms 5.6.4: paused work ----------
 
 def test_work_in_progress_pauses_too(plans, organization, owner, submitted_task, ops_user, quote_approver):
     from apps.tasks.transitions import Action, available_actions, transition
@@ -396,26 +384,10 @@ def test_paused_notices_on_task_pages(plans, organization, owner, submitted_task
 
 
 @override_settings(PAYMENTS_ENABLED=True)
-def test_an_ended_unpaid_plan_must_pay_what_is_owed_first(plans, organization, owner, fake_paystack):
+def test_after_an_unpaid_plan_ends_a_new_plan_can_be_chosen(plans, organization, owner):
     sub = _pause(_subscribe(organization, plans["starter"]))
-    invoice = renewals._create_renewal_invoice(sub)
-    Subscription.objects.filter(pk=sub.pk).update(status=SubscriptionStatus.CANCELLED)
-    with pytest.raises(ValidationFailure, match="still unpaid"):
-        billing.start_plan_checkout(renewal_consent=True, organization=organization, membership=owner.memberships.get(),
-                                    plan_slug="growth", return_url="https://x.test/")
-    body = login_client(owner).get("/app/plan/").content.decode()
-    assert "is still owed" in body and invoice.number in body
-    before = timezone.now()
-    _pay(billing._create_attempt(invoice, owner, {}), fake_paystack, 9501)
-    sub.refresh_from_db()
-    assert sub.status == SubscriptionStatus.ACTIVE and sub.period_start >= before
-    assert renewals.owed_renewal(organization.pk) is None
-
-
-def test_cancelling_after_the_renewal_date_does_not_wipe_the_debt(plans, organization, owner):
-    sub = _subscribe(organization, plans["starter"])
-    Subscription.objects.filter(pk=sub.pk).update(
-        period_end=timezone.now() - timedelta(days=1), grace_until=timezone.now() + timedelta(days=3)
-    )
-    with pytest.raises(ValidationFailure, match="renewal date has passed"):
-        renewals.cancel_renewal(organization, owner.memberships.get())
+    renewals._create_renewal_invoice(sub)
+    renewals.run(timezone.now() + timedelta(days=31))
+    url = billing.start_plan_checkout(organization=organization, membership=owner.memberships.get(),
+                                      plan_slug="growth", return_url="https://x.test/")
+    assert url.startswith("https://checkout.paystack.com/")

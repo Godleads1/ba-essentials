@@ -27,7 +27,7 @@ class Organization(TimeStampedModel):
     # Staff can move a business in Nigeria or Africa to the international (US dollar)
     # plans, so work outside Africa is included. Changed only in admin, and audited.
     international_plan = models.BooleanField(default=False)
-    # Closing the account (Terms 5.5.5, Privacy Policy section 5): it runs to the end
+    # Closing the account (Terms 5.5.3, Privacy Policy section 5): it runs to the end
     # of the paid period, is then read-only, and the profile is deleted 90 days later.
     closure_requested_at = models.DateTimeField(null=True, blank=True)
     closure_requested_by = models.ForeignKey(

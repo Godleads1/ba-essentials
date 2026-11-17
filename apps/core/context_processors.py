@@ -60,6 +60,7 @@ def navigation(request):
         "unread_notifications": 0,
         "nav_items": (),
         "counselling": None,
+        "account_paused": False,
     }
     if user is None or not user.is_authenticated:
         return context
@@ -100,6 +101,9 @@ def navigation(request):
             memberships[0].organization,
         )
         context["client_organization"] = selected
+        from apps.billing.plan_rules import is_paused
+
+        context["account_paused"] = is_paused(selected)
     context["nav_items"] = context["client_nav"] or tuple(n for n in CLIENT_NAV if n[0] == "security-home")
     # The "Need Counselling?" button: clients only. Nothing records who opens it.
     from apps.communications.models import CounsellingSettings

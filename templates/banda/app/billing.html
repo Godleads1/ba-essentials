@@ -6,7 +6,7 @@
         <span class="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-brand-navy text-white">{% icon "receipt-text" "h-5 w-5" %}</span>
         <div class="min-w-0 flex-1">
           <h1 class="font-display text-[22px] font-semibold leading-tight tracking-[-0.01em] sm:text-[24px]">Billing &amp; Invoices</h1>
-          <p class="mt-0.5 text-[14px] text-ink-muted">Your invoices, what you've paid and how your plan renews.</p>
+          <p class="mt-0.5 text-[14px] text-ink-muted">Your invoices, what you've paid and how to renew your plan.</p>
         </div>
         <div class="hidden items-center gap-3 rounded-2xl bg-pill-navyBg px-4 py-2.5 md:flex">
           {% icon "lock" "h-4 w-4 shrink-0 text-brand-navy" %}
@@ -24,7 +24,7 @@
           <p class="tile-label"><span class="stat-ic bg-pill-navyBg text-brand-navy">{% icon "calendar" "h-5 w-5" %}</span>Next payment</p>
           {% if subscription and not subscription.cancel_at_period_end %}
             <p class="tile-num text-[22px]">{% if renewal_price %}{{ renewal_price.amount_minor|money_minor:renewal_price.currency }}{% else %}{{ subscription.period_end|date:"j M" }}{% endif %}</p>
-            <p class="tile-sub">Plan renews {{ subscription.period_end|date:"j M Y" }}</p>
+            <p class="tile-sub">Next period from {{ subscription.period_end|date:"j M Y" }}</p>
           {% else %}
             <p class="tile-num text-[22px]">None planned</p>
             <p class="tile-sub">{% if subscription %}Your plan won't renew{% else %}No plan renewing{% endif %}</p>
@@ -106,19 +106,19 @@
             {% if saved_card %}
               <div class="mt-3 flex items-center gap-3 rounded-2xl border border-cream-line p-3.5">
                 <span class="grid h-10 w-14 shrink-0 place-items-center rounded-lg bg-brand-navy text-white">{% icon "credit-card" "h-5 w-5" %}</span>
-                <div class="min-w-0 flex-1"><p class="text-[14px] font-semibold">{{ saved_card.label }}</p><p class="text-[12px] text-ink-muted">Used for your plan renewal</p></div>
+                <div class="min-w-0 flex-1"><p class="text-[14px] font-semibold">{{ saved_card.label }}</p><p class="text-[12px] text-ink-muted">Saved earlier. We no longer charge saved cards.</p></div>
               </div>
               {% if can_buy %}<form method="post" action="{% url 'card-remove' %}" class="mt-2">{% csrf_token %}<button type="submit" class="text-[13px] font-semibold text-brand-navy underline underline-offset-2">Remove saved card</button></form>{% endif %}
             {% else %}
-              <p class="mt-2 text-[13px] text-ink-muted">No card is saved. You pay each invoice on {{ provider_name }}'s secure page, and we send a payment link before your plan renews.</p>
+              <p class="mt-2 text-[13px] text-ink-muted">You pay each invoice on {{ provider_name }}'s secure page. We never charge you automatically: 3 days before your plan ends, we send a link to pay for the next period.</p>
             {% endif %}
             <div class="mt-3 rounded-2xl bg-cream-light p-3.5">
               {% if subscription and subscription.cancel_at_period_end %}
-                <p class="text-[13.5px] font-semibold">Your plan won't renew</p>
-                <p class="mt-0.5 text-[12.5px] text-ink-muted">It stays active until {{ subscription.period_end|date:"j M Y" }}. Nothing more will be charged.</p>
+                <p class="text-[13.5px] font-semibold">You won't renew</p>
+                <p class="mt-0.5 text-[12.5px] text-ink-muted">Your plan stays active until {{ subscription.period_end|date:"j M Y" }}, then ends.</p>
               {% elif subscription %}
-                <p class="text-[13.5px] font-semibold">Renews automatically</p>
-                <p class="mt-0.5 text-[12.5px] text-ink-muted">On {{ subscription.period_end|date:"j M Y" }}. You can cancel any time before then.</p>
+                <p class="text-[13.5px] font-semibold">You renew when you pay</p>
+                <p class="mt-0.5 text-[12.5px] text-ink-muted">Your plan runs until {{ subscription.period_end|date:"j M Y" }}. Nothing renews by itself.</p>
               {% else %}
                 <p class="text-[13.5px] font-semibold">No plan</p>
                 <p class="mt-0.5 text-[12.5px] text-ink-muted">Each request is quoted and invoiced on its own.</p>

@@ -282,9 +282,9 @@ Subscription states and access rules (each state must have an explicit rule):
 | --- | --- |
 | `PENDING_PAYMENT` | No paid features |
 | `ACTIVE` | Full access within the plan's allowances |
-| `ACTIVE` + `cancel_at_period_end` | Full access to the end of the paid period; no further charge (Terms 5.5.5) |
-| `ACTIVE` + `grace_until` | Renewal unpaid: full access for 5 business days, up to 3 charge attempts, no late fees (Terms 5.6) |
-| `PAST_DUE` (paused) | Read-only: no new requests; the plan ends 30 days after pausing (Terms 5.6.4–5.6.6) |
+| `ACTIVE` + `cancel_at_period_end` | Client won't renew: full access to the end of the paid period, no reminders (Terms 5.5.3) |
+| `ACTIVE` + `grace_until` | Period ended unpaid: full access for 3 days, no late fees, nothing charged automatically (Terms 5.6) |
+| `PAST_DUE` (paused) | Read-only except paying, security and closing; the plan ends 30 days after pausing and nothing is owed (Terms 5.6.4–5.6.6) |
 | `EXPIRED` / `CANCELLED` | Read-only access to files and invoices (Terms) |
 | `PAYMENT_FAILED` / `REFUNDED` | No new paid work |
 
@@ -299,8 +299,8 @@ Allowances (Terms 3.2 and 3.3):
 
 Also:
 
-- Renewal is agreed explicitly at checkout; record the agreement (section
-  4.10).
+- Plans never renew automatically: the client pays each period from a link sent
+  3 days before it ends. Don't add automatic charging without new Terms.
 - Never store raw card details; use the providers' hosted, tokenised flows.
 - Don't log payment secrets or card data.
 - Define refund, chargeback and failed-payment handling before live payments.
@@ -405,8 +405,6 @@ the choice and the time:
 
 - Terms of Service and Privacy Policy accepted at sign-up (version and date).
 - Age and authority confirmation at sign-up.
-- Automatic renewal agreed at checkout (plan, price, currency, first renewal
-  date).
 - Marketing consent: separate, unticked by default, with channel; withdrawable
   at any time.
 - Phone-call authorisation on a request.
@@ -475,8 +473,9 @@ controller "of major importance" under the Act.
   documents 6 years after the task closes; support records 6 years; one-time
   codes 1 day; backups rotated within 2 days, with deletions reapplied after a
   restore. Build a scheduled deletion job and test it.
-- **Account closure:** the plan stops renewing with no further charge and runs
-  to the end of the paid period (as Terms 5.5.5); read-only access after it
+- **Account closure:** renewal reminders stop and the plan runs to the end of
+  the paid period (Terms 5.5.3); if the period has already ended unpaid, it
+  closes the same day, owing nothing; read-only access after it
   ends, deletion on the schedule above.
 - **Breaches:** notify the Nigeria Data Protection Commission within 72 hours
   of becoming aware of a breach likely to put people's rights at risk (NDPA

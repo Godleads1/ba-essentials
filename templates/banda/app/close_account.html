@@ -6,7 +6,7 @@
         <h1 class="mt-3 font-display text-[22px] font-semibold">Close the {{ organization.name }} account?</h1>
         {% if error %}<p class="mt-4 rounded-xl bg-[#FDECEC] px-4 py-3 text-[13.5px] font-medium text-[#B42318]" role="alert">{{ error }}</p>{% endif %}
         <ul class="mt-4 space-y-3 text-[14px] text-ink-muted">
-          <li>Your plan stops renewing and nothing more is charged. You keep full access until the end of the period you&rsquo;ve paid for, <b class="text-ink">{{ closes_at|date:"j M Y" }}</b>, then the account closes.</li>
+          <li>You won&rsquo;t get renewal reminders, and nothing more is charged. You keep full access until the end of the period you&rsquo;ve paid for, <b class="text-ink">{{ closes_at|date:"j M Y" }}</b>, then the account closes.</li>
           <li>{% if open_requests %}You have <b class="text-ink">{{ open_requests }} open request{{ open_requests|pluralize }}</b>. Tell the team which you need finished before your plan ends.{% else %}You have no open requests.{% endif %}</li>
           <li>After it closes, you can still sign in to view and download your files and invoices.</li>
           <li>Your account and business profile are deleted 90 days after the account closes. Some records are kept longer by law: invoices and tax records for 7 years, task documents for 6 years. Section 5 of our Privacy Policy lists what we keep.</li>

@@ -123,7 +123,7 @@ class Subscription(TimeStampedModel):
     interval = models.CharField(
         max_length=8, choices=BillingInterval.choices, default=BillingInterval.MONTH
     )
-    # Cancelling stops the next renewal; access runs to period_end (Terms 5.5.5).
+    # Cancelling stops the next renewal; access runs to period_end (Terms 5.5.3).
     cancel_at_period_end = models.BooleanField(default=False)
     cancel_requested_at = models.DateTimeField(null=True, blank=True)
     # A move to a smaller plan starts at the next renewal (Terms 5.7).
