@@ -1,0 +1,141 @@
+{% extends "banda/app/base.html" %}
+{% load icons %}
+{% block title %}Deliverables &amp; Files{% endblock %}
+{% block content %}
+      <section class="panel flex flex-wrap items-center gap-4 px-5 py-4 sm:px-6">
+        <span class="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-brand-navy text-white">{% icon "folder-open" "h-5 w-5" %}</span>
+        <div class="min-w-0 flex-1">
+          <h1 class="font-display text-[22px] font-semibold leading-tight tracking-[-0.01em] sm:text-[24px]">Deliverables &amp; Files</h1>
+          <p class="mt-0.5 text-[14px] text-ink-muted">Finished work from the team, and the files you sent with your requests.</p>
+        </div>
+        <a href="{% url 'task-submit' %}" class="btn-next max-sm:w-full">{% icon "upload" "h-4 w-4" %}Send files with a request</a>
+      </section>
+
+      <section class="mt-3 grid grid-cols-2 gap-3 xl:grid-cols-4" aria-label="File summary">
+        <a href="{% url 'files-home' %}" class="stat-f" {% if not filtered %}aria-current="true"{% endif %}><span class="stat-ic bg-pill-navyBg text-brand-navy">{% icon "files" "h-5 w-5" %}</span><span class="stat-label">All files</span><span class="stat-num">{{ counts.all }}</span><span class="stat-sub">Delivered and uploaded</span></a>
+        <a href="?kind=delivered" class="stat-f" {% if kind == "delivered" and not query and not category and not ftype %}aria-current="true"{% endif %}><span class="stat-ic bg-pill-greenBg text-pill-greenTx">{% icon "file-check" "h-5 w-5" %}</span><span class="stat-label">Delivered to you</span><span class="stat-num">{{ counts.delivered }}</span><span class="stat-sub">Checked by our quality team</span></a>
+        <a href="?kind=waiting" class="stat-f" {% if kind == "waiting" and not query and not category and not ftype %}aria-current="true"{% endif %}><span class="stat-ic bg-pill-orangeBg text-brand-orangeDark">{% icon "hourglass" "h-5 w-5" %}</span><span class="stat-label">Needs your approval</span><span class="stat-num">{{ counts.waiting }}</span><span class="stat-sub">Accept or ask for changes</span></a>
+        <a href="?kind=uploaded" class="stat-f" {% if kind == "uploaded" and not query and not category and not ftype %}aria-current="true"{% endif %}><span class="stat-ic bg-[#EFE9FB] text-[#5B3FA8]">{% icon "upload" "h-5 w-5" %}</span><span class="stat-label">Your uploads</span><span class="stat-num">{{ counts.uploaded }}</span><span class="stat-sub">Sent with your requests</span></a>
+      </section>
+
+      <div class="mt-3 grid grid-cols-1 gap-3 2xl:grid-cols-[minmax(0,1fr)_320px]">
+        <section class="panel min-w-0 p-4 sm:p-5" aria-labelledby="listTitle">
+          <h2 id="listTitle" class="sr-only">Your files</h2>
+          <form method="get" aria-label="Filter files" role="search" class="grid grid-cols-2 gap-2.5 lg:grid-cols-[minmax(0,1fr)_170px_160px_150px_auto]">
+            <div class="relative col-span-2 lg:col-span-1">
+              <label for="fq" class="sr-only">Search files</label>
+              {% icon "search" "pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-ink-muted" %}
+              <input id="fq" name="q" type="search" value="{{ query }}" class="field pl-10" placeholder="Search by file name or request" autocomplete="off" />
+            </div>
+            <div class="relative"><label for="fcat" class="sr-only">Category</label><select id="fcat" name="category" class="field appearance-none pr-9"><option value="">All categories</option>{% for c in categories %}<option value="{{ c }}" {% if c == category %}selected{% endif %}>{{ c }}</option>{% endfor %}</select>{% icon "chevron-down" "pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" %}</div>
+            <div class="relative"><label for="fkind" class="sr-only">Show</label><select id="fkind" name="kind" class="field appearance-none pr-9"><option value="">All files</option><option value="delivered" {% if kind == "delivered" %}selected{% endif %}>Delivered to you</option><option value="waiting" {% if kind == "waiting" %}selected{% endif %}>Needs your approval</option><option value="uploaded" {% if kind == "uploaded" %}selected{% endif %}>Your uploads</option></select>{% icon "chevron-down" "pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" %}</div>
+            <div class="relative"><label for="ftype" class="sr-only">File type</label><select id="ftype" name="type" class="field appearance-none pr-9"><option value="">Any file type</option>{% for value, label in file_types.items %}<option value="{{ value }}" {% if value == ftype %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>{% icon "chevron-down" "pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" %}</div>
+            <div class="col-span-2 flex items-center gap-2 lg:col-span-1">
+              <button type="submit" class="btn-outline py-2.5 text-[13.5px]">Filter</button>
+              {% if filtered %}<a href="{% url 'files-home' %}" class="btn-ghost py-2.5 text-[13.5px]">{% icon "x" "h-4 w-4" %}Clear</a>{% endif %}
+            </div>
+          </form>
+
+          {% if filtered %}<p class="mt-3 text-[12.5px] text-ink-muted" role="status">{{ page.paginator.count }} of {{ counts.all }} file{{ counts.all|pluralize }} match</p>{% endif %}
+
+          {% if page.object_list %}
+            <div tabindex="0" role="region" aria-label="Files table" class="relative mt-2 hidden overflow-x-auto md:block">
+              <table class="w-full min-w-[760px] border-separate border-spacing-0 text-left text-[13.5px]">
+                <thead>
+                  <tr class="text-[12px] text-ink-muted">
+                    <th scope="col" class="th">File</th>
+                    <th scope="col" class="th">Request</th>
+                    <th scope="col" class="th">Status</th>
+                    <th scope="col" class="th">Added</th>
+                    <th scope="col" class="th text-right"><span class="sr-only">Actions</span></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for r in page.object_list %}
+                    <tr class="row">
+                      <td class="td"><span class="flex items-center gap-3"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg {{ r.tone }}">{% icon r.icon "h-4 w-4" %}</span><span class="min-w-0"><span class="block break-all font-semibold">{{ r.file.original_name }}</span><span class="mt-0.5 block text-[12px] text-ink-soft">{{ r.type_label }} · {{ r.file.size_bytes|filesizeformat }}{% if r.version %} · Version {{ r.version }}{% endif %}</span></span></span></td>
+                      <td class="td"><a href="{% url 'task-detail' task_id=r.task.pk %}" class="block font-medium text-brand-navy hover:underline">{{ r.task.reference }}</a><span class="mt-0.5 block text-[12px] text-ink-soft">{{ r.task.title|truncatechars:48 }}</span></td>
+                      <td class="td"><span class="chip-status {{ r.status.1 }}">{{ r.status.0 }}</span></td>
+                      <td class="td whitespace-nowrap">{{ r.added|date:"j M Y" }}<span class="block text-[11.5px] text-ink-soft">{% if r.kind == "delivered" %}Delivered by B &amp; A{% else %}Uploaded by you{% endif %}</span></td>
+                      <td class="td"><div class="flex items-center justify-end gap-2">
+                        {% if r.waiting %}<a href="{% url 'task-detail' task_id=r.task.pk %}" class="btn-ghost px-3 py-1.5 text-[13px]">Review<span class="sr-only"> {{ r.task.reference }}</span></a>{% endif %}
+                        {% if r.downloadable %}<a href="{% url 'file-download' file_id=r.file.pk %}" class="btn-outline px-4 py-1.5 text-[13px]">{% icon "download" "h-4 w-4" %}Download<span class="sr-only"> {{ r.file.original_name }}</span></a>{% else %}<span class="text-[12.5px] text-ink-soft">Not available</span>{% endif %}
+                      </div></td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            <ul class="mt-2 space-y-2.5 md:hidden">
+              {% for r in page.object_list %}
+                <li class="rounded-2xl border border-cream-line p-4">
+                  <div class="flex items-start gap-3">
+                    <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl {{ r.tone }}">{% icon r.icon "h-[18px] w-[18px]" %}</span>
+                    <div class="min-w-0 flex-1"><span class="block break-all font-semibold leading-snug">{{ r.file.original_name }}</span><span class="mt-0.5 block text-[12px] text-ink-soft">{{ r.type_label }} · {{ r.file.size_bytes|filesizeformat }} · {{ r.added|date:"j M Y" }}</span><a href="{% url 'task-detail' task_id=r.task.pk %}" class="mt-0.5 block text-[12.5px] font-medium text-brand-navy hover:underline">{{ r.task.reference }} · {{ r.task.title|truncatechars:40 }}</a></div>
+                  </div>
+                  <div class="mt-3 flex flex-wrap items-center gap-2 border-t border-cream-line pt-3">
+                    <span class="chip-status {{ r.status.1 }}">{{ r.status.0 }}</span>
+                    <span class="ml-auto flex items-center gap-2">
+                      {% if r.waiting %}<a href="{% url 'task-detail' task_id=r.task.pk %}" class="btn-ghost px-3 py-1.5 text-[13px]">Review</a>{% endif %}
+                      {% if r.downloadable %}<a href="{% url 'file-download' file_id=r.file.pk %}" class="btn-outline px-4 py-1.5 text-[13px]">{% icon "download" "h-4 w-4" %}Download<span class="sr-only"> {{ r.file.original_name }}</span></a>{% endif %}
+                    </span>
+                  </div>
+                </li>
+              {% endfor %}
+            </ul>
+
+            {% if page.paginator.num_pages > 1 %}
+              <nav class="mt-4 flex items-center justify-between gap-3" aria-label="Pages">
+                <p class="text-[12.5px] text-ink-muted">Showing {{ page.start_index }}–{{ page.end_index }} of {{ page.paginator.count }}</p>
+                <div class="flex items-center gap-1.5">
+                  {% if page.has_previous %}<a class="page-b" href="?{% if keep %}{{ keep }}&amp;{% endif %}page={{ page.previous_page_number }}" aria-label="Previous page">{% icon "chevron-left" "h-4 w-4" %}</a>{% endif %}
+                  {% for n in page.paginator.page_range %}<a class="page-b" href="?{% if keep %}{{ keep }}&amp;{% endif %}page={{ n }}" {% if n == page.number %}aria-current="page"{% else %}aria-label="Page {{ n }}"{% endif %}>{{ n }}</a>{% endfor %}
+                  {% if page.has_next %}<a class="page-b" href="?{% if keep %}{{ keep }}&amp;{% endif %}page={{ page.next_page_number }}" aria-label="Next page">{% icon "chevron-right" "h-4 w-4" %}</a>{% endif %}
+                </div>
+              </nav>
+            {% else %}
+              <p class="mt-4 text-[12.5px] text-ink-muted">Showing {{ page.start_index }}–{{ page.end_index }} of {{ page.paginator.count }}</p>
+            {% endif %}
+          {% else %}
+            <div class="mt-3 flex flex-col items-center gap-2 rounded-2xl bg-cream-light px-4 py-10 text-center">
+              <span class="grid h-11 w-11 place-items-center rounded-full bg-white text-ink-soft">{% icon "folder-search" "h-5 w-5" %}</span>
+              {% if filtered %}
+                <p class="font-semibold">No files match these filters</p>
+                <a href="{% url 'files-home' %}" class="btn-outline mt-1 py-2 text-[13px]">Clear filters</a>
+              {% else %}
+                <p class="font-semibold">No files yet</p>
+                <p class="max-w-sm text-[13px] text-ink-muted">Finished work appears here once our quality team has checked it. Files you send with a request appear here too.</p>
+                <a href="{% url 'task-submit' %}" class="btn-next mt-1 py-2 text-[13px]">Submit a task</a>
+              {% endif %}
+            </div>
+          {% endif %}
+        </section>
+
+        <aside class="grid grid-cols-1 gap-3 md:grid-cols-2 [&>*]:min-w-0 2xl:grid-cols-1 2xl:self-start" aria-label="Shortcuts and help">
+          <section class="panel p-5" aria-labelledby="qa">
+            <h2 id="qa" class="font-display text-[17px] font-semibold">Quick actions</h2>
+            <div class="mt-3 grid grid-cols-2 gap-2.5">
+              <a href="{% url 'task-submit' %}" class="qa"><span class="qa-ic bg-brand-navy text-white">{% icon "plus" "h-4 w-4" %}</span><span class="qa-t">Submit a task</span><span class="qa-s">Add files to a new request</span></a>
+              <a href="{% url 'task-list' %}" class="qa"><span class="qa-ic bg-pill-navyBg text-brand-navy">{% icon "clipboard-list" "h-4 w-4" %}</span><span class="qa-t">My tasks</span><span class="qa-s">Follow your requests</span></a>
+              <a href="?kind=waiting" class="qa"><span class="qa-ic bg-pill-orangeBg text-brand-orangeDark">{% icon "hourglass" "h-4 w-4" %}</span><span class="qa-t">To approve</span><span class="qa-s">Work waiting on you</span></a>
+              <a href="{% url 'messages-home' %}" class="qa"><span class="qa-ic bg-[#EFE9FB] text-[#5B3FA8]">{% icon "message-square" "h-4 w-4" %}</span><span class="qa-t">Messages</span><span class="qa-s">Talk to the team</span></a>
+            </div>
+          </section>
+          <section class="panel p-5" aria-labelledby="up">
+            <h2 id="up" class="font-display text-[17px] font-semibold">About your files</h2>
+            <ul class="mt-3 space-y-2.5 text-[13px] text-ink-muted">
+              <li class="flex gap-2.5">{% icon "shield-check" "mt-0.5 h-4 w-4 shrink-0 text-brand-navy" %}<span>Only people in your business can download these files. Every download is checked and recorded.</span></li>
+              <li class="flex gap-2.5">{% icon "loader" "mt-0.5 h-4 w-4 shrink-0 text-brand-navy" %}<span>New files are checked for viruses first. They can be downloaded once the check is done.</span></li>
+              <li class="flex gap-2.5">{% icon "paperclip" "mt-0.5 h-4 w-4 shrink-0 text-brand-navy" %}<span>Send PDF, Word, Excel, CSV, text, JPG or PNG files, up to {{ max_mb|default:"10" }} MB each. Never send passwords or card details.</span></li>
+              <li class="flex gap-2.5">{% icon "archive" "mt-0.5 h-4 w-4 shrink-0 text-brand-navy" %}<span>We keep task files for 6 years after a request closes, then delete them.</span></li>
+            </ul>
+          </section>
+          <section class="relative overflow-hidden rounded-[22px] bg-brand-navy p-5 text-white md:col-span-2 2xl:col-span-1" aria-labelledby="mf">
+            <span aria-hidden="true" class="rings pointer-events-none absolute inset-0"></span>
+            <h2 id="mf" class="relative font-display text-[17px] font-semibold">Missing a file?</h2>
+            <p class="relative mt-1 text-[13px] text-white/75">If something you expected isn't here, tell us and we'll look into it.</p>
+            <a href="{% url 'support-new' %}?topic=files" class="btn relative mt-3 bg-brand-cta px-4 py-2 text-[13px] text-white hover:bg-brand-ctaDark">Contact support {% icon "arrow-right" "h-4 w-4" %}</a>
+          </section>
+        </aside>
+      </div>
+{% endblock %}

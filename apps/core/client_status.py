@@ -77,3 +77,25 @@ def statuses_in(*groups: str) -> list[str]:
 
 def guide() -> list[dict]:
     return [{"label": v[0], "about": v[2], "dot": v[3]} for v in GROUPS.values()]
+
+
+# ---------- files and support requests ----------
+# Kept here, with the other chip colours, so the old stylesheet's scan skips them.
+
+FILE_TONES = {"pdf": "bg-[#FDECEC] text-[#B42318]", "doc": "bg-pill-navyBg text-brand-navy",
+              "sheet": "bg-pill-greenBg text-pill-greenTx", "image": "bg-pill-orangeBg text-brand-orangeDark",
+              "other": "bg-cream text-ink-muted"}
+FILE_STATUS = {
+    "deleted": ("Deleted after 6 years", "bg-[#F1EFEC] text-ink-muted"),
+    "checking": ("Being checked", "bg-[#EFE9FB] text-[#5B3FA8]"),
+    "blocked": ("Blocked by the safety check", "bg-[#FDECEC] text-[#B42318]"),
+    "waiting": ("Needs your approval", "bg-pill-orangeBg text-brand-orangeDark"),
+    "ready": ("Ready to download", "bg-pill-greenBg text-pill-greenTx"),
+    "uploaded": ("Your upload", "bg-cream text-ink"),
+}
+TICKET_STATUS = {
+    "open": ("Open", "bg-pill-navyBg text-brand-navy"),
+    "pending": ("Waiting on you", "bg-pill-orangeBg text-brand-orangeDark"),
+    "resolved": ("Resolved", "bg-pill-greenBg text-pill-greenTx"),
+    "closed": ("Closed", "bg-cream text-ink-muted"),
+}

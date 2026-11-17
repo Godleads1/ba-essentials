@@ -1,0 +1,79 @@
+{% extends "banda/app/base.html" %}
+{% load icons %}
+{% block title %}Help &amp; Support{% endblock %}
+{% block content %}
+      <section class="panel flex flex-wrap items-center gap-4 px-5 py-4 sm:px-6">
+        <span class="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-brand-navy text-white">{% icon "life-buoy" "h-5 w-5" %}</span>
+        <div class="min-w-0 flex-1">
+          <h1 class="font-display text-[22px] font-semibold leading-tight tracking-[-0.01em] sm:text-[24px]">Help &amp; Support</h1>
+          <p class="mt-0.5 text-[14px] text-ink-muted">Find an answer, or ask a real person on our team.</p>
+        </div>
+        <a href="{% url 'support-new' %}" class="btn-next max-sm:w-full">{% icon "message-square-plus" "h-4 w-4" %}New support request</a>
+      </section>
+
+      <section class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Ways to get help">
+        <a href="#faq" class="way"><span class="stat-ic bg-pill-navyBg text-brand-navy">{% icon "book-open" "h-5 w-5" %}</span><span class="way-t">Common questions</span><span class="way-s">Quick answers about tasks, files, billing and your account.</span><span class="way-l">Read answers {% icon "arrow-right" "h-4 w-4" %}</span></a>
+        <a href="{% url 'support-new' %}" class="way"><span class="stat-ic bg-pill-orangeBg text-brand-orangeDark">{% icon "message-square-plus" "h-5 w-5" %}</span><span class="way-t">Support request</span><span class="way-s">Tell us what's wrong and follow our reply here.</span><span class="way-l">Start a request {% icon "arrow-right" "h-4 w-4" %}</span></a>
+        <a href="{% url 'task-list' %}" class="way"><span class="stat-ic bg-pill-greenBg text-pill-greenTx">{% icon "clipboard-list" "h-5 w-5" %}</span><span class="way-t">About a task?</span><span class="way-s">Message the team on the request itself. It's the fastest way.</span><span class="way-l">Open My Tasks {% icon "arrow-right" "h-4 w-4" %}</span></a>
+        <div class="way"><span class="stat-ic bg-[#EFE9FB] text-[#5B3FA8]">{% icon "mail" "h-5 w-5" %}</span><span class="way-t">Email us</span><span class="way-s">If you can't use a support request, write to us. We reply by email.</span><span class="way-l select-all">{{ support_email }}</span></div>
+      </section>
+
+      <div class="mt-3 grid grid-cols-1 gap-3 2xl:grid-cols-[minmax(0,1fr)_340px]">
+        <section class="panel min-w-0 p-4 sm:p-5" aria-labelledby="tkT">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <h2 id="tkT" class="font-display text-[17px] font-semibold">Your support requests</h2>
+            <nav class="flex flex-wrap gap-1.5" aria-label="Show">
+              <a href="{% url 'support-home' %}" class="choice-pill {% if not show %}is-on{% endif %}" {% if not show %}aria-current="true"{% endif %}>All <span class="text-ink-soft">{{ counts.all }}</span></a>
+              <a href="?status=active" class="choice-pill {% if show == 'active' %}is-on{% endif %}" {% if show == "active" %}aria-current="true"{% endif %}>Not resolved yet <span class="text-ink-soft">{{ counts.active }}</span></a>
+              <a href="?status=done" class="choice-pill {% if show == 'done' %}is-on{% endif %}" {% if show == "done" %}aria-current="true"{% endif %}>Resolved</a>
+            </nav>
+          </div>
+          {% if rows %}
+            <ul class="mt-3 space-y-2.5">
+              {% for r in rows %}{% with t=r.ticket %}
+                <li><a href="{% url 'support-detail' ticket_id=t.pk %}" class="flex flex-wrap items-center gap-3 rounded-2xl border border-cream-line px-4 py-3.5 hover:border-brand-navy">
+                  <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-pill-navyBg text-brand-navy">{% icon "message-circle-question" "h-[18px] w-[18px]" %}</span>
+                  <span class="min-w-0 flex-1"><span class="block font-semibold">{{ t.subject }}</span><span class="block text-[12.5px] text-ink-muted">{{ t.reference }} · updated {{ t.last_message_at|date:"j M Y, H:i" }}</span></span>
+                  <span class="chip-status {{ r.status.1 }}">{{ r.status.0 }}</span>
+                  {% icon "chevron-right" "h-4 w-4 text-ink-soft" %}
+                </a></li>
+              {% endwith %}{% endfor %}
+            </ul>
+          {% else %}
+            <div class="mt-3 flex flex-col items-center gap-2 rounded-2xl bg-cream-light px-4 py-8 text-center">
+              <span class="grid h-11 w-11 place-items-center rounded-full bg-white text-ink-soft">{% icon "inbox" "h-5 w-5" %}</span>
+              <p class="font-semibold">{% if show %}No support requests here{% else %}No support requests yet{% endif %}</p>
+              <p class="max-w-sm text-[13px] text-ink-muted">Questions about a request go in its own messages. Use a support request for anything else.</p>
+              <a href="{% url 'support-new' %}" class="btn-next mt-1 py-2 text-[13px]">New support request</a>
+            </div>
+          {% endif %}
+        </section>
+
+        <aside class="grid grid-cols-1 gap-3 [&>*]:min-w-0 2xl:self-start" aria-label="Topics">
+          <section class="panel p-5" aria-labelledby="tpT">
+            <h2 id="tpT" class="font-display text-[17px] font-semibold">Get help with</h2>
+            <div class="topics-grid mt-3 grid gap-2.5">
+              {% for key, label, icon_name in topics %}<a href="{% url 'support-new' %}?topic={{ key }}" class="qa items-center text-center"><span class="qa-ic mx-auto bg-pill-navyBg text-brand-navy">{% icon icon_name "h-4 w-4" %}</span><span class="qa-t">{{ label }}</span></a>{% endfor %}
+            </div>
+          </section>
+          <section class="relative overflow-hidden rounded-[22px] bg-brand-navy p-5 text-white" aria-labelledby="stT">
+            <span aria-hidden="true" class="rings pointer-events-none absolute inset-0"></span>
+            <h2 id="stT" class="relative font-display text-[17px] font-semibold">Still stuck?</h2>
+            <p class="relative mt-1 text-[13px] text-white/75">A person on our team reads every support request and replies here, usually within one business day.</p>
+            <a href="{% url 'support-new' %}" class="btn relative mt-3 bg-brand-cta px-4 py-2 text-[13px] text-white hover:bg-brand-ctaDark">Contact support {% icon "arrow-right" "h-4 w-4" %}</a>
+          </section>
+        </aside>
+      </div>
+
+      <section id="faq" class="panel mt-3 scroll-mt-24 p-5 sm:p-6" aria-labelledby="faqT">
+        <h2 id="faqT" class="font-display text-[18px] font-semibold">Common questions</h2>
+        <div class="mt-3 divide-y divide-cream-line">
+          {% for q, a in faq %}
+            <details class="faq group">
+              <summary class="flex items-center justify-between gap-4 py-4 text-[14.5px] font-semibold">{{ q }}<span class="faq-plus grid h-7 w-7 shrink-0 place-items-center rounded-full bg-cream-light text-brand-navy">{% icon "plus" "h-4 w-4" %}</span></summary>
+              <p class="pb-4 pr-8 text-[13.5px] leading-relaxed text-ink-muted">{{ a }}</p>
+            </details>
+          {% endfor %}
+        </div>
+      </section>
+{% endblock %}

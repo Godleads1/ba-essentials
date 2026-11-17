@@ -1,0 +1,69 @@
+{% extends "banda/app/base.html" %}
+{% load ui icons %}
+{% block title %}{{ ticket.reference }}{% endblock %}
+{% block content %}
+      <section class="panel flex flex-wrap items-center gap-4 px-5 py-4 sm:px-6">
+        <a href="{% url 'support-home' %}" class="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-cream-light text-ink hover:bg-cream" aria-label="Back to Help &amp; Support">{% icon "arrow-left" "h-5 w-5" %}</a>
+        <div class="min-w-0 flex-1">
+          <p class="flex flex-wrap items-center gap-2 text-[12.5px] text-ink-muted"><span class="font-semibold text-brand-navy">{{ ticket.reference }}</span><span class="chip-status {{ status.1 }}">{{ status.0 }}</span></p>
+          <h1 class="mt-1 break-words font-display text-[20px] font-semibold leading-tight tracking-[-0.01em] sm:text-[22px]">{{ ticket.subject }}</h1>
+        </div>
+      </section>
+
+      <div class="mt-3 grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <section class="panel min-w-0 p-5 sm:p-6" aria-labelledby="cvT">
+          <h2 id="cvT" class="font-display text-[17px] font-semibold">Conversation</h2>
+          <ol class="mt-4 space-y-4">
+            {% for m in thread %}
+              <li class="flex gap-3 {% if m.mine %}flex-row-reverse text-right{% endif %}">
+                <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[12px] font-bold text-white {% if m.mine %}bg-brand-cta{% else %}bg-brand-navy{% endif %}" aria-hidden="true">{% if m.author_role == "staff" %}BA{% else %}{{ m.author_name|default:"You"|initials }}{% endif %}</span>
+                <div class="min-w-0 max-w-[85%]">
+                  <p class="text-[12px] text-ink-muted"><span class="font-semibold text-ink">{% if m.mine %}You{% elif m.author_role == "staff" %}B &amp; A support{% else %}{{ m.author_name|default:"Your team" }}{% endif %}</span> · <time datetime="{{ m.created_at|date:'c' }}">{{ m.created_at|date:"j M Y, H:i" }}</time></p>
+                  <p class="mt-1 inline-block whitespace-pre-line break-words rounded-2xl px-3.5 py-2.5 text-left text-[13.5px] leading-relaxed {% if m.mine %}rounded-tr-md bg-pill-navyBg{% else %}rounded-tl-md bg-cream-light{% endif %}">{{ m.body }}</p>
+                </div>
+              </li>
+            {% empty %}
+              <li class="rounded-2xl bg-cream-light px-4 py-5 text-center text-[13.5px] text-ink-muted">No messages yet.</li>
+            {% endfor %}
+          </ol>
+
+          {% if can_reply %}
+            <form method="post" class="mt-6 border-t border-cream-line pt-5">
+              {% csrf_token %}
+              <label for="reply" class="lbl">Reply</label>
+              <textarea id="reply" name="body" rows="3" maxlength="4000" required class="field mt-1.5 resize-y leading-relaxed" placeholder="Add a reply for the support team"></textarea>
+              <div class="mt-2.5 flex flex-wrap items-center justify-between gap-3">
+                <p class="text-[12px] text-ink-soft">Never include passwords, one-time codes or card details.</p>
+                <button type="submit" class="btn-next py-2.5">{% icon "send" "h-4 w-4" %}Send reply</button>
+              </div>
+            </form>
+          {% else %}
+            <p class="mt-6 rounded-2xl bg-cream-light px-4 py-3 text-[13px] text-ink-muted">This request is closed. <a href="{% url 'support-new' %}" class="font-semibold text-brand-navy underline">Start a new support request</a> if you need more help.</p>
+          {% endif %}
+        </section>
+
+        <aside class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-1 xl:self-start [&>*]:min-w-0" aria-label="About this request">
+          <section class="panel p-5" aria-labelledby="dtT">
+            <h2 id="dtT" class="font-display text-[17px] font-semibold">Details</h2>
+            <dl class="mt-3 space-y-2.5 text-[13.5px]">
+              <div class="flex justify-between gap-3"><dt class="text-ink-muted">Reference</dt><dd class="font-medium">{{ ticket.reference }}</dd></div>
+              <div class="flex justify-between gap-3"><dt class="text-ink-muted">Status</dt><dd><span class="chip-status {{ status.1 }}">{{ status.0 }}</span></dd></div>
+              <div class="flex justify-between gap-3"><dt class="text-ink-muted">Urgency</dt><dd class="font-medium">{% if ticket.priority == "high" %}Urgent{% elif ticket.priority == "medium" %}Standard{% else %}Low{% endif %}</dd></div>
+              <div class="flex justify-between gap-3"><dt class="text-ink-muted">Opened</dt><dd class="font-medium">{{ ticket.created_at|date:"j M Y, H:i" }}</dd></div>
+              <div class="flex justify-between gap-3"><dt class="text-ink-muted">Last update</dt><dd class="font-medium">{{ ticket.last_message_at|date:"j M Y, H:i" }}</dd></div>
+              {% if ticket.assigned_to %}<div class="flex justify-between gap-3"><dt class="text-ink-muted">Handled by</dt><dd class="font-medium">B &amp; A support</dd></div>{% endif %}
+            </dl>
+          </section>
+          {% if can_reply %}
+            <section class="panel p-5" aria-labelledby="clT">
+              <h2 id="clT" class="font-display text-[17px] font-semibold">All sorted?</h2>
+              <p class="mt-1 text-[13px] text-ink-muted">Close this request once you have what you need. You can start a new one any time.</p>
+              <form method="post" action="{% url 'support-close' ticket_id=ticket.pk %}" class="mt-3">
+                {% csrf_token %}
+                <button type="submit" class="btn-outline py-2 text-[13px]">{% icon "circle-check" "h-4 w-4" %}Close this request</button>
+              </form>
+            </section>
+          {% endif %}
+        </aside>
+      </div>
+{% endblock %}
