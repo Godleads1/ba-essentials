@@ -1,14 +1,5 @@
 # syntax=docker/dockerfile:1
 
-FROM node:22-alpine AS assets
-WORKDIR /build
-COPY package.json package-lock.json ./
-RUN npm ci
-COPY static ./static
-COPY templates ./templates
-COPY apps ./apps
-RUN npm run css:build
-
 FROM python:3.13-slim AS runtime
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -28,9 +19,8 @@ COPY requirements ./requirements
 RUN pip install --no-cache-dir --require-hashes -r requirements/prod.txt
 
 COPY . .
-COPY --from=assets /build/static/css/app.css ./static/css/app.css
 
-RUN python manage.py collectstatic --noinput --ignore "src/*" \
+RUN python manage.py collectstatic --noinput \
     && useradd --uid 10001 --create-home --shell /usr/sbin/nologin app \
     && chmod +x docker/entrypoint.sh docker/start.sh
 

@@ -174,12 +174,13 @@ PostgreSQL snapshot before a destructive change.
 ```bash
 python -m pytest
 python manage.py check --deploy --settings=config.settings.staging  # with staging env
-python manage.py collectstatic --noinput --ignore "src/*" --settings=config.settings.build
+python manage.py collectstatic --noinput --settings=config.settings.build
 render blueprints validate ./render.yaml
 ```
 
-`--ignore "src/*"` keeps the Tailwind source file out of the hashed static
-build; the compiled `static/css/app.css` is still collected.
+The stylesheets are committed prebuilt (`static/banda/`), so the build needs no
+Node step. After editing a staff template, rebuild `static/banda/staff.css` with
+`npm ci && npm run build` in `tools/banda-css`; CI checks it's current.
 
 Blueprint validation against the workspace (`render blueprints validate`) passed
 YAML, schema, plan, and region checks. The only reported errors were
