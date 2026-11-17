@@ -1,0 +1,21 @@
+/* Utilities the banda pages use that the preview's prebuilt app.css doesn't include.
+   Loaded after app.css, written the way Tailwind would write them. */
+.max-w-sm { max-width: 24rem; }
+.space-y-5 > :not([hidden]) ~ :not([hidden]) { margin-top: 1.25rem; }
+.select-all { -webkit-user-select: all; user-select: all; }
+.accent-brand-navy { accent-color: #33397F; }
+.basis-\[220px\] { flex-basis: 220px; }
+.hover\:bg-\[\#E0E2F3\]:hover { background-color: #E0E2F3; }
+.focus-visible\:ring-\[\#B42318\]:focus-visible { --tw-ring-color: #B42318; }
+@media (min-width: 640px) { .sm\:text-\[22px\] { font-size: 22px; } }
+@media (min-width: 1280px) { .xl\:grid-cols-\[minmax\(0\2c 1fr\)_320px\] { grid-template-columns: minmax(0, 1fr) 320px; } }
+@media (min-width: 1536px) {
+  .\32xl\:hidden { display: none; }
+  .\32xl\:col-span-1 { grid-column: span 1 / span 1; }
+  .\32xl\:grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+  .\32xl\:grid-cols-\[minmax\(0\2c 1fr\)_320px\] { grid-template-columns: minmax(0, 1fr) 320px; }
+  .\32xl\:grid-cols-\[minmax\(0\2c 1fr\)_340px\] { grid-template-columns: minmax(0, 1fr) 340px; }
+  .\32xl\:grid-cols-\[320px_minmax\(0\2c 1fr\)_300px\] { grid-template-columns: 320px minmax(0, 1fr) 300px; }
+  .\32xl\:self-start { align-self: flex-start; }
+  .\32xl\:content-start { align-content: flex-start; }
+}
