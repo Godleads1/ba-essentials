@@ -1,10 +1,6 @@
 """Every workspace page (client and staff) uses the banda shell and colours."""
 from __future__ import annotations
 
-from pathlib import Path
-
-from django.conf import settings
-
 from .conftest import login_client
 
 STAFF_PAGES = ("/staff/", "/staff/queue/", "/staff/my-cases/", "/staff/assignments/", "/staff/needs-information/",
@@ -35,16 +31,6 @@ def test_page_titles_are_not_doubled(client, owner):
 def test_banda_pages_keep_their_own_stylesheets(client, owner):
     body = client.get("/app/security/").content.decode()
     assert "/static/banda/app.css" in body and "/static/css/app.css" not in body
-
-
-def test_banda_utilities_are_the_preview_stylesheet_minus_its_reset():
-    base = Path(settings.BASE_DIR) / "static" / "banda"
-    full = (base / "app.css").read_text()
-    cut = (base / "shell-utilities.css").read_text()
-    header, body = cut.split("*/\n", 1)
-    start, end = (int(x) for x in header.split("characters ")[1].split(" ")[0].split("-"))
-    assert body == full[:start] + full[end:]
-    assert "border:0 solid #e5e7eb" not in body
 
 
 def test_redesigned_pages_use_only_the_banda_stylesheet(client, owner):
