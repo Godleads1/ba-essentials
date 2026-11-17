@@ -1,0 +1,234 @@
+{% extends "banda/app/base.html" %}
+{% load ui icons %}
+{% block title %}Plan &amp; Usage{% endblock %}
+{% block content %}
+      <section class="panel flex flex-wrap items-center gap-4 px-5 py-4 sm:px-6">
+        <span class="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-brand-navy text-white">{% icon "gauge" "h-5 w-5" %}</span>
+        <div class="min-w-0 flex-1">
+          <h1 class="font-display text-[22px] font-semibold leading-tight tracking-[-0.01em] sm:text-[24px]">Plan &amp; Usage</h1>
+          <p class="mt-0.5 text-[14px] text-ink-muted">{% if subscription %}How much of your plan you've used this period, and what's left.{% else %}Choose a plan, or keep paying for each request on its own.{% endif %}</p>
+        </div>
+        {% if subscription and upgrades %}<a href="#upgrade" class="btn-outline max-sm:w-full">Move to a bigger plan</a>{% elif not subscription and plans %}<a href="#choose" class="btn-next max-sm:w-full">Choose a plan</a>{% endif %}
+      </section>
+
+      {% if subscription and subscription.grace_until and subscription.period_end < now %}
+        <section class="mt-3 flex flex-wrap items-center gap-3 rounded-2xl bg-[#FDECEC] px-5 py-4 text-[13.5px] text-[#B42318]" role="alert">
+          {% icon "triangle-alert" "h-5 w-5 shrink-0" %}
+          <p class="min-w-0 flex-1">Your renewal payment didn't go through. Your service continues until {{ subscription.grace_until|date:"j M Y" }}; after that it pauses until you pay.</p>
+          {% if renewal_invoice and can_buy and payments_enabled %}<form method="post" action="{% url 'invoice-checkout' invoice_id=renewal_invoice.pk %}">{% csrf_token %}<button type="submit" class="btn-next py-2 text-[13px]">Pay {{ renewal_invoice.amount_minor|money_minor:renewal_invoice.currency }} now</button></form>{% endif %}
+        </section>
+      {% endif %}
+
+      {% if subscription %}
+        <section class="mt-3 grid grid-cols-2 gap-3 xl:grid-cols-4" aria-label="Plan summary">
+          <div class="tile">
+            <p class="tile-label"><span class="stat-ic bg-pill-navyBg text-brand-navy">{% icon "award" "h-5 w-5" %}</span>Current plan</p>
+            <p class="tile-num">{{ subscription.plan.name }}</p>
+            <p class="tile-sub">{% if subscription.cancel_at_period_end %}<span class="chip-status bg-pill-orangeBg text-brand-orangeDark">Ends {{ subscription.period_end|date:"j M" }}</span>{% else %}<span class="chip-status bg-pill-greenBg text-pill-greenTx">Active</span> · renews {{ subscription.period_end|date:"j M" }}{% endif %}</p>
+          </div>
+          <div class="tile">
+            <p class="tile-label"><span class="stat-ic bg-pill-navyBg text-brand-navy">{% icon "clipboard-list" "h-5 w-5" %}</span>Tasks used</p>
+            <p class="tile-num">{{ gauge.used }} <span class="text-[16px] font-medium text-ink-muted">of {{ gauge.total }}</span></p>
+            <span class="meter mt-3" role="meter" aria-label="Tasks used this period" aria-valuemin="0" aria-valuemax="{{ gauge.total }}" aria-valuenow="{{ gauge.used }}"><span style="width: {{ used_pct }}%"></span></span>
+          </div>
+          <div class="tile">
+            <p class="tile-label"><span class="stat-ic bg-pill-greenBg text-pill-greenTx">{% icon "circle-check" "h-5 w-5" %}</span>Tasks left</p>
+            <p class="tile-num">{{ allowance_remaining }}</p>
+            <p class="tile-sub">{{ days_left }} day{{ days_left|pluralize }} left in this period</p>
+          </div>
+          <div class="tile">
+            <p class="tile-label"><span class="stat-ic bg-pill-orangeBg text-brand-orangeDark">{% icon "scale" "h-5 w-5" %}</span>Legal reviews</p>
+            <p class="tile-num">{{ legal_remaining }} <span class="text-[16px] font-medium text-ink-muted">left</span></p>
+            <p class="tile-sub">{{ subscription.plan.legal_review_label|capfirst }}{% if legal_window_start %}, counted from {{ legal_window_start|date:"j M" }}{% endif %}</p>
+          </div>
+        </section>
+      {% endif %}
+
+      <div class="mt-3 grid grid-cols-1 gap-3 2xl:grid-cols-[minmax(0,1fr)_340px]">
+        <div class="min-w-0 space-y-3">
+          {% if paused %}
+            <section class="panel p-5 sm:p-6" aria-labelledby="psT">
+              <h2 id="psT" class="font-display text-[17px] font-semibold">{{ paused.plan.name }}: paused</h2>
+              <p class="mt-2 rounded-2xl bg-pill-orangeBg px-4 py-3 text-[13.5px] text-brand-orangeDark" role="alert">Your service is paused because the renewal is unpaid. You can still see your records and deliverables; new requests wait until you pay. Your plan ends on {{ paused_ends|date:"j M Y" }} if it stays unpaid.</p>
+              {% if renewal_invoice and can_buy and payments_enabled %}
+                <form class="mt-3" method="post" action="{% url 'invoice-checkout' invoice_id=renewal_invoice.pk %}">{% csrf_token %}<button type="submit" class="btn-next py-2.5">Pay {{ renewal_invoice.amount_minor|money_minor:renewal_invoice.currency }} to resume</button></form>
+                <p class="mt-2 text-[12.5px] text-ink-muted">Your new period starts the day you pay.</p>
+              {% elif not can_buy %}<p class="mt-3 text-[12.5px] text-ink-muted">Only the business owner can pay the renewal.</p>{% endif %}
+            </section>
+          {% elif owed_renewal %}
+            <section class="panel p-5 sm:p-6" aria-labelledby="owT">
+              <h2 id="owT" class="font-display text-[17px] font-semibold">Your plan ended</h2>
+              <p class="mt-2 rounded-2xl bg-pill-orangeBg px-4 py-3 text-[13.5px] text-brand-orangeDark" role="alert">Your plan ended because the renewal wasn't paid. {{ owed_renewal.amount_minor|money_minor:owed_renewal.currency }} ({{ owed_renewal.number }}) is still owed. Paying it restarts your {{ owed_renewal.plan.name }} plan from the day you pay.</p>
+              {% if can_buy and payments_enabled %}<form class="mt-3" method="post" action="{% url 'invoice-checkout' invoice_id=owed_renewal.pk %}">{% csrf_token %}<button type="submit" class="btn-next py-2.5">Pay {{ owed_renewal.amount_minor|money_minor:owed_renewal.currency }}</button></form>{% endif %}
+            </section>
+          {% elif not subscription %}
+            <section id="choose" class="panel scroll-mt-24 p-5 sm:p-6" aria-labelledby="chT">
+              <h2 id="chT" class="font-display text-[17px] font-semibold">Choose a plan</h2>
+              <p class="mt-0.5 text-[13px] text-ink-muted">You don't have a plan. Each request is quoted and invoiced on its own until you choose one.</p>
+              {% if rate_error %}<p class="mt-3 rounded-2xl bg-pill-orangeBg px-4 py-3 text-[13.5px] text-brand-orangeDark">{{ rate_error }}</p>{% endif %}
+              {% if plans %}
+                <p class="mt-3 text-[12.5px] text-ink-muted">{% if region == "ng" %}Prices in Naira for businesses in Nigeria.{% elif region == "africa" %}Prices in US dollars: the Nigeria price plus a small conversion amount, at today's rate.{% else %}Prices in US dollars. A US or UK reviewer is included where a document needs one.{% endif %} Pay yearly to save {{ yearly_discount }}%.</p>
+                <ul class="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
+                  {% for plan, monthly, yearly in plans %}
+                    <li class="flex flex-col rounded-2xl border border-cream-line p-4">
+                      <p class="font-display text-[17px] font-semibold">{{ plan.name }}</p>
+                      <p class="mt-0.5 text-[13px] text-ink-muted">{{ plan.monthly_task_allowance }} tasks a month · {{ plan.legal_review_label }}</p>
+                      <p class="mt-3 font-display text-[20px] font-semibold">{{ monthly.amount_minor|money_minor:monthly.currency }}<span class="text-[13px] font-medium text-ink-muted"> a month</span></p>
+                      <p class="text-[12.5px] text-ink-muted">or {{ yearly.amount_minor|money_minor:yearly.currency }} a year</p>
+                      {% if can_buy and payments_enabled %}
+                        <form method="post" action="{% url 'plan-checkout' plan_slug=plan.slug %}" class="mt-3 space-y-3">{% csrf_token %}
+                          <label class="flex items-start gap-2 text-[12.5px] text-ink-muted"><input type="checkbox" name="renews" required class="mt-0.5 accent-brand-navy" /> <span>I agree that my plan renews automatically at the price I choose, every month or year, until I cancel. I can cancel any time before a renewal date.</span></label>
+                          <div class="flex flex-wrap gap-2">
+                            <button type="submit" name="interval" value="month" class="btn-next py-2 text-[13px]">Pay monthly</button>
+                            <button type="submit" name="interval" value="year" class="btn-outline py-2 text-[13px]">Pay yearly</button>
+                          </div>
+                        </form>
+                      {% endif %}
+                    </li>
+                  {% endfor %}
+                </ul>
+                {% if not can_buy %}<p class="mt-3 text-[12.5px] text-ink-muted">Only the business owner can choose a plan.</p>{% elif not payments_enabled %}<p class="mt-3 text-[12.5px] text-ink-muted">Card payment isn't open yet. Contact support to choose a plan.</p>{% endif %}
+                <p class="mt-3 text-[12.5px] text-ink-muted">You pay on {{ provider_name }}'s secure page. Your plan starts once {{ provider_name }} confirms the payment to us. Extra legal reviews are {{ extra_legal_fee|money_minor:extra_legal_currency }} each.</p>
+              {% endif %}
+            </section>
+          {% endif %}
+
+          {% if subscription %}
+            <section class="panel p-5 sm:p-6" aria-labelledby="catT">
+              <h2 id="catT" class="font-display text-[17px] font-semibold">Where your tasks went</h2>
+              <p class="mt-0.5 text-[13px] text-ink-muted">Tasks used this period, by service category.</p>
+              {% if by_category %}
+                <ul class="mt-4 space-y-3">
+                  {% for name, n, pct in by_category %}
+                    <li class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1.5 text-[13.5px]">
+                      <span class="truncate font-medium">{{ name }}</span><span class="tabular-nums text-ink-muted">{{ n }} task{{ n|pluralize }}</span>
+                      <span class="meter col-span-2" aria-hidden="true"><span style="width: {{ pct }}%"></span></span>
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% else %}
+                <p class="mt-3 rounded-2xl bg-cream-light px-4 py-4 text-center text-[13px] text-ink-muted">No tasks used yet this period.</p>
+              {% endif %}
+              <p class="mt-4 text-[12.5px] text-ink-muted">Unused tasks don't carry over to the next period.</p>
+            </section>
+          {% endif %}
+
+          {% if upgrades %}
+            <section id="upgrade" class="panel scroll-mt-24 p-5 sm:p-6" aria-labelledby="upT">
+              <h2 id="upT" class="font-display text-[17px] font-semibold">Move to a bigger plan</h2>
+              <p class="mt-0.5 text-[13px] text-ink-muted">A bigger plan starts as soon as {{ provider_name }} confirms the payment. Today you pay only the difference for the rest of this period; your renewal date stays {{ subscription.period_end|date:"j M Y" }}.</p>
+              <ul class="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
+                {% for plan, charge in upgrades %}
+                  <li class="flex flex-col rounded-2xl border border-cream-line p-4">
+                    <p class="font-display text-[17px] font-semibold">{{ plan.name }}</p>
+                    <p class="mt-0.5 text-[13px] text-ink-muted">{{ plan.monthly_task_allowance }} tasks a month · {{ plan.legal_review_label }}</p>
+                    <p class="mt-3 font-display text-[20px] font-semibold">{{ charge.amount_minor|money_minor:charge.currency }}<span class="text-[13px] font-medium text-ink-muted"> today</span></p>
+                    {% if can_buy and payments_enabled %}
+                      <form method="post" action="{% url 'plan-upgrade' plan_slug=plan.slug %}" class="mt-3 space-y-3">{% csrf_token %}
+                        <label class="flex items-start gap-2 text-[12.5px] text-ink-muted"><input type="checkbox" name="renews" required class="mt-0.5 accent-brand-navy" /> <span>I agree that from {{ subscription.period_end|date:"j M Y" }} my plan renews automatically as {{ plan.name }} at its {% if subscription.interval == "year" %}yearly{% else %}monthly{% endif %} price until I cancel.</span></label>
+                        <button type="submit" class="btn-next py-2 text-[13px]">Upgrade to {{ plan.name }}</button>
+                      </form>
+                    {% endif %}
+                  </li>
+                {% endfor %}
+              </ul>
+              {% if not can_buy %}<p class="mt-3 text-[12.5px] text-ink-muted">Only the business owner can change the plan.</p>{% elif not payments_enabled %}<p class="mt-3 text-[12.5px] text-ink-muted">Card payment isn't open yet. Contact support to change your plan.</p>{% endif %}
+            </section>
+          {% endif %}
+
+          <section class="panel p-5 sm:p-6" aria-labelledby="svT">
+            <h2 id="svT" class="font-display text-[17px] font-semibold">Services in your plan</h2>
+            <ul class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {% for category, access in categories %}
+                <li class="flex items-center justify-between gap-3 rounded-2xl border border-cream-line px-4 py-3 text-[13.5px]">
+                  <span class="{% if access.allowed %}font-medium{% else %}text-ink-soft{% endif %}">{{ category.name }}</span>
+                  {% if access.allowed %}<span class="chip-status bg-pill-greenBg text-pill-greenTx">Included</span>{% else %}<span class="chip-status bg-cream text-ink-muted">On {{ access.required_plan.name|default:"a bigger plan" }}</span>{% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+          </section>
+
+          <section class="panel min-w-0 p-5 sm:p-6" aria-labelledby="usT">
+            <h2 id="usT" class="font-display text-[17px] font-semibold">Allowance used</h2>
+            <p class="mt-0.5 text-[13px] text-ink-muted">One task is set aside from your allowance when you submit a request under your plan.</p>
+            {% if usage %}
+              <div tabindex="0" role="region" aria-label="Allowance used" class="relative mt-3 overflow-x-auto">
+                <table class="w-full min-w-[480px] border-separate border-spacing-0 text-left text-[13.5px]">
+                  <thead><tr class="text-[12px] text-ink-muted"><th scope="col" class="th">Request</th><th scope="col" class="th">Kind</th><th scope="col" class="th text-right">Tasks</th><th scope="col" class="th">Date</th></tr></thead>
+                  <tbody>
+                    {% for entry in usage %}
+                      <tr class="row">
+                        <td class="td">{% if entry.task_id %}<a class="font-semibold text-brand-navy hover:underline" href="{% url 'task-detail' task_id=entry.task_id %}">{{ entry.task.reference }}</a> <span class="text-ink-muted">{{ entry.task.title|truncatechars:40 }}</span>{% else %}—{% endif %}</td>
+                        <td class="td">{{ entry.get_kind_display }}</td>
+                        <td class="td text-right tabular-nums">{{ entry.units }}</td>
+                        <td class="td whitespace-nowrap">{{ entry.created_at|date:"j M Y" }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              <p class="mt-3 rounded-2xl bg-cream-light px-4 py-4 text-center text-[13px] text-ink-muted">No allowance has been used in this period.</p>
+            {% endif %}
+          </section>
+        </div>
+
+        <aside class="grid grid-cols-1 gap-3 md:grid-cols-2 [&>*]:min-w-0 2xl:grid-cols-1 2xl:self-start" aria-label="Plan details and renewal">
+          {% if subscription %}
+            <section class="panel p-5" aria-labelledby="pdT">
+              <h2 id="pdT" class="font-display text-[17px] font-semibold">Plan details</h2>
+              <dl class="mt-3 grid grid-cols-[100px_minmax(0,1fr)] gap-y-2.5 text-[13.5px]">
+                <dt class="text-ink-muted">Plan</dt><dd class="font-medium">{{ subscription.plan.name }}</dd>
+                <dt class="text-ink-muted">Includes</dt><dd class="font-medium">{{ subscription.plan.monthly_task_allowance }} tasks a period, {{ subscription.plan.legal_review_label }}</dd>
+                <dt class="text-ink-muted">Billed</dt><dd class="font-medium">{% if subscription.interval == "year" %}Yearly{% else %}Monthly{% endif %}</dd>
+                <dt class="text-ink-muted">Period</dt><dd class="font-medium">{{ subscription.period_start|date:"j M Y" }} – {{ subscription.period_end|date:"j M Y" }}</dd>
+              </dl>
+              <a href="{% url 'billing-home' %}" class="btn-outline mt-4 w-full py-2 text-[13px]">Billing and invoices</a>
+            </section>
+
+            <section id="renewal" class="panel scroll-mt-24 p-5" aria-labelledby="rnT">
+              <h2 id="rnT" class="font-display text-[17px] font-semibold">Renewal</h2>
+              <div class="mt-2 space-y-3 text-[13.5px]">
+                {% if subscription.cancel_at_period_end %}
+                  <p class="text-ink-muted">Your plan won't renew. It stays active until {{ subscription.period_end|date:"j M Y" }}, and nothing more will be charged.</p>
+                  {% if can_buy %}<form method="post" action="{% url 'plan-resume' %}">{% csrf_token %}<button type="submit" class="btn-next py-2 text-[13px]">Keep my plan</button></form>{% endif %}
+                {% elif not subscription.grace_until or subscription.period_end >= now %}
+                  <p class="text-ink-muted">Renews on <span class="font-semibold text-ink">{{ subscription.period_end|date:"j M Y" }}</span>{% if renewal_price %} for <span class="font-semibold text-ink">{{ renewal_price.amount_minor|money_minor:renewal_price.currency }}</span>{% endif %}{% if subscription.next_plan %} on the {{ subscription.next_plan.name }} plan{% endif %}. {% if saved_card %}We'll charge your {{ saved_card.label }}.{% else %}We'll send you a payment link before then.{% endif %} You'll get a reminder {% if subscription.interval == "year" %}30{% else %}5{% endif %} days before.</p>
+                  {% if subscription.next_plan and can_buy %}
+                    <form method="post" action="{% url 'plan-downgrade-undo' %}">{% csrf_token %}<button type="submit" class="btn-outline py-2 text-[13px]">Stay on {{ subscription.plan.name }}</button></form>
+                  {% endif %}
+                  {% if can_buy %}
+                    {% if downgrades and not subscription.next_plan %}
+                      <form method="post" action="{% url 'plan-downgrade' %}" class="flex flex-wrap items-center gap-2">{% csrf_token %}
+                        <label class="sr-only" for="downgradePlan">Smaller plan</label>
+                        <select id="downgradePlan" name="plan" class="field min-w-0 flex-1 py-2 text-[13px]">{% for plan in downgrades %}<option value="{{ plan.slug }}">{{ plan.name }}</option>{% endfor %}</select>
+                        <button type="submit" class="btn-outline py-2 text-[13px]">Move down at renewal</button>
+                      </form>
+                    {% endif %}
+                    <form method="post" action="{% url 'plan-cancel' %}">{% csrf_token %}<button type="submit" class="text-[13px] font-semibold text-brand-navy underline underline-offset-2">Cancel renewal</button></form>
+                    <p class="text-[12px] text-ink-soft">Cancelling stops the next charge. You keep your plan until {{ subscription.period_end|date:"j M Y" }}.</p>
+                  {% endif %}
+                {% endif %}
+                {% if saved_card and can_buy %}
+                  <form method="post" action="{% url 'card-remove' %}">{% csrf_token %}<button type="submit" class="text-[12.5px] font-medium text-ink-muted underline hover:text-ink">Remove saved card ({{ saved_card.label }})</button></form>
+                {% endif %}
+                {% if not can_buy %}<p class="text-[12.5px] text-ink-soft">Only the business owner can change the renewal.</p>{% endif %}
+              </div>
+            </section>
+          {% else %}
+            <section class="panel p-5" aria-labelledby="nopT">
+              <h2 id="nopT" class="font-display text-[17px] font-semibold">Without a plan</h2>
+              <p class="mt-2 text-[13px] text-ink-muted">You can still submit requests. Each one is quoted and invoiced on its own.</p>
+              <a href="{% url 'billing-home' %}" class="btn-outline mt-3 w-full py-2 text-[13px]">Billing and invoices</a>
+            </section>
+          {% endif %}
+
+          <section class="relative overflow-hidden rounded-[22px] bg-brand-navy p-5 text-white md:col-span-2 2xl:col-span-1" aria-labelledby="qT">
+            <span aria-hidden="true" class="rings pointer-events-none absolute inset-0"></span>
+            <h2 id="qT" class="relative font-display text-[17px] font-semibold">Questions about your plan?</h2>
+            <p class="relative mt-1 text-[13px] text-white/75">The team can help with usage, billing and plan changes.</p>
+            <a href="{% url 'support-new' %}?topic=plan" class="btn relative mt-3 bg-brand-cta px-4 py-2 text-[13px] text-white hover:bg-brand-ctaDark">Contact support {% icon "arrow-right" "h-4 w-4" %}</a>
+          </section>
+        </aside>
+      </div>
+{% endblock %}

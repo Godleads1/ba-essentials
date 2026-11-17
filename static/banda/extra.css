@@ -35,3 +35,9 @@
   .lg\:pt-\[118px\] { padding-top: 118px; }
   .lg\:grid-cols-\[minmax\(0\2c 1fr\)_360px\] { grid-template-columns: minmax(0, 1fr) 360px; }
 }
+.-right-0\.5 { right: -0.125rem; }
+.-top-0\.5 { top: -0.125rem; }
+.min-w-\[480px\] { min-width: 480px; }
+.grid-cols-\[100px_minmax\(0\2c 1fr\)\] { grid-template-columns: 100px minmax(0, 1fr); }
+.grid-cols-\[minmax\(0\2c 1fr\)_auto\] { grid-template-columns: minmax(0, 1fr) auto; }
+@media (min-width: 1024px) { .lg\:grid-cols-\[minmax\(0\2c 1fr\)_170px_auto\] { grid-template-columns: minmax(0, 1fr) 170px auto; } }

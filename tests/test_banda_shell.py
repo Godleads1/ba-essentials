@@ -18,9 +18,8 @@ def _uses_banda_shell(body: str) -> None:
     assert body.count("<main") == 1
 
 
-def test_client_pages_use_the_banda_shell(client, owner):
-    for path in ("/app/plan/", "/app/billing/", "/app/notifications/"):
-        _uses_banda_shell(client.get(path).content.decode())
+def test_staff_notifications_keep_the_legacy_wrapper_for_now(ops_user):
+    _uses_banda_shell(login_client(ops_user).get("/app/notifications/").content.decode())
 
 
 def test_staff_pages_use_the_banda_shell(ops_user):
@@ -51,6 +50,7 @@ def test_banda_utilities_are_the_preview_stylesheet_minus_its_reset():
 
 
 def test_redesigned_pages_use_only_the_banda_stylesheet(client, owner):
-    for path in ("/app/", "/app/tasks/", "/app/files/", "/app/messages/", "/app/support/", "/app/support/new/"):
+    for path in ("/app/", "/app/tasks/", "/app/files/", "/app/messages/", "/app/support/", "/app/support/new/",
+                 "/app/plan/", "/app/billing/", "/app/catalogue/", "/app/notifications/", "/app/team/"):
         body = client.get(path).content.decode()
         assert "/static/banda/app.css" in body and "/static/css/app.css" not in body, path
