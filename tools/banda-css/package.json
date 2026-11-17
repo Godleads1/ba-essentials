@@ -5,5 +5,5 @@
   "scripts": {
     "build": "tailwindcss -c tailwind.config.js -i input.css -o ../../static/banda/staff.css --minify"
   },
-  "devDependencies": { "tailwindcss": "3.4.17" }
+  "devDependencies": { "tailwindcss": "4.3.5" }
 }
