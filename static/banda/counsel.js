@@ -67,8 +67,10 @@
 
         <p class="bc-foot">In an emergency, call <b>${esc(C.emergency)}</b>.</p>
       </div>
-      <button type="button" class="bc-help-btn" id="bcHelpBtn" aria-expanded="false" aria-controls="bcHelpPanel">${icon(HEART, 'bc-ic')}<span>${esc(C.label)}</span></button>`;
+      <button type="button" class="bc-help-btn" id="bcHelpBtn" aria-expanded="false" aria-controls="bcHelpPanel" title="${esc(C.label)}">${icon(HEART, 'bc-ic')}<span class="bc-help-label">${esc(C.label)}</span></button>`;
     document.body.appendChild(root);
+    // Leave room at the end of the page so the button never covers the last buttons or cards.
+    document.body.classList.add('bc-has-help');
 
     const btn = root.querySelector('#bcHelpBtn'), panel = root.querySelector('#bcHelpPanel');
     const open = () => { panel.hidden = false; btn.setAttribute('aria-expanded', 'true'); root.querySelector('#bcHelpTitle').focus(); };

@@ -39,3 +39,13 @@
   .bc-card-ic--orange{background:#FDF0E8;color:#AD4C1D}
   .bc-when{color:#241A15 !important;font-weight:500}
   .bc-vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+  /* Keep out of the way: room at the end of the page, and an icon-only button on smaller screens.
+     The label stays as the button's accessible name (and its tooltip). */
+  .bc-has-help #main{padding-bottom:88px}
+  @media (max-width:1279.98px){
+    .bc-help-btn{padding:0;width:52px;height:52px;justify-content:center}
+    .bc-help-btn .bc-ic{width:22px;height:22px}
+    .bc-help-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+    .bc-has-help #main{padding-bottom:80px}
+  }
