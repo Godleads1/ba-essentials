@@ -59,10 +59,66 @@
                 </a>
               {% endif %}
             </div>
+            {% if guides %}
+              <h3 class="mt-6 px-1 font-display text-[18px] font-semibold">Browse by industry</h3>
+              <p class="mt-0.5 px-1 text-[13px] text-ink-muted">A short guide for businesses like yours: where to start, then the tasks most businesses in your industry ask for.</p>
+              <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                {% for g in guides %}
+                  <a href="?industry={{ g.tag }}" class="panel flex flex-col p-4 hover:bg-cream-light">
+                    <span class="font-display text-[15.5px] font-semibold leading-snug">{{ g.name }}</span>
+                    <span class="mt-1 text-[12.5px] text-ink-muted">{{ g.who|truncatechars:90 }}</span>
+                    <span class="mt-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand-navy">Open the guide {% icon "arrow-right" "h-4 w-4" %}</span>
+                  </a>
+                {% endfor %}
+              </div>
+            {% endif %}
+          {% endif %}
+
+          {% if guide %}
+            <section class="panel mt-3 p-5 sm:p-6" aria-labelledby="guideT">
+              <p class="text-[11.5px] font-bold uppercase tracking-[0.12em] text-brand-orangeDark">Industry guide</p>
+              <h3 id="guideT" class="mt-1 font-display text-[22px] font-semibold leading-tight">{{ guide.name }}</h3>
+              <p class="mt-1.5 text-[14px] text-ink-muted">{{ guide.who }}</p>
+              <p class="mt-1 text-[13.5px]"><span class="font-semibold">What this guide focuses on:</span> <span class="text-ink-muted">{{ guide.emphasis }}</span></p>
+              {% if guide.tag == "HLT" %}<p class="mt-3 rounded-2xl bg-pill-orangeBg px-4 py-3 text-[13.5px] text-brand-orangeDark">Healthcare tasks aren't open yet. We'll open them once our handling of health data is signed off. We never handle clinical notes.</p>{% endif %}
+            </section>
+            {% for step in guide_steps %}
+              <section class="mt-4" aria-labelledby="st{{ forloop.counter }}">
+                <h3 id="st{{ forloop.counter }}" class="flex items-center gap-3 px-1 font-display text-[17px] font-semibold"><span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-navy text-[13px] font-bold text-white">{{ forloop.counter }}</span>{{ step.step }}</h3>
+                {% if step.versions %}
+                  <div class="mt-2 grid grid-cols-1 gap-3 lg:grid-cols-2">
+                    {% for v in step.versions %}{% include "banda/app/_service_card.html" %}{% endfor %}
+                  </div>
+                {% endif %}
+                {% if step.closed %}<p class="mt-2 px-1 text-[12.5px] text-ink-soft">{{ step.closed }} more task{{ step.closed|pluralize }} in this step {% if step.closed == 1 %}isn't{% else %}aren't{% endif %} open yet.</p>{% endif %}
+              </section>
+            {% endfor %}
+            <h3 class="mt-8 px-1 font-display text-[18px] font-semibold">Every task for {{ guide.name|lower }}</h3>
+            <p class="mt-0.5 px-1 text-[13px] text-ink-muted">Open a category to see its tasks by subtype. Industry tags only help you find tasks: they never change the price or what's included.</p>
+            <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {% for c, n in guide_categories %}
+                <a href="?category={{ c.slug }}&amp;industry={{ guide.tag }}" class="panel flex items-center justify-between gap-3 p-4 hover:bg-cream-light">
+                  <span><span class="block font-display text-[15.5px] font-semibold">{{ c.name }}</span><span class="text-[12.5px] text-ink-muted">{{ n }} task{{ n|pluralize }}{% if not c.access.allowed %} · on {{ c.access.required_plan.name|default:"a bigger plan" }}{% endif %}</span></span>
+                  {% icon "arrow-right" "h-4 w-4 shrink-0 text-brand-navy" %}
+                </a>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          {% if creator_groups %}
+            {% for entry in creator_groups %}
+              <section class="mt-4" aria-labelledby="ce{{ forloop.counter }}">
+                <h3 id="ce{{ forloop.counter }}" class="px-1 font-display text-[17px] font-semibold">{{ entry.entry }}</h3>
+                <div class="mt-2 grid grid-cols-1 gap-3 lg:grid-cols-2">
+                  {% for v in entry.versions %}{% include "banda/app/_service_card.html" %}{% endfor %}
+                </div>
+              </section>
+            {% endfor %}
+            <p class="mt-4 px-1 text-[12.5px] text-ink-muted">Creator Essentials points to tasks from the other categories. A legal request here still uses your Legal &amp; IP allowance.</p>
           {% endif %}
 
           {% regroup versions by definition.category as groups %}
-          {% for group in groups %}
+          {% for group in groups %}{% if not creator_groups and not guide %}
             <section class="mt-4" aria-labelledby="g{{ forloop.counter }}">
               <div class="px-1">
                 <h3 id="g{{ forloop.counter }}" class="font-display text-[18px] font-semibold">{{ group.grouper.name }}</h3>
@@ -73,33 +129,12 @@
                 {% if sub.grouper and sub.grouper != group.grouper.name %}<h4 class="mt-4 px-1 text-[12px] font-semibold uppercase tracking-[0.08em] text-ink-soft">{{ sub.grouper }}</h4>{% endif %}
                 <div class="mt-2 grid grid-cols-1 gap-3 lg:grid-cols-2">
                   {% for v in sub.list %}
-                    <article class="panel flex flex-col p-5">
-                      <div class="flex flex-wrap items-start justify-between gap-2">
-                        <h5 class="font-display text-[16px] font-semibold leading-snug">{{ v.definition.name }}</h5>
-                        {% if not v.access.allowed %}<span class="chip-status bg-cream text-ink-muted">On {{ v.access.required_plan.name|default:"a bigger plan" }}</span>{% elif v.state == "scoping_only" %}<span class="chip-status bg-pill-orangeBg text-brand-orangeDark">Quoted first</span>{% else %}<span class="chip-status bg-pill-greenBg text-pill-greenTx">Available</span>{% endif %}
-                      </div>
-                      {% if v.scope_summary != v.deliverables_summary %}<p class="mt-2 whitespace-pre-line text-[13.5px] text-ink-muted">{{ v.scope_summary }}</p>{% endif %}
-                      <div class="mt-3 rounded-2xl bg-cream-light px-3.5 py-2.5">
-                        <p class="text-[11.5px] font-semibold uppercase tracking-[0.06em] text-ink-soft">You get</p>
-                        <p class="mt-0.5 whitespace-pre-line text-[13px]">{{ v.deliverables_summary }}</p>
-                      </div>
-                      {% if v.client_provides %}<p class="mt-2.5 text-[12.5px] text-ink-muted"><span class="font-semibold text-ink">What we need from you:</span> {{ v.client_provides }}</p>{% endif %}
-                      <ul class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[12.5px] text-ink-muted">
-                        {% if v.definition.code %}<li class="font-medium text-ink-soft">{{ v.definition.code }}</li>{% endif %}
-                        {% if v.requires_quote %}<li class="flex items-center gap-1.5">{% icon "file-text" "h-3.5 w-3.5" %}Quote before work</li>{% elif v.allowance_lane == "legal" %}<li class="flex items-center gap-1.5">{% icon "scale" "h-3.5 w-3.5" %}Uses your Legal &amp; IP allowance</li>{% elif v.allowance_lane == "workspace" %}<li class="flex items-center gap-1.5">{% icon "circle-check" "h-3.5 w-3.5" %}Included, uses no tasks</li>{% endif %}
-                      </ul>
-                      <div class="mt-4 flex-1"></div>
-                      {% if v.access.allowed %}
-                        <a class="btn-next self-start py-2 text-[13px]" href="{% url 'task-submit' %}?service={{ v.pk }}">Request this<span class="sr-only">: {{ v.definition.name }}</span></a>
-                      {% else %}
-                        <a class="btn-outline self-start py-2 text-[13px]" href="{% url 'plan-home' %}#upgrade">Upgrade to {{ v.access.required_plan.name|default:"request this" }}<span class="sr-only"> for {{ v.definition.name }}</span></a>
-                      {% endif %}
-                    </article>
+                    {% include "banda/app/_service_card.html" %}
                   {% endfor %}
                 </div>
               {% endfor %}
             </section>
-          {% empty %}{% if filtered or not categories %}
+          {% endif %}{% empty %}{% if filtered or not categories %}
             <div class="panel mt-3 flex flex-col items-center gap-2 px-4 py-10 text-center">
               <span class="grid h-11 w-11 place-items-center rounded-full bg-cream-light text-ink-soft">{% icon "search" "h-5 w-5" %}</span>
               {% if filtered %}

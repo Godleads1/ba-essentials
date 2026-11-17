@@ -1,0 +1,22 @@
+{% load icons %}<article class="panel flex flex-col p-5">
+  <div class="flex flex-wrap items-start justify-between gap-2">
+    <h4 class="font-display text-[16px] font-semibold leading-snug">{{ v.definition.name }}</h4>
+    {% if not v.access.allowed %}<span class="chip-status bg-cream text-ink-muted">On {{ v.access.required_plan.name|default:"a bigger plan" }}</span>{% elif v.state == "scoping_only" %}<span class="chip-status bg-pill-orangeBg text-brand-orangeDark">Quoted first</span>{% else %}<span class="chip-status bg-pill-greenBg text-pill-greenTx">Available</span>{% endif %}
+  </div>
+  {% if v.scope_summary != v.deliverables_summary %}<p class="mt-2 whitespace-pre-line text-[13.5px] text-ink-muted">{{ v.scope_summary }}</p>{% endif %}
+  <div class="mt-3 rounded-2xl bg-cream-light px-3.5 py-2.5">
+    <p class="text-[11.5px] font-semibold uppercase tracking-[0.06em] text-ink-soft">You get</p>
+    <p class="mt-0.5 whitespace-pre-line text-[13px]">{{ v.deliverables_summary }}</p>
+  </div>
+  {% if v.client_provides %}<p class="mt-2.5 text-[12.5px] text-ink-muted"><span class="font-semibold text-ink">What we need from you:</span> {{ v.client_provides }}</p>{% endif %}
+  <ul class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[12.5px] text-ink-muted">
+    {% if v.definition.code %}<li class="font-medium text-ink-soft">{{ v.definition.code }}</li>{% endif %}
+    {% if v.requires_quote %}<li class="flex items-center gap-1.5">{% icon "file-text" "h-3.5 w-3.5" %}Quote before work</li>{% elif v.allowance_lane == "legal" %}<li class="flex items-center gap-1.5">{% icon "scale" "h-3.5 w-3.5" %}Uses your Legal &amp; IP allowance</li>{% elif v.allowance_lane == "workspace" %}<li class="flex items-center gap-1.5">{% icon "circle-check" "h-3.5 w-3.5" %}Included, uses no tasks</li>{% endif %}
+  </ul>
+  <div class="mt-4 flex-1"></div>
+  {% if v.access.allowed %}
+    <a class="btn-next self-start py-2 text-[13px]" href="{% url 'task-submit' %}?service={{ v.pk }}">Request this<span class="sr-only">: {{ v.definition.name }}</span></a>
+  {% else %}
+    <a class="btn-outline self-start py-2 text-[13px]" href="{% url 'plan-home' %}#upgrade">Upgrade to {{ v.access.required_plan.name|default:"request this" }}<span class="sr-only"> for {{ v.definition.name }}</span></a>
+  {% endif %}
+</article>
