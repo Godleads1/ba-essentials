@@ -116,3 +116,11 @@ STAFF_TONE_FAMILY = {"slate": "slate", "sky": "navy", "blue": "navy", "indigo": 
 def staff_chip(tone_classes: str) -> str:
     family = tone_classes.split("-")[1] if "-" in tone_classes else "slate"
     return STAFF_CHIP[STAFF_TONE_FAMILY.get(family, "slate")]
+
+
+INVOICE_STATUS = {
+    "issued": ("Due", "bg-pill-orangeBg text-brand-orangeDark"),
+    "overdue": ("Overdue", "bg-[#FDECEC] text-[#B42318]"),
+    "paid": ("Paid", "bg-pill-greenBg text-pill-greenTx"),
+    "void": ("Cancelled", "bg-cream text-ink-muted"),
+}

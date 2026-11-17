@@ -315,9 +315,9 @@ def test_an_upgrade_paid_after_the_plan_changed_is_refund_due(plans, organizatio
 def test_plan_page_shows_legal_allowance_services_and_upgrades(plans, services, organization, owner, client):
     _subscribe(organization, plans["starter"])
     body = client.get("/app/plan/").content.decode()
-    assert "Legal reviews remaining" in body and "1 legal review a quarter" in body
+    assert "Legal reviews" in body and "1 legal review a quarter" in body
     assert "Services in your plan" in body and "On Growth" in body
-    assert "Move up" in body and "Growth" in body and "Dedicated" in body
+    assert "Move to a bigger plan" in body and "Growth" in body and "Dedicated" in body
 
 
 # ---------- catalogue manifest ----------

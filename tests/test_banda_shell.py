@@ -7,22 +7,6 @@ from django.conf import settings
 
 from .conftest import login_client
 
-LEGACY_CSS = ("banda/legacy-layers.css", "css/app.css", "banda/shell.css", "banda/legacy.css")
-
-
-def _uses_banda_shell(body: str) -> None:
-    assert 'id="sidebar"' in body and "logo-word" in body  # banda sidebar and logo
-    positions = [body.index(f"/static/{name}") for name in LEGACY_CSS]
-    assert positions == sorted(positions), "the cascade-order file must load before app.css"
-    assert 'class="legacy-title"' in body
-    assert body.count("<main") == 1
-
-
-def test_client_pages_use_the_banda_shell(client, owner):
-    for path in ("/app/plan/", "/app/billing/", "/app/notifications/"):
-        _uses_banda_shell(client.get(path).content.decode())
-
-
 STAFF_PAGES = ("/staff/", "/staff/queue/", "/staff/my-cases/", "/staff/assignments/", "/staff/needs-information/",
                "/staff/scoping/", "/staff/reviews/", "/staff/deliverables/", "/staff/clients/", "/staff/support/",
                "/staff/finance/", "/staff/audit/", "/staff/catalogue/", "/staff/website/", "/staff/website/new/", "/staff/leads/",
@@ -64,6 +48,7 @@ def test_banda_utilities_are_the_preview_stylesheet_minus_its_reset():
 
 
 def test_redesigned_pages_use_only_the_banda_stylesheet(client, owner):
-    for path in ("/app/", "/app/tasks/", "/app/files/", "/app/messages/", "/app/support/", "/app/support/new/"):
+    for path in ("/app/", "/app/tasks/", "/app/files/", "/app/messages/", "/app/support/", "/app/support/new/",
+                 "/app/plan/", "/app/billing/", "/app/catalogue/", "/app/notifications/", "/app/team/"):
         body = client.get(path).content.decode()
         assert "/static/banda/app.css" in body and "/static/css/app.css" not in body, path
