@@ -92,7 +92,10 @@ Staff sign in with a password **and** an authenticator code.
 
 1. Go to <http://127.0.0.1:8000/login/staff/>.
 2. Enter the staff email (for example `demo.ops@example.test`) and the
-   password `seed_demo` printed.
+   password `seed_demo` printed. That password is only set on demo accounts it
+   creates. If the accounts already existed, give them all a new one with
+   `.\.venv\Scripts\python.exe manage.py seed_demo --yes --reset-passwords`,
+   or use your own admin account.
 3. The first time, the app shows a setup key. Add it to an authenticator app
    on your phone (Google Authenticator or Microsoft Authenticator: tap **+**,
    then **Enter a setup key**, type the key, choose **Time based**).
@@ -146,6 +149,8 @@ every time.
 | `fatal: not a git repository` | Wrong folder | `cd` into `banda-app` first |
 | `fatal: 'in' does not appear to be a git repository` | Extra words were typed after `git pull` | Type only `git pull` |
 | `CommandError: Re-run with --yes` | `seed_demo` wants confirmation | Run it again with `--yes` on the same line |
+| `That code is invalid or has expired` on a **staff** account | You used the client page, `/login/` | Staff always use <http://127.0.0.1:8000/login/staff/> |
+| The demo staff password doesn't work | The accounts existed before, so `seed_demo` didn't change them | `seed_demo --yes --reset-passwords` |
 | `You have unapplied migrations` or a database error after `git pull` | The database needs updating | Run `migrate` (see above) |
 | `Not Found: /meta.json` in window 1 | A browser extension asking for a file | Ignore it |
 | `Unexpected token` after pasting into PowerShell | Output text got pasted along with the command | Press Ctrl+C and paste only the command |

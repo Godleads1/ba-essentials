@@ -141,3 +141,26 @@ def test_process_outbox_delivers_and_marks_events(db, mailoutbox):
     assert event.processed_at is not None
     assert event.attempts == 1
     assert len(mailoutbox) == 1
+
+
+@override_settings(DEBUG=True)
+def test_seed_demo_says_when_passwords_are_unchanged_and_can_reset_them(db):
+    from io import StringIO
+
+    first = StringIO()
+    call_command("seed_demo", "--yes", stdout=first)
+    assert "Password for the staff accounts created just now" in first.getvalue()
+
+    again = StringIO()
+    call_command("seed_demo", "--yes", stdout=again)
+    assert "passwords haven't changed" in again.getvalue()
+
+    ops = User.objects.get(email="demo.ops@example.test")
+    version = ops.credential_version
+    reset = StringIO()
+    call_command("seed_demo", "--yes", "--reset-passwords", stdout=reset)
+    password = reset.getvalue().split("New password for every demo staff account: ")[1].split()[0]
+    ops.refresh_from_db()
+    assert ops.check_password(password) and ops.credential_version == version + 1
+    owner = User.objects.get(email="demo.owner@example.test")
+    assert not owner.check_password(password)  # clients sign in with codes, not passwords

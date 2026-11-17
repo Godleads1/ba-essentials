@@ -31,6 +31,11 @@ class Command(BaseCommand):
         parser.add_argument(
             "--yes", action="store_true", help="Confirm that this is a disposable database"
         )
+        parser.add_argument(
+            "--reset-passwords",
+            action="store_true",
+            help="Give every demo staff account a new password (it's printed at the end)",
+        )
 
     def handle(self, *args, **options):
         if not settings.DEBUG:
@@ -43,7 +48,7 @@ class Command(BaseCommand):
         password = secrets.token_urlsafe(18)
         with transaction.atomic():
             organization = self._organization()
-            users = self._users(password)
+            users, created = self._users(password, reset=options["reset_passwords"])
             self._catalogue()
             self._plan(organization)
 
@@ -76,7 +81,16 @@ class Command(BaseCommand):
             ("finance", "demo.finance@example.test"),
         ):
             self.stdout.write(f"  {label:15} {email}")
-        self.stdout.write(f"Password: {password}")
+        if options["reset_passwords"]:
+            self.stdout.write(f"New password for every demo staff account: {password}")
+        elif created:
+            self.stdout.write(f"Password for the staff accounts created just now ({', '.join(created)}): {password}")
+        else:
+            self.stdout.write(
+                "The demo staff accounts already existed, so their passwords haven't changed. "
+                "To give them a new one, run: manage.py seed_demo --yes --reset-passwords"
+            )
+        self.stdout.write("Clients (demo.owner) sign in with a one-time code, printed in the server window.")
         self.stdout.write(
             "Staff accounts must enrol two-factor authentication at first login."
         )
@@ -87,7 +101,7 @@ class Command(BaseCommand):
         )
         return organization
 
-    def _users(self, password: str) -> dict[str, User]:
+    def _users(self, password: str, *, reset: bool = False) -> tuple[dict[str, User], list[str]]:
         specs = {
             "owner": ("demo.owner@example.test", ""),
             "ops": ("demo.ops@example.test", StaffRole.OPERATIONS),
@@ -97,6 +111,7 @@ class Command(BaseCommand):
             "finance": ("demo.finance@example.test", StaffRole.FINANCE),
         }
         users: dict[str, User] = {}
+        created_staff: list[str] = []
         for key, (email, role) in specs.items():
             user, created = User.objects.get_or_create(
                 email=email,
@@ -106,9 +121,16 @@ class Command(BaseCommand):
                     "email_verified_at": timezone.now(),
                 },
             )
-            if created:
+            if created or (reset and role):
                 user.set_password(password)
-                user.save(update_fields=["password"])
+                fields = ["password"]
+                if not created:
+                    # A new password signs the account out everywhere, as a password change does.
+                    user.credential_version += 1
+                    fields.append("credential_version")
+                user.save(update_fields=fields)
+                if created and role:
+                    created_staff.append(email)
             users[key] = user
 
         organization = Organization.objects.get(slug="demo-studio")
@@ -117,7 +139,7 @@ class Command(BaseCommand):
             user=users["owner"],
             defaults={"role": MembershipRole.OWNER},
         )
-        return users
+        return users, created_staff
 
     def _catalogue(self) -> None:
         if ServiceVersion.objects.filter(is_current=True).exists():
