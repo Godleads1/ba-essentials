@@ -11,7 +11,8 @@ Rules (first security audit, finding F7):
 - 5 wrong authenticator codes for one account within 15 minutes;
 - 3 refused file downloads by one account within an hour (someone trying other files);
 - a staff role or admin access is granted, changed or removed;
-- a payment notification with the wrong amount, or 5 with a bad signature or unknown reference in an hour.
+- a payment notification with the wrong amount, or 5 with a bad signature or unknown reference in an hour;
+- a backup or a restore check fails.
 """
 from __future__ import annotations
 
@@ -38,6 +39,8 @@ IMMEDIATE = {
     "auth.mfa_disabled": True,      # staff accounts only
     "staff.access_changed": False,
     "billing.webhook_amount_mismatch": False,
+    "ops.backup_failed": False,
+    "ops.restore_check_failed": False,
 }
 
 TITLES = {
@@ -49,6 +52,8 @@ TITLES = {
     "billing.webhook_amount_mismatch": "A payment notification had the wrong amount",
     "billing.webhook_unknown_reference": "Payment notifications for unknown payments",
     "billing.webhook_bad_signature": "Payment notifications with a bad signature",
+    "ops.backup_failed": "A backup failed",
+    "ops.restore_check_failed": "The restore check failed",
 }
 
 
