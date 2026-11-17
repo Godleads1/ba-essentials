@@ -42,3 +42,17 @@ def private_file_storage(app_configs, **kwargs):
              "in Cloudflare R2, and a server disk is lost with the server.",
         id="banda.W003",
     )]
+
+
+@register(Tags.security, deploy=True)
+def mfa_encryption_key(app_configs, **kwargs):
+    """Authenticator secrets should have their own key (apps/accounts/mfa.py)."""
+    if getattr(settings, "MFA_ENCRYPTION_KEY", ""):
+        return []
+    return [Warning(
+        "MFA_ENCRYPTION_KEY is not set, so authenticator secrets are encrypted with a key derived "
+        "from DJANGO_SECRET_KEY.",
+        hint="Set MFA_ENCRYPTION_KEY to a Fernet key. Then the secret key can be rotated after a leak "
+             "without every staff authenticator stopping working.",
+        id="banda.W004",
+    )]

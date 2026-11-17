@@ -56,6 +56,13 @@ if PRIVATE_STORAGE_BACKEND == "r2":
         bool(R2_ENDPOINT_URL.startswith("https://") and R2_BUCKET and R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY),
         "R2_ENDPOINT_URL (https), R2_BUCKET, R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY are required for R2 storage",
     )
+if MFA_ENCRYPTION_KEY:
+    from cryptography.fernet import Fernet as _Fernet
+
+    try:
+        _Fernet(MFA_ENCRYPTION_KEY)
+    except ValueError:
+        _require(False, "MFA_ENCRYPTION_KEY must be a Fernet key (32 bytes, URL-safe base64)")
 _require(
     "LocMemCache" not in CACHES["default"]["BACKEND"],
     "A shared cache (for example Redis) is required for rate limiting across processes",

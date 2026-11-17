@@ -9,6 +9,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.db import transaction
 
 from apps.audit import services as audit_service
+from apps.core.exceptions import ValidationFailure
 
 from .models import FilePurpose, PrivateFile, ScanStatus
 from .storage import get_storage
@@ -47,11 +48,31 @@ def _scan(storage_key: str) -> tuple[str, str]:
     raise ImproperlyConfigured(f"Unknown FILE_SCAN_BACKEND {backend!r}")
 
 
+def _check_storage_cap(organization, user, size: int) -> None:
+    """A business's own uploads are capped (ORG_STORAGE_LIMIT_BYTES), so a signed-in account can't
+    fill the storage. Files staff add (deliverables, receipts) never count against it or get refused."""
+    limit = settings.ORG_STORAGE_LIMIT_BYTES
+    if not limit or not getattr(user, "is_client_account", False):
+        return
+    from django.db.models import Sum
+
+    from .models import PrivateFile
+
+    used = PrivateFile.objects.filter(organization=organization, uploaded_by__isnull=False).exclude(
+        uploaded_by__staff_role__gt="").aggregate(total=Sum("size_bytes"))["total"] or 0
+    if used + size > limit:
+        size_label = f"{limit / 1024 ** 3:g} GB" if limit >= 1024 ** 3 else f"{limit // 1024 ** 2} MB"
+        raise ValidationFailure(
+            f"Your business has used its {size_label} of file storage. Contact support to make more room."
+        )
+
+
 @transaction.atomic
 def store_upload(
     *, organization, user, uploaded_file, purpose: str = FilePurpose.ATTACHMENT
 ) -> PrivateFile:
     validated: ValidatedUpload = validate_upload(uploaded_file)
+    _check_storage_cap(organization, user, validated.size_bytes)
     storage = get_storage()
     key = f"{organization.pk}/{uuid.uuid4().hex}{validated.extension}"
     storage.save(uploaded_file, key)

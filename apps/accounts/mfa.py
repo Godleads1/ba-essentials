@@ -1,9 +1,11 @@
 """TOTP helpers and at-rest protection for MFA secrets.
 
 Uses pyotp for the TOTP algorithm (RFC 6238) and Fernet (AES128-CBC + HMAC) for
-encryption at rest. The key is derived from DJANGO_SECRET_KEY, so rotating the
-secret key invalidates enrolments; that limitation is documented in
-docs/SECURITY.md and is preferable to storing plaintext seeds.
+encryption at rest. The key is MFA_ENCRYPTION_KEY (a Fernet key), kept apart from
+DJANGO_SECRET_KEY so the secret key can be rotated after a leak without breaking every
+authenticator. Secrets made before MFA_ENCRYPTION_KEY existed were encrypted with a key
+derived from DJANGO_SECRET_KEY; they can still be read, and are re-encrypted with the new
+key the next time they are used.
 """
 
 from __future__ import annotations
@@ -14,21 +16,38 @@ import hmac
 import time
 
 import pyotp
-from cryptography.fernet import Fernet, InvalidToken
+from cryptography.fernet import Fernet, InvalidToken, MultiFernet
 from django.conf import settings
 
 from apps.core.exceptions import ValidationFailure
 
 
-def _fernet() -> Fernet:
+def _legacy_fernet() -> Fernet:
     digest = hashlib.sha256(
         f"{settings.SECRET_KEY}:{settings.MFA_ENC_CONTEXT}".encode()
     ).digest()
     return Fernet(base64.urlsafe_b64encode(digest))
 
 
+def _fernet() -> MultiFernet:
+    """Encrypts with MFA_ENCRYPTION_KEY when set; still reads the older secret-key-derived form."""
+    keys = [Fernet(settings.MFA_ENCRYPTION_KEY)] if settings.MFA_ENCRYPTION_KEY else []
+    return MultiFernet([*keys, _legacy_fernet()])
+
+
 def encrypt_secret(secret: str) -> str:
     return _fernet().encrypt(secret.encode("utf-8")).decode("ascii")
+
+
+def needs_rotation(token: str) -> bool:
+    """True when a stored secret is still under the old key and MFA_ENCRYPTION_KEY is set."""
+    if not settings.MFA_ENCRYPTION_KEY:
+        return False
+    try:
+        Fernet(settings.MFA_ENCRYPTION_KEY).decrypt(token.encode("ascii"))
+    except (InvalidToken, ValueError):
+        return True
+    return False
 
 
 def decrypt_secret(token: str) -> str:
