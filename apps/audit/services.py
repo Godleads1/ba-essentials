@@ -39,7 +39,7 @@ def record(
     metadata: dict | None = None,
 ) -> AuditEvent:
     """Write an audit event. Call inside the transaction that performs the action."""
-    return AuditEvent.objects.create(
+    event = AuditEvent.objects.create(
         actor=actor if getattr(actor, "is_authenticated", False) else None,
         actor_type="user" if getattr(actor, "is_authenticated", False) else "system",
         organization_id=organization_id or getattr(organization, "pk", None),
@@ -51,6 +51,10 @@ def record(
         correlation_id=get_correlation_id()[:64],
         metadata=_safe_metadata(metadata),
     )
+    from . import alerts
+
+    alerts.on_audit(event)
+    return event
 
 
 def purge_older_than(days: int) -> int:

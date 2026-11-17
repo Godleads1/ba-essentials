@@ -139,6 +139,8 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 # left-hand X-Forwarded-For entries, which any visitor can write.
 CLIENT_IP_HEADER = env("CLIENT_IP_HEADER", "")
 TRUSTED_PROXY_COUNT = env_int("TRUSTED_PROXY_COUNT", 0)
+# Who gets security alerts (apps/audit/alerts.py), comma-separated.
+SECURITY_ALERT_EMAILS = env_list("SECURITY_ALERT_EMAILS")
 SECURE_HSTS_SECONDS = env_int("SECURE_HSTS_SECONDS", 0)
 SECURE_HSTS_INCLUDE_SUBDOMAINS = env_bool("SECURE_HSTS_INCLUDE_SUBDOMAINS", False)
 SECURE_HSTS_PRELOAD = env_bool("SECURE_HSTS_PRELOAD", False)
