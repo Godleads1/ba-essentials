@@ -92,15 +92,21 @@ def allowance_remaining(organization) -> int:
     return max(0, subscription.plan.monthly_task_allowance - used)
 
 
-def reserve_allowance(task) -> bool:
-    """Reserve one plan task, or one legal review for Legal & IP work.
+def reserve_allowance(task, quote_version=None) -> bool:
+    """Reserve the plan tasks, or legal reviews for Legal & IP work, that a request uses.
 
-    Runs under a row lock on the subscription. Returns False when the allowance
-    is used up, so the work is quoted instead.
+    How many comes from the service's weight in the catalogue, or the number staff set
+    on the quote for a bigger request. Quoted services never use the plan; Tax Readiness
+    (a workspace) is covered without using any. Runs under a row lock on the
+    subscription. Returns False when there isn't enough left, so the work is quoted instead.
     """
     from . import plan_rules
 
-    legal = plan_rules.uses_legal_allowance(task)
+    lane = plan_rules.lane_for(task.service_version)
+    if lane == plan_rules.LANE_QUOTED:
+        return False
+    legal = lane == plan_rules.LANE_LEGAL
+    units = plan_rules.units_for(task.service_version, quote_version)
     if plan_rules.outside_plan_region(task):
         # Work for a country outside Africa on a naira or Africa plan is quoted, never covered.
         audit_service.record(
@@ -133,7 +139,7 @@ def reserve_allowance(task) -> bool:
                 ).aggregate(total=Sum("units"))["total"]
                 or 0
             )
-        if used + 1 > limit:
+        if used + units > limit:
             return False
         try:
             with transaction.atomic():
@@ -141,7 +147,7 @@ def reserve_allowance(task) -> bool:
                     organization_id=task.organization_id,
                     task=task,
                     kind=kind,
-                    units=1,
+                    units=units,
                     period_start=window,
                 )
         except IntegrityError:
@@ -152,6 +158,7 @@ def reserve_allowance(task) -> bool:
         organization_id=task.organization_id,
         resource_type="task",
         resource_id=str(task.pk),
+        metadata={"units": units},
     )
     return True
 

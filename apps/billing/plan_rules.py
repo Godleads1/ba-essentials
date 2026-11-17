@@ -113,7 +113,98 @@ def legal_reviews_remaining(organization) -> int:
 
 
 def uses_legal_allowance(task) -> bool:
-    return bool(task.service_version.definition.category.uses_legal_allowance)
+    return lane_for(task.service_version) == LANE_LEGAL
+
+
+# ---------- how a request counts against the plan (Service Catalogue v2.1, Points rules) ----------
+
+LANE_GENERAL, LANE_LEGAL, LANE_QUOTED, LANE_WORKSPACE, LANE_SCOPING = (
+    "general", "legal", "quoted", "workspace", "scoping")
+
+
+def lane_for(version) -> str:
+    """Which allowance a service uses. Legal & IP categories keep using the legal
+    allowance even for versions published before lanes. "Scoping" (Other / not sure)
+    is worked out by the team first, then uses the task allowance like general work."""
+    lane = getattr(version, "allowance_lane", "") or LANE_GENERAL
+    # Weight 0 on a task or legal service means "Quoted" in the task bank: priced on its own.
+    if lane == LANE_QUOTED or (lane in (LANE_GENERAL, LANE_LEGAL) and getattr(version, "weight", 1) == 0):
+        return LANE_QUOTED
+    if lane == LANE_SCOPING:
+        return LANE_SCOPING
+    if lane == LANE_LEGAL or version.definition.category.uses_legal_allowance:
+        return LANE_LEGAL
+    if lane == LANE_WORKSPACE:
+        return LANE_WORKSPACE
+    return LANE_GENERAL
+
+
+def units_for(version, quote_version=None) -> int:
+    """Tasks or legal reviews a request uses: what staff set on the quote for a bigger
+    request, otherwise the catalogue weight. A workspace uses none; anything else at least one."""
+    lane = lane_for(version)
+    if lane == LANE_WORKSPACE:
+        return 0
+    if lane == LANE_QUOTED:
+        return 0
+    staff_units = getattr(quote_version, "plan_units", None) if quote_version is not None else None
+    units = staff_units if staff_units else getattr(version, "weight", 1)
+    return max(1, int(units or 1))
+
+
+def balances(organization) -> dict | None:
+    """What's left in both allowances, and when each window ends. None without a plan."""
+    from .services import add_months, allowance_remaining, task_window_start
+
+    subscription = active_subscription(organization)
+    if subscription is None:
+        return None
+    months = max(1, subscription.plan.legal_review_period_months or 1)
+    return {
+        "general": {"total": subscription.plan.monthly_task_allowance, "left": allowance_remaining(organization),
+                    "until": add_months(task_window_start(subscription), 1), "noun": "task", "period": "month"},
+        "legal": {"total": subscription.plan.legal_review_allowance, "left": legal_reviews_remaining(organization),
+                  "until": add_months(legal_window_start(subscription), months), "noun": "legal review",
+                  "period": "quarter" if months == 3 else "month"},
+    }
+
+
+def preview(organization, version, units: int | None = None, *, plan_balances=False) -> dict:
+    """What a request for this service will use, shown before the client sends it.
+
+    Only a preview: the team confirms the size when they scope it, and the server
+    checks the allowance again when the quote is accepted. Pass plan_balances (from
+    balances()) to preview many services without recounting.
+    """
+    lane = lane_for(version)
+    units = units if units else units_for(version)
+    plan = balances(organization) if plan_balances is False else plan_balances
+    out = {"lane": lane, "units": units, "plan": plan is not None}
+    if lane == LANE_QUOTED:
+        out["text"] = "This is quoted first. It uses none of your plan; you'll see the price before any work starts."
+        return out
+    if plan is None:
+        out["text"] = "You don't have a plan, so this is quoted first. You'll see the price before any work starts."
+        return out
+    if lane == LANE_SCOPING:
+        out["text"] = ("The team works out what this is first. If it fits your plan it uses your tasks; "
+                       "if not, you'll see a quote before any work starts.")
+        return out
+    if lane == LANE_WORKSPACE:
+        out["text"] = "Included in your plan. It doesn't use any of your tasks."
+        return out
+    pool = plan[LANE_LEGAL if lane == LANE_LEGAL else LANE_GENERAL]
+    total, left, until, noun, period = pool["total"], pool["left"], pool["until"], pool["noun"], pool["period"]
+    after = left - units
+    out.update(total=total, left=left, after=after, until=until, fits=after >= 0, noun=noun)
+    nouns = noun + ("s" if units != 1 else "")
+    if after >= 0:
+        out["text"] = (f"This will use {units} {nouns} of your {total} ({after} left this {period}, "
+                       f"until {until:%d %b}).")
+    else:
+        out["text"] = (f"This uses {units} {nouns}, and you have {left} left this {period}. "
+                       "Send it anyway: we'll quote the extra before any work starts.")
+    return out
 
 
 def lock_active_subscription(organization_id):

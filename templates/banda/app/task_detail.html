@@ -107,6 +107,11 @@
                     <div><dt class="text-[12px] text-ink-muted">Changes included</dt><dd class="mt-0.5 font-medium">{{ sent_quote.revision_allowance }}</dd></div>
                     <div><dt class="text-[12px] text-ink-muted">Payment</dt><dd class="mt-0.5 font-medium">{{ sent_quote.payment_terms|default:"Per invoice" }}</dd></div>
                   </dl>
+                  {% if quote_plan.fits %}
+                    <p class="mt-3 flex gap-2.5 rounded-xl bg-pill-greenBg px-3.5 py-2.5 text-[13px] text-pill-greenTx">{% icon "circle-check" "mt-0.5 h-4 w-4 shrink-0" %}<span>Your plan covers this. Accepting uses {{ quote_plan.units }} {{ quote_plan.noun }}{{ quote_plan.units|pluralize }} of your {{ quote_plan.total }} ({{ quote_plan.after }} left), and you won't pay the quoted cost.</span></p>
+                  {% elif quote_plan.plan and quote_plan.total %}
+                    <p class="mt-3 flex gap-2.5 rounded-xl bg-pill-orangeBg px-3.5 py-2.5 text-[13px] text-brand-orangeDark">{% icon "info" "mt-0.5 h-4 w-4 shrink-0" %}<span>This needs {{ quote_plan.units }} {{ quote_plan.noun }}{{ quote_plan.units|pluralize }} and you have {{ quote_plan.left }} left, so you'll pay the quoted cost.</span></p>
+                  {% endif %}
                 </div>
                 <div class="mt-4 flex flex-wrap items-start gap-3">
                   <form method="post" action="{% url 'quote-accept' version_id=sent_quote.pk %}">
