@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from django.conf import settings
 from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import redirect, render
@@ -26,13 +27,19 @@ def page(request, slug):
         raise Http404("Page not found")
     return render(
         request,
-        "public/page.html",
+        "banda/public/page.html",
         {
             "page": page_obj,
             "revision": page_obj.published_revision,
             "site_pages": services.published_pages(),
         },
     )
+
+
+@require_GET
+def legal(request, doc):
+    """Terms of Service, Privacy Policy and Cookie Notice, as written for the launch."""
+    return render(request, f"banda/public/{doc}.html", {"site_pages": services.published_pages()})
 
 
 @require_http_methods(["GET", "POST"])
@@ -44,8 +51,8 @@ def contact(request):
             messages.error(request, "Too many messages from this connection. Try again later.")
             return render(
                 request,
-                "public/contact.html",
-                {"form": form, "site_pages": services.published_pages()},
+                "banda/public/contact.html",
+                {"form": form, "site_pages": services.published_pages(), "support_email": settings.SUPPORT_EMAIL},
                 status=429,
             )
         if form.is_valid():
@@ -62,6 +69,6 @@ def contact(request):
             return redirect(f"{reverse('contact')}?sent=1")
     return render(
         request,
-        "public/contact.html",
-        {"form": form, "site_pages": services.published_pages()},
+        "banda/public/contact.html",
+        {"form": form, "site_pages": services.published_pages(), "support_email": settings.SUPPORT_EMAIL},
     )

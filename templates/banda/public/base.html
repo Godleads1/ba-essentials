@@ -1,0 +1,22 @@
+{% load static %}<!doctype html>
+<html lang="en-GB" class="scroll-smooth">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}banda — B &amp; A Essentials{% endblock %}</title>
+  <meta name="description" content="{% block description %}Reliable, professional business support for small businesses and SMEs: admin, legal review, operations and tax readiness, done by people and checked before it reaches you.{% endblock %}" />
+  {% block robots %}{% endblock %}
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='14'%20fill='%231C1712'/%3E%3Cpath%20d='M17%209h9v17a13%2013%200%201%201-9%2012z'%20fill='%23FDFBF6'/%3E%3Ccircle%20cx='39'%20cy='39'%20r='7'%20fill='%231C1712'/%3E%3Ccircle%20cx='31'%20cy='40'%20r='5'%20fill='%23D9662E'/%3E%3C/svg%3E" />
+  <link rel="preload" href="{% static 'banda/fonts/inter-latin-400-normal.woff2' %}" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="{% static 'banda/fonts.css' %}" />
+  <!-- Page styles first, then the design's utilities, in the same order as the design preview. -->
+  {% block styles %}{% endblock %}
+  <link rel="stylesheet" href="{% static 'banda/app.css' %}" />
+  <link rel="stylesheet" href="{% static 'banda/extra.css' %}" />
+</head>
+<body class="{% block body_class %}bg-cream-light font-sans text-ink antialiased{% endblock %}">
+{% block body %}{% endblock %}
+  <script src="{% static 'banda/public/consent.js' %}" defer></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

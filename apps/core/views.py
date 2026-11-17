@@ -20,11 +20,48 @@ def landing(request):
     from apps.website.services import published_pages
 
     categories = ServiceCategory.objects.filter(is_active=True).order_by("sort_order", "name")
+    pricing_data, prices = _landing_prices()
     return render(
         request,
-        "public/landing.html",
-        {"categories": categories, "site_pages": published_pages()},
+        "banda/public/landing.html",
+        {"categories": categories, "site_pages": published_pages(), "pricing_data": pricing_data, "prices": prices},
     )
+
+
+def _landing_prices():
+    """Plan prices for the landing page, from the plans and billing settings in the app.
+
+    Returns the data the price switch uses, and the Nigeria monthly prices for the page as served.
+    """
+    from apps.billing import pricing
+    from apps.billing.models import BillingSettings, Plan
+    from apps.core.countries import REGION_INTERNATIONAL, REGION_NIGERIA
+    from apps.core.exceptions import ValidationFailure
+
+    def naira(minor: int) -> str:
+        return f"₦{minor // 100:,}"
+
+    data = {"plans": {}, "discount": BillingSettings.current().yearly_discount_pct, "legal": {}}
+    shown: dict = {}
+    for plan in Plan.objects.filter(is_active=True, price_minor__gt=0):
+        entry = {}
+        for region in (REGION_NIGERIA, REGION_INTERNATIONAL):
+            try:
+                month = pricing.plan_price(plan, region, "month")
+                year = pricing.plan_price(plan, region, "year")
+            except ValidationFailure:
+                continue
+            entry[region] = {"month": month.amount_minor, "year": year.amount_minor, "currency": month.currency}
+        data["plans"][plan.slug] = entry
+        if REGION_NIGERIA in entry:
+            shown[plan.slug] = {"ng_month": naira(entry[REGION_NIGERIA]["month"])}
+    for region in (REGION_NIGERIA, REGION_INTERNATIONAL):
+        minor, currency = pricing.extra_legal_fee(region)
+        if minor:
+            data["legal"][region] = {"minor": minor, "currency": currency}
+    if REGION_NIGERIA in data["legal"]:
+        shown["legal_ng"] = naira(data["legal"][REGION_NIGERIA]["minor"])
+    return data, shown
 
 
 def _is_staff(user) -> bool:
