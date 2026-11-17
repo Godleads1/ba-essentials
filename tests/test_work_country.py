@@ -4,6 +4,7 @@ Staff confirm the country from the documents before any quote, and a card from a
 country is flagged for review."""
 from __future__ import annotations
 
+import io
 from datetime import timedelta
 
 import pytest
@@ -25,7 +26,7 @@ from .conftest import login_client
 
 @pytest.fixture
 def starter_plan(db, organization):
-    call_command("seed_plans", stdout=open("/dev/null", "w"))
+    call_command("seed_plans", stdout=io.StringIO())
     organization.country = "NG"
     organization.save(update_fields=["country"])
     now = timezone.now()
@@ -175,7 +176,7 @@ def test_manifest_sets_a_service_country(db, tmp_path):
     path.write_text(json.dumps({"categories": [{"name": "Legal & IP Review", "slug": "legal", "services": [{
         "name": "US trademark search", "slug": "us-tm", "work_country": "US",
         "scope_summary": "Search the USPTO register.", "deliverables_summary": "A report."}]}]}))
-    call_command("bootstrap_catalogue", str(path), stdout=open("/dev/null", "w"))
+    call_command("bootstrap_catalogue", str(path), stdout=io.StringIO())
     assert ServiceDefinition.objects.get(slug="us-tm").work_country == "US"
 
 

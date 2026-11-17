@@ -1,17 +1,14 @@
 from __future__ import annotations
 
-import pytest
 from django.test import Client
 from django.urls import reverse
-
-from .conftest import login_client
 
 from apps.files import services as file_services
 from apps.quotes import services as quote_services
 from apps.tasks.access import tasks_for
 from apps.tasks.models import Assignment, AssignmentStatus, TaskAttachment
 
-from .conftest import pdf_upload
+from .conftest import login_client, pdf_upload
 
 
 def test_task_querysets_never_cross_tenants(

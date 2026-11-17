@@ -6,8 +6,6 @@ from django.contrib import messages
 from django.shortcuts import redirect
 from django.urls import reverse
 
-from apps.core.exceptions import PermissionFailure
-
 from . import services
 from .permissions import has_perm
 

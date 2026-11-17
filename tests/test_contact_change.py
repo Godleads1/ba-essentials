@@ -253,7 +253,7 @@ def test_the_setup_key_stays_the_same_until_set_up_is_finished(db):
     staff = make_user("newadmin@example.test", staff_role=StaffRole.OPERATIONS, is_staff=True)
     c = login_client(staff)
     _fresh(c, staff)
-    key = lambda body: _re.search(r"tracking-wider text-ink\">([A-Z2-7]{16,})<", body).group(1)  # noqa: E731
+    key = lambda body: _re.search(r"tracking-wider text-ink\">([A-Z2-7]{16,})<", body).group(1)
     first = key(c.get("/app/security/mfa/").content.decode())
     c.get("/favicon.ico")  # redirected to set-up for staff without an authenticator
     c.get("/meta.json")

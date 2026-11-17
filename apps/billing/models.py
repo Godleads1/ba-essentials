@@ -70,7 +70,7 @@ class BillingSettings(models.Model):
         decimal_places=2,
         null=True,
         blank=True,
-        validators=[MinValueValidator(Decimal("100")), MaxValueValidator(Decimal("20000"))],
+        validators=[MinValueValidator(Decimal(100)), MaxValueValidator(Decimal(20000))],
         help_text="Used only when the live exchange rate can't be fetched. Leave empty to pause dollar checkouts instead.",
     )
     updated_at = models.DateTimeField(auto_now=True)

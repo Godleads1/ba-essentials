@@ -10,8 +10,8 @@ from django.views.decorators.http import require_GET, require_POST
 
 from apps.billing import plan_rules, pricing, renewals
 from apps.billing import services as billing
-from apps.catalogue.models import ServiceCategory
 from apps.billing.models import BillingSettings, Invoice, PaymentAttempt, Plan, UsageLedger
+from apps.catalogue.models import ServiceCategory
 from apps.core.exceptions import PermissionFailure, ValidationFailure
 from apps.organizations.access import client_required
 

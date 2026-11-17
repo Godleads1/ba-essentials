@@ -1,18 +1,17 @@
 from __future__ import annotations
 
-import hashlib
 import re
 import time
 
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import logout
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 
-from .context import get_correlation_id, new_correlation_id, set_correlation_id
+from .context import new_correlation_id, set_correlation_id
 
 REQUEST_ID_RE = re.compile(r"^[A-Za-z0-9._-]{8,128}$")
 
@@ -115,10 +114,10 @@ class SessionValidationMiddleware:
         if now - int(last_seen or 0) > 300:
             session["last_seen"] = now
 
-        if user.email_verified_at is None and request.path.startswith(("/app/", "/staff/")):
-            if not request.path.startswith(("/app/security/mfa", "/logout")):
-                messages.info(request, "Verify your email address to continue.")
-                return redirect("verify-email")
+        if (user.email_verified_at is None and request.path.startswith(("/app/", "/staff/"))
+                and not request.path.startswith(("/app/security/mfa", "/logout"))):
+            messages.info(request, "Verify your email address to continue.")
+            return redirect("verify-email")
 
         return self.get_response(request)
 

@@ -83,6 +83,7 @@ keeps the old one for existing requests.
 
 ```bash
 python -m pytest
+ruff check .
 python manage.py makemigrations --check --dry-run --settings=config.settings.test
 ```
 
@@ -100,7 +101,7 @@ allowance versus invoice, webhook signatures and duplicate events, release
 payment gating, QA independence, file magic-byte checks and signed downloads,
 a full lifecycle, and page rendering for each surface.
 
-CI runs the tests on SQLite and PostgreSQL, the migration check, a production
+CI runs the linter (ruff), the tests on SQLite and PostgreSQL, the migration check, a production
 `check --deploy`, both dependency audits, a secret scan, and verifies that
 compiled CSS is current. The PostgreSQL job exercises concurrent transitions,
 quote acceptance, idempotent replay, allowance limits, and payment

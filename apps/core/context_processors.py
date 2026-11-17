@@ -71,8 +71,8 @@ def navigation(request):
 
     staff_role = getattr(user, "staff_role", "")
     if staff_role:
-        from apps.accounts.permissions import has_perm
         from apps.accounts.models import StaffRole
+        from apps.accounts.permissions import has_perm
 
         allowed = []
         for name, label, icon in STAFF_NAV:

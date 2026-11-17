@@ -25,7 +25,7 @@ TIMEOUT_SECONDS = 15
 # Flutterwave's hosted checkout. Any other address is refused.
 CHECKOUT_HOSTS = frozenset({"checkout.flutterwave.com", "checkout-v3.flutterwave.com"})
 # A naira rate outside this band is treated as a bad answer, not used for pricing.
-RATE_BOUNDS = (Decimal("100"), Decimal("20000"))
+RATE_BOUNDS = (Decimal(100), Decimal(20000))
 
 
 class FlutterwaveError(Exception):
@@ -77,7 +77,7 @@ def to_major(amount_minor: int) -> str:
 
 def to_minor(amount) -> int | None:
     try:
-        return int((Decimal(str(amount)) * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+        return int((Decimal(str(amount)) * 100).quantize(Decimal(1), rounding=ROUND_HALF_UP))
     except (InvalidOperation, TypeError, ValueError):
         return None
 

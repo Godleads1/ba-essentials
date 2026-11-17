@@ -23,7 +23,7 @@ from apps.core.exceptions import (
 from apps.core.sequences import next_value
 from apps.quotes.models import Quote, QuoteStatus
 
-from . import fees, flutterwave, paystack, pricing, renewals
+from . import fees, flutterwave, paystack, pricing
 from .models import (
     COVERING_USAGE_KINDS,
     BillingInterval,

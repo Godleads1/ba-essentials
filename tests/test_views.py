@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import uuid
 
-import pytest
 from django.test import Client
 from django.urls import reverse
 

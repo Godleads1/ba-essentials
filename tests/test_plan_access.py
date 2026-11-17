@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import io
 import json
 from datetime import timedelta
 
@@ -34,7 +35,7 @@ from .conftest import login_client
 
 @pytest.fixture
 def plans(db):
-    call_command("seed_plans", stdout=open("/dev/null", "w"))
+    call_command("seed_plans", stdout=io.StringIO())
     return {p.slug: p for p in Plan.objects.all()}
 
 
@@ -333,9 +334,9 @@ def _manifest(tmp_path, category):
 
 def test_an_older_manifest_keeps_existing_plan_access(db, tmp_path):
     call_command("bootstrap_catalogue", _manifest(tmp_path, {
-        "name": "Operations & Logistics", "slug": "operations", "minimum_plan_rank": 2}), stdout=open("/dev/null", "w"))
+        "name": "Operations & Logistics", "slug": "operations", "minimum_plan_rank": 2}), stdout=io.StringIO())
     call_command("bootstrap_catalogue", _manifest(tmp_path, {
-        "name": "Operations & Logistics", "slug": "operations"}), stdout=open("/dev/null", "w"))
+        "name": "Operations & Logistics", "slug": "operations"}), stdout=io.StringIO())
     assert ServiceCategory.objects.get(slug="operations").minimum_plan_rank == 2
 
 
@@ -344,4 +345,4 @@ def test_the_manifest_rejects_a_bad_plan_rank(db, tmp_path):
 
     with pytest.raises(CommandError):
         call_command("bootstrap_catalogue", _manifest(tmp_path, {
-            "name": "Ops", "slug": "ops", "minimum_plan_rank": "growth"}), stdout=open("/dev/null", "w"))
+            "name": "Ops", "slug": "ops", "minimum_plan_rank": "growth"}), stdout=io.StringIO())

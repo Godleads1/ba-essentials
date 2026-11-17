@@ -5,9 +5,9 @@ import pytest
 from apps.audit.models import AuditEvent
 from apps.core.exceptions import (
     InvalidTransition,
+    PermissionFailure,
     StaleState,
     ValidationFailure,
-    PermissionFailure,
 )
 from apps.tasks import services
 from apps.tasks.models import Task, TaskStatus

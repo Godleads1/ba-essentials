@@ -223,7 +223,7 @@ class CounsellingSettings(models.Model):
         return "Counselling & prayer settings"
 
     @classmethod
-    def current(cls) -> "CounsellingSettings":
+    def current(cls) -> CounsellingSettings:
         obj, _ = cls.objects.get_or_create(pk=1)
         return obj
 
