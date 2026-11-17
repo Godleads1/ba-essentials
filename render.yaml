@@ -60,6 +60,8 @@ databases:
     region: frankfurt
     plan: basic-256mb
     postgresMajorVersion: "17"
+    # No connections from the internet: only services in this Render account can reach it.
+    ipAllowList: []
 
 services:
   - type: keyvalue

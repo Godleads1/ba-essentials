@@ -197,6 +197,8 @@ BACKUP_ENCRYPTION_KEY = env("BACKUP_ENCRYPTION_KEY", "")
 BACKUP_KEEP_HOURS = env_int("BACKUP_KEEP_HOURS", 48)  # Privacy Policy: rotated within two days
 RESTORE_CHECK_DATABASE_URL = env("RESTORE_CHECK_DATABASE_URL", "")
 FILE_MAX_BYTES = env_int("FILE_MAX_BYTES", 10 * 1024 * 1024)
+# Total a business's own uploads may use (0 = no limit). Staff uploads don't count.
+ORG_STORAGE_LIMIT_BYTES = env_int("ORG_STORAGE_LIMIT_BYTES", 2 * 1024 ** 3)
 FILE_SCAN_BACKEND = env("FILE_SCAN_BACKEND", "noop")
 # Optional clamd client configuration for a scanner on another host. The
 # container entrypoint writes this file from CLAMD_HOST/CLAMD_PORT.
@@ -243,6 +245,9 @@ STEP_UP_MAX_AGE = env_int("STEP_UP_MAX_AGE", 600)
 MFA_ISSUER = env("MFA_ISSUER", "B & A Essentials")
 # Public derivation context, not a secret: the key material is SECRET_KEY.
 MFA_ENC_CONTEXT = env("MFA_ENC_CONTEXT", "ba-essentials-mfa-v1")  # gitleaks:allow
+# Fernet key for authenticator secrets, separate from SECRET_KEY (apps/accounts/mfa.py).
+# Make one with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+MFA_ENCRYPTION_KEY = env("MFA_ENCRYPTION_KEY", "")
 STAFF_QUOTE_MAX_MINOR = env_int("STAFF_QUOTE_MAX_MINOR", 50_000_00)
 QUOTE_VALIDITY_DAYS = env_int("QUOTE_VALIDITY_DAYS", 14)
 

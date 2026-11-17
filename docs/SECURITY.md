@@ -88,18 +88,20 @@ silently accepting localhost in production.
 - Sessions are bound to `User.credential_version`; a password change or reset
   invalidates other sessions. Idle expiry is enforced server-side.
 - Staff must enrol TOTP before using the staff app. Secrets are encrypted with
-  Fernet using a key derived from `DJANGO_SECRET_KEY` and `MFA_ENC_CONTEXT`.
+  Fernet under `MFA_ENCRYPTION_KEY` (older ones under a key derived from
+  `DJANGO_SECRET_KEY` and `MFA_ENC_CONTEXT`, moved to the new key on next use).
   Accepted timesteps are stored to reject replay.
 - Sensitive staff actions require a fresh password (+ TOTP) step-up.
 - Registration and password reset respond identically whether or not an account
   exists.
 
-### Key rotation caveat
+### Key rotation
 
-Because the MFA encryption key is derived from `DJANGO_SECRET_KEY`, rotating the
-secret key makes existing TOTP enrolments unreadable. Affected staff must reset
-MFA and enrol again. Plan this operation; do not rotate production secrets
-without authorization and a rollback procedure.
+With `MFA_ENCRYPTION_KEY` set, `DJANGO_SECRET_KEY` can be rotated without breaking
+authenticators, once each staff member has signed in once after the key was set
+(that moves their secret to the new key). Rotating `MFA_ENCRYPTION_KEY` itself means
+staff reset MFA and enrol again. Do not rotate production secrets without
+authorization and a rollback procedure.
 
 ## Authorization and tenancy
 
@@ -349,3 +351,16 @@ migration check, deploy check, and dependency audit.
   rotated after 48 hours; deletions reach the mirror within two days. Monthly
   `restore_check` restores into a scratch database and compares row counts. A
   failure of either sends a security alert. Tests: `tests/test_backups.py`.
+
+## Follow-ups from the vibe-coding risk checklists (17 Nov 2026)
+
+- Authenticator secrets use their own key (`MFA_ENCRYPTION_KEY`); secrets made
+  earlier stay readable and move to the new key the next time they are used, so
+  `DJANGO_SECRET_KEY` can be rotated after a leak. `check --deploy` warns
+  (`banda.W004`) without it.
+- A business's own uploads are capped at `ORG_STORAGE_LIMIT_BYTES` (2 GB); staff
+  files never count or get refused.
+- The staging database in `render.yaml` takes no connections from the internet.
+- CI runs Semgrep (Django, Python and secrets rules) and fails on ERROR findings;
+  a false positive is silenced in place with `# nosemgrep: <rule>` and a reason.
+- Tests: `tests/test_hardening_2.py`.

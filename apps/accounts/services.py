@@ -534,7 +534,12 @@ def verify_mfa(user: User, code: str) -> bool:
             )
             return False
         locked.mfa_last_timestep = step
-        locked.save(update_fields=["mfa_last_timestep", "updated_at"])
+        fields = ["mfa_last_timestep", "updated_at"]
+        if mfa.needs_rotation(locked.mfa_secret_encrypted):
+            # Move secrets made before MFA_ENCRYPTION_KEY onto it, so the old key can be retired.
+            locked.mfa_secret_encrypted = mfa.encrypt_secret(secret)
+            fields.append("mfa_secret_encrypted")
+        locked.save(update_fields=fields)
     return True
 
 

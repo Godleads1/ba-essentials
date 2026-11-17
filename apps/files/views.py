@@ -109,7 +109,8 @@ def download(request, file_id):
     private_file = get_object_or_404(PrivateFile, pk=file_id)
     token = request.GET.get("token", "")
 
-    allowed = bool(token) and token_matches(token, private_file, request.user)
+    # The token is a signed, expiring, user-bound value checked by Django signing, never parsed as a number.
+    allowed = bool(token) and token_matches(token, private_file, request.user)  # nosemgrep: nan-injection
     if not allowed:
         allowed = can_view_file(request.user, private_file)
 

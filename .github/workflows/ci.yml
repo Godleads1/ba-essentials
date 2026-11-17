@@ -165,6 +165,24 @@ jobs:
           -e PAYMENTS_ENABLED=false
           ba-essentials:ci python manage.py check --deploy --fail-level ERROR
 
+  sast:
+    name: Code scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      # Semgrep's Django, Python and secrets rules. Fails on ERROR-severity findings; a false
+      # positive is silenced in the code with `# nosemgrep: <rule>` and a reason beside it.
+      - name: Semgrep
+        run: >-
+          docker run --rm -v "$PWD:/src" -w /src
+          semgrep/semgrep:1.183.0
+          semgrep scan --config p/django --config p/python --config p/secrets
+          --severity ERROR --error --metrics=off
+          --exclude tests --exclude migrations --exclude node_modules
+          apps config templates
+
   secrets:
     name: Secret scan
     runs-on: ubuntu-latest
