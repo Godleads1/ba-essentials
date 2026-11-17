@@ -22,7 +22,8 @@ from apps.tasks import services as task_services
 
 class Command(BaseCommand):
     help = (
-        "Create synthetic demo accounts and one request. Development only; never "
+        "Create synthetic demo accounts, requests, files, messages and support requests. "
+        "Development only; never "
         "run this against a production database."
     )
 
@@ -62,6 +63,7 @@ class Command(BaseCommand):
                     ),
                     desired_outcome="A demonstration of the triage and scoping flow.",
                 )
+            self._samples(organization, owner, users["ops"])
 
         self.stdout.write(self.style.SUCCESS("Synthetic demo data created."))
         self.stdout.write("Sign in with any of these addresses (all @example.test):")
@@ -156,6 +158,61 @@ class Command(BaseCommand):
                     "is_current": True,
                 },
             )
+
+    def _samples(self, organization: Organization, owner: User, ops: User) -> None:
+        """Synthetic files, messages and support requests, so Deliverables, Messages
+        and Help & Support have something to show. Added once."""
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        from apps.communications import services as communications
+        from apps.files import services as file_services
+        from apps.files.models import FilePurpose
+        from apps.reviews.models import Deliverable, DeliverableVersion, DeliverableVersionStatus
+        from apps.tasks.models import TaskAttachment, TaskStatus
+
+        if TaskAttachment.objects.filter(task__organization=organization).exists():
+            return
+        if organization.tasks.count() < 2:
+            version = ServiceVersion.objects.filter(is_current=True).last()
+            task_services.create_request(
+                organization=organization, user=owner, service_version=version,
+                title="Synthetic quarterly report",
+                brief="Synthetic demo data: format a short quarterly report for sharing.",
+                desired_outcome="A tidy PDF and the editable file.",
+            )
+        tasks = list(organization.tasks.order_by("created_at")[:2])
+
+        def pdf(name: str) -> SimpleUploadedFile:
+            return SimpleUploadedFile(name, b"%PDF-1.4\n% synthetic demo file\n", content_type="application/pdf")
+
+        for task in tasks:
+            upload = file_services.store_upload(organization=organization, user=owner,
+                                                uploaded_file=pdf(f"brief-{task.reference}-synthetic.pdf"),
+                                                purpose=FilePurpose.ATTACHMENT)
+            TaskAttachment.objects.create(task=task, file=upload, added_by=owner)
+            communications.post_task_message(task=task, author=owner,
+                                             body="Hi team, can you confirm when this will be ready?")
+            communications.post_task_message(task=task, author=ops,
+                                             body="Thanks, we've got it. We'll confirm the date by tomorrow.")
+
+        delivered = tasks[-1]
+        result = file_services.store_upload(organization=organization, user=ops,
+                                            uploaded_file=pdf(f"{delivered.reference}-final-synthetic.pdf"),
+                                            purpose=FilePurpose.DELIVERABLE)
+        deliverable = Deliverable.objects.create(task=delivered)
+        DeliverableVersion.objects.create(deliverable=deliverable, version_number=1, file=result, submitted_by=ops,
+                                          status=DeliverableVersionStatus.RELEASED, released_at=timezone.now())
+        type(delivered).objects.filter(pk=delivered.pk).update(status=TaskStatus.DELIVERED)
+
+        billing = communications.create_ticket(organization=organization, author=owner,
+                                               subject="Bank transfer not showing on my invoice",
+                                               body="Synthetic demo: I paid by transfer but the invoice shows due.")
+        communications.post_ticket_message(ticket=billing, author=ops,
+                                           body="Thanks, we've found the transfer and are matching it now.")
+        done = communications.create_ticket(organization=organization, author=owner,
+                                            subject="How do I add a colleague?",
+                                            body="Synthetic demo: I'd like to add my accountant.", priority="low")
+        communications.close_ticket_by_client(done, owner)
 
     def _plan(self, organization: Organization) -> None:
         plan, _ = Plan.objects.get_or_create(

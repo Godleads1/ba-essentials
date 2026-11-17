@@ -93,9 +93,26 @@ def test_seed_demo_creates_synthetic_data(db):
     call_command("seed_demo", "--yes")
 
     organization = Organization.objects.get(slug="demo-studio")
-    assert organization.tasks.count() == 1
+    assert organization.tasks.count() == 2
     assert User.objects.filter(email__endswith="@example.test").count() == 6
     assert ServiceVersion.objects.filter(is_current=True).exists()
+
+
+@override_settings(DEBUG=True)
+def test_seed_demo_adds_files_messages_and_support_requests_once(db):
+    from apps.communications.models import SupportTicket, TaskMessage
+    from apps.reviews.models import DeliverableVersion
+    from apps.tasks.models import TaskAttachment
+
+    call_command("seed_demo", "--yes")
+    call_command("seed_demo", "--yes")
+
+    organization = Organization.objects.get(slug="demo-studio")
+    assert organization.tasks.count() == 2
+    assert TaskAttachment.objects.filter(task__organization=organization).count() == 2
+    assert DeliverableVersion.objects.filter(deliverable__task__organization=organization).count() == 1
+    assert TaskMessage.objects.filter(task__organization=organization).count() == 4
+    assert SupportTicket.objects.filter(organization=organization).count() == 2
 
 
 def test_seed_demo_refuses_outside_debug():
