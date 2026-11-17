@@ -1,0 +1,590 @@
+{
+ "_source": "Banda Service Catalogue v2.1, Industries, Industry guides and Creator Essentials sheets.",
+ "industries": [
+  {
+   "tag": "GEN",
+   "name": "General business and startups",
+   "who": "Any new or small business, whatever the sector. This is the default view.",
+   "emphasis": "Company set-up, core agreements, staff documents, privacy basics and tidy records.",
+   "steps": [
+    {
+     "step": "Start here",
+     "codes": [
+      "LEG06.05",
+      "LEG03.07"
+     ]
+    },
+    {
+     "step": "Set up the business",
+     "codes": [
+      "LEG03.01",
+      "LEG03.02",
+      "LEG03.04",
+      "LEG03.16",
+      "LEG04.01",
+      "LEG04.02"
+     ]
+    },
+    {
+     "step": "Key agreements",
+     "codes": [
+      "LEG02.01",
+      "LEG02.03",
+      "LEG02.04",
+      "LEG02.33",
+      "LEG02.09",
+      "LEG02.06",
+      "LEG02.13",
+      "LEG02.16"
+     ]
+    },
+    {
+     "step": "Policies and data",
+     "codes": [
+      "LEG02.08",
+      "LEG02.46",
+      "LEG02.44",
+      "LEG07.02",
+      "LEG07.03"
+     ]
+    },
+    {
+     "step": "Run the business",
+     "codes": [
+      "ADM03.01",
+      "ADM05.06",
+      "ADM05.05",
+      "ADM02.03",
+      "LEG03.08",
+      "TAX01.03"
+     ]
+    }
+   ]
+  },
+  {
+   "tag": "FIN",
+   "name": "Fintech and payments",
+   "who": "Payment, lending, wallet and other money-movement businesses and their partners.",
+   "emphasis": "Investor and share documents, partner and merchant agreements, data protection documents and onboarding records.",
+   "steps": [
+    {
+     "step": "Start here",
+     "codes": [
+      "LEG06.05",
+      "LEG06.06",
+      "LEG06.07"
+     ]
+    },
+    {
+     "step": "Set up the business",
+     "codes": [
+      "LEG03.02",
+      "LEG03.14",
+      "LEG03.19",
+      "LEG03.20",
+      "LEG03.22",
+      "LEG03.15"
+     ]
+    },
+    {
+     "step": "Investors and shares",
+     "codes": [
+      "LEG02.16",
+      "LEG01.09",
+      "LEG02.18",
+      "LEG02.11",
+      "LEG02.10",
+      "LEG01.12",
+      "LEG02.06",
+      "LEG02.13",
+      "ADM05.10",
+      "ADM05.09"
+     ]
+    },
+    {
+     "step": "Partner and customer agreements",
+     "codes": [
+      "LEG01.14",
+      "LEG02.26",
+      "LEG02.47",
+      "LEG01.13",
+      "LEG02.25",
+      "LEG02.07"
+     ]
+    },
+    {
+     "step": "Policies and data",
+     "codes": [
+      "LEG02.08",
+      "LEG02.46",
+      "LEG02.44",
+      "LEG07.15",
+      "LEG07.09",
+      "LEG07.11",
+      "LEG07.12",
+      "LEG06.10"
+     ]
+    },
+    {
+     "step": "Run the business",
+     "codes": [
+      "ADM05.11",
+      "ADM03.11",
+      "ADM06.10",
+      "ADM05.08",
+      "ADM02.03",
+      "OPS04.05"
+     ]
+    }
+   ]
+  },
+  {
+   "tag": "VAS",
+   "name": "Virtual assets and Web3",
+   "who": "Exchanges, wallets, token projects, Web3 studios and communities.",
+   "emphasis": "Founder and investor documents, token and platform terms (referral), data protection documents and records.",
+   "steps": [
+    {
+     "step": "Start here",
+     "codes": [
+      "LEG06.05",
+      "LEG06.06",
+      "LEG06.07"
+     ]
+    },
+    {
+     "step": "Set up the business",
+     "codes": [
+      "LEG03.02",
+      "LEG03.21",
+      "LEG03.22",
+      "LEG03.15",
+      "LEG04.01"
+     ]
+    },
+    {
+     "step": "Founders and investors",
+     "codes": [
+      "LEG02.16",
+      "LEG01.09",
+      "LEG02.18",
+      "LEG01.24",
+      "LEG02.06",
+      "LEG02.13",
+      "ADM05.10",
+      "ADM05.09"
+     ]
+    },
+    {
+     "step": "Platform and community terms",
+     "codes": [
+      "LEG02.49",
+      "LEG02.50",
+      "LEG02.48",
+      "LEG01.25",
+      "LEG02.55",
+      "LEG02.07"
+     ]
+    },
+    {
+     "step": "Policies and data",
+     "codes": [
+      "LEG02.08",
+      "LEG02.46",
+      "LEG02.44",
+      "LEG07.09",
+      "LEG07.10",
+      "LEG07.12",
+      "LEG07.24"
+     ]
+    },
+    {
+     "step": "Run the business",
+     "codes": [
+      "ADM01.11",
+      "ADM01.07",
+      "TAX01.08",
+      "ADM05.11",
+      "ADM06.10"
+     ]
+    }
+   ]
+  },
+  {
+   "tag": "PRO",
+   "name": "Property",
+   "who": "Landlords, agents, developers and property managers (property, not wider real estate finance).",
+   "emphasis": "Tenancy and lease documents, property records, rent invoicing, viewings and title work (referral).",
+   "steps": [
+    {
+     "step": "Start here",
+     "codes": [
+      "LEG06.05",
+      "LEG06.13"
+     ]
+    },
+    {
+     "step": "Set up the business",
+     "codes": [
+      "LEG03.01",
+      "LEG03.02",
+      "LEG03.05",
+      "LEG03.04",
+      "LEG03.06"
+     ]
+    },
+    {
+     "step": "Property agreements",
+     "codes": [
+      "LEG02.36",
+      "LEG01.18",
+      "LEG02.37",
+      "LEG01.06",
+      "LEG02.38",
+      "LEG02.39",
+      "LEG02.43",
+      "LEG02.40"
+     ]
+    },
+    {
+     "step": "Property transactions",
+     "codes": [
+      "LEG02.41",
+      "LEG01.19",
+      "LEG02.42",
+      "LEG03.24",
+      "LEG03.25"
+     ]
+    },
+    {
+     "step": "Policies and records",
+     "codes": [
+      "LEG07.22",
+      "LEG02.46",
+      "LEG07.09",
+      "ADM05.07",
+      "ADM06.07",
+      "ADM06.08"
+     ]
+    },
+    {
+     "step": "Run the business",
+     "codes": [
+      "ADM03.07",
+      "ADM03.12",
+      "LEG05.09",
+      "ADM02.05",
+      "OPS03.05",
+      "OPS04.07",
+      "TAX01.09"
+     ]
+    }
+   ]
+  },
+  {
+   "tag": "OGE",
+   "name": "Oil, gas and energy",
+   "who": "Service companies, suppliers and contractors working in or around the energy sector.",
+   "emphasis": "Service and supply agreements, company profile and vendor documents, procurement records, permits (referral).",
+   "steps": [
+    {
+     "step": "Start here",
+     "codes": [
+      "LEG06.05",
+      "LEG06.06",
+      "LEG06.07"
+     ]
+    },
+    {
+     "step": "Set up the business",
+     "codes": [
+      "LEG03.02",
+      "LEG03.14",
+      "LEG03.23",
+      "LEG03.28",
+      "LEG03.16"
+     ]
+    },
+    {
+     "step": "Agreements",
+     "codes": [
+      "LEG02.22",
+      "LEG01.21",
+      "LEG02.24",
+      "LEG01.22",
+      "LEG02.32",
+      "LEG02.30",
+      "LEG01.16",
+      "LEG01.23",
+      "LEG02.06",
+      "LEG02.10"
+     ]
+    },
+    {
+     "step": "Policies",
+     "codes": [
+      "LEG07.19",
+      "LEG07.16",
+      "LEG07.18",
+      "LEG07.20",
+      "LEG07.02"
+     ]
+    },
+    {
+     "step": "Bids and vendors",
+     "codes": [
+      "ADM01.08",
+      "ADM01.09",
+      "OPS01.06",
+      "OPS01.05",
+      "ADM05.13",
+      "ADM06.12"
+     ]
+    },
+    {
+     "step": "Run the business",
+     "codes": [
+      "ADM03.08",
+      "ADM05.08",
+      "ADM02.03",
+      "ADM05.06",
+      "ADM06.11",
+      "OPS02.12",
+      "TAX01.10"
+     ]
+    }
+   ]
+  },
+  {
+   "tag": "CRE",
+   "name": "Creators and media",
+   "who": "Creators, influencers, musicians, agencies and production teams.",
+   "emphasis": "Brand-deal contracts, IP and takedowns, invoices, shoot logistics and income records.",
+   "steps": [
+    {
+     "step": "Start here",
+     "codes": [
+      "LEG06.05",
+      "LEG04.01"
+     ]
+    },
+    {
+     "step": "Set up the business",
+     "codes": [
+      "LEG03.01",
+      "LEG03.04",
+      "LEG04.02",
+      "LEG04.03"
+     ]
+    },
+    {
+     "step": "Deals and agreements",
+     "codes": [
+      "LEG01.01",
+      "LEG01.02",
+      "LEG01.27",
+      "LEG01.28",
+      "LEG02.53",
+      "LEG02.54",
+      "LEG02.31",
+      "LEG05.04"
+     ]
+    },
+    {
+     "step": "Protect your work",
+     "codes": [
+      "LEG05.01",
+      "LEG05.07",
+      "LEG05.02",
+      "LEG05.03",
+      "LEG04.08"
+     ]
+    },
+    {
+     "step": "Run the business",
+     "codes": [
+      "ADM03.01",
+      "ADM03.02",
+      "ADM03.04",
+      "ADM05.01",
+      "OPS01.12",
+      "OPS02.10",
+      "TAX01.12",
+      "LEG07.25"
+     ]
+    }
+   ]
+  },
+  {
+   "tag": "HLT",
+   "name": "Healthcare and wellness",
+   "who": "Clinics, home-care providers and wellness businesses. Gated until data handling is signed off.",
+   "emphasis": "Scheduling, billing and correspondence only. Never clinical notes. Gated pending a data-handling sign-off.",
+   "steps": [
+    {
+     "step": "Start here (gated)",
+     "codes": [
+      "LEG06.05",
+      "LEG03.27"
+     ]
+    },
+    {
+     "step": "Agreements and notices",
+     "codes": [
+      "LEG02.56",
+      "LEG02.57",
+      "LEG01.32",
+      "LEG02.44"
+     ]
+    },
+    {
+     "step": "Policies",
+     "codes": [
+      "LEG07.26",
+      "LEG07.11",
+      "LEG07.12"
+     ]
+    },
+    {
+     "step": "Run the practice (scheduling, billing, correspondence only)",
+     "codes": [
+      "ADM07.01",
+      "ADM07.03",
+      "ADM07.04",
+      "ADM07.10",
+      "ADM07.08",
+      "ADM07.12"
+     ]
+    }
+   ]
+  },
+  {
+   "tag": "ECO",
+   "name": "E-commerce and retail",
+   "who": "Online and offline sellers, marketplaces and distributors.",
+   "emphasis": "Store terms and policies, supplier and distribution agreements, order and stock records, takedowns.",
+   "steps": [
+    {
+     "step": "Start here",
+     "codes": [
+      "LEG06.05"
+     ]
+    },
+    {
+     "step": "Set up the business",
+     "codes": [
+      "LEG03.01",
+      "LEG03.02",
+      "LEG03.26",
+      "LEG04.01",
+      "LEG04.02",
+      "LEG03.22"
+     ]
+    },
+    {
+     "step": "Store terms and policies",
+     "codes": [
+      "LEG02.51",
+      "LEG02.08",
+      "LEG02.46",
+      "LEG07.23",
+      "LEG07.11"
+     ]
+    },
+    {
+     "step": "Suppliers and partners",
+     "codes": [
+      "LEG02.24",
+      "LEG02.23",
+      "LEG01.15",
+      "LEG01.26",
+      "LEG02.52",
+      "LEG01.14",
+      "LEG02.44"
+     ]
+    },
+    {
+     "step": "Protect your brand",
+     "codes": [
+      "LEG05.06",
+      "LEG05.05",
+      "LEG05.02"
+     ]
+    },
+    {
+     "step": "Run the business",
+     "codes": [
+      "ADM06.05",
+      "ADM06.06",
+      "OPS01.09",
+      "OPS01.10",
+      "ADM03.11",
+      "OPS04.06",
+      "TAX01.11"
+     ]
+    }
+   ]
+  }
+ ],
+ "creator": [
+  {
+   "entry": "Contract and document filing",
+   "codes": [
+    "ADM05.01"
+   ]
+  },
+  {
+   "entry": "Expense tracking and invoicing",
+   "codes": [
+    "ADM03.01",
+    "ADM03.02",
+    "ADM03.04",
+    "TAX01.01",
+    "TAX01.02",
+    "TAX01.12"
+   ]
+  },
+  {
+   "entry": "Business correspondence",
+   "codes": [
+    "ADM04.01",
+    "ADM04.03",
+    "ADM04.04"
+   ]
+  },
+  {
+   "entry": "Legal and IP requests (use the Legal & IP allowance)",
+   "codes": [
+    "LEG01.01",
+    "LEG01.02",
+    "LEG01.27",
+    "LEG01.28",
+    "LEG02.53",
+    "LEG02.54",
+    "LEG04.01",
+    "LEG04.02",
+    "LEG04.03",
+    "LEG05.01",
+    "LEG07.25"
+   ]
+  },
+  {
+   "entry": "Vendor and collaborator coordination",
+   "codes": [
+    "OPS01.01",
+    "OPS01.02",
+    "OPS01.12"
+   ]
+  },
+  {
+   "entry": "Travel and shoot logistics",
+   "codes": [
+    "ADM02.01",
+    "OPS02.01",
+    "OPS02.02",
+    "OPS02.04",
+    "OPS02.10"
+   ]
+  }
+ ]
+}

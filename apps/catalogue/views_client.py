@@ -14,6 +14,7 @@ from . import services
 @require_GET
 def catalogue(request):
     """Service Catalogue: categories first, then the tasks in one, with search and industry filters."""
+    from . import guides as guide_data
     from .models import INDUSTRIES
 
     every = services.submittable_versions()
@@ -55,6 +56,24 @@ def catalogue(request):
         if filtered else []
     for version in versions:
         version.access = access[version.definition.category_id]
+    guide = guide_data.industry(industry) if industry and not (chosen or query or creator) else None
+    guide_steps, creator_groups, guide_categories = [], [], []
+    if guide or creator:
+        by_code = {}
+        for version in every.filter(definition__code__gt=""):
+            version.access = access[version.definition.category_id]
+            by_code[version.definition.code] = version
+        if guide:
+            guide_steps = guide_data.resolve(guide["steps"], by_code, "step")
+            # Below the guide, link to every task for this industry by category, not one long list.
+            per_category: dict = {}
+            for version in versions:
+                per_category.setdefault(version.definition.category_id, 0)
+                per_category[version.definition.category_id] += 1
+            guide_categories = [(c, per_category[c.pk]) for c in categories if c.pk in per_category]
+        if creator:
+            creator_groups = [g for g in guide_data.resolve(guide_data.creator_entries(), by_code, "entry")
+                              if g["versions"]]
     keep = request.GET.copy()
     keep.pop("industry", None)
     return render(request, "banda/app/catalogue.html", {
@@ -62,4 +81,6 @@ def catalogue(request):
         "filtered": filtered, "total": every.count(), "industry": industry, "industries": INDUSTRIES,
         "creator": creator, "creator_total": creator_total, "keep": keep.urlencode(),
         "industry_label": INDUSTRIES.get(industry, ""),
+        "guides": guide_data.industries(), "guide": guide, "guide_steps": guide_steps,
+        "creator_groups": creator_groups, "guide_categories": guide_categories,
     })

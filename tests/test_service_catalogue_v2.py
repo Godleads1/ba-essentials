@@ -74,3 +74,41 @@ def test_catalogue_page_shows_categories_creator_view_and_industry_filter(loaded
 
     by_code = client.get(reverse("service-catalogue"), {"q": "LEG03.01"}).content.decode()
     assert "CAC business name registration" in by_code
+
+
+def test_guides_file_points_only_at_real_tasks():
+    from apps.catalogue import guides
+
+    data = json.loads(MANIFEST.read_text())
+    codes = {s["code"] for c in data["categories"] for s in c["services"]}
+    tags = [g["tag"] for g in guides.industries()]
+    assert tags == ["GEN", "FIN", "VAS", "PRO", "OGE", "CRE", "HLT", "ECO"]
+    for g in guides.industries():
+        assert g["steps"] and all(code in codes for s in g["steps"] for code in s["codes"])
+    assert all(code in codes for e in guides.creator_entries() for code in e["codes"])
+
+
+def test_industry_guide_page_shows_the_steps_in_order(loaded, client):
+    start = client.get(reverse("service-catalogue")).content.decode()
+    assert "Browse by industry" in start and "?industry=FIN" in start
+
+    page = client.get(reverse("service-catalogue"), {"industry": "FIN"})
+    steps = page.context["guide_steps"]
+    assert steps[0]["step"] == "Start here"
+    assert all(v.definition.code for s in steps for v in s["versions"])
+    body = page.content.decode()
+    assert "Fintech and payments" in body and "Every task for fintech and payments" in body
+    assert page.context["guide_categories"]
+
+
+def test_healthcare_guide_says_its_tasks_are_not_open_yet(loaded, client):
+    page = client.get(reverse("service-catalogue"), {"industry": "HLT"})
+    assert "Healthcare tasks aren't open yet" in page.content.decode()
+    assert any(s["closed"] for s in page.context["guide_steps"])
+
+
+def test_creator_view_follows_the_entry_points(loaded, client):
+    page = client.get(reverse("service-catalogue"), {"view": "creator"})
+    entries = [g["entry"] for g in page.context["creator_groups"]]
+    assert entries[0] == "Contract and document filing"
+    assert "Expense tracking and invoicing" in entries

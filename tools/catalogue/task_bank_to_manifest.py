@@ -6,6 +6,10 @@ Usage (development only; needs openpyxl, which the app itself does not):
         > catalogue/service_catalogue_v2.1.json
     python manage.py bootstrap_catalogue catalogue/service_catalogue_v2.1.json
 
+The industry guides (the Industries, Industry guides and Creator Essentials sheets) go to
+a second file, which the catalogue page reads:
+    python tools/catalogue/task_bank_to_manifest.py the.xlsx --guides > catalogue/industry_guides_v2.1.json
+
 The staff notes (the sheet's Note column) are left out by default, because this repository
 is public. To load them too, write a private copy with --with-notes, load it, and don't
 commit it:
@@ -97,5 +101,39 @@ def main(path: str, with_notes: bool = False) -> None:
     sys.stdout.write("\n")
 
 
+def guides(path: str) -> None:
+    """Industry guides and Creator Essentials entry points: ordered views of the same tasks."""
+    book = openpyxl.load_workbook(path, data_only=True)
+    about = {}
+    for raw in list(book["Industries"].iter_rows(values_only=True))[1:]:
+        if raw[0]:
+            about[raw[0]] = {"tag": raw[0], "name": text(raw[1]), "who": text(raw[2]), "emphasis": text(raw[3]),
+                             "steps": []}
+    for raw in list(book["Industry guides"].iter_rows(values_only=True))[1:]:
+        if not raw[0]:
+            continue
+        tag = raw[0].rsplit("(", 1)[1].rstrip(")")
+        steps = about[tag]["steps"]
+        step = text(raw[1])
+        if not steps or steps[-1]["step"] != step:
+            steps.append({"step": step, "codes": []})
+        steps[-1]["codes"].append(raw[2])
+    creator: list[dict] = []
+    for raw in list(book["Creator Essentials"].iter_rows(values_only=True))[1:]:
+        if not raw[0] or not raw[1]:  # the sheet's closing note has no code
+            continue
+        entry = text(raw[0])
+        if not creator or creator[-1]["entry"] != entry:
+            creator.append({"entry": entry, "codes": []})
+        creator[-1]["codes"].append(raw[1])
+    json.dump({"_source": "Banda Service Catalogue v2.1, Industries, Industry guides and Creator Essentials sheets.",
+               "industries": list(about.values()), "creator": creator},
+              sys.stdout, ensure_ascii=False, indent=1)
+    sys.stdout.write("\n")
+
+
 if __name__ == "__main__":
-    main(sys.argv[1], with_notes="--with-notes" in sys.argv[2:])
+    if "--guides" in sys.argv[2:]:
+        guides(sys.argv[1])
+    else:
+        main(sys.argv[1], with_notes="--with-notes" in sys.argv[2:])
