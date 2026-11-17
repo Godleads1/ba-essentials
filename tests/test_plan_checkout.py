@@ -141,6 +141,8 @@ def test_return_page_never_activates_a_plan(owner, growth):
     page = client.get(f"/app/plan/checkout/return/?reference={attempt.reference}&trxref={attempt.reference}&status=success")
     assert page.status_code == 200
     assert b"Confirming your payment" in page.content
+    assert page.templates[0].name == "banda/app/checkout_return.html"
+    assert b'http-equiv="refresh"' in page.content  # checks again on its own while pending
     assert not Subscription.objects.exists()
     attempt.invoice.refresh_from_db()
     assert attempt.invoice.status == InvoiceStatus.ISSUED
@@ -176,6 +178,7 @@ def test_confirmed_payment_starts_the_plan_once(owner, growth, fake_paystack):
 
     page = login_client(owner).get(f"/app/plan/checkout/return/?reference={attempt.reference}")
     assert b"Payment confirmed" in page.content
+    assert b'http-equiv="refresh"' not in page.content
 
 
 @pytest.mark.django_db

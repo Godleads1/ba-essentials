@@ -18,6 +18,8 @@
 /* Classes the old files, messages and support pages used, kept so the rebuild still
    matches static/css/app.css; remove when the old pages are all gone. */
 @source inline("badge bg-amber-50 bg-slate-100 bg-white border border-amber-200 border-b border-slate-100 border-slate-200 border-slate-300 border-t btn-ghost btn-primary btn-secondary btn-sm card card-pad data-table divide-slate-100 divide-y flex flex-wrap focus:border-brand-500 focus:ring-2 focus:ring-brand-100 font-medium font-semibold gap-2 gap-3 gap-4 gap-6 grid hover:text-brand-700 hover:underline items-center items-start justify-between leading-relaxed lg:grid-cols-[1.6fr_1fr] min-w-0 mt-0.5 mt-1 mt-2 mt-6 outline-none p-4 pt-2 px-3.5 px-5 py-10 py-2.5 py-4 py-8 ring-slate-200 rounded-2xl rounded-xl shadow-sm space-y-3 space-y-4 space-y-5 sr-only table-wrap text-amber-800 text-brand-700 text-lg text-navy-900 text-right text-slate-400 text-slate-500 text-slate-600 text-slate-700 text-slate-900 text-sm text-xl text-xs tracking-wide transition truncate uppercase w-full whitespace-nowrap whitespace-pre-line");
+/* Classes the old checkout return page used. */
+@source inline("btn-primary btn-secondary btn-sm card card-pad font-semibold max-w-xl mt-1 mt-2 mt-4 text-lg text-navy-900 text-slate-500 text-slate-600 text-sm text-xs");
 @source "../../apps";
 
 @theme {
