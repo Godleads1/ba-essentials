@@ -1,0 +1,72 @@
+{% extends "banda/staff/base.html" %}
+{% load ui icons %}
+{% block title %}Staff dashboard{% endblock %}
+{% block page_title %}Operations dashboard{% endblock %}
+{% block content %}
+  <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+    <a class="panel p-5 hover:border-brand-navy" href="{% url 'staff-queue' %}?status=submitted">
+      <p class="flex items-center gap-3 text-[14.5px] font-medium"><span class="stat-ic bg-pill-navyBg text-brand-navy">{% icon "inbox" "h-5 w-5" %}</span>New</p>
+      <p class="mt-3 font-display text-3xl font-semibold text-ink">{{ counts.new }}</p>
+      <p class="mt-2 text-xs text-ink-muted">Submitted, awaiting triage</p>
+    </a>
+    <a class="panel p-5 hover:border-brand-navy" href="{% url 'staff-queue' %}?status=triage">
+      <p class="flex items-center gap-3 text-[14.5px] font-medium"><span class="stat-ic bg-pill-orangeBg text-brand-orangeDark">{% icon "list-checks" "h-5 w-5" %}</span>Triage</p>
+      <p class="mt-3 font-display text-3xl font-semibold text-ink">{{ counts.triage }}</p>
+      <p class="mt-2 text-xs text-ink-muted">Triage or waiting on client</p>
+    </a>
+    <a class="panel p-5 hover:border-brand-navy" href="{% url 'staff-queue' %}?status=scoping">
+      <p class="flex items-center gap-3 text-[14.5px] font-medium"><span class="stat-ic bg-[#EFE9FB] text-[#5B3FA8]">{% icon "file-text" "h-5 w-5" %}</span>Scoping</p>
+      <p class="mt-3 font-display text-3xl font-semibold text-ink">{{ counts.scoping }}</p>
+      <p class="mt-2 text-xs text-ink-muted">Quotes and payment eligibility</p>
+    </a>
+    <a class="panel p-5 hover:border-brand-navy" href="{% url 'staff-queue' %}?status=in_progress">
+      <p class="flex items-center gap-3 text-[14.5px] font-medium"><span class="stat-ic bg-pill-navyBg text-brand-navy">{% icon "loader" "h-5 w-5" %}</span>Delivery</p>
+      <p class="mt-3 font-display text-3xl font-semibold text-ink">{{ counts.delivery }}</p>
+      <p class="mt-2 text-xs text-ink-muted">Assigned, in progress or review</p>
+    </a>
+    <a class="panel p-5 hover:border-brand-navy" href="{% url 'staff-queue' %}?status=delivered">
+      <p class="flex items-center gap-3 text-[14.5px] font-medium"><span class="stat-ic bg-pill-greenBg text-pill-greenTx">{% icon "circle-check" "h-5 w-5" %}</span>With client</p>
+      <p class="mt-3 font-display text-3xl font-semibold text-ink">{{ counts.awaiting_client }}</p>
+      <p class="mt-2 text-xs text-ink-muted">Delivered or revision requested</p>
+    </a>
+  </section>
+
+  <section class="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
+    <div class="panel">
+      <div class="flex items-center justify-between border-b border-cream-line px-5 py-4">
+        <h2 class="text-sm font-semibold text-ink">Recent status activity</h2>
+        <a class="text-xs font-semibold text-brand-navy" href="{% url 'staff-queue' %}">Open queue</a>
+      </div>
+      <ul class="divide-y divide-cream-line">
+        {% for event in events %}
+          <li class="flex items-start justify-between gap-3 px-5 py-3">
+            <div>
+              <a class="text-sm font-medium text-ink hover:text-brand-navy" href="{% url 'staff-task-detail' task_id=event.task_id %}">{{ event.task.reference }} · {{ event.task.title }}</a>
+              <p class="text-xs text-ink-muted">{{ event.from_status|status_label }} &rarr; {{ event.to_status|status_label }}{% if event.actor %} · {{ event.actor.full_name|default:event.actor.email }}{% endif %}</p>
+            </div>
+            <span class="whitespace-nowrap text-xs text-ink-soft">{{ event.created_at|date:"j M, H:i" }}</span>
+          </li>
+        {% empty %}
+          <li class="px-5 py-8 text-sm text-ink-muted">No activity yet.</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="space-y-6">
+      <div class="panel p-5">
+        <h2 class="text-sm font-semibold text-ink">Queue shortcuts</h2>
+        <div class="mt-4 grid gap-2">
+          <a class="btn-outline btn-sm justify-between" href="{% url 'staff-queue' %}?status=submitted">Submitted <span>&rarr;</span></a>
+          <a class="btn-outline btn-sm justify-between" href="{% url 'staff-queue' %}?status=internal_review">Awaiting review <span>&rarr;</span></a>
+          <a class="btn-outline btn-sm justify-between" href="{% url 'staff-queue' %}?status=approved_for_release">Approved for release <span>&rarr;</span></a>
+          <a class="btn-outline btn-sm justify-between" href="{% url 'staff-queue' %}?status=awaiting_payment">Awaiting payment <span>&rarr;</span></a>
+        </div>
+      </div>
+      <div class="relative overflow-hidden rounded-[22px] bg-brand-navy p-5">
+        <span aria-hidden="true" class="rings pointer-events-none absolute inset-0"></span>
+        <p class="relative text-sm font-semibold text-white">Independent QA is mandatory</p>
+        <p class="relative mt-1 text-xs leading-relaxed text-white/75">The specialist who submitted a deliverable cannot approve it. Release is blocked until billing eligibility is satisfied.</p>
+      </div>
+    </div>
+  </section>
+{% endblock %}

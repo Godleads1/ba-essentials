@@ -1,0 +1,78 @@
+{% extends "banda/staff/base.html" %}
+{% load ui %}
+{% block title %}Finance{% endblock %}
+{% block page_title %}Finance &amp; reconciliation{% endblock %}
+{% block content %}
+  {% if refunds_due %}
+    <section class="panel mb-5 ring-1 ring-[#F3C9AE]">
+      <div class="border-b border-cream-line px-5 py-4">
+        <h2 class="text-sm font-semibold text-ink">Refunds due</h2>
+        <p class="mt-1 text-xs text-ink-muted">Paystack took these payments after the invoice was already paid or withdrawn. They don&rsquo;t count as payment. Refund each one in the Paystack dashboard using its reference.</p>
+      </div>
+      <ul class="divide-y divide-cream-line">
+        {% for attempt in refunds_due %}
+          <li class="flex flex-wrap items-center justify-between gap-2 px-5 py-3 text-sm">
+            <div><p class="font-semibold text-ink">{{ attempt.invoice.organization.name }} &middot; {{ attempt.invoice.number }}</p><p class="text-xs text-ink-muted">Reference {{ attempt.reference }} &middot; {{ attempt.provider_status }}</p></div>
+            <p class="font-semibold tabular-nums">{{ attempt.amount_minor|money_minor:attempt.currency }}</p>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endif %}
+  <section class="panel">
+    <div class="border-b border-cream-line px-5 py-4">
+      <h2 class="text-sm font-semibold text-ink">Invoices awaiting payment</h2>
+      <p class="mt-1 text-xs text-ink-muted">Verify only after funds have cleared. The amount and currency must match exactly; the reference is checked for reuse.</p>
+    </div>
+    {% if issued %}
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Invoice</th><th>Client</th><th>Request</th><th>Amount</th><th>Due</th><th>Verify payment</th></tr></thead>
+          <tbody>
+            {% for invoice in issued %}
+              <tr>
+                <td class="font-medium text-xs text-ink">{{ invoice.number }}</td>
+                <td class="text-ink-muted">{{ invoice.organization.name }}</td>
+                <td>
+                  {% if invoice.task %}<a class="text-sm text-ink hover:text-brand-navy" href="{% url 'staff-task-detail' task_id=invoice.task.pk %}">{{ invoice.task.reference }}</a>{% else %}—{% endif %}
+                </td>
+                <td class="whitespace-nowrap font-medium text-ink">{{ invoice.amount_minor|money_minor:invoice.currency }}</td>
+                <td class="whitespace-nowrap text-ink-muted">{{ invoice.due_at|date:"j M Y"|default:"—" }}</td>
+                <td>
+                  <form method="post" action="{% url 'staff-finance-verify' invoice_id=invoice.pk %}" class="flex flex-wrap items-center gap-2">
+                    {% csrf_token %}
+                    <input name="reference" required placeholder="Bank reference" class="w-36 rounded-lg border border-cream-line px-2.5 py-1.5 text-xs">
+                    <input name="amount" required inputmode="decimal" placeholder="Amount" class="w-24 rounded-lg border border-cream-line px-2.5 py-1.5 text-xs">
+                    <input type="hidden" name="currency" value="{{ invoice.currency }}">
+                    <button type="submit" class="btn-next btn-sm">Mark paid</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="px-5 py-10 text-sm text-ink-muted">No outstanding invoices.</p>
+    {% endif %}
+  </section>
+
+  <section class="panel">
+    <div class="border-b border-cream-line px-5 py-4"><h2 class="text-sm font-semibold text-ink">Recently paid</h2></div>
+    {% if recent_paid %}
+      <ul class="divide-y divide-cream-line">
+        {% for invoice in recent_paid %}
+          <li class="flex flex-wrap items-center justify-between gap-2 px-5 py-3">
+            <div>
+              <p class="text-sm font-medium text-ink">{{ invoice.number }} · {{ invoice.organization.name }}</p>
+              <p class="text-xs text-ink-soft">Paid {{ invoice.paid_at|date:"j M Y, H:i" }}{% if invoice.verified_by %} · verified by {{ invoice.verified_by.full_name|default:invoice.verified_by.email }}{% endif %}</p>
+            </div>
+            <span class="text-sm font-semibold text-ink">{{ invoice.amount_minor|money_minor:invoice.currency }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="px-5 py-8 text-sm text-ink-muted">No payments recorded yet.</p>
+    {% endif %}
+  </section>
+{% endblock %}

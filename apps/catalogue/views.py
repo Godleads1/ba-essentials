@@ -23,7 +23,7 @@ def catalogue_home(request):
     )
     return render(
         request,
-        "staff/catalogue.html",
+        "banda/staff/catalogue.html",
         {"definitions": definitions, "states": ServiceVersion._meta.get_field("state").choices},
     )
 

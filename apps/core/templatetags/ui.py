@@ -123,6 +123,14 @@ def status_tone(value):
 
 
 @register.filter
+def status_chip(value):
+    """The banda chip colours for a status, for the staff pages."""
+    from apps.core.client_status import staff_chip
+
+    return staff_chip(status_tone(value))
+
+
+@register.filter
 def action_label(value):
     return ACTION_LABELS.get(str(value), str(value).replace("_", " ").title())
 

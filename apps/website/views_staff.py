@@ -47,7 +47,7 @@ def page_list(request):
     for revision in PageRevision.objects.order_by("page_id", "-revision_number"):
         latest.setdefault(revision.page_id, revision)
     rows = [{"page": page, "latest": latest.get(page.pk)} for page in pages]
-    return render(request, "staff/website/pages.html", {"rows": rows})
+    return render(request, "banda/staff/website/pages.html", {"rows": rows})
 
 
 @staff_permission_required(WEBSITE_EDIT)
@@ -68,7 +68,7 @@ def page_create(request):
         else:
             messages.success(request, f"Created /{page.slug}/ as draft v{revision.revision_number}.")
             return redirect("staff-website-history", page_id=page.pk)
-    return render(request, "staff/website/page_form.html", {"form": form, "mode": "create"})
+    return render(request, "banda/staff/website/page_form.html", {"form": form, "mode": "create"})
 
 
 @staff_permission_required(WEBSITE_EDIT)
@@ -106,7 +106,7 @@ def page_edit(request, page_id):
         )
     return render(
         request,
-        "staff/website/page_form.html",
+        "banda/staff/website/page_form.html",
         {"form": form, "mode": "edit", "page": page, "latest": latest},
     )
 
@@ -137,7 +137,7 @@ def page_history(request, page_id):
     revisions = page.revisions.select_related("created_by")
     return render(
         request,
-        "staff/website/page_history.html",
+        "banda/staff/website/page_history.html",
         {
             "page": page,
             "revisions": revisions,
@@ -214,7 +214,7 @@ def leads(request):
     )
     return render(
         request,
-        "staff/website/leads.html",
+        "banda/staff/website/leads.html",
         {
             "enquiries": enquiries[:200],
             "statuses": ContactStatus.choices,

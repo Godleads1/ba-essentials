@@ -114,9 +114,10 @@ def notifications(request):
     items = Notification.objects.filter(user=request.user).select_related(
         "task", "ticket"
     )[:100]
+    template = "app/notifications.html" if request.user.is_client_account else "banda/staff/notifications.html"
     return render(
         request,
-        "app/notifications.html",
+        template,
         {"notifications": items, "unread_notifications": services.unread_count(request.user)},
     )
 

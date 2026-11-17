@@ -1,0 +1,35 @@
+{% load ui %}
+<div class="divide-y divide-cream-line">
+  {% for message in thread %}
+    <article class="px-5 py-4 {% if message.is_internal %}bg-pill-orangeBg{% endif %}">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-sm font-semibold text-ink">{{ message.author_name|default:"B &amp; A team" }}</span>
+          <span class="badge bg-cream text-ink-muted ring-cream-line">{% if message.author_role == "staff" %}B &amp; A team{% else %}Client{% endif %}</span>
+          {% if message.is_internal %}<span class="badge bg-pill-orangeBg text-brand-orangeDark ring-[#F3C9AE]">Internal note</span>{% endif %}
+        </div>
+        <time class="text-xs text-ink-soft" datetime="{{ message.created_at|date:'c' }}">{{ message.created_at|date:"j M Y, H:i" }}</time>
+      </div>
+      <p class="mt-2 whitespace-pre-line text-sm leading-relaxed text-ink">{{ message.body }}</p>
+    </article>
+  {% empty %}
+    <p class="px-5 py-6 text-sm text-ink-muted">{{ empty_text|default:"No messages yet." }}</p>
+  {% endfor %}
+</div>
+<form method="post" action="{{ post_url }}" class="space-y-3 border-t border-cream-line px-5 py-4">
+  {% csrf_token %}
+  {% if action_value %}<input type="hidden" name="action" value="{{ action_value }}">{% endif %}
+  <label class="sr-only" for="thread-body">Message</label>
+  <textarea id="thread-body" name="body" rows="3" maxlength="4000" required class="w-full rounded-xl border border-cream-line bg-white px-3.5 py-2.5 text-sm text-ink shadow-sm outline-none transition focus:border-brand-navy focus:ring-2 focus:ring-brand-navySoft" placeholder="Write a message"></textarea>
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    {% if allow_internal %}
+      <label class="flex items-center gap-2 text-xs text-ink-muted">
+        <input type="checkbox" name="internal" value="1" class="h-4 w-4 rounded border-cream-line">
+        Internal note — never shown to the client
+      </label>
+    {% else %}
+      <span class="text-xs text-ink-soft">Messages are visible to your organization and the B &amp; A team.</span>
+    {% endif %}
+    <button type="submit" class="btn-next btn-sm">Send message</button>
+  </div>
+</form>

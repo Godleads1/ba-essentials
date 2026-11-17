@@ -1,0 +1,21 @@
+{% extends "banda/app/base.html" %}{% load static %}
+{% comment %}
+  Staff pages in the banda design. They use the banda stylesheets plus static/banda/staff.css,
+  built from these templates with the design preview's Tailwind theme (tools/banda-css).
+{% endcomment %}
+{% block stylesheets %}{{ block.super }}
+  <link rel="stylesheet" href="{% static 'banda/staff.css' %}" />
+{% endblock %}
+{% block head_scripts %}<script src="{% static 'js/htmx.min.js' %}" defer></script>{% endblock %}
+{% block main %}
+  <div class="staff mx-auto w-full max-w-7xl space-y-4">
+    <section class="panel flex flex-wrap items-center gap-4 px-5 py-4 sm:px-6">
+      <div class="min-w-0 flex-1">
+        <p class="eyebrow">B &amp; A team</p>
+        <h1 class="mt-0.5 font-display text-[22px] font-semibold leading-tight tracking-[-0.01em] sm:text-[24px]">{% block page_title %}Workspace{% endblock %}</h1>
+      </div>
+      {% block page_actions %}{% endblock %}
+    </section>
+    {% block content %}{% endblock %}
+  </div>
+{% endblock %}

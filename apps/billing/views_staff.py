@@ -45,7 +45,7 @@ def finance_home(request):
     staff_access.log_list(request, "finance", count=len(issued) + len(recent_paid) + len(refunds_due))
     return render(
         request,
-        "staff/finance.html",
+        "banda/staff/finance.html",
         {"issued": issued, "recent_paid": recent_paid, "refunds_due": refunds_due},
     )
 

@@ -1,0 +1,9 @@
+{
+  "name": "banda-staff-css",
+  "private": true,
+  "description": "Builds static/banda/staff.css for the staff pages with the design preview's Tailwind theme.",
+  "scripts": {
+    "build": "tailwindcss -c tailwind.config.js -i input.css -o ../../static/banda/staff.css --minify"
+  },
+  "devDependencies": { "tailwindcss": "3.4.17" }
+}

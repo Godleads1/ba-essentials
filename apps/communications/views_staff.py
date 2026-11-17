@@ -56,7 +56,7 @@ def support_queue(request):
     staff_access.log_list(request, "support", count=len(rows))
     return render(
         request,
-        "staff/support.html",
+        "banda/staff/support.html",
         {
             "tickets": rows,
             "counts": counts,
@@ -123,7 +123,7 @@ def support_detail(request, ticket_id):
     ).order_by("full_name")
     return render(
         request,
-        "staff/support_detail.html",
+        "banda/staff/support_detail.html",
         {
             "ticket": ticket,
             "thread": services.ticket_thread(ticket, request.user),
