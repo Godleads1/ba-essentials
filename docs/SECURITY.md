@@ -196,7 +196,7 @@ without authorization and a rollback procedure.
 - `run_renewals` (hourly) issues the renewal invoice and reminds the owners 3
   days before a monthly or yearly period ends, with a pay link. Only a
   confirmed webhook renews anything; paying early carries on from the end of
-  the current period. If the period ends unpaid, service continues for 3 days
+  the current period. If the period ends unpaid, service continues for 5 business days
   (notices at the start and on the last day), then the account is paused.
 - A paused account is read-only, enforced on the server in `client_required`
   (`apps.organizations.access.PAUSED_ALLOWED`): every POST is refused except

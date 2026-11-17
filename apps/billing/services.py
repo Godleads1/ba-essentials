@@ -60,7 +60,7 @@ def active_subscription(organization) -> Subscription | None:
 
 
 def in_paid_time(subscription: Subscription, now=None) -> bool:
-    """Inside the paid period, or in the 3-day grace period after it ended unpaid (Terms 5.6.3)."""
+    """Inside the paid period, or in the 5-business-day grace period after it ended unpaid (Terms 5.6.3)."""
     now = now or timezone.now()
     if subscription.period_start <= now <= subscription.period_end:
         return True
@@ -916,7 +916,7 @@ def _activate_subscription(invoice: Invoice) -> Subscription:
             interval=invoice.interval,
         )
     else:
-        # A payment made while the period is still running, or during the 3-day grace
+        # A payment made while the period is still running, or during the grace
         # period after it, carries on from the end of the paid
         # period, so paying early never loses days and grace isn't free time.
         # Once service is paused or the plan has ended, the new period starts

@@ -152,7 +152,7 @@ Implemented controls and deployment requirements are documented in
 
 - Paystack plan checkout is implemented; a plan starts only after a signed
   webhook that Paystack's verify API confirms. Plans renew only when the
-  client pays (a link 3 days before the end; 3 days' grace, then paused).
+  client pays (a link 3 days before the end; 5 business days' grace, then paused).
   Refunds through the providers are not built yet.
 - Object storage (for example Cloudflare R2) is not implemented; the local
   adapter refuses unknown backends instead of silently falling back.

@@ -283,7 +283,7 @@ Subscription states and access rules (each state must have an explicit rule):
 | `PENDING_PAYMENT` | No paid features |
 | `ACTIVE` | Full access within the plan's allowances |
 | `ACTIVE` + `cancel_at_period_end` | Client won't renew: full access to the end of the paid period, no reminders (Terms 5.5.3) |
-| `ACTIVE` + `grace_until` | Period ended unpaid: full access for 3 days, no late fees, nothing charged automatically (Terms 5.6) |
+| `ACTIVE` + `grace_until` | Period ended unpaid: full access for 5 business days, no late fees, nothing charged automatically (Terms 5.6) |
 | `PAST_DUE` (paused) | Read-only except paying, security and closing; the plan ends 30 days after pausing and nothing is owed (Terms 5.6.4–5.6.6) |
 | `EXPIRED` / `CANCELLED` | Read-only access to files and invoices (Terms) |
 | `PAYMENT_FAILED` / `REFUNDED` | No new paid work |

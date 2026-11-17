@@ -3,7 +3,7 @@
 Plans don't renew by themselves. Nothing is charged without the client paying:
 - 3 days before a period ends, we issue the renewal invoice and remind the owners, with a pay link.
 - Paying early carries on from the end of the current period, so no days are lost.
-- If the period ends unpaid, service continues for 3 more days (the grace period), with a
+- If the period ends unpaid, service continues for 5 business days (the grace period), with a
   reminder at the start and on the last day.
 - After that, the account is paused: it can be viewed and the renewal paid, nothing else
   (see apps.organizations.access). Paying restarts the plan from the day of payment.
@@ -38,7 +38,7 @@ from .models import (
 logger = logging.getLogger("ba.billing")
 
 REMINDER_LEAD = timedelta(days=3)
-GRACE = timedelta(days=3)
+GRACE_BUSINESS_DAYS = 5
 END_AFTER_PAUSE = timedelta(days=30)
 
 
@@ -251,6 +251,17 @@ def _create_renewal_invoice(sub: Subscription) -> Invoice:
     )
 
 
+def grace_end(period_end):
+    """Five business days (Monday to Friday, Lagos time) after the period ends (Terms 5.6.3)."""
+    current = period_end
+    added = 0
+    while added < GRACE_BUSINESS_DAYS:
+        current += timedelta(days=1)
+        if timezone.localtime(current).weekday() < 5:
+            added += 1
+    return current
+
+
 def run(now=None) -> dict:
     """One pass over every plan that can be reminded, paused or ended. Safe to run repeatedly."""
     now = now or timezone.now()
@@ -309,7 +320,7 @@ def _step(sub: Subscription, now, counts: dict) -> None:
 
     if now < sub.period_end:
         if sub.reminder_sent_for != sub.period_end:
-            pause_on = sub.period_end + GRACE
+            pause_on = grace_end(sub.period_end)
             _tell_owners(sub, f"Your plan ends on {sub.period_end:%-d %b %Y}", (
                 f"Your B&A Essentials {invoice.plan.name} plan ends on {sub.period_end:%-d %b %Y}. "
                 f"Plans don't renew by themselves: pay {_money(invoice.amount_minor, invoice.currency)} "
@@ -322,9 +333,9 @@ def _step(sub: Subscription, now, counts: dict) -> None:
             counts["reminded"] += 1
         return
 
-    # The period has ended unpaid: 3 days' grace, then pause.
+    # The period has ended unpaid: 5 business days' grace, then pause.
     if sub.grace_until is None:
-        grace = sub.period_end + GRACE
+        grace = grace_end(sub.period_end)
         Subscription.objects.filter(pk=sub.pk).update(grace_until=grace, updated_at=now)
         sub.grace_until = grace
         _audit("billing.renewal_unpaid", None, sub, invoice=invoice.number, grace_until=grace.isoformat())

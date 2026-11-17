@@ -192,7 +192,7 @@ Blueprint change is needed.
 
 `python manage.py run_renewals` issues renewal invoices with a reminder 3 days
 before a plan ends (nothing is charged automatically), and moves unpaid plans
-through 3 days' grace, pause and ending. It is safe to run
+through 5 business days' grace, pause and ending. It is safe to run
 repeatedly and should run at least daily (hourly is fine). It is **not** in the
 Render Blueprint yet, because a new cron service is billed separately; add it
 (same settings as the outbox cron, `schedule: "17 * * * *"`) or a systemd timer

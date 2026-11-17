@@ -105,7 +105,7 @@ def plan_home(request):
             "renewal_price": _renewal_price(subscription),
             "paused_ends": paused.paused_at + renewals.END_AFTER_PAUSE if paused and paused.paused_at else None,
             "reminder_on": subscription.period_end - renewals.REMINDER_LEAD if subscription else None,
-            "pause_on": subscription.period_end + renewals.GRACE if subscription else None,
+            "pause_on": renewals.grace_end(subscription.period_end) if subscription else None,
             "now": timezone.now(),
         },
     )

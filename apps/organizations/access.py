@@ -78,7 +78,7 @@ def client_required(view):
     return wrapper
 
 
-# While an account is paused (renewal unpaid after the 3-day grace), clients can still sign in,
+# While an account is paused (renewal unpaid after the 5-business-day grace), clients can still sign in,
 # view and download, and these actions stay open: paying, account security and data rights,
 # closing the account, switching business, and asking support for help.
 PAUSED_ALLOWED = frozenset({

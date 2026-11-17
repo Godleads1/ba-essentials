@@ -1,5 +1,5 @@
 """Manual renewal (Terms 5.5–5.8): nothing is charged automatically. A reminder and a pay link
-3 days before the period ends, 3 days' grace after it, then the account is paused (read-only
+3 days before the period ends, 5 business days' grace after it, then the account is paused (read-only
 except paying); 30 days later the plan ends and nothing is owed. Cancelling and downgrades."""
 from __future__ import annotations
 
@@ -131,7 +131,7 @@ def test_reminder_and_invoice_three_days_before_and_only_once(plans, organizatio
     assert owner.email in email.payload["to"]
     body = email.payload["body"]
     assert "Plans don't renew by themselves" in body and "/app/plan/" in body
-    assert f"{sub.period_end + timedelta(days=3):%-d %b %Y}" in body  # when the pause would start
+    assert f"{renewals.grace_end(sub.period_end):%-d %b %Y}" in body  # when the pause would start
     assert Notification.objects.filter(user=owner, kind="billing").exists()
 
 
@@ -145,7 +145,7 @@ def test_yearly_plans_are_also_reminded_three_days_before(plans, organization, o
 def test_nothing_is_ever_charged_even_with_an_old_saved_card(plans, organization, owner, fake_paystack):
     sub = _subscribe(organization, plans["starter"], ends_in=timedelta(hours=20))
     _old_saved_card(organization, owner)
-    for step in (timedelta(0), timedelta(days=1), timedelta(days=3), timedelta(days=5)):
+    for step in (timedelta(0), timedelta(days=1), timedelta(days=3), timedelta(days=9)):
         renewals.run(timezone.now() + step)
     assert not _charges(fake_paystack)
     sub.refresh_from_db()
@@ -163,7 +163,7 @@ def test_paying_early_carries_on_from_the_end_of_the_period(plans, organization,
     assert renewals.run(old_end + timedelta(days=1)) == {"reminded": 0, "grace": 0, "paused": 0, "ended": 0}
 
 
-# ---------- after the end: 3 days' grace, then paused ----------
+# ---------- after the end: 5 business days' grace, then paused ----------
 
 def test_unpaid_end_gives_three_days_then_pauses_then_ends_owing_nothing(plans, organization, owner, make_task):
     sub = _subscribe(organization, plans["starter"], ends_in=timedelta(hours=20))
@@ -171,7 +171,8 @@ def test_unpaid_end_gives_three_days_then_pauses_then_ends_owing_nothing(plans, 
     after_end = sub.period_end + timedelta(minutes=1)
     assert renewals.run(after_end)["grace"] == 1
     sub.refresh_from_db()
-    assert sub.grace_until == sub.period_end + timedelta(days=3)
+    assert sub.grace_until == renewals.grace_end(sub.period_end)
+    assert sub.grace_until - sub.period_end >= timedelta(days=5)  # never shorter than 5 days
     assert billing.in_paid_time(sub, sub.period_end + timedelta(days=2))
     assert Notification.objects.filter(title="Your plan period has ended").exists()
 
@@ -192,6 +193,16 @@ def test_unpaid_end_gives_three_days_then_pauses_then_ends_owing_nothing(plans, 
     # Not renewing isn't a debt: the renewal invoice can't be paid any more.
     assert not Invoice.objects.filter(organization=organization, status=InvoiceStatus.ISSUED).exists()
     assert "Nothing is owed" in OutboxEvent.objects.last().payload["body"]
+
+
+def test_grace_counts_business_days_only():
+    import datetime as dt
+
+    lagos = timezone.get_current_timezone()
+    friday = dt.datetime(2026, 11, 20, 18, 0, tzinfo=lagos)
+    assert renewals.grace_end(friday) == dt.datetime(2026, 11, 27, 18, 0, tzinfo=lagos)  # next Friday
+    wednesday = dt.datetime(2026, 11, 18, 9, 0, tzinfo=lagos)
+    assert renewals.grace_end(wednesday) == dt.datetime(2026, 11, 25, 9, 0, tzinfo=lagos)
 
 
 def test_a_missed_reminder_still_issues_the_invoice_at_the_end(plans, organization, owner):
