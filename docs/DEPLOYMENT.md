@@ -202,6 +202,20 @@ web service, to match what sits in front of it (`apps/core/client_ip.py`):
 With neither, `check --deploy` warns (`banda.W001`) and every visitor would share
 the proxy's address for rate limits.
 
+## Private files on Cloudflare R2
+
+1. In Cloudflare, create an R2 bucket (for example `banda-private`). Leave public
+   access **off** and add no custom domain: files are only ever served through the
+   app's authorised download page.
+2. Create an R2 API token with **Object Read & Write** on that bucket only.
+3. Set on the web service and the worker:
+   `PRIVATE_STORAGE_BACKEND=r2`, `R2_ENDPOINT_URL=https://<account id>.r2.cloudflarestorage.com`,
+   `R2_BUCKET`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`.
+4. Production refuses to start with R2 chosen and any of these missing, and
+   `check --deploy` warns (`banda.W003`) while files are still on local disk.
+
+The malware scanner gets a temporary copy of each upload, deleted straight after.
+
 ## Renewals job
 
 `python manage.py run_renewals` issues renewal invoices with a reminder 3 days

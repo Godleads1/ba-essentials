@@ -22,20 +22,19 @@ def _scan(storage_key: str) -> tuple[str, str]:
     if backend == "noop":
         return ScanStatus.CLEAN, "development scanner: files are not really scanned"
     if backend == "clamdscan":
-        path = get_storage().path(storage_key)
         command = ["clamdscan", "--no-summary", "--stdout"]
         config_file = getattr(settings, "CLAMD_CONFIG_FILE", "")
         if config_file:
             # A TCP clamd may be on another host, so stream the file to it.
             command.extend(["--stream", f"--config-file={config_file}"])
-        command.append(str(path))
         try:
-            result = subprocess.run(
-                command,
-                capture_output=True,
-                timeout=60,
-                check=False,
-            )
+            with get_storage().local_copy(storage_key) as path:
+                result = subprocess.run(
+                    [*command, str(path)],
+                    capture_output=True,
+                    timeout=60,
+                    check=False,
+                )
         except (OSError, subprocess.SubprocessError) as exc:
             logger.error("scan_backend_error %s", type(exc).__name__)
             return ScanStatus.FAILED, "scanner unavailable"

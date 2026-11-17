@@ -340,3 +340,7 @@ migration check, deploy check, and dependency audit.
   it is made); a payment notification with the wrong amount; 5 with a bad
   signature or unknown reference in an hour. `check --deploy` warns
   (`banda.W002`) when no recipient is set. Tests: `tests/test_security_alerts.py`.
+- Private files in Cloudflare R2 (`apps/files/storage.py`, `PRIVATE_STORAGE_BACKEND=r2`):
+  a private bucket, server-made keys checked against `..`, absolute paths and
+  backslashes, downloads only through the authorised view, and a temporary
+  copy for the scanner that is deleted after use. Tests: `tests/test_r2_storage.py`.

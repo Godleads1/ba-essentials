@@ -182,6 +182,11 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = env_int("DATA_UPLOAD_MAX_MEMORY_SIZE", 12 * 1024 *
 FILE_UPLOAD_MAX_MEMORY_SIZE = env_int("FILE_UPLOAD_MAX_MEMORY_SIZE", 2 * 1024 * 1024)
 PRIVATE_STORAGE_ROOT = env("PRIVATE_STORAGE_ROOT", str(BASE_DIR / "var" / "private"))
 PRIVATE_STORAGE_BACKEND = env("PRIVATE_STORAGE_BACKEND", "local")
+# Cloudflare R2 (PRIVATE_STORAGE_BACKEND=r2): a private bucket and an API token limited to it.
+R2_ENDPOINT_URL = env("R2_ENDPOINT_URL", "")  # https://<account id>.r2.cloudflarestorage.com
+R2_BUCKET = env("R2_BUCKET", "")
+R2_ACCESS_KEY_ID = env("R2_ACCESS_KEY_ID", "")
+R2_SECRET_ACCESS_KEY = env("R2_SECRET_ACCESS_KEY", "")
 FILE_MAX_BYTES = env_int("FILE_MAX_BYTES", 10 * 1024 * 1024)
 FILE_SCAN_BACKEND = env("FILE_SCAN_BACKEND", "noop")
 # Optional clamd client configuration for a scanner on another host. The

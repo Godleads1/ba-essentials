@@ -29,3 +29,16 @@ def security_alert_recipients(app_configs, **kwargs):
              "staff access changes and repeated refused downloads.",
         id="banda.W002",
     )]
+
+
+@register(Tags.security, deploy=True)
+def private_file_storage(app_configs, **kwargs):
+    """The Privacy Policy says private files are kept in Cloudflare R2 (apps/files/storage.py)."""
+    if getattr(settings, "PRIVATE_STORAGE_BACKEND", "local") != "local" or settings.DEBUG:
+        return []
+    return [Warning(
+        "Private files are stored on this server's disk (PRIVATE_STORAGE_BACKEND=local).",
+        hint="Set PRIVATE_STORAGE_BACKEND=r2 with the R2_* settings: the Privacy Policy says files are kept "
+             "in Cloudflare R2, and a server disk is lost with the server.",
+        id="banda.W003",
+    )]
