@@ -1,0 +1,4 @@
+-r base.in
+gunicorn==26.2.0
+psycopg[binary]==3.3.8
+redis==6.4.0

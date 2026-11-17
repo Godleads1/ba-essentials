@@ -60,7 +60,7 @@ its regression test passes.
 | F-07 | Medium | Terms acceptance and consents not recorded | Fixed in step 5a (cookie choices stay in the browser until the backend sets non-essential cookies) |
 | F-08 | Medium | No account closure or 90-day deletion | Fixed in step 5c (invoice deletion after 7 years is not built yet; the first are due in 2033) |
 | F-09 | Medium | Files on local disk only | Open, step 9 |
-| F-10 | Low | No hash-locked dependency lockfile; dev-only pytest advisory | Open, step 9 |
+| F-10 | Low | No hash-locked dependency lockfile; dev-only pytest advisory | Fixed: hash-locked `requirements/*.txt` (from `*.in` via pip-tools) installed with `--require-hashes` in CI and the container; pip-audit finds no known vulnerabilities in the dev or prod locks |
 | F-11 | Info | `main` history was replaced; older CI evidence can't be traced | Noted |
 
 ---

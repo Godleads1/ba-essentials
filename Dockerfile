@@ -24,7 +24,8 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements ./requirements
-RUN pip install --no-cache-dir -r requirements/prod.txt
+# Exact versions with checked hashes: a tampered or swapped package fails the build.
+RUN pip install --no-cache-dir --require-hashes -r requirements/prod.txt
 
 COPY . .
 COPY --from=assets /build/static/css/app.css ./static/css/app.css

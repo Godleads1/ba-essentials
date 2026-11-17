@@ -28,7 +28,7 @@ jobs:
           cache-dependency-path: requirements/dev.txt
 
       - name: Install Python dependencies
-        run: pip install -r requirements/dev.txt -r requirements/prod.txt
+        run: pip install --require-hashes -r requirements/dev.txt
 
       - uses: actions/setup-node@v7
         with:
@@ -71,8 +71,20 @@ jobs:
           --settings=config.settings.production
           --fail-level ERROR
 
+      - name: Lock files match the requirements
+        # Re-resolves against the existing locks (no upgrades), so this only fails
+        # when a requirements/*.in file changed without regenerating the .txt locks.
+        run: |
+          pip install pip-tools==7.7.0
+          cd requirements
+          cp prod.txt /tmp/prod.txt && cp dev.txt /tmp/dev.txt
+          pip-compile -q --generate-hashes --allow-unsafe --strip-extras --no-emit-index-url -o /tmp/prod.txt prod.in
+          pip-compile -q --generate-hashes --allow-unsafe --strip-extras --no-emit-index-url -o /tmp/dev.txt dev.in prod.in
+          diff -I '^#' prod.txt /tmp/prod.txt
+          diff -I '^#' dev.txt /tmp/dev.txt
+
       - name: Dependency audit
-        run: pip-audit -r requirements/base.txt -r requirements/prod.txt
+        run: pip-audit --require-hashes --disable-pip -r requirements/prod.txt
 
   postgres:
     name: PostgreSQL tests
@@ -107,7 +119,7 @@ jobs:
           cache-dependency-path: requirements/dev.txt
 
       - name: Install Python dependencies
-        run: pip install -r requirements/dev.txt -r requirements/prod.txt
+        run: pip install --require-hashes -r requirements/dev.txt
 
       - name: Django tests on PostgreSQL
         run: python -m pytest --ds=config.settings.test_postgres
