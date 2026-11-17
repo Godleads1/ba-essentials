@@ -1,0 +1,45 @@
+{% extends "banda/app/base.html" %}
+{% load ui icons %}
+{% block title %}Payment{% endblock %}
+{% block head_scripts %}{% if not paid and attempt.status != "failed" and attempt.status != "refund_due" %}<meta http-equiv="refresh" content="6" />{% endif %}{% endblock %}
+{% block content %}
+      <div class="mx-auto py-4" style="max-width:620px">
+        <section class="panel px-6 py-8 text-center" aria-live="polite">
+          {% if paid %}
+            <span class="mx-auto grid h-16 w-16 place-items-center rounded-full bg-pill-greenBg text-pill-greenTx">{% icon "circle-check" "h-8 w-8" %}</span>
+            <h1 class="mt-5 font-display text-[24px] font-semibold leading-tight tracking-[-0.01em]">Payment confirmed</h1>
+            {% if invoice.plan_id and subscription %}
+              <p class="mt-2 text-[15px] text-ink-muted">Your {{ subscription.plan.name }} plan is active until {{ subscription.period_end|date:"j M Y" }}.</p>
+            {% else %}
+              <p class="mt-2 text-[15px] text-ink-muted">Invoice {{ invoice.number }} is paid{% if invoice.task %} for {{ invoice.task.reference }}{% endif %}.</p>
+            {% endif %}
+          {% elif attempt.status == "refund_due" %}
+            <span class="mx-auto grid h-16 w-16 place-items-center rounded-full bg-pill-orangeBg text-brand-orangeDark">{% icon "receipt-text" "h-8 w-8" %}</span>
+            <h1 class="mt-5 font-display text-[24px] font-semibold leading-tight tracking-[-0.01em]">We'll refund this payment</h1>
+            <p class="mt-2 text-[15px] text-ink-muted">Invoice {{ invoice.number }} was already settled or withdrawn when this payment arrived, so we'll send the money back. Contact support if you have questions.</p>
+          {% elif attempt.status == "failed" %}
+            <span class="mx-auto grid h-16 w-16 place-items-center rounded-full bg-[#FDECEC] text-[#B42318]">{% icon "x" "h-8 w-8" %}</span>
+            <h1 class="mt-5 font-display text-[24px] font-semibold leading-tight tracking-[-0.01em]">Payment not completed</h1>
+            <p class="mt-2 text-[15px] text-ink-muted">Nothing was charged for invoice {{ invoice.number }}. You can try again from {% if invoice.plan_id %}your plan page{% elif invoice.task %}the request{% else %}Billing{% endif %}.</p>
+          {% else %}
+            <span class="mx-auto grid h-16 w-16 place-items-center rounded-full bg-pill-navyBg text-brand-navy">{% icon "hourglass" "h-8 w-8" %}</span>
+            <h1 class="mt-5 font-display text-[24px] font-semibold leading-tight tracking-[-0.01em]">Confirming your payment</h1>
+            <p class="mt-2 text-[15px] text-ink-muted">{% if invoice.plan_id %}We start your plan{% else %}The invoice shows as paid{% endif %} as soon as {{ attempt.provider|capfirst }} confirms the payment to us. That usually takes a few seconds. This page checks again on its own.</p>
+          {% endif %}
+
+          <dl style="max-width:360px;grid-template-columns:110px minmax(0,1fr)" class="mx-auto mt-6 grid gap-y-2 rounded-2xl bg-cream-light px-4 py-3.5 text-left text-[13.5px]">
+            <dt class="text-ink-muted">Invoice</dt><dd class="font-semibold">{{ invoice.number }}</dd>
+            <dt class="text-ink-muted">Amount</dt><dd class="font-semibold tabular-nums">{{ invoice.amount_minor|money_minor:invoice.currency }}</dd>
+            <dt class="text-ink-muted">Reference</dt><dd class="break-all font-medium">{{ attempt.reference }}</dd>
+          </dl>
+
+          <div class="mt-6 flex flex-col justify-center gap-2.5 sm:flex-row">
+            {% if not paid and attempt.status != "failed" and attempt.status != "refund_due" %}<a class="btn-outline" href="{{ request.get_full_path }}">{% icon "refresh-cw" "h-4 w-4" %}Check again</a>{% endif %}
+            {% if invoice.plan_id %}<a class="btn-next" href="{% url 'plan-home' %}">{% if paid %}See your plan{% else %}Back to your plan{% endif %}</a>
+            {% elif invoice.task %}<a class="btn-next" href="{% url 'task-detail' task_id=invoice.task_id %}">Back to {{ invoice.task.reference }}</a>
+            {% else %}<a class="btn-next" href="{% url 'billing-home' %}">Back to billing</a>{% endif %}
+          </div>
+          {% if attempt.status == "failed" or attempt.status == "refund_due" %}<p class="mt-4 text-[13px] text-ink-muted"><a href="{% url 'support-new' %}?topic=billing" class="font-semibold text-brand-navy underline underline-offset-2">Contact support</a> about this payment.</p>{% endif %}
+        </section>
+      </div>
+{% endblock %}

@@ -252,7 +252,7 @@ def plan_checkout_return(request):
         raise Http404("Payment not found.")
     return render(
         request,
-        "app/checkout_return.html",
+        "banda/app/checkout_return.html",
         {
             "attempt": attempt,
             "invoice": attempt.invoice,
