@@ -34,13 +34,23 @@ def _is_public(path: str) -> bool:
     return any(path.startswith(prefix) for prefix in PUBLIC_PREFIXES)
 
 
+def is_safe_redirect(request, url: str) -> bool:
+    """Only addresses on this site: a path, or a full URL with this host. Never `//other` or another scheme."""
+    return bool(url) and url_has_allowed_host_and_scheme(
+        url, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+    )
+
+
 def _safe_next(request, fallback: str = "/app/") -> str:
-    candidate = request.GET.get("next") or request.POST.get("next")
-    if candidate and url_has_allowed_host_and_scheme(
-        candidate, allowed_hosts={request.get_host()}, require_https=request.is_secure()
-    ):
-        return candidate
-    return fallback
+    """Where to go next: the `next` parameter, else `fallback`, but only if it stays on this site.
+
+    The fallback is checked too: callers pass addresses that came from a link (kept in the
+    session during sign-in, or the step-up `next`), and those must never lead off-site.
+    """
+    for candidate in (request.GET.get("next") or request.POST.get("next"), fallback):
+        if candidate and is_safe_redirect(request, candidate):
+            return candidate
+    return "/app/"
 
 
 class RequestIDMiddleware:

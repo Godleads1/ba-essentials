@@ -321,3 +321,14 @@ migration check, deploy check, and dependency audit.
   incident and data breach response plan is in
   [INCIDENT_RESPONSE.md](INCIDENT_RESPONSE.md) (draft for legal review), and
   data retention runs daily with `manage.py run_retention`.
+
+## Audit fixes (first security audit, 17 Nov 2026)
+
+- Redirects after sign-in, staff sign-in and "confirm it's you" accept only
+  addresses on this site; a `next` kept in the session is checked as well
+  (`apps.core.middleware._safe_next`).
+- Rate limits use `apps.core.client_ip.client_ip`: `X-Forwarded-For` is trusted
+  only for the entries added by our own proxies (`TRUSTED_PROXY_COUNT`), or an
+  edge header the proxy overwrites (`CLIENT_IP_HEADER`). `check --deploy` warns
+  (`banda.W001`) when neither is set.
+- Regression tests: `tests/test_security_audit_fixes.py`.
