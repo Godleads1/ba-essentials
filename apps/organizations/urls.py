@@ -12,7 +12,7 @@ urlpatterns = [
         name="team-invitation-revoke",
     ),
     path(
-        "team/members/<uuid:membership_id>/remove/",
+        "team/members/<int:membership_id>/remove/",
         views.remove_member,
         name="team-member-remove",
     ),
