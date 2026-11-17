@@ -48,6 +48,15 @@ _require(
     "FILE_SCAN_BACKEND must name a real malware scanner in production",
 )
 _require(
+    PRIVATE_STORAGE_BACKEND in ("local", "r2"),
+    "PRIVATE_STORAGE_BACKEND must be 'local' or 'r2'",
+)
+if PRIVATE_STORAGE_BACKEND == "r2":
+    _require(
+        bool(R2_ENDPOINT_URL.startswith("https://") and R2_BUCKET and R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY),
+        "R2_ENDPOINT_URL (https), R2_BUCKET, R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY are required for R2 storage",
+    )
+_require(
     "LocMemCache" not in CACHES["default"]["BACKEND"],
     "A shared cache (for example Redis) is required for rate limiting across processes",
 )

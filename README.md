@@ -154,8 +154,8 @@ Implemented controls and deployment requirements are documented in
   webhook that Paystack's verify API confirms. Plans renew only when the
   client pays (a link 3 days before the end; 5 business days' grace, then paused).
   Refunds through the providers are not built yet.
-- Object storage (for example Cloudflare R2) is not implemented; the local
-  adapter refuses unknown backends instead of silently falling back.
+- Private files use local disk in development and Cloudflare R2 in production
+  (`PRIVATE_STORAGE_BACKEND=r2`); unknown backends are refused.
 - In-app messaging and the website CMS are Phase 5+ and out of scope here.
 - SQLite cannot exercise real row-lock races; PostgreSQL is required in
   production and concurrency tests should run against it.
