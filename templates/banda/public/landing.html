@@ -1,0 +1,9 @@
+{% extends "banda/public/base.html" %}
+{% load static %}
+{% block title %}banda — B &amp; A Essentials | Beyond your AI{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{% static 'banda/public/landing.css' %}" />{% endblock %}
+{% block body %}
+{% include "banda/public/_landing_body.html" %}
+{{ pricing_data|json_script:"pricingData" }}
+{% endblock %}
+{% block scripts %}<script src="{% static 'banda/public/landing.js' %}" defer></script>{% endblock %}

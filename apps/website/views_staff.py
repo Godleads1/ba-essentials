@@ -120,7 +120,7 @@ def page_preview(request, page_id):
         raise Http404("Page not found")
     return render(
         request,
-        "public/page.html",
+        "banda/public/page.html",
         {
             "page": page,
             "revision": revision,

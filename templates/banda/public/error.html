@@ -1,0 +1,24 @@
+{% extends "banda/public/base.html" %}
+{% load static %}
+{% block title %}banda — B &amp; A Essentials{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{% static 'banda/public/legal.css' %}" />{% endblock %}
+{% block robots %}<meta name="robots" content="noindex" />{% endblock %}
+{% block body %}
+  <main class="relative grid min-h-screen place-items-center overflow-hidden px-5 py-16">
+    <div aria-hidden="true" class="pointer-events-none absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-brand-orange/30"></div>
+    <div aria-hidden="true" class="pointer-events-none absolute left-1/2 top-1/2 h-[360px] w-[360px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-brand-orange/30"></div>
+    <div class="relative w-full max-w-[460px] rounded-[22px] border border-cream-line bg-white p-7 text-center shadow-[0_30px_60px_-40px_rgba(28,23,18,.45)] sm:p-9">
+      <a href="/" class="logo mx-auto" style="font-size:34px" aria-label="banda, B and A Essentials, home">
+        <span class="logo-word" aria-hidden="true"><span class="logo-b">b<i class="logo-dot"></i></span>anda</span>
+        <span class="logo-tag" aria-hidden="true">B<span class="amp">&amp;</span>A ESSENTIALS</span>
+      </a>
+      <p class="mt-7 font-display text-[13px] font-semibold tracking-[0.16em] text-brand-orangeDark">{% block code %}{% endblock %}</p>
+      <h1 class="mt-2 font-display text-[26px] font-semibold leading-tight tracking-[-0.01em]">{% block heading %}{% endblock %}</h1>
+      <p class="mt-3 text-[15px] leading-relaxed text-ink-muted">{% block text %}{% endblock %}</p>
+      {% if detail %}<p class="mt-2 text-[13px] text-ink-soft">{{ detail }}</p>{% endif %}
+      <div class="mt-7 flex flex-col justify-center gap-2.5 sm:flex-row">
+        {% block actions %}{% endblock %}
+      </div>
+    </div>
+  </main>
+{% endblock %}

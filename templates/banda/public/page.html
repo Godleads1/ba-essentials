@@ -1,0 +1,25 @@
+{% extends "banda/public/base.html" %}
+{% load static %}
+{% block title %}{{ revision.title }} · banda — B &amp; A Essentials{% endblock %}
+{% block description %}{{ revision.summary|default:revision.title }}{% endblock %}
+{% block robots %}{% if preview %}<meta name="robots" content="noindex" />{% endif %}{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{% static 'banda/public/legal.css' %}" />{% endblock %}
+{% block body %}
+  <a href="#doc" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-md focus:bg-white focus:px-4 focus:py-2">Skip to content</a>
+{% include "banda/public/_header.html" %}
+
+  <main id="doc" class="mx-auto max-w-[780px] px-5 pb-16 pt-10 lg:pt-14">
+    {% if preview %}
+      <p class="mb-8 rounded-2xl bg-pill-orangeBg px-4 py-3 text-[13.5px] text-brand-orangeDark" role="status">Draft preview · version {{ revision.revision_number }}. The public can't see this version.</p>
+    {% endif %}
+    <article class="doc">
+      <p class="inline-flex items-center gap-3 text-[11.5px] font-bold tracking-[0.14em] text-brand-navy"><span class="h-[2px] w-5 rounded bg-brand-orange"></span>B &amp; A ESSENTIALS</p>
+      <h1 class="mt-3 font-display text-[30px] font-semibold leading-tight tracking-[-0.02em] sm:text-[38px]">{{ revision.title }}</h1>
+      {% if revision.summary %}<p class="mt-4 text-[17px] leading-relaxed text-ink-muted">{{ revision.summary }}</p>{% endif %}
+      <div class="mt-8">{{ revision.body|linebreaks }}</div>
+      {% if not preview and page.published_at %}<p class="mt-12 border-t border-cream-line pt-4 text-[13px] text-ink-soft">Last updated {{ page.published_at|date:"j M Y" }}</p>{% endif %}
+    </article>
+  </main>
+
+{% include "banda/public/_footer.html" %}
+{% endblock %}

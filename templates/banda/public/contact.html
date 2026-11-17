@@ -1,0 +1,70 @@
+{% extends "banda/public/base.html" %}
+{% load static %}{% block styles %}<link rel="stylesheet" href="{% static 'banda/public/legal.css' %}" />{% endblock %}
+{% block title %}Contact · banda — B &amp; A Essentials{% endblock %}
+{% block description %}Tell B &amp; A Essentials what your business needs. The team reads every message and replies by email.{% endblock %}
+{% block body %}
+  <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-md focus:bg-white focus:px-4 focus:py-2">Skip to content</a>
+{% include "banda/public/_header.html" %}
+
+  <main id="main" class="mx-auto grid max-w-[1100px] gap-8 px-5 pb-16 pt-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-12 lg:pt-14">
+    <div class="min-w-0">
+      <p class="inline-flex items-center gap-3 text-[11.5px] font-bold tracking-[0.14em] text-brand-navy"><span class="h-[2px] w-5 rounded bg-brand-orange"></span>TALK TO US</p>
+      <h1 class="mt-3 font-display text-[30px] font-semibold leading-tight tracking-[-0.02em] sm:text-[38px]">Tell us what your business needs</h1>
+      <p class="mt-3 max-w-[560px] text-[15.5px] leading-relaxed text-ink-muted">Send a short note and a person on our team will reply by email. If you already have an account, a request in your workspace is the fastest way to get it done.</p>
+
+      {% if messages %}<div class="mt-6 space-y-2">{% for m in messages %}<p class="rounded-xl bg-pill-orangeBg px-4 py-3 text-[14px] text-brand-orangeDark" role="alert">{{ m }}</p>{% endfor %}</div>{% endif %}
+
+      {% if request.GET.sent %}
+        <div class="mt-8 flex gap-4 rounded-2xl border border-cream-line bg-white p-6" role="status">
+          <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-pill-greenBg text-pill-greenTx"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span>
+          <div>
+            <p class="font-display text-[18px] font-semibold">Thanks, your message is with us</p>
+            <p class="mt-1 text-[14px] text-ink-muted">We'll reply to the email address you gave us.</p>
+            <a href="{% url 'landing' %}" class="mt-4 inline-block text-[14px] font-semibold text-brand-navy underline underline-offset-2">Back to home</a>
+          </div>
+        </div>
+      {% else %}
+        <form method="post" class="mt-8 space-y-5 rounded-2xl border border-cream-line bg-white p-5 sm:p-7" novalidate>
+          {% csrf_token %}
+          {{ form.website }}
+          {% if form.non_field_errors %}<div class="rounded-xl bg-[#FDECEC] px-4 py-3 text-[14px] text-[#B42318]" role="alert">{% for e in form.non_field_errors %}<p>{{ e }}</p>{% endfor %}</div>{% endif %}
+          <div class="grid gap-5 sm:grid-cols-2">
+            {% for field in form.visible_fields %}{% if field.name == "name" or field.name == "email" or field.name == "phone" or field.name == "company" %}
+              <div>
+                <label for="{{ field.id_for_label }}" class="block text-[14px] font-semibold">{{ field.label }}</label>
+                <input id="{{ field.id_for_label }}" name="{{ field.html_name }}" type="{% if field.name == 'email' %}email{% elif field.name == 'phone' %}tel{% else %}text{% endif %}" value="{{ field.value|default:'' }}" {% if field.field.required %}required{% endif %} autocomplete="{% if field.name == 'name' %}name{% elif field.name == 'email' %}email{% elif field.name == 'phone' %}tel{% else %}organization{% endif %}" {% if field.errors %}aria-invalid="true" aria-describedby="{{ field.id_for_label }}Err"{% endif %} class="mt-2 w-full rounded-xl border border-cream-line bg-white px-4 py-3 text-[15px] text-ink placeholder:text-ink-soft transition focus:border-brand-navy focus:outline-none focus:ring-4 focus:ring-brand-navy/10 aria-[invalid=true]:border-red-600" />
+                {% if field.errors %}<p id="{{ field.id_for_label }}Err" class="mt-1.5 text-[13px] text-[#B42318]">{{ field.errors.0 }}</p>{% endif %}
+              </div>
+            {% endif %}{% endfor %}
+          </div>
+          <div>
+            <label for="{{ form.message.id_for_label }}" class="block text-[14px] font-semibold">{{ form.message.label }}</label>
+            <textarea id="{{ form.message.id_for_label }}" name="{{ form.message.html_name }}" rows="6" required aria-describedby="msgHelp{% if form.message.errors %} msgErr{% endif %}" {% if form.message.errors %}aria-invalid="true"{% endif %} class="mt-2 w-full resize-y rounded-xl border border-cream-line bg-white px-4 py-3 text-[15px] leading-relaxed text-ink placeholder:text-ink-soft transition focus:border-brand-navy focus:outline-none focus:ring-4 focus:ring-brand-navy/10 aria-[invalid=true]:border-red-600" placeholder="What do you need help with, and by when?">{{ form.message.value|default:'' }}</textarea>
+            <p id="msgHelp" class="mt-1.5 text-[13px] text-ink-muted">Don't include passwords, card numbers or other secrets.</p>
+            {% if form.message.errors %}<p id="msgErr" class="mt-1 text-[13px] text-[#B42318]">{{ form.message.errors.0 }}</p>{% endif %}
+          </div>
+          <p class="text-[13px] text-ink-muted">We use your details only to reply to you. See our <a href="{% url 'privacy' %}" class="font-semibold text-brand-navy underline underline-offset-2">Privacy Policy</a>.</p>
+          <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-brand-cta px-6 py-3.5 text-[14.5px] font-semibold text-white shadow-lg shadow-brand-orange/25 transition hover:bg-brand-ctaDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">Send message</button>
+        </form>
+      {% endif %}
+    </div>
+
+    <aside class="space-y-4 lg:pt-[118px]">
+      <section class="rounded-2xl border border-cream-line bg-white p-6" aria-labelledby="nextT">
+        <h2 id="nextT" class="font-display text-[17px] font-semibold">What happens next</h2>
+        <ol class="mt-4 space-y-4 text-[14px]">
+          <li class="flex gap-3"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-pill-navyBg text-[12px] font-bold text-brand-navy">1</span><span class="text-ink-muted">A person on our team reads your note and replies by email.</span></li>
+          <li class="flex gap-3"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-pill-navyBg text-[12px] font-bold text-brand-navy">2</span><span class="text-ink-muted">If it's a fit, you create a workspace and send it as a request you can follow.</span></li>
+          <li class="flex gap-3"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-pill-navyBg text-[12px] font-bold text-brand-navy">3</span><span class="text-ink-muted">You agree the scope and price before any work starts.</span></li>
+        </ol>
+      </section>
+      <section class="relative overflow-hidden rounded-2xl bg-brand-navy p-6 text-white" aria-labelledby="mailT">
+        <h2 id="mailT" class="font-display text-[17px] font-semibold">Prefer email?</h2>
+        <p class="mt-1 text-[14px] text-white/75">Write to us at</p>
+        <p class="mt-1 select-all break-all text-[15px] font-semibold">{{ support_email }}</p>
+      </section>
+    </aside>
+  </main>
+
+{% include "banda/public/_footer.html" %}
+{% endblock %}

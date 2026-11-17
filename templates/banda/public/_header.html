@@ -1,0 +1,13 @@
+  <header class="sticky top-0 z-40 border-b border-cream-line bg-cream-light/95 backdrop-blur">
+    <div class="mx-auto flex h-[68px] max-w-[1100px] items-center justify-between gap-4 px-5">
+      <a href="{% url 'landing' %}" class="logo" aria-label="banda, B and A Essentials, home">
+        <span class="logo-word" aria-hidden="true"><span class="logo-b">b<i class="logo-dot"></i></span>anda</span>
+        <span class="logo-tag" aria-hidden="true">B<span class="amp">&amp;</span>A ESSENTIALS</span>
+      </a>
+      <nav class="flex items-center gap-5 text-[14px] font-semibold">
+        <a href="{% url 'landing' %}" class="hidden text-ink hover:text-brand-navy sm:inline">Home</a>
+        <a href="{% url 'contact' %}" class="hidden text-ink hover:text-brand-navy sm:inline">Contact</a>
+        {% if user.is_authenticated %}<a href="{% url 'landing' %}" class="rounded-lg bg-brand-cta px-4 py-2.5 text-white hover:bg-brand-ctaDark">Open your workspace</a>{% else %}<a href="{% url 'login' %}" class="text-brand-navy hover:underline">Log In</a><a href="{% url 'signup' %}" class="rounded-lg bg-brand-cta px-4 py-2.5 text-white hover:bg-brand-ctaDark">Get Started</a>{% endif %}
+      </nav>
+    </div>
+  </header>
