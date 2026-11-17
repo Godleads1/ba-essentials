@@ -144,3 +144,18 @@ def initials(value):
     if len(parts) == 1:
         return parts[0][:2].upper()
     return (parts[0][0] + parts[-1][0]).upper()
+
+
+@register.filter
+def client_status(value):
+    """A request's status as clients read it ("Needs your info", "Being checked")."""
+    from apps.core.client_status import label
+
+    return label(value)
+
+
+@register.filter
+def client_status_chip(value):
+    from apps.core.client_status import chip
+
+    return chip(value)
