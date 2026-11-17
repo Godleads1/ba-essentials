@@ -37,7 +37,7 @@
 
           <label class="gap mt-5 flex cursor-pointer items-start gap-2.5 text-[14px] text-ink">
             <input type="checkbox" name="accept_terms" required {% if form.accept_terms.value %}checked{% endif %} class="mt-0.5 h-[18px] w-[18px] shrink-0 rounded border-cream-line accent-[#33397F]" />
-            <span>I agree to the Terms of Service and Privacy Policy, and I&rsquo;m 18 or over.</span>
+            <span>I agree to the <a href="{% url 'terms' %}" target="_blank" rel="noopener" class="font-semibold text-brand-navy underline underline-offset-2">Terms of Service</a> and <a href="{% url 'privacy' %}" target="_blank" rel="noopener" class="font-semibold text-brand-navy underline underline-offset-2">Privacy Policy</a>, and I&rsquo;m 18 or over.</span>
           </label>
           {{ form.accept_terms.errors }}
 
