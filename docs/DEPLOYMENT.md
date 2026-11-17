@@ -188,6 +188,20 @@ YAML, schema, plan, and region checks. The only reported errors were
 ClamAV service, and the cron job. Those clear once billing is configured; no
 Blueprint change is needed.
 
+## Visitor address behind a proxy
+
+Rate limits need each visitor's real address. Set exactly one of these on the
+web service, to match what sits in front of it (`apps/core/client_ip.py`):
+
+- `TRUSTED_PROXY_COUNT=1` for one proxy or load balancer that appends to
+  `X-Forwarded-For` (Render, nginx, a Lightsail load balancer). Use 2 if two
+  such proxies are chained.
+- `CLIENT_IP_HEADER=HTTP_CF_CONNECTING_IP` when Cloudflare is in front and the
+  server accepts traffic from Cloudflare only.
+
+With neither, `check --deploy` warns (`banda.W001`) and every visitor would share
+the proxy's address for rate limits.
+
 ## Renewals job
 
 `python manage.py run_renewals` issues renewal invoices with a reminder 3 days

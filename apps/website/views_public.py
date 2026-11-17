@@ -7,6 +7,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_http_methods
 
+from apps.core.client_ip import client_ip
 from apps.core import ratelimit
 
 from . import services
@@ -14,10 +15,7 @@ from .forms import ContactForm
 
 
 def _client_ip(request) -> str:
-    forwarded = request.META.get("HTTP_X_FORWARDED_FOR", "")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
-    return request.META.get("REMOTE_ADDR", "")
+    return client_ip(request)
 
 
 @require_GET

@@ -11,6 +11,7 @@ from django.utils.http import urlencode
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from apps.audit.activity import own_activity
+from apps.core.client_ip import client_ip
 from apps.core import ratelimit
 from apps.core.exceptions import PermissionFailure, RateLimited, ValidationFailure
 from apps.organizations.access import current_membership, memberships_for
@@ -36,10 +37,7 @@ from .models import ChallengePurpose, DataRequest, DataRequestKind, User, UserSe
 
 
 def _client_ip(request) -> str:
-    forwarded = request.META.get("HTTP_X_FORWARDED_FOR", "")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
-    return request.META.get("REMOTE_ADDR", "")
+    return client_ip(request)
 
 
 def _after_sign_in(request, user):
