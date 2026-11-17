@@ -120,6 +120,13 @@ jobs:
       - name: Install Python dependencies
         run: pip install --require-hashes -r requirements/dev.txt
 
+      - name: PostgreSQL 17 client tools (pg_dump for the backup tests)
+        run: |
+          sudo apt-get install -y -q postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y -q postgresql-client-17
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
+
       - name: Django tests on PostgreSQL
         run: python -m pytest --ds=config.settings.test_postgres
 

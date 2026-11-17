@@ -344,3 +344,8 @@ migration check, deploy check, and dependency audit.
   a private bucket, server-made keys checked against `..`, absolute paths and
   backslashes, downloads only through the authorised view, and a temporary
   copy for the scanner that is deleted after use. Tests: `tests/test_r2_storage.py`.
+- Backups (`docs/BACKUPS.md`): daily `run_backups` (database dump encrypted on the
+  server with AES-256-GCM, private files mirrored) to a separate private bucket,
+  rotated after 48 hours; deletions reach the mirror within two days. Monthly
+  `restore_check` restores into a scratch database and compares row counts. A
+  failure of either sends a security alert. Tests: `tests/test_backups.py`.

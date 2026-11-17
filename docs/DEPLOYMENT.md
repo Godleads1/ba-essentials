@@ -216,6 +216,11 @@ the proxy's address for rate limits.
 
 The malware scanner gets a temporary copy of each upload, deleted straight after.
 
+## Backups
+
+See [BACKUPS.md](BACKUPS.md): `run_backups` daily, `restore_check` monthly and
+once before launch.
+
 ## Renewals job
 
 `python manage.py run_renewals` issues renewal invoices with a reminder 3 days

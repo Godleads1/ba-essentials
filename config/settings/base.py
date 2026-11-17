@@ -187,6 +187,15 @@ R2_ENDPOINT_URL = env("R2_ENDPOINT_URL", "")  # https://<account id>.r2.cloudfla
 R2_BUCKET = env("R2_BUCKET", "")
 R2_ACCESS_KEY_ID = env("R2_ACCESS_KEY_ID", "")
 R2_SECRET_ACCESS_KEY = env("R2_SECRET_ACCESS_KEY", "")
+# Backups (apps/core/backups.py): "local" (BACKUP_DIR) or "r2" (a separate private bucket).
+BACKUP_BACKEND = env("BACKUP_BACKEND", "local")
+BACKUP_DIR = env("BACKUP_DIR", str(BASE_DIR / "var" / "backups"))
+BACKUP_R2_BUCKET = env("BACKUP_R2_BUCKET", "")
+BACKUP_R2_ACCESS_KEY_ID = env("BACKUP_R2_ACCESS_KEY_ID", "")
+BACKUP_R2_SECRET_ACCESS_KEY = env("BACKUP_R2_SECRET_ACCESS_KEY", "")
+BACKUP_ENCRYPTION_KEY = env("BACKUP_ENCRYPTION_KEY", "")
+BACKUP_KEEP_HOURS = env_int("BACKUP_KEEP_HOURS", 48)  # Privacy Policy: rotated within two days
+RESTORE_CHECK_DATABASE_URL = env("RESTORE_CHECK_DATABASE_URL", "")
 FILE_MAX_BYTES = env_int("FILE_MAX_BYTES", 10 * 1024 * 1024)
 FILE_SCAN_BACKEND = env("FILE_SCAN_BACKEND", "noop")
 # Optional clamd client configuration for a scanner on another host. The
