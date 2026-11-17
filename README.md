@@ -38,6 +38,10 @@ docs/              security notes and deployment guidance
 
 ## Local setup
 
+**On Windows?** Follow [docs/RUN_LOCALLY.md](docs/RUN_LOCALLY.md): a step-by-step
+guide with the two-window setup, demo data, how clients and staff sign in, and
+what to do when something goes wrong.
+
 ```bash
 python -m venv .venv
 source .venv/Scripts/activate      # Windows Git Bash
