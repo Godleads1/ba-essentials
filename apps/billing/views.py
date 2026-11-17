@@ -98,13 +98,14 @@ def plan_home(request):
             "paused": paused,
             "renewal_invoice": renewal_invoice,
             "saved_card": renewals.saved_card(request.organization.pk),
-            "owed_renewal": renewals.owed_renewal(request.organization.pk) if not subscription and not paused else None,
             "downgrades": (
                 Plan.objects.filter(is_active=True, price_minor__gt=0, rank__lt=subscription.plan.rank).order_by("rank")
                 if subscription else []
             ),
             "renewal_price": _renewal_price(subscription),
             "paused_ends": paused.paused_at + renewals.END_AFTER_PAUSE if paused and paused.paused_at else None,
+            "reminder_on": subscription.period_end - renewals.REMINDER_LEAD if subscription else None,
+            "pause_on": renewals.grace_end(subscription.period_end) if subscription else None,
             "now": timezone.now(),
         },
     )
@@ -122,7 +123,6 @@ def plan_checkout(request, plan_slug):
             plan_slug=plan_slug,
             return_url=return_url,
             interval=request.POST.get("interval", "month"),
-            renewal_consent=request.POST.get("renews") == "on",
         )
     except (ValidationFailure, PermissionFailure) as exc:
         messages.error(request, exc.message)
@@ -142,7 +142,6 @@ def plan_upgrade(request, plan_slug):
             membership=request.membership,
             plan_slug=plan_slug,
             return_url=return_url,
-            renewal_consent=request.POST.get("renews") == "on",
         )
     except (ValidationFailure, PermissionFailure) as exc:
         messages.error(request, exc.message)
@@ -163,10 +162,10 @@ def _plan_change(request, action, success: str):
 @client_required
 @require_POST
 def plan_cancel(request):
-    """Stop the next renewal. Nothing more is charged; the plan runs to the end of the paid period."""
+    """The client won't renew: reminders stop and the plan runs to the end of the paid period."""
     return _plan_change(
         request, lambda: renewals.cancel_renewal(request.organization, request.membership),
-        "Done. Your plan won't renew, and nothing more will be charged. It stays active until the end of this period.",
+        "Done. We won't send renewal reminders. Your plan stays active until the end of this period, then ends.",
     )
 
 
@@ -175,7 +174,7 @@ def plan_cancel(request):
 def plan_resume(request):
     return _plan_change(
         request, lambda: renewals.undo_cancel(request.organization, request.membership),
-        "Your plan will renew as normal.",
+        "Done. We'll remind you 3 days before your plan ends, with a link to pay.",
     )
 
 

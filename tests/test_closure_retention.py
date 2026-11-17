@@ -73,15 +73,20 @@ def test_a_plan_already_set_to_end_stays_ended_if_you_change_your_mind(owner, or
     assert subscription.cancel_at_period_end
 
 
-def test_unpaid_renewal_blocks_closing(owner, organization, subscription):
+def test_closing_with_an_unpaid_renewal_ends_the_plan_today_owing_nothing(owner, organization, subscription):
     subscription.period_end = timezone.now() - timedelta(days=1)  # in the grace period
     subscription.save()
-    with pytest.raises(ValidationFailure):
-        closure.request_closure(organization, _owner_membership(owner))
+    org = closure.request_closure(organization, _owner_membership(owner))
+    assert org.closed_at is not None
+    subscription.refresh_from_db()
+    assert subscription.status == SubscriptionStatus.CANCELLED
+
+
+def test_a_paused_account_can_still_close(owner, organization, subscription):
+    subscription.period_end = timezone.now() - timedelta(days=5)
     subscription.status = SubscriptionStatus.PAST_DUE
     subscription.save()
-    with pytest.raises(ValidationFailure):
-        closure.request_closure(organization, _owner_membership(owner))
+    assert closure.request_closure(organization, _owner_membership(owner)).closed_at is not None
 
 
 def test_only_the_owner_can_close(member, organization):

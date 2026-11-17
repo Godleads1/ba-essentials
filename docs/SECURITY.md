@@ -189,24 +189,24 @@ without authorization and a rollback procedure.
   request can't be released while fees are open. Paystack's actual fee is
   recorded from its own verification, so a foreign-card shortfall is visible
   to finance.
-- Automatic renewal (Terms 5.4–5.8): a plan or upgrade can't be bought until the
-  owner ticks an unticked renewal box; the server refuses the checkout otherwise
-  and records the wording, terms version, time and provider reference
-  (`RenewalConsent`). After a confirmed payment, the provider's reusable card
-  token is stored encrypted (Fernet, key derived from the secret key with its
-  own context) with only brand, last four digits, expiry and bank. Card numbers
-  never reach us. Rotating the secret key makes saved tokens unreadable; renewals
-  then fall back to a payment link.
-- `run_renewals` (hourly) sends reminders 5 days before a monthly and 30 days
-  before a yearly renewal, charges the saved card about a day before, and only a
-  confirmed webhook renews anything. A failed or missing payment starts five
-  business days' grace (service continues, up to three charge attempts, notices
-  on the first and last day), then pauses service: no new requests, and staff
-  can't move existing requests forward (Terms 5.6.4). The plan ends 30 days
-  later; the unpaid renewal stays owed, and a new plan can't be bought until
-  it's paid (5.6.6). Cancelling is refused once the renewal date has passed. Cancelling stops the next charge and keeps access to
-  the end of the paid period; a downgrade starts at the next renewal. Only the
-  owner can cancel, downgrade or remove the saved card, and each is audited.
+- Manual renewal (Terms 5.5–5.8): plans never renew by themselves and nothing
+  is charged automatically. No card permission is asked for or saved at
+  checkout, and the code that charged saved cards has been removed. Cards saved
+  before this change are never charged; the owner can remove them.
+- `run_renewals` (hourly) issues the renewal invoice and reminds the owners 3
+  days before a monthly or yearly period ends, with a pay link. Only a
+  confirmed webhook renews anything; paying early carries on from the end of
+  the current period. If the period ends unpaid, service continues for 5 business days
+  (notices at the start and on the last day), then the account is paused.
+- A paused account is read-only, enforced on the server in `client_required`
+  (`apps.organizations.access.PAUSED_ALLOWED`): every POST is refused except
+  paying, account security and data-rights actions, closing the account,
+  switching business and support requests. Staff can't move existing requests
+  forward (Terms 5.6.4). Thirty days after pausing, the plan ends and the unpaid
+  renewal invoice is voided: not renewing is not a debt (5.6.6). Saying "I won't
+  renew" stops reminders and keeps access to the end of the paid period; a
+  downgrade starts at the next renewal. Only the owner can renew, cancel,
+  downgrade or remove a saved card, and each is audited.
 
 ## Files
 

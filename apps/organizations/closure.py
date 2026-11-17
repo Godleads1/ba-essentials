@@ -1,4 +1,4 @@
-"""Closing a business account (Terms 5.5.5, Privacy Policy section 5).
+"""Closing a business account (Terms 5.5.3, Privacy Policy section 5).
 
 The owner asks to close. The plan stops renewing and nothing more is charged;
 full access runs to the end of the paid period, then the account closes and is
@@ -66,21 +66,19 @@ def request_closure(organization, membership) -> Organization:
         org = Organization.objects.select_for_update().get(pk=organization.pk)
         if org.closed_at is not None or org.closure_requested_at is not None:
             return org
-        if renewals.owed_renewal(org.pk) is not None:
-            raise ValidationFailure(
-                "There's an unpaid renewal on this account. Pay it, or contact support to close the account."
-            )
         now = timezone.now()
-        sub = Subscription.objects.filter(
+        sub = Subscription.objects.select_for_update().filter(
             organization=org, status__in=(SubscriptionStatus.ACTIVE, SubscriptionStatus.PAST_DUE)
         ).first()
-        if sub is not None and (sub.status == SubscriptionStatus.PAST_DUE or sub.period_end <= now):
-            # In the grace period or paused: the renewal is unpaid and still owed (Terms 5.6).
-            raise ValidationFailure(
-                "Your renewal is unpaid. Pay it, or contact support to close the account."
-            )
         stopped = False
-        if sub is not None:
+        if sub is not None and (sub.status == SubscriptionStatus.PAST_DUE or sub.period_end <= now):
+            # The paid period is over and the renewal unpaid (grace or paused). Plans don't renew
+            # by themselves, so nothing is owed: the plan ends and the account closes today.
+            sub.status = SubscriptionStatus.CANCELLED
+            sub.save(update_fields=["status", "updated_at"])
+            renewals.end_unrenewed(sub)
+            closes_at = now
+        elif sub is not None:
             if not sub.cancel_at_period_end:
                 renewals.cancel_renewal(org, membership)
                 stopped = True

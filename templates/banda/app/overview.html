@@ -129,7 +129,7 @@
               <p class="mt-3 flex items-center justify-between rounded-xl bg-cream-light px-3 py-2 text-[12.5px]"><span class="flex items-center gap-1.5 font-medium"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-scale h-3.5 w-3.5 shrink-0 text-brand-navy"><path d="M12 3v18"></path><path d="m19 8 3 8a5 5 0 0 1-6 0zV7"></path><path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1"></path><path d="m5 8 3 8a5 5 0 0 1-6 0zV7"></path><path d="M7 21h10"></path></svg>Legal reviews</span><span class="whitespace-nowrap text-ink-muted">{{ usage.legal_used }} of {{ usage.legal_total }}{% if usage.legal_every > 1 %} every {{ usage.legal_every }} months{% endif %}</span></p>
             {% endif %}
           {% else %}
-            <p class="mt-4 text-[13.5px] text-ink-muted">Choose a plan to get a monthly allowance of tasks.</p>
+            <p class="mt-4 text-[13.5px] text-ink-muted">{% if account_paused %}Your plan is paused until the renewal is paid.{% else %}Choose a plan to get a monthly allowance of tasks.{% endif %}</p>
           {% endif %}
         </section>
 
@@ -141,7 +141,14 @@
               {% if subscription.cancel_at_period_end %}<span class="chip-status bg-pill-orangeBg text-brand-orangeDark">Ends {{ subscription.period_end|date:"j M" }}</span>{% else %}<span class="chip-status bg-pill-greenBg text-pill-greenTx">Active</span>{% endif %}
             </div>
             <p class="relative mt-4 font-display text-[30px] font-semibold leading-none">{{ subscription.plan.name }}</p>
-            <p class="relative mt-2 text-[14px] text-white/75">{% if subscription.cancel_at_period_end %}Paid until {{ subscription.period_end|date:"j M Y" }}{% else %}Renews {{ subscription.period_end|date:"j M Y" }}{% endif %}</p>
+            <p class="relative mt-2 text-[14px] text-white/75">{% if subscription.cancel_at_period_end %}Paid until {{ subscription.period_end|date:"j M Y" }}{% else %}Runs until {{ subscription.period_end|date:"j M Y" }}{% endif %}</p>
+          {% elif account_paused %}
+            <div class="relative flex items-center justify-between">
+              <h2 id="yp" class="font-display text-[18px] font-semibold">Your plan</h2>
+              <span class="chip-status bg-pill-orangeBg text-brand-orangeDark">Paused</span>
+            </div>
+            <p class="relative mt-4 font-display text-[26px] font-semibold leading-tight">Renewal unpaid</p>
+            <p class="relative mt-2 text-[14px] text-white/75">Pay the renewal to pick up where you left off.</p>
           {% else %}
             <div class="relative flex items-center justify-between">
               <h2 id="yp" class="font-display text-[18px] font-semibold">Your plan</h2>
@@ -151,7 +158,7 @@
             <p class="relative mt-2 text-[14px] text-white/75">A plan covers a set number of tasks each month.</p>
           {% endif %}
           <div class="relative mt-5 flex gap-2.5 xl:mt-auto">
-            <a href="{% url 'plan-home' %}" class="btn bg-white px-4 py-2 text-[13.5px] text-cocoa-deep hover:bg-cream">{% if subscription %}Manage plan{% else %}See plans{% endif %}</a>
+            <a href="{% url 'plan-home' %}" class="btn bg-white px-4 py-2 text-[13.5px] text-cocoa-deep hover:bg-cream">{% if subscription %}Manage plan{% elif account_paused %}Pay renewal{% else %}See plans{% endif %}</a>
             <a href="{% url 'billing-home' %}" class="btn border border-white/40 px-4 py-2 text-[13.5px] hover:bg-white/10">Invoices</a>
           </div>
         </section>

@@ -133,19 +133,3 @@ def _int_or_none(value):
         return None
 
 
-def charge_saved_card(*, token: str, email: str, amount_minor: int, currency: str, reference: str, metadata: dict) -> str:
-    """Charge a saved card for a renewal. Returns Paystack's status ("success", "failed",
-    "send_otp", ...). Only a confirmed webhook marks anything paid."""
-    result = _request(
-        "POST",
-        "/transaction/charge_authorization",
-        {
-            "authorization_code": token,
-            "email": email,
-            "amount": amount_minor,
-            "currency": currency,
-            "reference": reference,
-            "metadata": metadata,
-        },
-    )
-    return str(result.get("status") or "")

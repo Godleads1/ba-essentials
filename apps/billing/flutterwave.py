@@ -176,20 +176,3 @@ def _expiry(value) -> tuple[int | None, int | None]:
         return None, None
 
 
-def charge_saved_card(*, token: str, email: str, amount_minor: int, currency: str, reference: str, metadata: dict) -> str:
-    """Charge a saved card for a renewal. Returns Flutterwave's status, mapped to
-    "success" or the raw status. Only a confirmed webhook marks anything paid."""
-    result = _request(
-        "POST",
-        "/tokenized-charges",
-        {
-            "token": token,
-            "email": email,
-            "currency": currency,
-            "amount": to_major(amount_minor),
-            "tx_ref": reference,
-            "meta": {k: str(v)[:100] for k, v in metadata.items()},
-        },
-    )
-    status = str(result.get("status") or "")
-    return "success" if status == "successful" else status

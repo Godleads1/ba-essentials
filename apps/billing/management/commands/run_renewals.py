@@ -5,8 +5,8 @@ from apps.billing import renewals
 
 class Command(BaseCommand):
     help = (
-        "Send renewal reminders, charge saved cards, and handle grace periods, pauses and "
-        "plan endings. Safe to run repeatedly; schedule it at least daily (hourly is fine)."
+        "Issue renewal invoices with a reminder 3 days before a plan ends (nothing is charged "
+        "automatically), and handle the 5-business-day grace period, pauses and plan endings. Safe to run repeatedly; schedule it at least daily (hourly is fine)."
     )
 
     def handle(self, *args, **options):

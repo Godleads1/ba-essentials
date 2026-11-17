@@ -82,19 +82,19 @@ def test_plan_page_without_a_plan_offers_one(client):
 def test_plan_page_shows_usage_and_renewal(client, subscription):
     body = client.get(reverse("plan-home")).content.decode()
     assert "Tasks used" in body and "Tasks left" in body
-    assert "Cancel renewal" in body and reverse("plan-cancel") in body
+    assert "I won't renew" in body and reverse("plan-cancel") in body
 
 
 def test_a_cancelled_renewal_can_be_kept(client, subscription):
     Subscription.objects.filter(pk=subscription.pk).update(cancel_at_period_end=True)
     body = client.get(reverse("plan-home")).content.decode()
-    assert "Keep my plan" in body and reverse("plan-resume") in body
+    assert "I'll renew after all" in body and reverse("plan-resume") in body
 
 
 def test_a_member_cannot_change_the_renewal(organization, member, subscription):
     body = login_client(member).get(reverse("plan-home")).content.decode()
     assert reverse("plan-cancel") not in body
-    assert "Only the business owner can change the renewal." in body
+    assert "Only the business owner can renew or change the plan." in body
 
 
 # ---------- Service Catalogue ----------

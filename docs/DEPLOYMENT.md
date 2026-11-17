@@ -190,8 +190,9 @@ Blueprint change is needed.
 
 ## Renewals job
 
-`python manage.py run_renewals` sends renewal reminders, charges saved cards,
-and moves unpaid plans through grace, pause and ending. It is safe to run
+`python manage.py run_renewals` issues renewal invoices with a reminder 3 days
+before a plan ends (nothing is charged automatically), and moves unpaid plans
+through 5 business days' grace, pause and ending. It is safe to run
 repeatedly and should run at least daily (hourly is fine). It is **not** in the
 Render Blueprint yet, because a new cron service is billed separately; add it
 (same settings as the outbox cron, `schedule: "17 * * * *"`) or a systemd timer

@@ -69,9 +69,35 @@ def client_required(view):
             # A closed account is read-only: sign in, view and download (Privacy Policy 5).
             messages.error(request, "This account is closed, so it's read-only. Contact support to reopen it.")
             return redirect("client-overview")
+        if request.method not in ("GET", "HEAD", "OPTIONS") and _paused_and_blocked(request):
+            messages.error(request, "Your account is paused because the renewal is unpaid. "
+                                    "Pay the renewal to continue.")
+            return redirect("plan-home")
         return view(request, *args, **kwargs)
 
     return wrapper
+
+
+# While an account is paused (renewal unpaid after the 5-business-day grace), clients can still sign in,
+# view and download, and these actions stay open: paying, account security and data rights,
+# closing the account, switching business, and asking support for help.
+PAUSED_ALLOWED = frozenset({
+    "invoice-checkout", "plan-checkout", "switch-organization", "notifications-read",
+    "support-new", "support-detail", "support-close",
+    "security-password", "security-mfa", "security-mfa-off", "security-details", "security-preferences",
+    "security-data-download", "security-data-request", "security-close", "security-close-cancel",
+    "security-channel", "security-email", "security-phone", "security-phone-remove",
+    "security-sessions-others", "security-session-revoke",
+})
+
+
+def _paused_and_blocked(request) -> bool:
+    from apps.billing.plan_rules import is_paused
+
+    match = getattr(request, "resolver_match", None)
+    if match is not None and match.url_name in PAUSED_ALLOWED:
+        return False
+    return is_paused(request.organization)
 
 
 def organization_scope(request) -> Organization:
