@@ -25,6 +25,7 @@ RESERVED_SLUGS = frozenset(
         "robots.txt",
         "services",
         "signup",
+        "site-images",
         "sitemap.xml",
         "staff",
         "static",
@@ -51,7 +52,7 @@ def _clean_slug(raw: str) -> str:
 
 
 def _clean_content(*, title: str, summary: str, body: str, meta_description: str = "",
-                   hide_from_search: bool = False) -> dict:
+                   hide_from_search: bool = False, share_image=None) -> dict:
     meta_description = " ".join((meta_description or "").split())
     if len(meta_description) > MAX_META_DESCRIPTION:
         raise ValidationFailure(f"Keep the search description to {MAX_META_DESCRIPTION} characters or fewer.")
@@ -69,15 +70,16 @@ def _clean_content(*, title: str, summary: str, body: str, meta_description: str
     if len(body) > MAX_BODY_LENGTH:
         raise ValidationFailure("That content is too long.")
     return {"title": title, "summary": summary, "body": body,
-            "meta_description": meta_description, "hide_from_search": bool(hide_from_search)}
+            "meta_description": meta_description, "hide_from_search": bool(hide_from_search),
+            "share_image": share_image}
 
 
 @transaction.atomic
 def create_page(*, slug: str, title: str, summary: str, body: str, actor, meta_description: str = "",
-                hide_from_search: bool = False):
+                hide_from_search: bool = False, share_image=None):
     slug = _clean_slug(slug)
     content = _clean_content(title=title, summary=summary, body=body, meta_description=meta_description,
-                             hide_from_search=hide_from_search)
+                             hide_from_search=hide_from_search, share_image=share_image)
     if Page.objects.filter(slug=slug).exists():
         raise ValidationFailure("A page with that address already exists.")
     try:
@@ -116,9 +118,9 @@ def _next_revision(page: Page, *, content: dict, actor, action: str) -> PageRevi
 
 @transaction.atomic
 def save_draft(page: Page, *, title: str, summary: str, body: str, actor, meta_description: str = "",
-               hide_from_search: bool = False) -> PageRevision:
+               hide_from_search: bool = False, share_image=None) -> PageRevision:
     content = _clean_content(title=title, summary=summary, body=body, meta_description=meta_description,
-                             hide_from_search=hide_from_search)
+                             hide_from_search=hide_from_search, share_image=share_image)
     return _next_revision(page, content=content, actor=actor, action="website.draft_saved")
 
 
@@ -129,6 +131,7 @@ def restore_revision(page: Page, revision: PageRevision, *, actor) -> PageRevisi
     content = _clean_content(
         title=revision.title, summary=revision.summary, body=revision.body,
         meta_description=revision.meta_description, hide_from_search=revision.hide_from_search,
+        share_image=revision.share_image,
     )
     return _next_revision(
         page, content=content, actor=actor, action="website.revision_restored"

@@ -41,6 +41,33 @@ class Page(TimeStampedModel):
         return self.published_revision_id is not None
 
 
+class PageImage(models.Model):
+    """An image for website pages. Stored re-encoded (no metadata), shown only once a published page uses it."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    storage_key = models.CharField(max_length=200, unique=True)
+    content_type = models.CharField(max_length=32)
+    alt_text = models.CharField(max_length=200)
+    width = models.PositiveIntegerField()
+    height = models.PositiveIntegerField()
+    size_bytes = models.PositiveIntegerField()
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="+"
+    )
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return self.alt_text
+
+    @property
+    def snippet(self) -> str:
+        """What an editor pastes into a page body."""
+        return f"![{self.alt_text}](image:{self.pk})"
+
+
 class PageRevision(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     page = models.ForeignKey(Page, on_delete=models.CASCADE, related_name="revisions")
@@ -51,6 +78,10 @@ class PageRevision(models.Model):
     # Search engines and link previews. Empty description falls back to the summary.
     meta_description = models.CharField(max_length=160, blank=True)
     hide_from_search = models.BooleanField(default=False)
+    share_image = models.ForeignKey(
+        PageImage, on_delete=models.SET_NULL, null=True, blank=True, related_name="+",
+        help_text="Shown when the page is shared on WhatsApp, LinkedIn and similar.",
+    )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,

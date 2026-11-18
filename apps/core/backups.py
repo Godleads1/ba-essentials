@@ -208,7 +208,10 @@ def backup_files(now: datetime | None = None, target=None) -> dict:
     now = now or datetime.now(tz=UTC)
     target = target or get_target()
     source = get_storage()
+    from apps.website.models import PageImage
+
     live = set(PrivateFile.objects.values_list("storage_key", flat=True))
+    live |= set(PageImage.objects.values_list("storage_key", flat=True))  # website images too
     present = {key[len("files/"):] for key, _ in target.list("files/") if key != MISSING}
     copied = 0
     for key in sorted(live - present):

@@ -20,6 +20,7 @@
             {{ form.hide_from_search }} {{ form.hide_from_search.label }}
           </label>
           <p class="help">Use this for pages people reach from a link you send, not from Google.</p>
+          {% include "banda/staff/_field.html" with field=form.share_image %}
         </fieldset>
         <div class="flex flex-wrap items-center gap-3 pt-2">
           <button type="submit" class="btn-next">{% if mode == "create" %}Create draft{% else %}Save as new draft{% endif %}</button>
@@ -58,6 +59,7 @@
           <div><dt class="font-mono text-ink">**bold** and *italic*</dt><dd>Emphasis inside a sentence.</dd></div>
           <div><dt class="font-mono text-ink">[our services](/services/)</dt><dd>A link. Use https://, mailto: or tel:, or a page on this site starting with /.</dd></div>
           <div><dt class="font-mono text-ink">- item</dt><dd>A bullet list; <span class="font-mono">1. item</span> for a numbered one. One item per line.</dd></div>
+          <div><dt class="font-mono text-ink">![description](image:…)</dt><dd>An image, on a line of its own. Copy the line from <a class="font-semibold text-brand-navy" href="{% url 'staff-website-images' %}">Images</a>.</dd></div>
           <div><dt class="text-ink">A blank line</dt><dd>Starts a new paragraph.</dd></div>
         </dl>
         <p class="mt-3 text-xs text-ink-soft">HTML and scripts are shown as plain text, never run. Preview before publishing.</p>

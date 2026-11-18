@@ -1,0 +1,48 @@
+{% extends "banda/staff/base.html" %}
+{% block title %}Website images{% endblock %}
+{% block page_title %}Website images{% endblock %}
+{% block content %}
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <p class="text-sm text-ink-muted">Upload an image, then copy its line into a page. The public sees it only once that page is published.</p>
+    <a class="btn-ghost btn-sm" href="{% url 'staff-website-pages' %}">&larr; Pages</a>
+  </div>
+
+  <div class="grid gap-6 lg:grid-cols-[1fr_1.6fr]">
+    <section class="panel p-5">
+      <h2 class="text-sm font-semibold text-ink">Upload an image</h2>
+      <form method="post" enctype="multipart/form-data" class="mt-4 space-y-5" novalidate>
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        {% include "banda/staff/_field.html" with field=form.image %}
+        {% include "banda/staff/_field.html" with field=form.alt_text %}
+        <button type="submit" class="btn-next">Upload</button>
+      </form>
+    </section>
+
+    <section class="panel">
+      {% if rows %}
+        <ul class="divide-y divide-cream-line">
+          {% for row in rows %}
+            <li id="image-{{ row.image.pk }}" class="flex flex-wrap items-start gap-4 p-4">
+              <img src="{% url 'website-image' image_id=row.image.pk %}" alt="{{ row.image.alt_text }}" width="96" height="72" class="h-[72px] w-24 rounded-lg border border-cream-line object-cover" loading="lazy">
+              <div class="min-w-0 flex-1 space-y-1">
+                <p class="text-sm font-medium text-ink">{{ row.image.alt_text }}</p>
+                <p class="text-xs text-ink-soft">{{ row.image.width }} × {{ row.image.height }} · {{ row.image.size_bytes|filesizeformat }} · {{ row.image.created_at|date:"j M Y" }}{% if row.live %} · <span class="text-brand-navy">on a published page</span>{% endif %}</p>
+                <label class="sr-only" for="snippet-{{ row.image.pk }}">Line to paste into a page</label>
+                <input id="snippet-{{ row.image.pk }}" class="w-full rounded-lg border border-cream-line bg-cream-light px-3 py-1.5 font-mono text-xs text-ink" value="{{ row.image.snippet }}" readonly>
+              </div>
+              {% if not row.live %}
+                <form method="post" action="{% url 'staff-website-image-delete' image_id=row.image.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn-ghost btn-sm">Delete</button>
+                </form>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="px-6 py-16 text-center text-sm text-ink-muted">No images yet.</p>
+      {% endif %}
+    </section>
+  </div>
+{% endblock %}

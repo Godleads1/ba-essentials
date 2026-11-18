@@ -4,7 +4,8 @@ from django import forms
 
 from apps.accounts.forms import StyledFormMixin
 
-from .models import MenuPlacement
+from .images import MAX_ALT_TEXT
+from .models import MenuPlacement, PageImage
 from .services import MAX_BODY_LENGTH, MAX_META_DESCRIPTION
 
 
@@ -61,6 +62,13 @@ class PageDraftForm(StyledFormMixin, forms.Form):
         required=False,
         label="Hide this page from search engines",
     )
+    share_image = forms.ModelChoiceField(
+        queryset=PageImage.objects.all(),
+        required=False,
+        label="Link-preview image",
+        empty_label="None",
+        help_text="Shown when the page is shared on WhatsApp, LinkedIn and similar. Upload it under Images first.",
+    )
 
 
 class PageCreateForm(PageDraftForm):
@@ -69,9 +77,22 @@ class PageCreateForm(PageDraftForm):
         label="Page address",
         help_text="Used in the URL, for example /about-us/.",
     )
-    field_order = ["slug", "title", "summary", "body", "meta_description", "hide_from_search"]
+    field_order = ["slug", "title", "summary", "body", "meta_description", "hide_from_search", "share_image"]
 
 
 class PageMenuForm(StyledFormMixin, forms.Form):
     menu = forms.ChoiceField(choices=MenuPlacement.choices, label="Show in the site menu")
     menu_order = forms.IntegerField(min_value=0, max_value=999, label="Position")
+
+
+class ImageUploadForm(StyledFormMixin, forms.Form):
+    image = forms.FileField(
+        label="Image",
+        help_text="JPEG, PNG or WebP, up to 5 MB. It is resized to at most 2000 pixels and its metadata (such as location) is removed.",
+        widget=forms.ClearableFileInput(attrs={"accept": "image/jpeg,image/png,image/webp"}),
+    )
+    alt_text = forms.CharField(
+        max_length=MAX_ALT_TEXT,
+        label="Description (alt text)",
+        help_text="What the image shows, for people using screen readers. For example: Our team at the Lekki office.",
+    )

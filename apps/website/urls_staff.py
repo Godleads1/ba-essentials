@@ -5,6 +5,8 @@ from . import views_staff as views
 urlpatterns = [
     path("website/", views.page_list, name="staff-website-pages"),
     path("website/new/", views.page_create, name="staff-website-create"),
+    path("website/images/", views.image_library, name="staff-website-images"),
+    path("website/images/<uuid:image_id>/delete/", views.image_delete, name="staff-website-image-delete"),
     path("website/<uuid:page_id>/", views.page_edit, name="staff-website-edit"),
     path(
         "website/<uuid:page_id>/preview/",
