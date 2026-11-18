@@ -249,3 +249,12 @@ def test_website_staff_menu_shows_only_what_they_can_use(editor):
     body = login_client(editor).get("/staff/website/").content.decode()
     assert 'href="/staff/website/"' in body
     assert 'href="/staff/queue/"' not in body and ">Operations Queue<" not in body
+
+
+def test_a_superuser_with_a_website_role_keeps_the_task_pages(db):
+    boss = make_user("boss@example.test", staff_role=StaffRole.WEBSITE_EDITOR, mfa=True, is_staff=True)
+    boss.is_superuser = True
+    boss.save()
+    c = login_client(boss)
+    assert c.get("/staff/").status_code == 200
+    assert 'href="/staff/queue/"' in c.get("/staff/website/").content.decode()
