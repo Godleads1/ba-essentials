@@ -9,7 +9,7 @@ from django.utils.text import slugify
 from apps.audit import services as audit
 from apps.core.exceptions import ValidationFailure
 
-from .models import ContactMessage, ContactStatus, Page, PageRevision
+from .models import ContactMessage, ContactStatus, MenuPlacement, Page, PageRevision
 
 RESERVED_SLUGS = frozenset(
     {
@@ -34,6 +34,9 @@ RESERVED_SLUGS = frozenset(
 )
 
 MAX_BODY_LENGTH = 20_000
+MAX_META_DESCRIPTION = 160
+# The header has room for Home, Services and Contact plus a few pages.
+MAX_HEADER_PAGES = 3
 
 
 def _clean_slug(raw: str) -> str:
@@ -47,7 +50,11 @@ def _clean_slug(raw: str) -> str:
     return slug
 
 
-def _clean_content(*, title: str, summary: str, body: str) -> dict:
+def _clean_content(*, title: str, summary: str, body: str, meta_description: str = "",
+                   hide_from_search: bool = False) -> dict:
+    meta_description = " ".join((meta_description or "").split())
+    if len(meta_description) > MAX_META_DESCRIPTION:
+        raise ValidationFailure(f"Keep the search description to {MAX_META_DESCRIPTION} characters or fewer.")
     title = (title or "").strip()
     summary = (summary or "").strip()
     body = (body or "").strip()
@@ -61,13 +68,16 @@ def _clean_content(*, title: str, summary: str, body: str) -> dict:
         raise ValidationFailure("Add some content before saving.")
     if len(body) > MAX_BODY_LENGTH:
         raise ValidationFailure("That content is too long.")
-    return {"title": title, "summary": summary, "body": body}
+    return {"title": title, "summary": summary, "body": body,
+            "meta_description": meta_description, "hide_from_search": bool(hide_from_search)}
 
 
 @transaction.atomic
-def create_page(*, slug: str, title: str, summary: str, body: str, actor):
+def create_page(*, slug: str, title: str, summary: str, body: str, actor, meta_description: str = "",
+                hide_from_search: bool = False):
     slug = _clean_slug(slug)
-    content = _clean_content(title=title, summary=summary, body=body)
+    content = _clean_content(title=title, summary=summary, body=body, meta_description=meta_description,
+                             hide_from_search=hide_from_search)
     if Page.objects.filter(slug=slug).exists():
         raise ValidationFailure("A page with that address already exists.")
     try:
@@ -105,8 +115,10 @@ def _next_revision(page: Page, *, content: dict, actor, action: str) -> PageRevi
 
 
 @transaction.atomic
-def save_draft(page: Page, *, title: str, summary: str, body: str, actor) -> PageRevision:
-    content = _clean_content(title=title, summary=summary, body=body)
+def save_draft(page: Page, *, title: str, summary: str, body: str, actor, meta_description: str = "",
+               hide_from_search: bool = False) -> PageRevision:
+    content = _clean_content(title=title, summary=summary, body=body, meta_description=meta_description,
+                             hide_from_search=hide_from_search)
     return _next_revision(page, content=content, actor=actor, action="website.draft_saved")
 
 
@@ -115,7 +127,8 @@ def restore_revision(page: Page, revision: PageRevision, *, actor) -> PageRevisi
     if revision.page_id != page.pk:
         raise ValidationFailure("That revision does not belong to this page.")
     content = _clean_content(
-        title=revision.title, summary=revision.summary, body=revision.body
+        title=revision.title, summary=revision.summary, body=revision.body,
+        meta_description=revision.meta_description, hide_from_search=revision.hide_from_search,
     )
     return _next_revision(
         page, content=content, actor=actor, action="website.revision_restored"
@@ -168,11 +181,45 @@ def published_page(slug: str) -> Page | None:
 
 
 def published_pages():
+    """Published pages for the footer menu, in the order publishers chose."""
+    return menu_pages(MenuPlacement.FOOTER)
+
+
+def menu_pages(placement: str):
+    """Published pages linked from the footer (which includes header pages) or the header."""
+    places = [MenuPlacement.HEADER] if placement == MenuPlacement.HEADER else [MenuPlacement.HEADER, MenuPlacement.FOOTER]
     return (
         Page.objects.select_related("published_revision")
-        .filter(published_revision__isnull=False)
-        .order_by("slug")
+        .filter(published_revision__isnull=False, menu__in=places)
+        .order_by("menu_order", "slug")
     )
+
+
+@transaction.atomic
+def set_menu(page: Page, *, menu: str, menu_order: int, actor) -> Page:
+    """Where a page is linked from. It changes the live site, so it needs the publish permission."""
+    from apps.accounts.permissions import WEBSITE_PUBLISH, require_perm
+
+    require_perm(actor, WEBSITE_PUBLISH)
+    if menu not in MenuPlacement.values:
+        raise ValidationFailure("Choose where the page appears.")
+    if not isinstance(menu_order, int) or not 0 <= menu_order <= 999:
+        raise ValidationFailure("The menu position must be a whole number from 0 to 999.")
+    locked = Page.objects.select_for_update().get(pk=page.pk)
+    header_full = Page.objects.filter(menu=MenuPlacement.HEADER).exclude(pk=locked.pk).count() >= MAX_HEADER_PAGES
+    if menu == MenuPlacement.HEADER and locked.menu != MenuPlacement.HEADER and header_full:
+        raise ValidationFailure(f"The header has room for {MAX_HEADER_PAGES} pages. Move one to the footer first.")
+    before = (locked.menu, locked.menu_order)
+    locked.menu, locked.menu_order = menu, menu_order
+    locked.save(update_fields=["menu", "menu_order", "updated_at"])
+    audit.record(
+        action="website.menu_changed",
+        actor=actor,
+        resource_type="website_page",
+        resource_id=str(locked.pk),
+        reason=f"{before[0]}/{before[1]} -> {menu}/{menu_order}",
+    )
+    return locked
 
 
 def submit_contact_message(

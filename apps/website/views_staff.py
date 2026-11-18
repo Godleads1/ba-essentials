@@ -19,8 +19,8 @@ from apps.core.exceptions import DomainError
 from apps.core.views import handle_domain_error
 
 from . import services
-from .forms import PageCreateForm, PageDraftForm
-from .models import ContactMessage, ContactStatus, Page, PageRevision
+from .forms import PageCreateForm, PageDraftForm, PageMenuForm
+from .models import ContactMessage, ContactStatus, MenuPlacement, Page, PageRevision
 
 
 def _page(page_id) -> Page:
@@ -61,6 +61,8 @@ def page_create(request):
                 title=form.cleaned_data["title"],
                 summary=form.cleaned_data["summary"],
                 body=form.cleaned_data["body"],
+                meta_description=form.cleaned_data["meta_description"],
+                hide_from_search=form.cleaned_data["hide_from_search"],
                 actor=request.user,
             )
         except DomainError as exc:
@@ -87,6 +89,8 @@ def page_edit(request, page_id):
                     title=form.cleaned_data["title"],
                     summary=form.cleaned_data["summary"],
                     body=form.cleaned_data["body"],
+                    meta_description=form.cleaned_data["meta_description"],
+                    hide_from_search=form.cleaned_data["hide_from_search"],
                     actor=request.user,
                 )
             except DomainError as exc:
@@ -102,6 +106,8 @@ def page_edit(request, page_id):
                 "title": latest.title,
                 "summary": latest.summary,
                 "body": latest.body,
+                "meta_description": latest.meta_description,
+                "hide_from_search": latest.hide_from_search,
             }
         )
     return render(
@@ -143,8 +149,28 @@ def page_history(request, page_id):
             "revisions": revisions,
             "published_revision_id": page.published_revision_id,
             "can_publish": has_perm(request.user, WEBSITE_PUBLISH),
+            "menu_form": PageMenuForm(initial={"menu": page.menu, "menu_order": page.menu_order}),
+            "menu_label": MenuPlacement(page.menu).label,
         },
     )
+
+
+@staff_permission_required(WEBSITE_PUBLISH)
+@require_POST
+def page_menu(request, page_id):
+    page = _page(page_id)
+    form = PageMenuForm(request.POST)
+    back = reverse("staff-website-history", args=[page.pk])
+    if not form.is_valid():
+        messages.error(request, "Choose where the page appears and a position from 0 to 999.")
+        return redirect(back)
+    try:
+        services.set_menu(page, menu=form.cleaned_data["menu"], menu_order=form.cleaned_data["menu_order"],
+                          actor=request.user)
+    except DomainError as exc:
+        return handle_domain_error(request, exc, redirect_to=back)
+    messages.success(request, f"Menu updated for /{page.slug}/.")
+    return redirect(back)
 
 
 @staff_permission_required(WEBSITE_PUBLISH)

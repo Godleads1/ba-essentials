@@ -31,6 +31,7 @@ urlpatterns = [
         views.page_restore,
         name="staff-website-restore",
     ),
+    path("website/<uuid:page_id>/menu/", views.page_menu, name="staff-website-menu"),
     path("leads/", views.leads, name="staff-leads"),
     path("leads/<uuid:contact_id>/", views.lead_update, name="staff-lead-update"),
 ]

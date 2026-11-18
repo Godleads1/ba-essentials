@@ -74,10 +74,13 @@ def navigation(request):
         from apps.accounts.models import StaffRole
         from apps.accounts.permissions import has_perm
 
+        website_only = staff_role in (StaffRole.WEBSITE_EDITOR, StaffRole.WEBSITE_PUBLISHER)
         allowed = []
         for name, label, icon in STAFF_NAV:
             if name == "staff-my-cases" and staff_role != StaffRole.SPECIALIST:
                 continue
+            if website_only and name in ("staff-dashboard", "staff-queue"):
+                continue  # their task views are always empty; they start on Website
             required = STAFF_NAV_PERMISSIONS.get(name)
             if required and not has_perm(user, required):
                 continue

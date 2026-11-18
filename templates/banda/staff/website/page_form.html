@@ -13,6 +13,14 @@
         {% include "banda/staff/_field.html" with field=form.title %}
         {% include "banda/staff/_field.html" with field=form.summary %}
         {% include "banda/staff/_field.html" with field=form.body %}
+        <fieldset class="space-y-4 rounded-2xl border border-cream-line p-4">
+          <legend class="px-1 text-sm font-semibold text-ink">Search and link previews</legend>
+          {% include "banda/staff/_field.html" with field=form.meta_description %}
+          <label class="flex items-center gap-2 text-sm text-ink" for="{{ form.hide_from_search.id_for_label }}">
+            {{ form.hide_from_search }} {{ form.hide_from_search.label }}
+          </label>
+          <p class="help">Use this for pages people reach from a link you send, not from Google.</p>
+        </fieldset>
         <div class="flex flex-wrap items-center gap-3 pt-2">
           <button type="submit" class="btn-next">{% if mode == "create" %}Create draft{% else %}Save as new draft{% endif %}</button>
           {% if mode == "edit" %}
@@ -43,6 +51,17 @@
           </div>
         </div>
       {% endif %}
+      <div class="panel p-5">
+        <h2 class="text-sm font-semibold text-ink">Formatting</h2>
+        <dl class="mt-3 space-y-2 text-xs text-ink-muted">
+          <div><dt class="font-mono text-ink">## Heading</dt><dd>A section heading. <span class="font-mono">###</span> for a smaller one.</dd></div>
+          <div><dt class="font-mono text-ink">**bold** and *italic*</dt><dd>Emphasis inside a sentence.</dd></div>
+          <div><dt class="font-mono text-ink">[our services](/services/)</dt><dd>A link. Use https://, mailto: or tel:, or a page on this site starting with /.</dd></div>
+          <div><dt class="font-mono text-ink">- item</dt><dd>A bullet list; <span class="font-mono">1. item</span> for a numbered one. One item per line.</dd></div>
+          <div><dt class="text-ink">A blank line</dt><dd>Starts a new paragraph.</dd></div>
+        </dl>
+        <p class="mt-3 text-xs text-ink-soft">HTML and scripts are shown as plain text, never run. Preview before publishing.</p>
+      </div>
       <div class="rounded-2xl border border-[#F3C9AE] bg-pill-orangeBg p-4 text-xs leading-relaxed text-brand-orangeDark">
         Saving creates a new revision. Nothing changes on the public site until a publisher releases that revision.
       </div>
