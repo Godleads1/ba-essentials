@@ -18,9 +18,9 @@ from apps.accounts.permissions import (
 from apps.core.exceptions import DomainError
 from apps.core.views import handle_domain_error
 
-from . import services
-from .forms import PageCreateForm, PageDraftForm, PageMenuForm
-from .models import ContactMessage, ContactStatus, MenuPlacement, Page, PageRevision
+from . import images, services
+from .forms import ImageUploadForm, PageCreateForm, PageDraftForm, PageMenuForm
+from .models import ContactMessage, ContactStatus, MenuPlacement, Page, PageImage, PageRevision
 
 
 def _page(page_id) -> Page:
@@ -63,6 +63,7 @@ def page_create(request):
                 body=form.cleaned_data["body"],
                 meta_description=form.cleaned_data["meta_description"],
                 hide_from_search=form.cleaned_data["hide_from_search"],
+                share_image=form.cleaned_data["share_image"],
                 actor=request.user,
             )
         except DomainError as exc:
@@ -91,6 +92,7 @@ def page_edit(request, page_id):
                     body=form.cleaned_data["body"],
                     meta_description=form.cleaned_data["meta_description"],
                     hide_from_search=form.cleaned_data["hide_from_search"],
+                    share_image=form.cleaned_data["share_image"],
                     actor=request.user,
                 )
             except DomainError as exc:
@@ -108,6 +110,7 @@ def page_edit(request, page_id):
                 "body": latest.body,
                 "meta_description": latest.meta_description,
                 "hide_from_search": latest.hide_from_search,
+                "share_image": latest.share_image_id,
             }
         )
     return render(
@@ -222,6 +225,37 @@ def page_restore(request, page_id):
         f"Restored v{revision.revision_number} as draft v{restored.revision_number}.",
     )
     return redirect("staff-website-history", page_id=page.pk)
+
+
+@staff_permission_required(WEBSITE_EDIT)
+@require_http_methods(["GET", "POST"])
+def image_library(request):
+    form = ImageUploadForm(request.POST or None, request.FILES or None)
+    if request.method == "POST" and form.is_valid():
+        try:
+            image = images.upload(uploaded_file=form.cleaned_data["image"], alt_text=form.cleaned_data["alt_text"],
+                                  actor=request.user)
+        except DomainError as exc:
+            form.add_error("image", exc.message)
+        else:
+            messages.success(request, "Image uploaded. Copy its line into a page to show it.")
+            return redirect(f"{reverse('staff-website-images')}#image-{image.pk}")
+    rows = [{"image": image, "live": images.is_live(image)} for image in PageImage.objects.select_related("uploaded_by")[:200]]
+    return render(request, "banda/staff/website/images.html", {"form": form, "rows": rows})
+
+
+@staff_permission_required(WEBSITE_EDIT)
+@require_POST
+def image_delete(request, image_id):
+    image = PageImage.objects.filter(pk=image_id).first()
+    if image is None:
+        raise Http404("Image not found")
+    try:
+        images.delete(image, actor=request.user)
+    except DomainError as exc:
+        return handle_domain_error(request, exc, redirect_to=reverse("staff-website-images"))
+    messages.info(request, "Image deleted.")
+    return redirect("staff-website-images")
 
 
 @staff_permission_required(LEADS_VIEW)

@@ -6,6 +6,7 @@ Editors write plain text with a few marks:
     **bold**            *italic*
     [link text](https://example.com)   [link](/services/)   [email](mailto:hello@example.com)
     - bullet item       1. numbered item
+    ![description](image:<id>)   an uploaded image, on a line of its own
 
 A blank line starts a new paragraph. Everything is HTML-escaped first and only
 the tags above are added back, so no HTML, script or style an editor types can
@@ -20,6 +21,8 @@ from django.utils.safestring import SafeString, mark_safe
 
 _HEADING = re.compile(r"^(#{1,3})\s+(.+)$")
 _BULLET = re.compile(r"^[-*]\s+(.+)$")
+_IMAGE = re.compile(r"^!\[([^\[\]\n]{0,200})\]\(image:([0-9a-fA-F-]{36})\)$")
+_IMAGE_REF = re.compile(r"image:([0-9a-fA-F-]{36})")
 _NUMBER = re.compile(r"^\d{1,3}[.)]\s+(.+)$")
 # Applied to text that is already escaped, so it can only ever see &lt; &gt; &quot; etc.
 _LINK = re.compile(r"\[([^\[\]\n]{1,200})\]\(([^()\s]{1,500})\)")
@@ -68,14 +71,35 @@ def _list(lines: list[str], pattern: re.Pattern, tag: str) -> str:
     return f"<{tag}>{items}</{tag}>"
 
 
-def render(body: str) -> SafeString:
+def image_ids(body: str) -> set[str]:
+    return {m.lower() for m in _IMAGE_REF.findall(body or "")}
+
+
+def _image(match: re.Match, images: dict) -> str:
+    image = images.get(match.group(2).lower())
+    if image is None:
+        return ""  # deleted or unknown: show nothing rather than a broken image
+    from django.urls import reverse
+
+    alt = match.group(1).strip() or escape(image.alt_text)  # group(1) is already escaped text
+    src = reverse("website-image", args=[image.pk])
+    return (f'<figure><img src="{src}" alt="{alt}" width="{int(image.width)}" height="{int(image.height)}" '
+            'loading="lazy" decoding="async"></figure>')
+
+
+def render(body: str, images: dict | None = None) -> SafeString:
+    """`images` maps image id (lower-case string) to PageImage, for `![…](image:<id>)` lines."""
+    images = images or {}
     html: list[str] = []
     text = escape((body or "").replace("\r\n", "\n").replace("\r", "\n"))
     for block in re.split(r"\n\s*\n", text.strip()):
         lines = [line.strip() for line in block.split("\n") if line.strip()]
         if not lines:
             continue
-        if len(lines) == 1 and (heading := _HEADING.match(lines[0])):
+        if len(lines) == 1 and (picture := _IMAGE.match(lines[0])):
+            if figure := _image(picture, images):
+                html.append(figure)
+        elif len(lines) == 1 and (heading := _HEADING.match(lines[0])):
             level = 2 if len(heading.group(1)) <= 2 else 3  # the page title is the only h1
             html.append(f"<h{level}>{_inline(heading.group(2))}</h{level}>")
         elif all(_BULLET.match(line) for line in lines):

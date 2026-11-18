@@ -64,6 +64,8 @@
     .doc ol { margin: 10px 0 14px; padding-left: 22px; list-style: decimal; }
     .doc h3 { margin: 28px 0 8px; font-family: Lexend, system-ui, sans-serif; font-size: 17px; font-weight: 600; color: #241A15; }
     .doc em { font-style: italic; }
+    .doc figure { margin: 24px 0; }
+    .doc figure img { display: block; max-width: 100%; height: auto; border-radius: 14px; }
     .doc strong { color: #241A15; font-weight: 600; }
     .doc a { color: #33397F; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
     .doc .var { color: #5C534D; font-weight: 600; }

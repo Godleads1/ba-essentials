@@ -4,3 +4,4 @@ whitenoise==6.12.0
 pyotp==2.10.0
 cryptography==50.0.2
 phonenumbers==9.0.43
+pillow==13.0.0

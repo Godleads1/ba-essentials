@@ -70,3 +70,31 @@ def contact(request):
         "banda/public/contact.html",
         {"form": form, "site_pages": services.published_pages(), "support_email": settings.SUPPORT_EMAIL},
     )
+
+
+@require_GET
+def site_image(request, image_id):
+    """An uploaded page image. Public once a published page uses it; until then only website staff see it."""
+    from django.http import FileResponse
+
+    from apps.accounts.permissions import WEBSITE_EDIT, has_perm
+    from apps.files.storage import get_storage
+
+    from . import images
+    from .models import PageImage
+
+    image = PageImage.objects.filter(pk=image_id).first()
+    if image is None:
+        raise Http404("Image not found")
+    live = images.is_live(image)
+    if not live and not has_perm(request.user, WEBSITE_EDIT):
+        raise Http404("Image not found")  # the same answer as a missing image: nothing to learn
+    storage = get_storage()
+    if not storage.exists(image.storage_key):
+        raise Http404("Image not found")
+    response = FileResponse(storage.open(image.storage_key), content_type=image.content_type)
+    response["Content-Disposition"] = "inline"
+    response["X-Content-Type-Options"] = "nosniff"
+    # Published images can be cached (by browsers and Cloudflare); drafts never are.
+    response["Cache-Control"] = "public, max-age=3600" if live else "private, no-store"
+    return response
