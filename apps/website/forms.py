@@ -4,7 +4,8 @@ from django import forms
 
 from apps.accounts.forms import StyledFormMixin
 
-from .services import MAX_BODY_LENGTH
+from .models import MenuPlacement
+from .services import MAX_BODY_LENGTH, MAX_META_DESCRIPTION
 
 
 class ContactForm(StyledFormMixin, forms.Form):
@@ -38,30 +39,39 @@ class ContactForm(StyledFormMixin, forms.Form):
         return message
 
 
-class PageCreateForm(StyledFormMixin, forms.Form):
+class PageDraftForm(StyledFormMixin, forms.Form):
+    title = forms.CharField(max_length=160)
+    summary = forms.CharField(
+        max_length=255,
+        required=False,
+        help_text="One-line description shown under the title.",
+    )
+    body = forms.CharField(
+        max_length=MAX_BODY_LENGTH,
+        widget=forms.Textarea(attrs={"rows": 16}),
+        help_text="Formatting guide on the right. HTML is shown as text, never run.",
+    )
+    meta_description = forms.CharField(
+        max_length=MAX_META_DESCRIPTION,
+        required=False,
+        label="Search description",
+        help_text="Shown by Google and in link previews. Up to 160 characters; leave empty to use the summary.",
+    )
+    hide_from_search = forms.BooleanField(
+        required=False,
+        label="Hide this page from search engines",
+    )
+
+
+class PageCreateForm(PageDraftForm):
     slug = forms.SlugField(
         max_length=120,
         label="Page address",
         help_text="Used in the URL, for example /about-us/.",
     )
-    title = forms.CharField(max_length=160)
-    summary = forms.CharField(
-        max_length=255,
-        required=False,
-        help_text="One-line description used in listings.",
-    )
-    body = forms.CharField(
-        max_length=MAX_BODY_LENGTH,
-        widget=forms.Textarea(attrs={"rows": 16}),
-        help_text="Plain text. Line breaks are preserved; HTML is shown as text.",
-    )
+    field_order = ["slug", "title", "summary", "body", "meta_description", "hide_from_search"]
 
 
-class PageDraftForm(StyledFormMixin, forms.Form):
-    title = forms.CharField(max_length=160)
-    summary = forms.CharField(max_length=255, required=False)
-    body = forms.CharField(
-        max_length=MAX_BODY_LENGTH,
-        widget=forms.Textarea(attrs={"rows": 16}),
-        help_text="Plain text. Line breaks are preserved; HTML is shown as text.",
-    )
+class PageMenuForm(StyledFormMixin, forms.Form):
+    menu = forms.ChoiceField(choices=MenuPlacement.choices, label="Show in the site menu")
+    menu_order = forms.IntegerField(min_value=0, max_value=999, label="Position")

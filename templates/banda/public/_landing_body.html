@@ -17,6 +17,7 @@
           <li><a href="#pricing" data-spy="pricing" class="nav-link relative pb-1.5 font-medium transition-colors hover:text-ink after:absolute after:inset-x-0 after:-bottom-0.5 after:h-[2px] after:origin-left after:scale-x-0 after:rounded after:bg-brand-orange after:transition-transform">Pricing</a></li>
           <li><a href="#about" data-spy="about" class="nav-link relative pb-1.5 font-medium transition-colors hover:text-ink after:absolute after:inset-x-0 after:-bottom-0.5 after:h-[2px] after:origin-left after:scale-x-0 after:rounded after:bg-brand-orange after:transition-transform">About Us</a></li>
           <li><a href="#faqs" data-spy="faqs" class="nav-link relative pb-1.5 font-medium transition-colors hover:text-ink after:absolute after:inset-x-0 after:-bottom-0.5 after:h-[2px] after:origin-left after:scale-x-0 after:rounded after:bg-brand-orange after:transition-transform">FAQs</a></li>
+          {% for item in header_pages %}<li><a href="{% url 'website-page' slug=item.slug %}" class="nav-link relative pb-1.5 font-medium transition-colors hover:text-ink after:absolute after:inset-x-0 after:-bottom-0.5 after:h-[2px] after:origin-left after:scale-x-0 after:rounded after:bg-brand-orange after:transition-transform">{{ item.published_revision.title }}</a></li>{% endfor %}
         </ul>
       </nav>
 
@@ -40,6 +41,7 @@
         <li><a href="#pricing" class="block rounded-md px-2 py-2 text-ink-muted">Pricing</a></li>
         <li><a href="#about" class="block rounded-md px-2 py-2 text-ink-muted">About Us</a></li>
         <li><a href="#faqs" class="block rounded-md px-2 py-2 text-ink-muted">FAQs</a></li>
+        {% for item in header_pages %}<li><a href="{% url 'website-page' slug=item.slug %}" class="block rounded-md px-2 py-2 text-ink-muted">{{ item.published_revision.title }}</a></li>{% endfor %}
         <li class="flex gap-3 pt-3">
           <a href="{% url 'login' %}" class="flex-1 rounded-lg border border-cream-line py-2.5 text-center font-semibold">Log In</a>
           <a href="{% url 'signup' %}" class="flex-1 rounded-lg bg-brand-cta py-2.5 text-center font-semibold text-white">Get Started</a>

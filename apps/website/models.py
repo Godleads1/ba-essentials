@@ -8,9 +8,19 @@ from django.db import models
 from apps.core.models import TimeStampedModel
 
 
+class MenuPlacement(models.TextChoices):
+    FOOTER = "footer", "Footer only"
+    HEADER = "header", "Header and footer"
+    NONE = "none", "Not in the menu (link to it yourself)"
+
+
 class Page(TimeStampedModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     slug = models.SlugField(max_length=120, unique=True)
+    # Where the page is linked from once it is published. Changing it changes the
+    # live site, so it needs the publish permission (apps/website/services.py).
+    menu = models.CharField(max_length=8, choices=MenuPlacement.choices, default=MenuPlacement.FOOTER)
+    menu_order = models.PositiveSmallIntegerField(default=100, help_text="Lower numbers come first.")
     published_revision = models.ForeignKey(
         "website.PageRevision",
         on_delete=models.SET_NULL,
@@ -38,6 +48,9 @@ class PageRevision(models.Model):
     title = models.CharField(max_length=160)
     summary = models.CharField(max_length=255, blank=True)
     body = models.TextField()
+    # Search engines and link previews. Empty description falls back to the summary.
+    meta_description = models.CharField(max_length=160, blank=True)
+    hide_from_search = models.BooleanField(default=False)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,

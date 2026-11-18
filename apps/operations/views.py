@@ -86,9 +86,15 @@ def _task(request, task_id) -> Task:
     return task
 
 
+# Roles that only work on the public website: the task dashboard is always empty for them.
+WEBSITE_ONLY_ROLES = frozenset({StaffRole.WEBSITE_EDITOR, StaffRole.WEBSITE_PUBLISHER})
+
+
 @staff_required
 @require_GET
 def dashboard(request):
+    if request.user.staff_role in WEBSITE_ONLY_ROLES and not request.user.is_superuser:
+        return redirect("staff-website-pages")
     visible = tasks_for(request.user)
     counts = visible.aggregate(
         new=Count("id", filter=Q(status__in=ACTIVE_GROUPS["new"])),

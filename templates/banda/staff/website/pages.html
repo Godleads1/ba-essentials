@@ -12,7 +12,7 @@
     {% if rows %}
       <div class="table-wrap">
         <table class="data-table">
-          <thead><tr><th>Address</th><th>Title</th><th>Public</th><th>Latest</th><th>Updated</th><th></th></tr></thead>
+          <thead><tr><th>Address</th><th>Title</th><th>Public</th><th>Menu</th><th>Latest</th><th>Updated</th><th></th></tr></thead>
           <tbody>
             {% for row in rows %}
               <tr>
@@ -28,6 +28,7 @@
                     {% include "banda/staff/_status_badge.html" with status="draft" %}
                   {% endif %}
                 </td>
+                <td class="whitespace-nowrap text-xs text-ink-muted">{{ row.page.get_menu_display }}{% if row.page.menu != "none" %} · {{ row.page.menu_order }}{% endif %}</td>
                 <td class="whitespace-nowrap text-ink-muted">
                   {% if row.latest %}v{{ row.latest.revision_number }}{% else %}—{% endif %}
                   {% if row.page.published_revision_id == row.latest.pk %}
@@ -51,7 +52,7 @@
     {% else %}
       <div class="px-6 py-16 text-center">
         <p class="text-sm font-medium text-ink">No pages yet.</p>
-        <p class="mt-1 text-sm text-ink-muted">Create an About, Terms or Privacy page to get started.</p>
+        <p class="mt-1 text-sm text-ink-muted">Create an About or FAQ page to get started. Terms, Privacy and Cookies are built into the site.</p>
       </div>
     {% endif %}
   </section>
