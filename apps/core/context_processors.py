@@ -74,7 +74,7 @@ def navigation(request):
         from apps.accounts.models import StaffRole
         from apps.accounts.permissions import has_perm
 
-        website_only = staff_role in (StaffRole.WEBSITE_EDITOR, StaffRole.WEBSITE_PUBLISHER)
+        website_only = staff_role in (StaffRole.WEBSITE_EDITOR, StaffRole.WEBSITE_PUBLISHER) and not user.is_superuser
         allowed = []
         for name, label, icon in STAFF_NAV:
             if name == "staff-my-cases" and staff_role != StaffRole.SPECIALIST:
