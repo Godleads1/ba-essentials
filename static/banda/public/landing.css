@@ -206,3 +206,4 @@
   
     /* Links typed into the editable home page text (apps/website/home.py) */
     #main p a:not([class]) { font-weight: 600; color: #33397F; text-decoration: underline; text-underline-offset: 2px; }
+    #main .bg-cocoa p a:not([class]) { color: #F2A57E; }

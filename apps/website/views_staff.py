@@ -310,9 +310,13 @@ def home_edit(request):
 @staff_permission_required(WEBSITE_EDIT)
 @require_GET
 def home_history(request):
+    from django.core.paginator import Paginator
+
     state = HomePage.objects.filter(pk=1).first()
+    page = Paginator(HomeRevision.objects.select_related("created_by"), 50).get_page(request.GET.get("page"))
     return render(request, "banda/staff/website/home_history.html", {
-        "revisions": HomeRevision.objects.select_related("created_by")[:50],
+        "revisions": page,
+        "page": page,
         "live_id": state.published_revision_id if state else None,
         "can_publish": has_perm(request.user, WEBSITE_PUBLISH),
     })
@@ -349,7 +353,10 @@ def home_restore(request, revision_id):
     revision = HomeRevision.objects.filter(pk=revision_id).first()
     if revision is None:
         raise Http404("Version not found")
-    copy = home.restore(revision, actor=request.user)
+    try:
+        copy = home.restore(revision, actor=request.user)
+    except DomainError as exc:
+        return handle_domain_error(request, exc, redirect_to=reverse("staff-website-home-history"))
     messages.info(request, f"Version {revision.number} copied to a new draft, version {copy.number}. Publish it to make it live.")
     return redirect("staff-website-home-history")
 
