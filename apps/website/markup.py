@@ -110,3 +110,13 @@ def render(body: str, images: dict | None = None) -> SafeString:
             html.append("<p>" + "<br>".join(_inline(line) for line in lines) + "</p>")
     # Safe: every piece is escaped text or one of the fixed tags above (tests/test_website_editor.py).
     return mark_safe("\n".join(html))
+
+
+def render_inline(text: str) -> SafeString:
+    """Text that sits inside an existing heading or paragraph: **bold**, *italic*, links, line breaks.
+
+    No headings, lists or images, so the page layout can't change. Same escaping as render().
+    """
+    lines = escape((text or "").replace("\r\n", "\n").replace("\r", "\n")).strip().split("\n")
+    # Safe: escaped text plus the fixed inline tags from _inline().
+    return mark_safe("<br>".join(_inline(line.strip()) for line in lines if line.strip()))

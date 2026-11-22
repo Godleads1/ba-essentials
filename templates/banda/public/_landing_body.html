@@ -62,33 +62,33 @@
         <div class="reveal">
           <span class="inline-flex items-center gap-2 rounded-full border border-brand-orange/20 bg-pill-orangeBg px-4 py-2 text-[11px] font-bold tracking-[0.12em] text-ink">
             <span class="relative flex h-1.5 w-1.5"><span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-orange opacity-60"></span><span class="relative h-1.5 w-1.5 rounded-full bg-brand-orange"></span></span>
-            YOUR BUSINESS. OUR SUPPORT.
+            {{ home.hero_eyebrow }}
           </span>
 
           <h1 class="mt-6 font-display text-[33px] font-semibold leading-[1.1] tracking-[-0.025em] text-ink min-[400px]:text-[36px] sm:text-[46px] lg:text-[49px]">
-            Get More Done with<br />
-            <span class="relative inline-block whitespace-nowrap text-brand-navy">B &amp; A Essentials
+            {{ home.hero_title }}<br />
+            <span class="relative inline-block whitespace-nowrap text-brand-navy">{{ home.hero_title_highlight }}
               <svg aria-hidden="true" class="hero-underline absolute -bottom-2 left-0 h-3 w-full" viewBox="0 0 300 12" fill="none" preserveAspectRatio="none"><path d="M3 8.5C52 3 120 2.5 168 5c44 2.2 88 1.5 129-1.5" stroke="#D9662E" stroke-width="4" stroke-linecap="round" pathLength="1"/></svg>
             </span>
           </h1>
 
           <p class="mt-7 max-w-[440px] text-[16.5px] leading-relaxed text-ink-muted">
-            Reliable, professional and affordable business support services for small businesses and SMEs in Nigeria.
+            {{ home.hero_intro }}
           </p>
 
           <div class="mt-8 flex flex-wrap gap-3">
             <a href="{% url 'login' %}" class="group inline-flex items-center gap-2 rounded-lg bg-brand-cta px-6 py-4 text-[14.5px] font-semibold text-white shadow-lg shadow-brand-orange/30 transition hover:-translate-y-0.5 hover:bg-brand-ctaDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">
-              Start Today <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4 transition-transform group-hover:translate-x-0.5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+              {{ home.hero_button_primary }} <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4 transition-transform group-hover:translate-x-0.5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
             </a>
             <a href="#services" class="inline-flex items-center rounded-lg border-[1.5px] border-brand-navy bg-white/70 px-6 py-4 text-[14.5px] font-semibold text-brand-navy backdrop-blur transition hover:-translate-y-0.5 hover:bg-brand-navy hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy focus-visible:ring-offset-2">
-              Explore Our Services
+              {{ home.hero_button_secondary }}
             </a>
           </div>
 
           <ul class="mt-9 flex flex-wrap gap-x-6 gap-y-3 border-t border-ink/10 pt-6 text-[13.5px] font-medium text-ink">
-            <li class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-check h-4 w-4 text-brand-navy"><circle cx="12" cy="12" r="10"></circle><path d="m16 9-5.5 5.5L8 12"></path></svg>Save time</li>
-            <li class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-check h-4 w-4 text-brand-navy"><circle cx="12" cy="12" r="10"></circle><path d="m16 9-5.5 5.5L8 12"></path></svg>Get expert support</li>
-            <li class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-check h-4 w-4 text-brand-navy"><circle cx="12" cy="12" r="10"></circle><path d="m16 9-5.5 5.5L8 12"></path></svg>Focus on growth</li>
+            <li class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-check h-4 w-4 text-brand-navy"><circle cx="12" cy="12" r="10"></circle><path d="m16 9-5.5 5.5L8 12"></path></svg>{{ home.hero_benefit_1 }}</li>
+            <li class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-check h-4 w-4 text-brand-navy"><circle cx="12" cy="12" r="10"></circle><path d="m16 9-5.5 5.5L8 12"></path></svg>{{ home.hero_benefit_2 }}</li>
+            <li class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-check h-4 w-4 text-brand-navy"><circle cx="12" cy="12" r="10"></circle><path d="m16 9-5.5 5.5L8 12"></path></svg>{{ home.hero_benefit_3 }}</li>
           </ul>
         </div>
 
@@ -250,9 +250,9 @@
       <div class="mx-auto max-w-site px-5 py-16 lg:px-0 lg:py-[72px]">
         <div class="reveal flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div>
-            <p class="flex items-center gap-3 text-[11.5px] font-bold tracking-[0.14em] text-brand-navy"><span class="h-[2px] w-5 rounded bg-brand-orange"></span>OUR SERVICES</p>
-            <h2 class="mt-4 font-display text-[30px] font-semibold tracking-tight sm:text-[32px]">Everything Your Business Needs</h2>
-            <p class="mt-4 max-w-[420px] text-[15px] leading-relaxed text-ink-muted">From admin support to specialised services, we handle the work so you can focus on what matters most.</p>
+            <p class="flex items-center gap-3 text-[11.5px] font-bold tracking-[0.14em] text-brand-navy"><span class="h-[2px] w-5 rounded bg-brand-orange"></span>{{ home.services_eyebrow }}</p>
+            <h2 class="mt-4 font-display text-[30px] font-semibold tracking-tight sm:text-[32px]">{{ home.services_heading }}</h2>
+            <p class="mt-4 max-w-[420px] text-[15px] leading-relaxed text-ink-muted">{{ home.services_intro }}</p>
           </div>
           <div class="flex flex-wrap gap-x-6 gap-y-3 self-start md:self-auto"><a href="{% url 'public-services' %}" class="group inline-flex items-center gap-2 border-b-2 border-brand-orange pb-1 text-[14.5px] font-semibold text-brand-navy">Browse {% if service_total %}all {{ service_total }} {% endif %}services <span aria-hidden="true" class="transition-transform group-hover:translate-x-1">&rarr;</span></a>
           <a href="#pricing" class="group inline-flex items-center gap-2 border-b-2 border-brand-orange pb-1 text-[14.5px] font-semibold text-brand-navy">
@@ -264,45 +264,45 @@
           <a href="{% url 'public-services' %}?category=business-admin" class="svc reveal group flex flex-col rounded-xl border border-cream-line bg-white p-5 transition duration-300 hover:-translate-y-1 hover:border-brand-lavender hover:shadow-[0_18px_40px_-24px_rgba(51,57,127,.45)]">
             <span class="grid h-11 w-11 place-items-center rounded-lg bg-cream text-brand-navy transition-colors duration-300 group-hover:bg-brand-navy group-hover:text-white"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-briefcase h-[18px] w-[18px]"><path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path><rect width="20" height="14" x="2" y="6" rx="2"></rect></svg></span>
             <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug">Business &amp; Admin</h3>
-            <p class="mt-3 text-[13px] leading-relaxed text-ink-muted">Proposal and document support, invoicing and payment follow-up, scheduling and reminders, outreach, filing and data entry.</p>
+            <p class="mt-3 text-[13px] leading-relaxed text-ink-muted">{{ home.service_business_admin }}</p>
             {% if service_counts.business_admin %}<span class="mt-4 inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand-navy">See {{ service_counts.business_admin }} task{{ service_counts.business_admin|pluralize }} <span aria-hidden="true" class="transition-transform group-hover:translate-x-1">&rarr;</span></span>{% endif %}
           </a>
           <a href="{% url 'public-services' %}?category=legal-ip-review" class="svc reveal group flex flex-col rounded-xl border border-cream-line bg-white p-5 transition duration-300 hover:-translate-y-1 hover:border-brand-lavender hover:shadow-[0_18px_40px_-24px_rgba(51,57,127,.45)]">
             <span class="grid h-11 w-11 place-items-center rounded-lg bg-cream text-brand-navy transition-colors duration-300 group-hover:bg-brand-navy group-hover:text-white"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-scale h-[18px] w-[18px]"><path d="M12 3v18"></path><path d="m19 8 3 8a5 5 0 0 1-6 0zV7"></path><path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1"></path><path d="m5 8 3 8a5 5 0 0 1-6 0zV7"></path><path d="M7 21h10"></path></svg></span>
             <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug">Legal &amp; IP Review</h3>
-            <p class="mt-3 text-[13px] leading-relaxed text-ink-muted">Contract review and drafting by an enrolled Nigerian lawyer, CAC business registration, trademarks, and HR and privacy policies.</p>
+            <p class="mt-3 text-[13px] leading-relaxed text-ink-muted">{{ home.service_legal_ip_review }}</p>
             {% if service_counts.legal_ip_review %}<span class="mt-4 inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand-navy">See {{ service_counts.legal_ip_review }} task{{ service_counts.legal_ip_review|pluralize }} <span aria-hidden="true" class="transition-transform group-hover:translate-x-1">&rarr;</span></span>{% endif %}
           </a>
           <a href="{% url 'public-services' %}?category=operations" class="svc reveal group flex flex-col rounded-xl border border-cream-line bg-white p-5 transition duration-300 hover:-translate-y-1 hover:border-brand-lavender hover:shadow-[0_18px_40px_-24px_rgba(51,57,127,.45)]">
             <span class="grid h-11 w-11 place-items-center rounded-lg bg-cream text-brand-navy transition-colors duration-300 group-hover:bg-brand-navy group-hover:text-white"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-truck h-[18px] w-[18px]"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path><path d="M15 18H9"></path><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path><circle cx="17" cy="18" r="2"></circle><circle cx="7" cy="18" r="2"></circle></svg></span>
             <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug">Operations &amp; Logistics</h3>
-            <p class="mt-3 text-[13px] leading-relaxed text-ink-muted">Vendor and freelancer coordination, travel and event logistics, project tracking, and weekly or monthly reports.</p>
+            <p class="mt-3 text-[13px] leading-relaxed text-ink-muted">{{ home.service_operations }}</p>
             {% if service_counts.operations %}<span class="mt-4 inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand-navy">See {{ service_counts.operations }} task{{ service_counts.operations|pluralize }} <span aria-hidden="true" class="transition-transform group-hover:translate-x-1">&rarr;</span></span>{% endif %}
           </a>
           <a href="{% url 'public-services' %}?view=creator" class="svc reveal group flex flex-col rounded-xl border border-cream-line bg-white p-5 transition duration-300 hover:-translate-y-1 hover:border-brand-lavender hover:shadow-[0_18px_40px_-24px_rgba(51,57,127,.45)]">
             <span class="grid h-11 w-11 place-items-center rounded-lg bg-cream text-brand-navy transition-colors duration-300 group-hover:bg-brand-navy group-hover:text-white"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-clapperboard h-[18px] w-[18px]"><path d="m12.296 3.464 3.02 3.956"></path><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3z"></path><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><path d="m6.18 5.276 3.1 3.899"></path></svg></span>
             <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug">Creator Essentials</h3>
-            <p class="mt-3 text-[13px] leading-relaxed text-ink-muted">For creators and solopreneurs: brand deal filing, sponsor invoices, collaborator coordination and shoot logistics.</p>
+            <p class="mt-3 text-[13px] leading-relaxed text-ink-muted">{{ home.service_creator }}</p>
             {% if service_counts.creator %}<span class="mt-4 inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand-navy">See {{ service_counts.creator }} task{{ service_counts.creator|pluralize }} <span aria-hidden="true" class="transition-transform group-hover:translate-x-1">&rarr;</span></span>{% endif %}
           </a>
           <a href="{% url 'public-services' %}?category=tax-readiness" class="svc reveal group flex flex-col rounded-xl border border-cream-line bg-white p-5 transition duration-300 hover:-translate-y-1 hover:border-brand-lavender hover:shadow-[0_18px_40px_-24px_rgba(51,57,127,.45)]">
             <span class="grid h-11 w-11 place-items-center rounded-lg bg-cream text-brand-navy transition-colors duration-300 group-hover:bg-brand-navy group-hover:text-white"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-receipt-text h-[18px] w-[18px]"><path d="M13 16H8"></path><path d="M14 8H8"></path><path d="M16 12H8"></path><path d="M4 3a1 1 0 0 1 1-1 1.3 1.3 0 0 1 .7.2l.933.6a1.3 1.3 0 0 0 1.4 0l.934-.6a1.3 1.3 0 0 1 1.4 0l.933.6a1.3 1.3 0 0 0 1.4 0l.933-.6a1.3 1.3 0 0 1 1.4 0l.934.6a1.3 1.3 0 0 0 1.4 0l.933-.6A1.3 1.3 0 0 1 19 2a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1 1.3 1.3 0 0 1-.7-.2l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.934.6a1.3 1.3 0 0 1-1.4 0l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-1.4 0l-.934-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-.7.2 1 1 0 0 1-1-1z"></path></svg></span>
             <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug">Tax Readiness</h3>
-            <p class="mt-3 text-[13px] leading-relaxed text-ink-muted">Income summaries and expense categories organised into an export package for your own tax expert.</p>
+            <p class="mt-3 text-[13px] leading-relaxed text-ink-muted">{{ home.service_tax_readiness }}</p>
             {% if service_counts.tax_readiness %}<span class="mt-4 inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand-navy">See {{ service_counts.tax_readiness }} task{{ service_counts.tax_readiness|pluralize }} <span aria-hidden="true" class="transition-transform group-hover:translate-x-1">&rarr;</span></span>{% endif %}
           </a>
           <a href="{% url 'public-services' %}?category=specialized-add-ons" class="svc reveal group flex flex-col rounded-xl border border-cream-line bg-white p-5 transition duration-300 hover:-translate-y-1 hover:border-brand-lavender hover:shadow-[0_18px_40px_-24px_rgba(51,57,127,.45)]">
             <span class="grid h-11 w-11 place-items-center rounded-lg bg-cream text-brand-navy transition-colors duration-300 group-hover:bg-brand-navy group-hover:text-white"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-layers h-[18px] w-[18px]"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"></path><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"></path><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"></path></svg></span>
             <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug">Specialized Add-Ons</h3>
-            <p class="mt-3 text-[13px] leading-relaxed text-ink-muted">Social media management, bookkeeping, copywriting, CRM setup and translation, priced separately from your plan.</p>
+            <p class="mt-3 text-[13px] leading-relaxed text-ink-muted">{{ home.service_specialized_add_ons }}</p>
             {% if service_counts.specialized_add_ons %}<span class="mt-4 inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand-navy">See {{ service_counts.specialized_add_ons }} task{{ service_counts.specialized_add_ons|pluralize }} <span aria-hidden="true" class="transition-transform group-hover:translate-x-1">&rarr;</span></span>{% endif %}
           </a>
         </div>
-        <p class="reveal mt-6 flex items-center gap-2.5 text-[13.5px] text-ink-muted"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-message-circle-question h-4 w-4 shrink-0 text-brand-orange"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"></path><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><path d="M12 17h.01"></path></svg>Not sure where your task fits? Send it anyway and a coordinator will scope it with you.</p>
+        <p class="reveal mt-6 flex items-center gap-2.5 text-[13.5px] text-ink-muted"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-message-circle-question h-4 w-4 shrink-0 text-brand-orange"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"></path><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><path d="M12 17h.01"></path></svg><span>{{ home.services_note }}</span></p>
         {% if guides %}
         <div class="reveal mt-8 rounded-2xl border border-cream-line bg-cream px-5 py-5 sm:px-6">
-          <h3 class="font-display text-[16px] font-semibold">Browse by industry</h3>
-          <p class="mt-1 text-[13.5px] text-ink-muted">A short guide for businesses like yours: where to start, then the tasks your industry asks for most.</p>
+          <h3 class="font-display text-[16px] font-semibold">{{ home.industries_heading }}</h3>
+          <p class="mt-1 text-[13.5px] text-ink-muted">{{ home.industries_intro }}</p>
           <ul class="mt-4 flex flex-wrap gap-2">
             {% for g in guides %}<li><a href="{% url 'public-services' %}?industry={{ g.tag }}" class="inline-flex items-center rounded-full border border-cream-line bg-white px-3.5 py-2 text-[13px] font-medium text-ink transition hover:border-brand-lavender hover:text-brand-navy">{{ g.name }}</a></li>{% endfor %}
           </ul>
@@ -322,11 +322,11 @@
       <div class="relative mx-auto max-w-site px-5 pb-28 pt-16 lg:px-0 lg:pb-32 lg:pt-[84px]">
         <div class="grid items-center gap-14 lg:grid-cols-[0.78fr_2fr] lg:gap-8">
           <div class="reveal">
-            <p class="inline-flex items-center gap-3 rounded-full bg-white px-4 py-2.5 text-[12px] font-bold tracking-[0.06em] text-brand-navy shadow-[0_8px_20px_-12px_rgba(36,26,21,.3)]"><span class="h-[3px] w-6 rounded bg-brand-orange"></span>HOW IT WORKS</p>
-            <h2 class="mt-5 font-display text-[34px] font-semibold leading-[1.12] tracking-tight sm:text-[38px] lg:text-[36px]">Simple Steps<br /> to <span class="text-brand-orange">Get Started</span></h2>
-            <p class="mt-5 max-w-[340px] text-[15px] leading-relaxed text-ink-muted">Getting the support you need is easy. Follow these simple steps and let us handle the rest.</p>
+            <p class="inline-flex items-center gap-3 rounded-full bg-white px-4 py-2.5 text-[12px] font-bold tracking-[0.06em] text-brand-navy shadow-[0_8px_20px_-12px_rgba(36,26,21,.3)]"><span class="h-[3px] w-6 rounded bg-brand-orange"></span>{{ home.how_eyebrow }}</p>
+            <h2 class="mt-5 font-display text-[34px] font-semibold leading-[1.12] tracking-tight sm:text-[38px] lg:text-[36px]">{{ home.how_heading }} <span class="text-brand-orange">{{ home.how_heading_highlight }}</span></h2>
+            <p class="mt-5 max-w-[340px] text-[15px] leading-relaxed text-ink-muted">{{ home.how_intro }}</p>
             <a href="{% url 'signup' %}" class="group mt-7 inline-flex items-center gap-2.5 rounded-full bg-brand-cta px-7 py-3.5 text-[14.5px] font-semibold text-white shadow-lg shadow-brand-orange/30 transition hover:-translate-y-px hover:bg-brand-ctaDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">
-              Get Started <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4 transition-transform group-hover:translate-x-0.5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+              {{ home.how_button }} <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4 transition-transform group-hover:translate-x-0.5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
             </a>
           </div>
 
@@ -334,29 +334,29 @@
             <li class="reveal relative flex-1 rounded-2xl border-b-4 border-brand-navy bg-white px-4 pb-7 pt-11 text-center shadow-[0_18px_40px_-26px_rgba(36,26,21,.35)] lg:px-3.5">
               <span class="absolute -top-5 left-1/2 grid h-10 w-10 -translate-x-1/2 place-items-center rounded-full bg-brand-navy font-display text-[17px] font-semibold text-white ring-4 ring-cream">1</span>
               <span class="relative mx-auto grid h-[68px] w-[68px] place-items-center rounded-full bg-brand-navySoft text-brand-navy"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-user-round h-7 w-7"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg><span class="absolute -bottom-0.5 -right-1 grid h-[18px] w-[18px] place-items-center rounded-full bg-brand-cta text-white ring-2 ring-brand-navySoft"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-plus h-3 w-3"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></span></span>
-              <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug text-brand-navy">Sign Up</h3>
-              <p class="mx-auto mt-2.5 max-w-[220px] text-[13px] leading-relaxed text-ink-muted">Create your account in minutes.</p>
+              <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug text-brand-navy">{{ home.how_step_1_title }}</h3>
+              <p class="mx-auto mt-2.5 max-w-[220px] text-[13px] leading-relaxed text-ink-muted">{{ home.how_step_1_text }}</p>
             </li>
             <li aria-hidden="true" class="hidden shrink-0 items-center lg:flex"><span class="relative z-10 -mx-3 grid h-9 w-9 place-items-center rounded-full bg-brand-navySoft text-brand-navy ring-4 ring-cream"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></span></li>
             <li class="reveal relative flex-1 rounded-2xl border-b-4 border-brand-orange bg-white px-4 pb-7 pt-11 text-center shadow-[0_18px_40px_-26px_rgba(36,26,21,.35)] lg:px-3.5" style="transition-delay:.06s">
               <span class="absolute -top-5 left-1/2 grid h-10 w-10 -translate-x-1/2 place-items-center rounded-full bg-brand-navy font-display text-[17px] font-semibold text-white ring-4 ring-cream">2</span>
               <span class="relative mx-auto grid h-[68px] w-[68px] place-items-center rounded-full bg-brand-navySoft text-brand-navy"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-clipboard-list h-7 w-7"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="M12 11h4"></path><path d="M12 16h4"></path><path d="M8 11h.01"></path><path d="M8 16h.01"></path></svg><span class="absolute -bottom-0.5 -right-1 grid h-[18px] w-[18px] place-items-center rounded-full bg-brand-cta text-white ring-2 ring-brand-navySoft"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-check h-3 w-3"><path d="M20 6 9 17l-5-5"></path></svg></span></span>
-              <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug text-brand-navy">Submit a Task</h3>
-              <p class="mx-auto mt-2.5 max-w-[220px] text-[13px] leading-relaxed text-ink-muted">Tell us what you need and set your preferences.</p>
+              <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug text-brand-navy">{{ home.how_step_2_title }}</h3>
+              <p class="mx-auto mt-2.5 max-w-[220px] text-[13px] leading-relaxed text-ink-muted">{{ home.how_step_2_text }}</p>
             </li>
             <li aria-hidden="true" class="hidden shrink-0 items-center lg:flex"><span class="relative z-10 -mx-3 grid h-9 w-9 place-items-center rounded-full bg-brand-navySoft text-brand-navy ring-4 ring-cream"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></span></li>
             <li class="reveal relative flex-1 rounded-2xl border-b-4 border-brand-navy bg-white px-4 pb-7 pt-11 text-center shadow-[0_18px_40px_-26px_rgba(36,26,21,.35)] lg:px-3.5" style="transition-delay:.12s">
               <span class="absolute -top-5 left-1/2 grid h-10 w-10 -translate-x-1/2 place-items-center rounded-full bg-brand-navy font-display text-[17px] font-semibold text-white ring-4 ring-cream">3</span>
               <span class="relative mx-auto grid h-[68px] w-[68px] place-items-center rounded-full bg-brand-navySoft text-brand-navy"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-headset h-7 w-7"><path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 1 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3Z"></path><path d="M21 16v2a4 4 0 0 1-4 4h-5"></path></svg></span>
-              <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug text-brand-navy">We Get to Work</h3>
-              <p class="mx-auto mt-2.5 max-w-[220px] text-[13px] leading-relaxed text-ink-muted">Our team handles the task with care and expertise.</p>
+              <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug text-brand-navy">{{ home.how_step_3_title }}</h3>
+              <p class="mx-auto mt-2.5 max-w-[220px] text-[13px] leading-relaxed text-ink-muted">{{ home.how_step_3_text }}</p>
             </li>
             <li aria-hidden="true" class="hidden shrink-0 items-center lg:flex"><span class="relative z-10 -mx-3 grid h-9 w-9 place-items-center rounded-full bg-brand-navySoft text-brand-navy ring-4 ring-cream"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></span></li>
             <li class="reveal relative flex-1 rounded-2xl border-b-4 border-brand-orange bg-white px-4 pb-7 pt-11 text-center shadow-[0_18px_40px_-26px_rgba(36,26,21,.35)] lg:px-3.5" style="transition-delay:.18s">
               <span class="absolute -top-5 left-1/2 grid h-10 w-10 -translate-x-1/2 place-items-center rounded-full bg-brand-cta font-display text-[17px] font-semibold text-white ring-4 ring-cream">4</span>
               <span class="relative mx-auto grid h-[68px] w-[68px] place-items-center rounded-full bg-pill-orangeBg text-brand-orange"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-circle-check h-8 w-8"><circle cx="12" cy="12" r="10"></circle><path d="m16 9-5.5 5.5L8 12"></path></svg></span>
-              <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug text-brand-navy">You Get Results</h3>
-              <p class="mx-auto mt-2.5 max-w-[220px] text-[13px] leading-relaxed text-ink-muted">Receive updates and track every step.</p>
+              <h3 class="mt-5 font-display text-[16px] font-semibold leading-snug text-brand-navy">{{ home.how_step_4_title }}</h3>
+              <p class="mx-auto mt-2.5 max-w-[220px] text-[13px] leading-relaxed text-ink-muted">{{ home.how_step_4_text }}</p>
             </li>
           </ol>
         </div>
@@ -365,7 +365,7 @@
           <span aria-hidden="true" class="hidden h-px w-24 bg-ink/15 sm:block"></span>
           <span class="font-display text-[16px] font-semibold text-brand-navy">B &amp; A Essentials</span>
           <span aria-hidden="true" class="hidden h-5 w-[2px] rounded bg-brand-orange sm:block"></span>
-          <span class="italic text-ink-muted">Your Business. Our Priority.</span>
+          <span class="italic text-ink-muted">{{ home.how_tagline }}</span>
           <span aria-hidden="true" class="hidden h-px w-24 bg-ink/15 sm:block"></span>
         </p>
       </div>
@@ -375,9 +375,9 @@
     <section id="pricing" class="bg-cream-light">
       <div class="mx-auto max-w-site px-5 py-16 lg:px-0 lg:py-[72px]">
         <div class="reveal text-center">
-          <p class="inline-flex items-center gap-3 text-[11.5px] font-bold tracking-[0.14em] text-brand-navy"><span class="h-[2px] w-5 rounded bg-brand-orange"></span>OUR PRICING PLANS<span class="h-[2px] w-5 rounded bg-brand-orange"></span></p>
-          <h2 class="mt-4 font-display text-[28px] font-semibold tracking-tight sm:text-[32px]">Simple, clear and built for your business</h2>
-          <p class="mx-auto mt-3 max-w-[520px] text-[15px] leading-relaxed text-ink-muted">All plans include access to our secure platform, expert support and quality assurance.</p>
+          <p class="inline-flex items-center gap-3 text-[11.5px] font-bold tracking-[0.14em] text-brand-navy"><span class="h-[2px] w-5 rounded bg-brand-orange"></span>{{ home.pricing_eyebrow }}<span class="h-[2px] w-5 rounded bg-brand-orange"></span></p>
+          <h2 class="mt-4 font-display text-[28px] font-semibold tracking-tight sm:text-[32px]">{{ home.pricing_heading }}</h2>
+          <p class="mx-auto mt-3 max-w-[520px] text-[15px] leading-relaxed text-ink-muted">{{ home.pricing_intro }}</p>
           <ul class="mt-6 flex flex-wrap justify-center gap-x-6 gap-y-3 text-[13px] font-medium text-ink"><li class="flex items-center gap-2"><span class="grid h-7 w-7 place-items-center rounded-full bg-white text-brand-navy shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-shield-check h-3.5 w-3.5"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path><path d="m9 12 2 2 4-4"></path></svg></span>No hidden fees</li><li class="flex items-center gap-2"><span class="grid h-7 w-7 place-items-center rounded-full bg-white text-brand-navy shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-calendar-check h-3.5 w-3.5"><path d="M8 2v3"></path><path d="M16 2v3"></path><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M3 9h18"></path><path d="m9 15 2 2 4-4"></path></svg></span>Flexible plans</li><li class="flex items-center gap-2"><span class="grid h-7 w-7 place-items-center rounded-full bg-white text-brand-navy shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-star h-3.5 w-3.5"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg></span>Cancel online</li><li class="flex items-center gap-2"><span class="grid h-7 w-7 place-items-center rounded-full bg-white text-brand-navy shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-headset h-3.5 w-3.5"><path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 1 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3Z"></path><path d="M21 16v2a4 4 0 0 1-4 4h-5"></path></svg></span>Dedicated support</li></ul>
           <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
             <div class="seg" role="group" aria-label="Where your business is">
@@ -441,11 +441,11 @@
           <div class="flex items-center gap-4">
             <span class="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white text-brand-orange shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-tag h-5 w-5"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"></path><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"></circle></svg></span>
             <div>
-              <h3 class="font-display text-[16px] font-semibold">Need a custom plan?</h3>
-              <p class="mt-1 text-[13.5px] text-ink-muted">If your business has unique requirements or high volume needs, we'll create a plan that works for you.</p>
+              <h3 class="font-display text-[16px] font-semibold">{{ home.custom_plan_heading }}</h3>
+              <p class="mt-1 text-[13.5px] text-ink-muted">{{ home.custom_plan_text }}</p>
             </div>
           </div>
-          <a href="{% url 'contact' %}" class="group inline-flex shrink-0 items-center gap-2 self-start rounded-lg border-[1.5px] border-brand-navy bg-white px-5 py-3 text-[14px] font-semibold text-brand-navy transition hover:bg-brand-navy hover:text-white sm:self-auto">Talk to Our Team <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4 transition-transform group-hover:translate-x-0.5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a>
+          <a href="{% url 'contact' %}" class="group inline-flex shrink-0 items-center gap-2 self-start rounded-lg border-[1.5px] border-brand-navy bg-white px-5 py-3 text-[14px] font-semibold text-brand-navy transition hover:bg-brand-navy hover:text-white sm:self-auto">{{ home.custom_plan_button }} <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4 transition-transform group-hover:translate-x-0.5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a>
         </div>
       </div>
     </section>
@@ -455,34 +455,34 @@
       <div aria-hidden="true" class="pointer-events-none absolute -left-40 -top-40 h-[420px] w-[420px] rounded-full bg-brand-orange/[.08] blur-3xl"></div>
       <div class="relative mx-auto grid max-w-site items-start gap-10 px-5 py-16 lg:grid-cols-[1fr_1.15fr] lg:gap-14 lg:px-0 lg:py-[80px]">
         <div class="reveal lg:sticky lg:top-28">
-          <p class="flex items-center gap-3 text-[11.5px] font-bold tracking-[0.14em] text-brand-navy"><span class="h-[2px] w-5 rounded bg-brand-orange"></span>ABOUT US</p>
-          <h2 class="mt-4 font-display text-[30px] font-semibold leading-[1.15] tracking-tight sm:text-[34px]">Real people behind your <span class="text-brand-navy">business support</span></h2>
+          <p class="flex items-center gap-3 text-[11.5px] font-bold tracking-[0.14em] text-brand-navy"><span class="h-[2px] w-5 rounded bg-brand-orange"></span>{{ home.about_eyebrow }}</p>
+          <h2 class="mt-4 font-display text-[30px] font-semibold leading-[1.15] tracking-tight sm:text-[34px]">{{ home.about_heading }} <span class="text-brand-navy">{{ home.about_heading_highlight }}</span></h2>
           <div class="mt-5 space-y-4 text-[15.5px] leading-relaxed text-ink-muted">
-            <p>B &amp; A Essentials helps small businesses and SMEs in Nigeria get work done. You tell us what you need, and our team handles it with care, from admin and business documents to legal reviews, business registration, operations and tax records.</p>
-            <p>Tools can now draft a proposal or outline a plan in seconds. What they can&rsquo;t do is take responsibility for the result. We add people to the process: someone to do the work, someone to check it, and one clear place to see where everything stands.</p>
+            <p>{{ home.about_paragraph_1 }}</p>
+            <p>{{ home.about_paragraph_2 }}</p>
           </div>
-          <p class="mt-6 inline-flex items-center gap-3 rounded-full bg-cocoa-deep px-5 py-2.5 font-display text-[15px] font-semibold text-white"><span class="h-2 w-2 rounded-full bg-brand-orange"></span>Beyond your AI.</p>
+          <p class="mt-6 inline-flex items-center gap-3 rounded-full bg-cocoa-deep px-5 py-2.5 font-display text-[15px] font-semibold text-white"><span class="h-2 w-2 rounded-full bg-brand-orange"></span>{{ home.about_tagline }}</p>
         </div>
         <ul class="grid gap-4 sm:grid-cols-2">
           <li class="reveal rounded-xl border border-cream-line bg-white p-5">
             <span class="grid h-10 w-10 place-items-center rounded-lg bg-pill-navyBg text-brand-navy"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-user-check h-[18px] w-[18px]"><path d="m16 11 2 2 4-4"></path><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg></span>
-            <h3 class="mt-4 font-display text-[15.5px] font-semibold">People do the work</h3>
-            <p class="mt-2 text-[13.5px] leading-relaxed text-ink-muted">Every request is handled by a person with the right skills, and checked by a second person before it reaches you.</p>
+            <h3 class="mt-4 font-display text-[15.5px] font-semibold">{{ home.about_point_1_title }}</h3>
+            <p class="mt-2 text-[13.5px] leading-relaxed text-ink-muted">{{ home.about_point_1_text }}</p>
           </li>
           <li class="reveal rounded-xl border border-cream-line bg-white p-5" style="transition-delay:0.06s">
             <span class="grid h-10 w-10 place-items-center rounded-lg bg-pill-navyBg text-brand-navy"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-wallet h-[18px] w-[18px]"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"></path><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"></path></svg></span>
-            <h3 class="mt-4 font-display text-[15.5px] font-semibold">You agree the cost first</h3>
-            <p class="mt-2 text-[13.5px] leading-relaxed text-ink-muted">We confirm the scope and price with you. Nothing extra starts until you approve it.</p>
+            <h3 class="mt-4 font-display text-[15.5px] font-semibold">{{ home.about_point_2_title }}</h3>
+            <p class="mt-2 text-[13.5px] leading-relaxed text-ink-muted">{{ home.about_point_2_text }}</p>
           </li>
           <li class="reveal rounded-xl border border-cream-line bg-white p-5" style="transition-delay:0.12s">
             <span class="grid h-10 w-10 place-items-center rounded-lg bg-pill-navyBg text-brand-navy"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-layout-list h-[18px] w-[18px]"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect><path d="M14 4h7"></path><path d="M14 9h7"></path><path d="M14 15h7"></path><path d="M14 20h7"></path></svg></span>
-            <h3 class="mt-4 font-display text-[15.5px] font-semibold">One place to follow it</h3>
-            <p class="mt-2 text-[13.5px] leading-relaxed text-ink-muted">Submit requests, share files, see progress and collect finished work from a single workspace.</p>
+            <h3 class="mt-4 font-display text-[15.5px] font-semibold">{{ home.about_point_3_title }}</h3>
+            <p class="mt-2 text-[13.5px] leading-relaxed text-ink-muted">{{ home.about_point_3_text }}</p>
           </li>
           <li class="reveal rounded-xl border border-cream-line bg-white p-5" style="transition-delay:0.18s">
             <span class="grid h-10 w-10 place-items-center rounded-lg bg-pill-navyBg text-brand-navy"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-shield-check h-[18px] w-[18px]"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path><path d="m9 12 2 2 4-4"></path></svg></span>
-            <h3 class="mt-4 font-display text-[15.5px] font-semibold">Your files stay private</h3>
-            <p class="mt-2 text-[13.5px] leading-relaxed text-ink-muted">Documents are stored privately and opened only by the people working on your request.</p>
+            <h3 class="mt-4 font-display text-[15.5px] font-semibold">{{ home.about_point_4_title }}</h3>
+            <p class="mt-2 text-[13.5px] leading-relaxed text-ink-muted">{{ home.about_point_4_text }}</p>
           </li>
         </ul>
       </div>
@@ -493,43 +493,17 @@
       <div aria-hidden="true" class="grid-lines pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_45%_60%_at_15%_35%,black,transparent_75%)]"></div>
       <div class="relative mx-auto grid max-w-site gap-10 px-5 py-16 lg:grid-cols-[0.8fr_1.6fr] lg:gap-14 lg:px-0 lg:py-[72px]">
         <div class="reveal">
-          <p class="flex items-center gap-3 text-[11.5px] font-bold tracking-[0.14em] text-brand-navy"><span class="h-[2px] w-5 rounded bg-brand-orange"></span>FREQUENTLY ASKED QUESTIONS</p>
-          <h2 class="mt-4 font-display text-[28px] font-semibold tracking-tight sm:text-[30px]">Still have questions?</h2>
-          <p class="mt-3 max-w-[300px] text-[15px] leading-relaxed text-ink-muted">Answers to the questions we hear most about how we work and what it costs.</p>
+          <p class="flex items-center gap-3 text-[11.5px] font-bold tracking-[0.14em] text-brand-navy"><span class="h-[2px] w-5 rounded bg-brand-orange"></span>{{ home.faq_eyebrow }}</p>
+          <h2 class="mt-4 font-display text-[28px] font-semibold tracking-tight sm:text-[30px]">{{ home.faq_heading }}</h2>
+          <p class="mt-3 max-w-[300px] text-[15px] leading-relaxed text-ink-muted">{{ home.faq_intro }}</p>
         </div>
         <div class="reveal space-y-3" style="transition-delay:.08s">
+          {% for faq in home.faqs %}
           <details class="group rounded-xl border border-cream-line bg-white transition open:border-brand-lavender open:shadow-[0_14px_30px_-22px_rgba(51,57,127,.5)]">
-            <summary class="flex items-center justify-between gap-4 rounded-xl px-5 py-4 text-[14.5px] font-semibold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy">What kind of tasks can I send you?<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-plus faq-plus h-4 w-4 shrink-0 text-brand-navy transition-transform"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></summary>
-            <p class="px-5 pb-5 text-[14px] leading-relaxed text-ink-muted">Business and admin work, legal and IP reviews, CAC business registration, operations and logistics, creator support and tax readiness. Specialist add-ons such as social media management and bookkeeping are priced separately. You can <a href="{% url 'public-services' %}" class="font-semibold text-brand-navy underline underline-offset-2">browse every task</a>. If you are not sure whether something fits, send it and a coordinator will scope it with you before any work starts.</p>
+            <summary class="flex items-center justify-between gap-4 rounded-xl px-5 py-4 text-[14.5px] font-semibold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy">{{ faq.question }}<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-plus faq-plus h-4 w-4 shrink-0 text-brand-navy transition-transform"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></summary>
+            <p class="px-5 pb-5 text-[14px] leading-relaxed text-ink-muted">{{ faq.answer }}</p>
           </details>
-          <details class="group rounded-xl border border-cream-line bg-white transition open:border-brand-lavender open:shadow-[0_14px_30px_-22px_rgba(51,57,127,.5)]">
-            <summary class="flex items-center justify-between gap-4 rounded-xl px-5 py-4 text-[14.5px] font-semibold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy">How are tasks counted?<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-plus faq-plus h-4 w-4 shrink-0 text-brand-navy transition-transform"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></summary>
-            <p class="px-5 pb-5 text-[14px] leading-relaxed text-ink-muted">Each task in the <a href="{% url 'public-services' %}" class="font-semibold text-brand-navy underline underline-offset-2">service catalogue</a> says what it uses. Most use 1 of your monthly tasks, and bigger pieces of work use 2 or 3. Legal tasks use your legal reviews instead. Before you send a request we show what it will use and what you have left, and if it needs more than you have, we quote the extra before any work starts.</p>
-          </details>
-          <details class="group rounded-xl border border-cream-line bg-white transition open:border-brand-lavender open:shadow-[0_14px_30px_-22px_rgba(51,57,127,.5)]">
-            <summary class="flex items-center justify-between gap-4 rounded-xl px-5 py-4 text-[14.5px] font-semibold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy">Who does the work?<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-plus faq-plus h-4 w-4 shrink-0 text-brand-navy transition-transform"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></summary>
-            <p class="px-5 pb-5 text-[14px] leading-relaxed text-ink-muted">A member of our team with the right skills does the work, and a second person checks it before it is delivered to you.</p>
-          </details>
-          <details class="group rounded-xl border border-cream-line bg-white transition open:border-brand-lavender open:shadow-[0_14px_30px_-22px_rgba(51,57,127,.5)]">
-            <summary class="flex items-center justify-between gap-4 rounded-xl px-5 py-4 text-[14.5px] font-semibold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy">Can I change my plan later?<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-plus faq-plus h-4 w-4 shrink-0 text-brand-navy transition-transform"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></summary>
-            <p class="px-5 pb-5 text-[14px] leading-relaxed text-ink-muted">Yes. Moving up starts straight away, and you pay the difference for the rest of the period. Moving down starts at your next billing period.</p>
-          </details>
-          <details class="group rounded-xl border border-cream-line bg-white transition open:border-brand-lavender open:shadow-[0_14px_30px_-22px_rgba(51,57,127,.5)]">
-            <summary class="flex items-center justify-between gap-4 rounded-xl px-5 py-4 text-[14.5px] font-semibold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy">Is there a setup fee?<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-plus faq-plus h-4 w-4 shrink-0 text-brand-navy transition-transform"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></summary>
-            <p class="px-5 pb-5 text-[14px] leading-relaxed text-ink-muted">No. You pay the monthly price of your plan and nothing extra to get started.</p>
-          </details>
-          <details class="group rounded-xl border border-cream-line bg-white transition open:border-brand-lavender open:shadow-[0_14px_30px_-22px_rgba(51,57,127,.5)]">
-            <summary class="flex items-center justify-between gap-4 rounded-xl px-5 py-4 text-[14.5px] font-semibold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy">What happens if I use more tasks than my plan allows?<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-plus faq-plus h-4 w-4 shrink-0 text-brand-navy transition-transform"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></summary>
-            <p class="px-5 pb-5 text-[14px] leading-relaxed text-ink-muted">We let you know before you reach your limit. You can upgrade your plan, or we send a quote for the extra work and only start once you approve it.</p>
-          </details>
-          <details class="group rounded-xl border border-cream-line bg-white transition open:border-brand-lavender open:shadow-[0_14px_30px_-22px_rgba(51,57,127,.5)]">
-            <summary class="flex items-center justify-between gap-4 rounded-xl px-5 py-4 text-[14.5px] font-semibold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy">Do you offer refunds?<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-plus faq-plus h-4 w-4 shrink-0 text-brand-navy transition-transform"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></summary>
-            <p class="px-5 pb-5 text-[14px] leading-relaxed text-ink-muted">Each delivered task includes one round of changes within 2 days, and we fix our own mistakes at no cost. If we miss a confirmed delivery time by more than 2 business days, we refund that task and give it back to your allowance. The full rules are in our <a href="{% url 'terms' %}" class="font-semibold text-brand-navy underline">Terms of Service</a>.</p>
-          </details>
-          <details class="group rounded-xl border border-cream-line bg-white transition open:border-brand-lavender open:shadow-[0_14px_30px_-22px_rgba(51,57,127,.5)]">
-            <summary class="flex items-center justify-between gap-4 rounded-xl px-5 py-4 text-[14.5px] font-semibold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy">Does my plan renew automatically?<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-plus faq-plus h-4 w-4 shrink-0 text-brand-navy transition-transform"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></summary>
-            <p class="px-5 pb-5 text-[14px] leading-relaxed text-ink-muted">You don&rsquo;t need to. Plans never renew by themselves and we never charge your card automatically. Three days before your plan ends, we send you a link to pay for the next period. If you don&rsquo;t pay, your plan simply ends: after a grace period of 5 business days your account is paused, and you can pay to continue at any time. Unused tasks aren&rsquo;t refunded.</p>
-          </details>
+          {% endfor %}
         </div>
       </div>
     </section>
@@ -547,12 +521,12 @@
           <div class="relative flex items-center gap-5">
             <span class="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-brand-orange shadow-lg shadow-black/20"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-rocket h-5 w-5 text-cocoa"><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09"></path><path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05"></path></svg></span>
             <div>
-              <h2 class="font-display text-[22px] font-semibold text-white sm:text-[24px]">Ready to grow your business?</h2>
-              <p class="mt-1.5 text-[14px] text-white/80">Join B &amp; A Essentials today and experience professional support, built for your success.</p>
+              <h2 class="font-display text-[22px] font-semibold text-white sm:text-[24px]">{{ home.cta_heading }}</h2>
+              <p class="mt-1.5 text-[14px] text-white/80">{{ home.cta_text }}</p>
             </div>
           </div>
           <a href="{% url 'signup' %}" class="group relative inline-flex shrink-0 items-center gap-2 self-start rounded-lg bg-brand-cta px-5 py-3.5 text-[14px] font-semibold text-white transition hover:-translate-y-px hover:bg-brand-ctaDark focus:outline-none focus-visible:ring-2 focus-visible:ring-white md:self-auto">
-            Get Started <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4 transition-transform group-hover:translate-x-0.5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+            {{ home.cta_button }} <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-4 w-4 transition-transform group-hover:translate-x-0.5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
           </a>
         </div>
       </div>

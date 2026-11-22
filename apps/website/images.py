@@ -98,8 +98,15 @@ def _published_revisions():
 
 
 def is_live(image: PageImage) -> bool:
-    """True when a published page shows the image, in its text or as its link-preview image."""
-    return _published_revisions().filter(Q(body__contains=f"image:{image.pk}") | Q(share_image=image)).exists()
+    """True when a published page shows the image (in its text or as its link-preview image),
+    or the published home page uses it as its link-preview image."""
+    from .models import HomePage
+
+    if _published_revisions().filter(Q(body__contains=f"image:{image.pk}") | Q(share_image=image)).exists():
+        return True
+    state = HomePage.objects.select_related("published_revision").filter(pk=1).first()
+    revision = state.published_revision if state else None
+    return bool(revision and revision.content.get("share_image") == str(image.pk))
 
 
 @transaction.atomic

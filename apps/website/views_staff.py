@@ -18,9 +18,25 @@ from apps.accounts.permissions import (
 from apps.core.exceptions import DomainError
 from apps.core.views import handle_domain_error
 
-from . import images, services
-from .forms import ImageUploadForm, PageCreateForm, PageDraftForm, PageMenuForm
-from .models import ContactMessage, ContactStatus, MenuPlacement, Page, PageImage, PageRevision
+from . import home, images, services
+from .forms import (
+    ImageUploadForm,
+    PageCreateForm,
+    PageDraftForm,
+    PageMenuForm,
+    faq_formset_class,
+    home_copy_form_class,
+)
+from .models import (
+    ContactMessage,
+    ContactStatus,
+    HomePage,
+    HomeRevision,
+    MenuPlacement,
+    Page,
+    PageImage,
+    PageRevision,
+)
 
 
 def _page(page_id) -> Page:
@@ -256,6 +272,94 @@ def image_delete(request, image_id):
         return handle_domain_error(request, exc, redirect_to=reverse("staff-website-images"))
     messages.info(request, "Image deleted.")
     return redirect("staff-website-images")
+
+
+# ---------- home page words ----------
+
+def _home_sections(form):
+    return [(title, [form[f.key] for f in fields]) for title, fields in home.SECTIONS]
+
+
+@staff_permission_required(WEBSITE_EDIT)
+@require_http_methods(["GET", "POST"])
+def home_edit(request):
+    Form, Faqs = home_copy_form_class(), faq_formset_class()
+    if request.method == "POST":
+        form, faqs = Form(request.POST), Faqs(request.POST, prefix="faq")
+        if form.is_valid() and faqs.is_valid():
+            rows = [f for f in faqs.ordered_forms if not f.cleaned_data.get("DELETE")]
+            data = {**{k: v for k, v in form.cleaned_data.items() if k != "share_image"},
+                    "share_image": form.cleaned_data["share_image"].pk if form.cleaned_data["share_image"] else None,
+                    "faqs": [{"question": f.cleaned_data.get("question", ""), "answer": f.cleaned_data.get("answer", "")}
+                             for f in rows]}
+            try:
+                revision = home.save_draft(data, actor=request.user)
+            except DomainError as exc:
+                form.add_error(None, exc.message)
+            else:
+                messages.success(request, f"Saved as version {revision.number}. Preview it, then publish.")
+                return redirect("staff-website-home-history")
+    else:
+        content = home.current_content()
+        form = Form(initial={**content, "share_image": content.get("share_image")})
+        faqs = Faqs(prefix="faq", initial=[{**f, "ORDER": i} for i, f in enumerate(content["faqs"], 1)])
+    return render(request, "banda/staff/website/home_edit.html",
+                  {"form": form, "sections": _home_sections(form), "faqs": faqs})
+
+
+@staff_permission_required(WEBSITE_EDIT)
+@require_GET
+def home_history(request):
+    state = HomePage.objects.filter(pk=1).first()
+    return render(request, "banda/staff/website/home_history.html", {
+        "revisions": HomeRevision.objects.select_related("created_by")[:50],
+        "live_id": state.published_revision_id if state else None,
+        "can_publish": has_perm(request.user, WEBSITE_PUBLISH),
+    })
+
+
+@staff_permission_required(WEBSITE_EDIT)
+@require_GET
+def home_preview(request, revision_id):
+    from apps.core.views import landing_context
+
+    revision = HomeRevision.objects.filter(pk=revision_id).first()
+    if revision is None:
+        raise Http404("Version not found")
+    return render(request, "banda/public/landing.html", landing_context(home.Copy(revision.content), preview=revision))
+
+
+@staff_permission_required(WEBSITE_PUBLISH)
+@require_POST
+def home_publish(request, revision_id):
+    revision = HomeRevision.objects.filter(pk=revision_id).first()
+    if revision is None:
+        raise Http404("Version not found")
+    try:
+        home.publish(revision, actor=request.user)
+    except DomainError as exc:
+        return handle_domain_error(request, exc, redirect_to=reverse("staff-website-home-history"))
+    messages.success(request, f"Version {revision.number} is now live on the home page.")
+    return redirect("staff-website-home-history")
+
+
+@staff_permission_required(WEBSITE_EDIT)
+@require_POST
+def home_restore(request, revision_id):
+    revision = HomeRevision.objects.filter(pk=revision_id).first()
+    if revision is None:
+        raise Http404("Version not found")
+    copy = home.restore(revision, actor=request.user)
+    messages.info(request, f"Version {revision.number} copied to a new draft, version {copy.number}. Publish it to make it live.")
+    return redirect("staff-website-home-history")
+
+
+@staff_permission_required(WEBSITE_PUBLISH)
+@require_POST
+def home_use_original(request):
+    home.use_original(actor=request.user)
+    messages.info(request, "The home page is back to its original wording. Your versions are kept.")
+    return redirect("staff-website-home-history")
 
 
 @staff_permission_required(LEADS_VIEW)

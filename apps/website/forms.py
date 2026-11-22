@@ -96,3 +96,44 @@ class ImageUploadForm(StyledFormMixin, forms.Form):
         label="Description (alt text)",
         help_text="What the image shows, for people using screen readers. For example: Our team at the Lekki office.",
     )
+
+
+def home_copy_form_class():
+    """A form with one field per editable home page text (apps/website/home.py)."""
+    from . import home
+
+    attrs = {}
+    for key, field in home.FIELDS.items():
+        widget = forms.Textarea(attrs={"rows": 3}) if field.kind == home.TEXT else None
+        attrs[key] = forms.CharField(label=field.label, max_length=field.max_length, help_text=field.help,
+                                     widget=widget)
+    attrs["share_image"] = forms.ModelChoiceField(
+        queryset=PageImage.objects.all(), required=False, label="Link-preview image", empty_label="None",
+        help_text="Shown when the home page is shared on WhatsApp, LinkedIn and similar. Upload it under Images.",
+    )
+    return type("HomeCopyForm", (StyledFormMixin, forms.Form), attrs)
+
+
+class FaqForm(StyledFormMixin, forms.Form):
+    question = forms.CharField(max_length=160, required=False)
+    answer = forms.CharField(max_length=1200, required=False, widget=forms.Textarea(attrs={"rows": 3}))
+
+
+class _FaqFormSet(forms.BaseFormSet):
+    def add_fields(self, form, index):
+        # Django adds Position and Remove after the form's own styling ran, so style them here.
+        from apps.accounts.forms import CHECKBOX_CLASS, INPUT_CLASS
+
+        super().add_fields(form, index)
+        if "ORDER" in form.fields:
+            form.fields["ORDER"].label = "Position"
+            form.fields["ORDER"].widget.attrs.update({"class": INPUT_CLASS, "min": "1"})
+        if "DELETE" in form.fields:
+            form.fields["DELETE"].widget.attrs.update({"class": CHECKBOX_CLASS})
+
+
+def faq_formset_class():
+    from .home import MAX_FAQS
+
+    return forms.formset_factory(FaqForm, formset=_FaqFormSet, extra=2, can_delete=True, can_order=True,
+                                 max_num=MAX_FAQS, validate_max=True)
