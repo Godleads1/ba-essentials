@@ -56,3 +56,31 @@ def mfa_encryption_key(app_configs, **kwargs):
              "without every staff authenticator stopping working.",
         id="banda.W004",
     )]
+
+
+def _form_action_sources(policy: str) -> set[str]:
+    for directive in policy.split(";"):
+        parts = directive.split()
+        if parts and parts[0].lower() == "form-action":
+            return set(parts[1:])
+    return {"*"}  # no form-action directive: forms may go anywhere
+
+
+@register(Tags.security)
+def checkout_hosts_allowed_by_csp(app_configs, **kwargs):
+    """The checkout redirect is a form submission, so form-action must allow the payment pages."""
+    from apps.billing import flutterwave, paystack
+
+    sources = _form_action_sources(settings.CONTENT_SECURITY_POLICY)
+    if "*" in sources:
+        return []
+    missing = sorted(h for h in paystack.CHECKOUT_HOSTS | flutterwave.CHECKOUT_HOSTS
+                     if f"https://{h}" not in sources and "https:" not in sources)
+    if not missing:
+        return []
+    return [Warning(
+        "CONTENT_SECURITY_POLICY form-action does not allow " + ", ".join(missing) + ".",
+        hint="Browsers would block the redirect to the payment page after the checkout button is pressed. "
+             "Add https://<host> for each to form-action.",
+        id="banda.W005",
+    )]

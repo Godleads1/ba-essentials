@@ -154,7 +154,11 @@ CONTENT_SECURITY_POLICY = env(
     "CONTENT_SECURITY_POLICY",
     "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; "
     "script-src 'self'; connect-src 'self'; frame-ancestors 'none'; "
-    "base-uri 'self'; form-action 'self'",
+    # The checkout buttons post to this site, which then sends the browser on to the payment
+    # page. Browsers apply form-action to that redirect too, so the checkout hosts must be listed
+    # (apps/billing/paystack.py and flutterwave.py CHECKOUT_HOSTS; checked by banda.W005).
+    "base-uri 'self'; form-action 'self' https://checkout.paystack.com "
+    "https://checkout.flutterwave.com https://checkout-v3.flutterwave.com",
 )
 
 # --- Email ----------------------------------------------------------------
