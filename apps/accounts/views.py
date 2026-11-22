@@ -135,9 +135,10 @@ def admin_login_redirect(request):
     Every request, GET or POST, is sent to the app's sign-in instead, and a POST
     is never read. Only an admin path is kept as the destination.
     """
+    admin_root = f"/{settings.ADMIN_URL}"
     next_url = request.GET.get("next", "")
-    if not next_url.startswith("/admin/") or next_url.startswith("//"):
-        next_url = "/admin/"
+    if not next_url.startswith(admin_root) or next_url.startswith("//"):
+        next_url = admin_root
     return redirect(f"{reverse('staff-login')}?{urlencode({'next': next_url})}")
 
 

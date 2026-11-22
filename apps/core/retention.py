@@ -8,6 +8,7 @@
 | One-time sign-in codes                   | 1 day                                  | `purge_old_codes` (outbox) |
 | Invoices, tax records, fee evidence      | 7 years                                | kept; not deleted yet      |
 | Audit trail                              | as long as the longest record           | kept                       |
+| IP addresses in the audit trail          | AUDIT_IP_RETENTION_DAYS (90)            | `clear_old_ip_addresses`   |
 
 A business under a legal hold (set in admin) is skipped entirely. Every run that
 deletes something writes an audit event with counts, never the deleted content.
@@ -41,6 +42,7 @@ def run(now=None) -> dict:
         "task documents deleted": purge_task_documents(now),
         "support threads deleted": purge_support(now),
         "old codes deleted": purge_old_codes(),
+        "audit addresses cleared": audit_service.clear_old_ip_addresses(now),
     }
 
 

@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from django.conf import settings
 from django.utils import timezone
 
-from apps.core.context import get_correlation_id
+from apps.core.context import get_client_ip, get_correlation_id
 
 from .models import AuditEvent
 
@@ -49,6 +50,7 @@ def record(
         result=result,
         reason=(reason or "")[:255],
         correlation_id=get_correlation_id()[:64],
+        ip_address=(get_client_ip() or None) if settings.AUDIT_STORE_IP else None,
         metadata=_safe_metadata(metadata),
     )
     from . import alerts
@@ -61,3 +63,9 @@ def purge_older_than(days: int) -> int:
     cutoff = timezone.now() - timezone.timedelta(days=days)
     deleted, _ = AuditEvent.objects.filter(created_at__lt=cutoff).delete()
     return deleted
+
+
+def clear_old_ip_addresses(now=None) -> int:
+    """Addresses are kept for AUDIT_IP_RETENTION_DAYS only; the rest of the event stays."""
+    cutoff = (now or timezone.now()) - timezone.timedelta(days=settings.AUDIT_IP_RETENTION_DAYS)
+    return AuditEvent.objects.filter(created_at__lt=cutoff, ip_address__isnull=False).update(ip_address=None)

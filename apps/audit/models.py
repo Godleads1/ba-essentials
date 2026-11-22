@@ -33,6 +33,9 @@ class AuditEvent(models.Model):
     )
     reason = models.CharField(max_length=255, blank=True)
     correlation_id = models.CharField(max_length=64, blank=True)
+    # The visitor's address, kept only when AUDIT_STORE_IP is on and cleared after
+    # AUDIT_IP_RETENTION_DAYS (apps/audit/services.clear_old_ip_addresses).
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
     metadata = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
@@ -45,6 +48,11 @@ class AuditEvent(models.Model):
             models.Index(fields=["resource_type", "resource_id"]),
             models.Index(fields=["action", "-created_at"]),
         ]
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            raise PermissionError("Audit events are append-only.")  # PostgreSQL also has a trigger
+        super().save(*args, **kwargs)
 
     def __str__(self) -> str:
         return f"{self.action} {self.resource_type}:{self.resource_id} [{self.result}]"

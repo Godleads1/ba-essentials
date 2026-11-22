@@ -49,7 +49,8 @@ silently accepting localhost in production.
 - Sign-in codes use the same challenge machinery as below (HMAC, single use,
   bound to account and purpose, expiry, a new code cancels the old one). Sends
   are limited per phone number/email (5 an hour) and per IP (20 an hour); code
-  checks per IP (30 per 10 minutes); five wrong codes lock the account, and
+  checks per IP (30 per 10 minutes); each code allows 3 tries and lasts 5
+  minutes; five wrong codes in a row lock the account, and
   each lockout in a row lasts twice as long (capped at a day).
 - Requests for a code answer the same way whether or not an account exists:
   same next page, same wording, a minimum response time
@@ -102,6 +103,29 @@ authenticators, once each staff member has signed in once after the key was set
 (that moves their secret to the new key). Rotating `MFA_ENCRYPTION_KEY` itself means
 staff reset MFA and enrol again. Do not rotate production secrets without
 authorization and a rollback procedure.
+
+#### Rotation schedule
+
+Rotate each secret on this schedule, and **at once** if it may have leaked
+(pasted in a chat, committed, on a lost laptop, or a person with access leaves).
+Rotate in the provider first, then update the server's `.env`, restart, and
+check the site. Write the date in the log below.
+
+| Secret | Every | How | Who notices |
+| --- | --- | --- | --- |
+| `DJANGO_SECRET_KEY` | 12 months | Generate a new key, restart | Everyone is signed out once |
+| `MFA_ENCRYPTION_KEY` | Only after a leak | New key; every staff member resets two-factor | Staff enrol again |
+| `BACKUP_ENCRYPTION_KEY` | Only after a leak | New key; take a fresh backup at once. Keep the old key in the password manager until the old backups are gone (48 hours) | Nobody |
+| `PAYSTACK_SECRET_KEY`, `PAYSTACK_WEBHOOK_SECRET` | 12 months | Paystack dashboard, Settings, API keys & webhooks | Nobody, if done in one go |
+| `FLUTTERWAVE_SECRET_KEY`, `FLUTTERWAVE_WEBHOOK_HASH` | 12 months | Flutterwave dashboard, Settings, API keys, and the webhook hash | Nobody |
+| `TERMII_API_KEY` | 12 months | Termii dashboard | Nobody |
+| Resend API key (`EMAIL_HOST_PASSWORD`) | 12 months | Resend, API keys: make a new key, then delete the old one | Nobody |
+| `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY`, `BACKUP_R2_*` | 12 months | Cloudflare R2, Manage API tokens | Nobody |
+| Database password | 12 months | Change it in PostgreSQL and `DATABASE_URL` together | A few seconds of errors |
+| Server SSH keys | When a person or computer changes | Remove the old key from `~/.ssh/authorized_keys` | Nobody |
+| Staff passwords | Not on a schedule (NCSC/NIST advice) | Only after a suspected leak; two-factor is always required | That staff member |
+
+Rotation log (date, secret, who): *none yet; the first rotations are due 12 months after launch.*
 
 ## Authorization and tenancy
 
@@ -250,7 +274,18 @@ authorization and a rollback procedure.
 - Structured logging redacts values under sensitive-looking keys. Secrets, OTPs,
   tokens, and document contents must never be added to logs in the first place.
 - Audit metadata drops sensitive keys and truncates values. Audit rows are
-  read-only in Django admin.
+  read-only in Django admin, the model refuses to save an existing event, and on
+  PostgreSQL a trigger (`audit.0003`) refuses any UPDATE that changes what an
+  event says. Only what Django and retention need is allowed: the actor or
+  business set to NULL when deleted, and the IP address cleared.
+- `AUDIT_STORE_IP` (off by default) keeps the visitor's address on each audit
+  event made during a request, taken from `apps.core.client_ip` (so it needs
+  `CLIENT_IP_HEADER=HTTP_CF_CONNECTING_IP` behind Cloudflare). `run_retention`
+  clears addresses after `AUDIT_IP_RETENTION_DAYS` (90). **Turn it on only once
+  the Privacy Policy says so**, for example: "When you use the platform we record
+  your IP address with security events (such as signing in, payments and changes
+  to your account) to detect and investigate misuse. We delete these addresses
+  after 90 days." That wording needs the lawyer's approval.
 - Security headers (CSP, frame denial, referrer policy, permissions policy) are
   applied centrally; authenticated pages are marked `no-store` and `noindex`.
 
@@ -272,7 +307,9 @@ authorization and a rollback procedure.
    storage before it can run in a separate container (see
    [DEPLOYMENT.md](DEPLOYMENT.md)).
 10. Forward audit and application logs to a retention-controlled store.
-11. Restrict Django admin by network policy and strong admin accounts.
+11. Restrict Django admin by network policy and strong admin accounts. Set
+    `ADMIN_URL` to an address that isn't `/admin/` (for example `ops-desk`);
+    optionally put it behind Cloudflare Zero Trust Access.
 
 The staging Blueprint and its verification steps are in
 [DEPLOYMENT.md](DEPLOYMENT.md). It is not a production approval.
@@ -364,3 +401,39 @@ migration check, deploy check, and dependency audit.
 - CI runs Semgrep (Django, Python and secrets rules) and fails on ERROR findings;
   a false positive is silenced in place with `# nosemgrep: <rule>` and a reason.
 - Tests: `tests/test_hardening_2.py`.
+
+## Security audit checklist (22 Nov 2026)
+
+- **Checkout redirect (PR #75):** CSP `form-action` lists the checkout hosts;
+  without them Chromium blocked the redirect to the payment page.
+  `banda.W005` warns if an overridden policy leaves them out.
+- **Text messages** (`apps/accounts/termii.py`): checked before every text or
+  WhatsApp message, whatever sends it.
+  - Only to numbers in `TEXT_COUNTRIES` (default `NG`). Other numbers get codes
+    by email. Signing in with such a number is answered from the number alone,
+    before any account lookup, so it never shows whether an account exists.
+  - A site-wide cap, `TEXT_SENDS_PER_MINUTE` (30) and `TEXT_SENDS_PER_HOUR`
+    (300), with a security alert when reached. While it is reached, signed-in
+    clients get codes by email.
+  - `TEXT_MESSAGES_PAUSED=true` stops them all.
+- **Codes** last 5 minutes and allow 3 tries (`OTP_TTL_SECONDS`,
+  `OTP_MAX_ATTEMPTS`). The 5 wrong codes that lock an account
+  (`LOGIN_MAX_FAILURES`) count across codes.
+- **Checkouts:** at most `CHECKOUT_STARTS_PER_ACCOUNT_PER_HOUR` (10) per account
+  and `CHECKOUT_STARTS_PER_IP_PER_HOUR` (30) per connection, before the provider
+  is called. Reaching either is audited (`billing.checkout_limited`) and alerted.
+- **Sign-ups:** `SIGNUPS_PAUSED=true` stops new client accounts. Existing
+  clients still sign in, and team invitations still work.
+- **Staff passwords:** `BreachedPasswordValidator` refuses passwords in the
+  Pwned Passwords list. It works by k-anonymity: only 5 characters of the SHA-1
+  hash are sent, with padded answers. If the service is down, the password is
+  allowed and a warning logged. Turn it off with `BREACHED_PASSWORD_CHECK=false`.
+  The server must be able to reach `api.pwnedpasswords.com`.
+- **Photos:** PNG and JPEG uploads are saved again without EXIF (GPS),
+  comments or extra chunks (`apps/files/images.py`). JPEGs keep their own
+  quality tables, and sideways photos are turned upright.
+- **Admin address:** `ADMIN_URL`.
+- **Audit trail:** IP addresses and append-only, under "Logging and audit".
+- **Key rotation:** the schedule under "Key rotation".
+- Tests: `tests/test_checkout_csp.py`, `tests/test_abuse_limits.py`,
+  `tests/test_security_hardening.py`.

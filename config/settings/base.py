@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import re
+
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 from config.env import BASE_DIR, env, env_bool, env_int, env_list
 from config.logging import build_logging
@@ -90,7 +93,22 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+    # Only the first 5 characters of the password's SHA-1 hash leave the server (apps/accounts/breached.py).
+    {"NAME": "apps.accounts.breached.BreachedPasswordValidator"},
 ]
+BREACHED_PASSWORD_CHECK = env_bool("BREACHED_PASSWORD_CHECK", True)
+
+# Audit events can keep the visitor's IP address, which helps trace an attack. It is personal
+# data, so it stays OFF until the Privacy Policy says so (see docs/SECURITY.md, "Audit trail").
+# When on, addresses are cleared after AUDIT_IP_RETENTION_DAYS by run_retention.
+AUDIT_STORE_IP = env_bool("AUDIT_STORE_IP", False)
+AUDIT_IP_RETENTION_DAYS = env_int("AUDIT_IP_RETENTION_DAYS", 90)
+
+# Where Django admin lives. Moving it off /admin/ stops the automated scans that try that address;
+# it still needs a staff sign-in with an authenticator code. Letters, digits, - and _ only.
+ADMIN_URL = env("ADMIN_URL", "admin").strip("/") + "/"
+if not re.fullmatch(r"[A-Za-z0-9_-]+(/[A-Za-z0-9_-]+)*/", ADMIN_URL):
+    raise ImproperlyConfigured("ADMIN_URL may only contain letters, digits, - and _ (for example ops-desk).")
 
 PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.PBKDF2PasswordHasher",

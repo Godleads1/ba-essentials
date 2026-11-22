@@ -369,3 +369,36 @@ def fake_termii(monkeypatch):
     fake = FakeTermii()
     monkeypatch.setattr(termii, "_request", fake)
     return fake
+
+
+class FakePwnedPasswords:
+    """Stands in for the Pwned Passwords range API. Tests add passwords to `breached`."""
+
+    def __init__(self):
+        self.prefixes = []
+        self.breached = set()
+        self.down = False
+
+    def __call__(self, prefix):
+        import hashlib
+        import urllib.error
+
+        self.prefixes.append(prefix)
+        if self.down:
+            raise urllib.error.URLError("down")
+        lines = ["0000000000000000000000000000000000A:0"]  # a padding line
+        for password in self.breached:
+            digest = hashlib.sha1(password.encode(), usedforsecurity=False).hexdigest().upper()
+            if digest.startswith(prefix):
+                lines.append(f"{digest[5:]}:42")
+        return "\r\n".join(lines)
+
+
+@pytest.fixture(autouse=True)
+def fake_pwned(monkeypatch):
+    """No test ever reaches the real Pwned Passwords API."""
+    from apps.accounts import breached
+
+    fake = FakePwnedPasswords()
+    monkeypatch.setattr(breached, "_fetch", fake)
+    return fake

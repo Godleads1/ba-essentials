@@ -58,7 +58,7 @@ def make_request(user: User, kind: str, details: str = "", organization=None) ->
         "subject": f"Data request {request.reference}: {request.get_kind_display()}",
         "body": (f"A client made a data request ({request.reference}, {request.get_kind_display()}).\n"
                  f"Reply by {local(request.reply_by):%d %b %Y}.\n\nOpen it in the admin: "
-                 f"{settings.APP_BASE_URL.rstrip('/')}/admin/accounts/datarequest/{request.pk}/change/\n"),
+                 f"{settings.APP_BASE_URL.rstrip('/')}/{settings.ADMIN_URL}accounts/datarequest/{request.pk}/change/\n"),
     })
     return request
 
