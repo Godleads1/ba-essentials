@@ -208,6 +208,12 @@ FILE_DOWNLOAD_TOKEN_TTL = env_int("FILE_DOWNLOAD_TOKEN_TTL", 300)
 
 # --- Payments -------------------------------------------------------------
 PAYMENTS_ENABLED = env_bool("PAYMENTS_ENABLED", False)
+# Starting a checkout is limited per account and per connection, so a stolen card can't be
+# tried over and over (card testing). Paystack and Flutterwave have their own checks as well.
+CHECKOUT_STARTS_PER_ACCOUNT_PER_HOUR = env_int("CHECKOUT_STARTS_PER_ACCOUNT_PER_HOUR", 10)
+CHECKOUT_STARTS_PER_IP_PER_HOUR = env_int("CHECKOUT_STARTS_PER_IP_PER_HOUR", 30)
+# Emergency switch: SIGNUPS_PAUSED=true stops new client accounts (existing clients still sign in).
+SIGNUPS_PAUSED = env_bool("SIGNUPS_PAUSED", False)
 PAYSTACK_SECRET_KEY = env("PAYSTACK_SECRET_KEY", "")
 PAYSTACK_PUBLIC_KEY = env("PAYSTACK_PUBLIC_KEY", "")
 PAYSTACK_WEBHOOK_SECRET = env("PAYSTACK_WEBHOOK_SECRET", "")
@@ -219,8 +225,9 @@ FLUTTERWAVE_PUBLIC_KEY = env("FLUTTERWAVE_PUBLIC_KEY", "")
 FLUTTERWAVE_WEBHOOK_HASH = env("FLUTTERWAVE_WEBHOOK_HASH", "")
 
 # --- Business policy defaults (require founder approval) ------------------
-OTP_TTL_SECONDS = env_int("OTP_TTL_SECONDS", 600)
-OTP_MAX_ATTEMPTS = env_int("OTP_MAX_ATTEMPTS", 5)
+# A code lasts 5 minutes and allows 3 tries (security checklist 15).
+OTP_TTL_SECONDS = env_int("OTP_TTL_SECONDS", 300)
+OTP_MAX_ATTEMPTS = env_int("OTP_MAX_ATTEMPTS", 3)
 OTP_RESEND_COOLDOWN_SECONDS = env_int("OTP_RESEND_COOLDOWN_SECONDS", 60)
 LOGIN_MAX_FAILURES = env_int("LOGIN_MAX_FAILURES", 5)
 LOGIN_LOCK_SECONDS = env_int("LOGIN_LOCK_SECONDS", 900)
@@ -248,6 +255,15 @@ TERMII_BASE_URL = env("TERMII_BASE_URL", "")
 TERMII_SENDER_ID = env("TERMII_SENDER_ID", "")
 TERMII_WHATSAPP_FROM = env("TERMII_WHATSAPP_FROM", "")
 TERMII_SMS_CHANNEL = env("TERMII_SMS_CHANNEL", "dnd")
+# Text messages and WhatsApp cost money per message, so they are limited (apps/accounts/termii.py):
+# - only to numbers in these countries (ISO codes, comma-separated); other numbers use email;
+# - at most this many across the whole site per minute and per hour, with a security alert when
+#   either is reached (an attacker sending codes to many numbers to run up the bill);
+# - TEXT_MESSAGES_PAUSED=true stops them all at once, and codes go by email instead.
+TEXT_COUNTRIES = [c.upper() for c in env_list("TEXT_COUNTRIES", ("NG",))]
+TEXT_SENDS_PER_MINUTE = env_int("TEXT_SENDS_PER_MINUTE", 30)
+TEXT_SENDS_PER_HOUR = env_int("TEXT_SENDS_PER_HOUR", 300)
+TEXT_MESSAGES_PAUSED = env_bool("TEXT_MESSAGES_PAUSED", False)
 TERMII_WHATSAPP_CHANNEL = env("TERMII_WHATSAPP_CHANNEL", "whatsapp_otp")
 # Code requests answer no faster than this, so the timing never shows whether an
 # account exists (sending a real code takes longer than doing nothing).

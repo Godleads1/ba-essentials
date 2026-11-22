@@ -121,6 +121,7 @@ def test_sends_are_limited_per_number_and_per_ip(client_user, fake_termii):
         codes.request_sign_in("one-more@example.test", client_ip="198.51.100.10")
 
 
+@override_settings(OTP_MAX_ATTEMPTS=5)  # one code lasts the five wrong tries that lock the account
 def test_wrong_codes_lock_the_account_for_longer_each_time(client_user, mailoutbox):
     pending = {"uid": str(client_user.pk), "kind": "email"}
     durations = []

@@ -86,7 +86,7 @@ Answer, and record the answers:
 - Whose data, and roughly how many people and records?
 - Was the data actually seen or taken, or only exposed?
 - Do our protections lower the risk? For example, files are private and every
-  download is checked and logged, and sign-in codes expire after 10 minutes.
+  download is checked and logged, and sign-in codes expire after 5 minutes.
 - Is it still happening?
 
 Then decide the risk to the **people** affected (not to the company):

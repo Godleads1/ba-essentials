@@ -50,8 +50,20 @@ def phone_channels() -> list[str]:
     return out
 
 
+def texts_possible(phone: str) -> bool:
+    """Codes can go to this number by text or WhatsApp right now (depends only on the number
+    and the site-wide limits, never on whether an account exists)."""
+    return bool(phone_channels()) and termii.country_allowed(phone) and not termii.cap_reached()
+
+
+def _abroad_message() -> str:
+    return (f"We can only send codes by text or WhatsApp to numbers in {phones.text_countries_label()}. "
+            "Use your email address instead.")
+
+
 def channels_for(user: User) -> list[str]:
-    out = list(phone_channels()) if user.phone_verified else []
+    allowed = user.phone_verified and termii.country_allowed(user.phone) and not termii.cap_reached()
+    out = list(phone_channels()) if allowed else []
     if user.email:
         out.append(CodeChannel.EMAIL)
     return out
@@ -124,7 +136,12 @@ def _parse_identifier(identifier: str) -> tuple[str, str]:
         return "email", value.lower()
     if not phone_channels():
         raise ValidationFailure("Enter your email address. Codes by phone aren't available yet.")
-    return "phone", phones.normalise(value)
+    phone = phones.normalise(value)
+    if not termii.country_allowed(phone):
+        raise ValidationFailure(_abroad_message())
+    if termii.cap_reached():
+        raise ValidationFailure("Codes by text or WhatsApp aren't available right now. Enter your email address instead.")
+    return "phone", phone
 
 
 def _find_client(kind: str, key: str) -> User | None:
@@ -199,13 +216,15 @@ def register_client(*, full_name: str, email: str, phone: str = "", channel: str
     instead, with the same answer, so sign-up never reveals who has an account.
     A phone number given here is confirmed by a second code after the email.
     """
+    if settings.SIGNUPS_PAUSED:
+        raise ValidationFailure("We're not opening new accounts just now. Please try again later.")
     email = (email or "").strip().lower()
     full_name = (full_name or "").strip()
     phone = phones.normalise(phone) if (phone or "").strip() else ""
     if channel in (CodeChannel.SMS, CodeChannel.WHATSAPP) and not phone:
         raise ValidationFailure("Add your phone number to get codes by WhatsApp or text message.")
-    if channel not in channels_offered_at_signup():
-        channel = CodeChannel.EMAIL
+    if channel not in channels_offered_at_signup() or (phone and not termii.country_allowed(phone)):
+        channel = CodeChannel.EMAIL  # the number is kept; codes go by email
     pending = {"kind": "email", "key": email, "ch": CodeChannel.EMAIL, "uid": "", "to": phones.masked_email(email), "signup": True}
     with _minimum_time():
         _limit_sends(email, client_ip)
@@ -247,6 +266,8 @@ def send_phone_code(user: User, *, client_ip: str = "", channel: str = "") -> st
         channel = user.code_channel if user.code_channel in phone_channels() else (phone_channels() or [""])[0]
     if not channel:
         raise ValidationFailure("Codes by phone aren't available yet.")
+    if not termii.country_allowed(user.phone):
+        raise ValidationFailure(_abroad_message())
     _limit_sends(user.phone, client_ip)
     return send_code(user, ChallengePurpose.PHONE_VERIFICATION, channel)
 
@@ -376,6 +397,8 @@ def start_phone_change(user: User, raw_phone: str, *, channel: str = "", client_
     new = phones.normalise(raw_phone)
     if new == user.phone and user.phone_verified:
         raise ValidationFailure("That's already your phone number.")
+    if not termii.country_allowed(new):
+        raise ValidationFailure(_abroad_message())
     if channel not in phone_channels():
         channel = phone_channels()[0]
     _limit_sends(new, client_ip)

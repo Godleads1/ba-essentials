@@ -75,7 +75,7 @@ Clients sign in with a one-time code, not a password.
 3. Look in **window 1**. On your computer the app doesn't send real emails; it
    prints them there. Find the newest line that says
    `Your code to sign in is: 123456`.
-4. Type that code. Each code works once, for 10 minutes, and only the newest
+4. Type that code. Each code works once, for 5 minutes, and only the newest
    one works.
 
 **No code appears in window 1?** Then no code was sent. For security the page

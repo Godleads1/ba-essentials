@@ -139,7 +139,7 @@
             {% if user.is_client_account %}
             <div class="mt-4 flex items-start gap-3 rounded-2xl bg-pill-navyBg px-4 py-3.5">
               <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-brand-navy"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-key-round h-[18px] w-[18px]"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"></path><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"></circle></svg></span>
-              <div class="min-w-0 flex-1"><p class="font-semibold text-brand-navy">You log in with a one-time code</p><p class="mt-0.5 text-[13px] text-ink-muted">No password to remember or leak. Each code works once and expires after 10 minutes. We&rsquo;ll never ask you for a code by phone or message.</p></div>
+              <div class="min-w-0 flex-1"><p class="font-semibold text-brand-navy">You log in with a one-time code</p><p class="mt-0.5 text-[13px] text-ink-muted">No password to remember or leak. Each code works once and expires after {{ code_minutes }} minutes. We&rsquo;ll never ask you for a code by phone or message.</p></div>
             </div>
             {% endif %}
             <div class="mt-3 flex flex-wrap items-center gap-3 rounded-2xl border border-cream-line px-4 py-3.5">
