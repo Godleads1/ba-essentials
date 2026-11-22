@@ -7,6 +7,7 @@ urlpatterns = [
     path("team/invite/", views.team_invite, name="staff-team-invite"),
     path("team/requests/<uuid:request_id>/approve/", views.team_approve, name="staff-team-approve"),
     path("team/requests/<uuid:request_id>/reject/", views.team_reject, name="staff-team-reject"),
+    path("team/requests/<uuid:request_id>/resend/", views.team_resend, name="staff-team-resend"),
     path("team/<uuid:user_id>/role/", views.team_change_role, name="staff-team-role"),
     path("team/<uuid:user_id>/remove/", views.team_remove, name="staff-team-remove"),
     path("team/<uuid:user_id>/restore/", views.team_restore, name="staff-team-restore"),

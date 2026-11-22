@@ -104,6 +104,10 @@ BREACHED_PASSWORD_CHECK = env_bool("BREACHED_PASSWORD_CHECK", True)
 AUDIT_STORE_IP = env_bool("AUDIT_STORE_IP", False)
 AUDIT_IP_RETENTION_DAYS = env_int("AUDIT_IP_RETENTION_DAYS", 90)
 
+# Superusers nobody can delete, demote or switch off from the app (apps/accounts/protection.py).
+# Emails, comma-separated. Set only on the server: never put real people's emails in the code.
+PROTECTED_SUPERUSER_EMAILS = [e.lower() for e in env_list("PROTECTED_SUPERUSER_EMAILS")]
+
 # Where Django admin lives. Moving it off /admin/ stops the automated scans that try that address;
 # it still needs a staff sign-in with an authenticator code. Letters, digits, - and _ only.
 ADMIN_URL = env("ADMIN_URL", "admin").strip("/") + "/"

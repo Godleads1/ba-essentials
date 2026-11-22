@@ -10,6 +10,7 @@ from urllib.parse import urlencode
 from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
@@ -21,6 +22,7 @@ from . import services, team
 from .decorators import staff_permission_required
 from .models import StaffRequestStatus, StaffRole
 from .permissions import STAFF_MANAGE
+from .protection import is_protected
 
 JOIN_POSTS_PER_IP_PER_HOUR = 20
 
@@ -33,14 +35,16 @@ def team_home(request):
     awaiting = [r for r in pending if r.status == StaffRequestStatus.AWAITING_APPROVAL]
     return render(request, "banda/staff/team.html", {
         "members": list(team.team_members()),
+        "protected_ids": {m.pk for m in team.team_members() if is_protected(m)},
         "for_me": [r for r in awaiting if r.requested_by_id != me.pk and r.user_id != me.pk and r.email != me.email],
         "mine": [r for r in awaiting if r.requested_by_id == me.pk],
         "other_waiting": [r for r in awaiting if r.requested_by_id != me.pk and (r.user_id == me.pk or r.email == me.email)],
-        "invited": [r for r in pending if r.status == StaffRequestStatus.INVITED],
+        "invited": list(team.sent_invitations()),
+        "now": timezone.now(),
         "roles": [(value, label, team.ROLE_SUMMARIES.get(value, ""), team.needs_approval(value))
                   for value, label in StaffRole.choices],
         "admin_count": team.active_admins().count(),
-        "invite_days": team.INVITE_DAYS,
+        "invite_minutes": team.INVITE_MINUTES,
         "approval_days": team.APPROVAL_DAYS,
     })
 
@@ -79,6 +83,13 @@ def team_approve(request, request_id):
     return _act(request, lambda: team.approve(request.user, request_id), lambda req: (
         f"Approved. The invitation is on its way to {req.email}." if req.kind == "invite"
         else f"Approved. {req.email} now has the {StaffRole(req.role).label} role."))
+
+
+@staff_permission_required(STAFF_MANAGE)
+@require_POST
+def team_resend(request, request_id):
+    return _act(request, lambda: team.resend_invitation(request.user, request_id),
+                lambda req: f"A new link is on its way to {req.email}. It works for {team.INVITE_MINUTES} minutes.")
 
 
 @staff_permission_required(STAFF_MANAGE)

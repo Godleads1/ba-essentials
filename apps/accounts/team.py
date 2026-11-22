@@ -12,7 +12,8 @@ Rules (enforced here, on the server, whatever the page shows):
   Admin can't be removed or moved to another role.
 - Superusers are managed on the server only (createsuperuser / create_staff), never here.
 - An invitation link is random, stored only as a hash, works once and expires after
-  INVITE_DAYS. The person sets their own password (the usual rules, including the
+  INVITE_MINUTES (30). An Admin can send a fresh link from the Team screen at any time; a
+  powerful role already approved doesn't need approving again. The person sets their own password (the usual rules, including the
   breached-password check), then must set up an authenticator app at first sign-in.
 - Every step is in the audit log. Role changes also raise the staff.access_changed alert.
 """
@@ -41,7 +42,8 @@ from .permissions import STAFF_MANAGE, has_perm
 logger = logging.getLogger("ba.accounts")
 
 POWERFUL_ROLES = frozenset({StaffRole.ADMIN, StaffRole.FINANCE, StaffRole.QUOTE_APPROVER})
-INVITE_DAYS = 7  # an invitation link works for this long
+INVITE_MINUTES = 30  # an invitation link works for this long; an Admin can send a new one
+INVITED_SHOWN_DAYS = 30  # unused invitations stay on the Team screen (to resend or cancel) this long
 APPROVAL_DAYS = 7  # a request waiting for a second Admin lapses after this
 OPEN = (StaffRequestStatus.AWAITING_APPROVAL, StaffRequestStatus.INVITED)
 
@@ -147,7 +149,8 @@ def invite(actor, email: str, role: str) -> StaffAccessRequest:
         req = StaffAccessRequest.objects.create(
             kind=StaffRequestKind.INVITE, email=email, role=role, requested_by=actor,
             status=StaffRequestStatus.AWAITING_APPROVAL if needs_approval(role) else StaffRequestStatus.INVITED,
-            expires_at=now + timedelta(days=APPROVAL_DAYS if needs_approval(role) else INVITE_DAYS),
+            expires_at=now + (timedelta(days=APPROVAL_DAYS) if needs_approval(role)
+                              else timedelta(minutes=INVITE_MINUTES)),
         )
         _audit("staff.invite_requested", actor, req, needs_approval=needs_approval(role))
         if needs_approval(role):
@@ -161,16 +164,40 @@ def _send_invitation(req: StaffAccessRequest) -> None:
     token = secrets.token_urlsafe(32)
     req.token_hash = _hash(token)
     req.status = StaffRequestStatus.INVITED
-    req.expires_at = timezone.now() + timedelta(days=INVITE_DAYS)
+    req.expires_at = timezone.now() + timedelta(minutes=INVITE_MINUTES)
     req.save(update_fields=["token_hash", "status", "expires_at"])
     link = f"{settings.APP_BASE_URL.rstrip('/')}{reverse('staff-join', kwargs={'token': token})}"
     _email([req.email], "You've been invited to the B & A Essentials staff team",
            f"You've been invited to join the B & A Essentials staff team as {StaffRole(req.role).label}.\n\n"
            f"Set your password here: {link}\n\n"
-           f"The link works once and expires in {INVITE_DAYS} days. When you first sign in you'll set up a "
+           f"The link works once and expires in {INVITE_MINUTES} minutes. If it runs out, ask the Admin who "
+           "invited you to send a new one. When you first sign in you'll set up a "
            "free authenticator app (Google Authenticator or Microsoft Authenticator).\n\n"
            "If you weren't expecting this, ignore this email.")
     _audit("staff.invitation_sent", None, req)
+
+
+def sent_invitations():
+    """Invitations sent but not used, including ones whose link has run out (they can be resent)."""
+    since = timezone.now() - timedelta(days=INVITED_SHOWN_DAYS)
+    return (StaffAccessRequest.objects.filter(kind=StaffRequestKind.INVITE, status=StaffRequestStatus.INVITED,
+                                              created_at__gte=since).select_related("requested_by"))
+
+
+def resend_invitation(actor, pk) -> StaffAccessRequest:
+    """A new link (the old one stops working). No new approval: a powerful role was approved already."""
+    _require_manager(actor)
+    with transaction.atomic():
+        req = StaffAccessRequest.objects.select_for_update().filter(pk=pk, kind=StaffRequestKind.INVITE).first()
+        if req is None or req.status != StaffRequestStatus.INVITED:
+            raise ValidationFailure("That invitation has been used or cancelled. Send a new invitation instead.")
+        if needs_approval(req.role) and req.decided_by_id is None:
+            raise ValidationFailure("That invitation still needs a second Admin's approval.")
+        if User.objects.filter(email=req.email).exists():
+            raise ValidationFailure("That person already has an account.")
+        _audit("staff.invitation_resent", actor, req)
+        _send_invitation(req)
+    return req
 
 
 def invitation_for(token: str) -> StaffAccessRequest | None:
@@ -208,9 +235,10 @@ def accept_invitation(token: str, *, full_name: str, password: str) -> User:
 
 # ---------- approving ----------
 
-def _open_request(pk) -> StaffAccessRequest:
+def _open_request(pk, *, sent_invitation_ok: bool = False) -> StaffAccessRequest:
     req = StaffAccessRequest.objects.select_for_update().filter(pk=pk).first()
-    if req is None or req.status not in OPEN or req.expired:
+    expired_is_fine = sent_invitation_ok and req is not None and req.status == StaffRequestStatus.INVITED
+    if req is None or req.status not in OPEN or (req.expired and not expired_is_fine):
         raise ValidationFailure("That request has already been dealt with or has lapsed.")
     return req
 
@@ -239,7 +267,7 @@ def reject(actor, pk) -> StaffAccessRequest:
     """Turn down (another Admin) or cancel (the person who asked) a waiting request or invitation."""
     _require_manager(actor)
     with transaction.atomic():
-        req = _open_request(pk)
+        req = _open_request(pk, sent_invitation_ok=True)  # a sent invitation can be cancelled after its link expires
         own = req.requested_by_id == actor.pk
         req.status = StaffRequestStatus.CANCELLED if own else StaffRequestStatus.REJECTED
         req.decided_by, req.decided_at, req.token_hash = actor, timezone.now(), None
