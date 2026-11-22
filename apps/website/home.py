@@ -8,6 +8,7 @@ home page can never show a price clients aren't charged.
 """
 from __future__ import annotations
 
+import uuid
 from dataclasses import dataclass
 
 from django.db import transaction
@@ -20,6 +21,7 @@ from apps.core.exceptions import ValidationFailure
 from . import markup
 
 LINE = "line"  # one line, plain text (headings, labels, buttons)
+PLAIN = "plain"  # a paragraph shown as typed, no formatting (text inside a link, such as the service cards)
 TEXT = "text"  # paragraph: **bold**, *italic*, [links](/services/), line breaks
 MAX_FAQS = 20
 
@@ -40,6 +42,10 @@ def _line(key, label, default, max_length=120, help=""):
 
 def _text(key, label, default, max_length=600, help=""):
     return Field(key, label, TEXT, default, max_length, help)
+
+
+def _plain(key, label, default, max_length=260, help="Plain text: the whole card is already a link."):
+    return Field(key, label, PLAIN, default, max_length, help)
 
 
 SECTIONS: list[tuple[str, list[Field]]] = [
@@ -69,17 +75,17 @@ SECTIONS: list[tuple[str, list[Field]]] = [
         _line("services_heading", "Heading", "Everything Your Business Needs", 80),
         _text("services_intro", "Introduction", "From admin support to specialised services, we handle the work so "
               "you can focus on what matters most.", 300),
-        _text("service_business_admin", "Business & Admin", "Proposal and document support, invoicing and payment "
+        _plain("service_business_admin", "Business & Admin", "Proposal and document support, invoicing and payment "
               "follow-up, scheduling and reminders, outreach, filing and data entry.", 260),
-        _text("service_legal_ip_review", "Legal & IP Review", "Contract review and drafting by an enrolled Nigerian "
+        _plain("service_legal_ip_review", "Legal & IP Review", "Contract review and drafting by an enrolled Nigerian "
               "lawyer, CAC business registration, trademarks, and HR and privacy policies.", 260),
-        _text("service_operations", "Operations & Logistics", "Vendor and freelancer coordination, travel and event "
+        _plain("service_operations", "Operations & Logistics", "Vendor and freelancer coordination, travel and event "
               "logistics, project tracking, and weekly or monthly reports.", 260),
-        _text("service_creator", "Creator Essentials", "For creators and solopreneurs: brand deal filing, sponsor "
+        _plain("service_creator", "Creator Essentials", "For creators and solopreneurs: brand deal filing, sponsor "
               "invoices, collaborator coordination and shoot logistics.", 260),
-        _text("service_tax_readiness", "Tax Readiness", "Income summaries and expense categories organised into an "
+        _plain("service_tax_readiness", "Tax Readiness", "Income summaries and expense categories organised into an "
               "export package for your own tax expert.", 260),
-        _text("service_specialized_add_ons", "Specialized Add-Ons", "Social media management, bookkeeping, "
+        _plain("service_specialized_add_ons", "Specialized Add-Ons", "Social media management, bookkeeping, "
               "copywriting, CRM setup and translation, priced separately from your plan.", 260),
         _text("services_note", "Note under the services", "Not sure where your task fits? Send it anyway and a "
               "coordinator will scope it with you.", 200),
@@ -221,7 +227,12 @@ def clean(data: dict) -> dict:
         raise ValidationFailure(f"The page holds up to {MAX_FAQS} questions.")
     content["faqs"] = faqs
     share = data.get("share_image")
-    content["share_image"] = str(share) if share else None
+    if share:
+        try:
+            share = str(uuid.UUID(str(share)))  # one spelling, so images.is_live can compare it
+        except ValueError as exc:
+            raise ValidationFailure("Choose the link-preview image again.") from exc
+    content["share_image"] = share or None
     return content
 
 
@@ -244,7 +255,9 @@ class Copy:
         if field is None:
             raise AttributeError(key)
         value = self._content[key]
-        return markup.render_inline(value) if field.kind == TEXT else mark_safe(escape(value))
+        if field.kind == TEXT:
+            return markup.render_inline(value)
+        return mark_safe(escape(value))  # LINE and PLAIN: shown exactly as typed
 
     @property
     def faqs(self):

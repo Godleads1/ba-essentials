@@ -39,6 +39,13 @@
           </tbody>
         </table>
       </div>
+      {% if page.has_other_pages %}
+        <nav class="flex items-center justify-between border-t border-cream-line px-4 py-3 text-sm" aria-label="Versions pages">
+          {% if page.has_previous %}<a class="btn-ghost btn-sm" href="?page={{ page.previous_page_number }}">&larr; Newer</a>{% else %}<span></span>{% endif %}
+          <span class="text-ink-soft">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+          {% if page.has_next %}<a class="btn-ghost btn-sm" href="?page={{ page.next_page_number }}">Older &rarr;</a>{% else %}<span></span>{% endif %}
+        </nav>
+      {% endif %}
     {% else %}
       <p class="px-6 py-16 text-center text-sm text-ink-muted">No versions yet. <a class="font-semibold text-brand-navy" href="{% url 'staff-website-home' %}">Edit the home page</a> to make the first one.</p>
     {% endif %}

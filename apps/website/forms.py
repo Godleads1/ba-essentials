@@ -104,7 +104,7 @@ def home_copy_form_class():
 
     attrs = {}
     for key, field in home.FIELDS.items():
-        widget = forms.Textarea(attrs={"rows": 3}) if field.kind == home.TEXT else None
+        widget = forms.Textarea(attrs={"rows": 3}) if field.kind in (home.TEXT, home.PLAIN) else None
         attrs[key] = forms.CharField(label=field.label, max_length=field.max_length, help_text=field.help,
                                      widget=widget)
     attrs["share_image"] = forms.ModelChoiceField(

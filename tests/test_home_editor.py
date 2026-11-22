@@ -228,3 +228,40 @@ def test_the_home_page_image_cannot_be_deleted_while_live(editor, publisher, set
         images.delete(image, actor=editor)
     home.use_original(actor=publisher)
     assert not images.is_live(image)
+
+
+# ---------- review fixes ----------
+
+def test_share_image_id_is_stored_in_one_spelling(editor):
+    import uuid
+
+    value = uuid.uuid4()
+    revision = home.save_draft(_content(share_image=value.hex.upper()), actor=editor)
+    assert revision.content["share_image"] == str(value)
+    with pytest.raises(ValidationFailure):
+        home.save_draft(_content(share_image="not-an-id"), actor=editor)
+
+
+def test_older_versions_stay_reachable(editor):
+    for _ in range(51):
+        home.save_draft(_content(), actor=editor)
+    c = login_client(editor)
+    first_page = c.get("/staff/website/home/versions/").content.decode()
+    assert ">v51<" in first_page and ">v1<" not in first_page and "Older" in first_page
+    assert ">v1<" in c.get("/staff/website/home/versions/?page=2").content.decode()
+
+
+def test_copying_an_old_version_that_no_longer_passes_shows_a_message(editor):
+    old = HomeRevision.objects.create(number=1, content={**home.defaults(), "hero_title": ""}, created_by=editor)
+    response = login_client(editor).post(f"/staff/website/home/{old.pk}/restore/")
+    assert response.status_code == 302 and HomeRevision.objects.count() == 1
+
+
+def test_service_card_descriptions_never_contain_a_link(editor, publisher):
+    revision = home.save_draft(_content(service_business_admin="See [terms](/terms/) and **bold**"), actor=editor)
+    home.publish(revision, actor=publisher)
+    body = _visitor_home()
+    assert "See [terms](/terms/) and **bold**" in body
+    card = body[body.index('?category=business-admin"'):]
+    card = card[:card.index("</a>")]
+    assert "<a " not in card  # no link inside the card's link
