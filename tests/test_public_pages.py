@@ -19,9 +19,9 @@ def plans(db):
 
 
 def _scripts_are_files_or_data(body: str) -> None:
-    """The CSP allows scripts from this site only, so no inline code."""
+    """The CSP allows scripts from this site only, so no inline code. JSON data blocks never run."""
     for tag in re.findall(r"<script[^>]*>", body):
-        assert "src=" in tag or 'type="application/json"' in tag, tag
+        assert "src=" in tag or tag in ('<script type="application/ld+json">',) or 'type="application/json"' in tag, tag
 
 
 @pytest.mark.parametrize("path", PUBLIC)

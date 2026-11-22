@@ -1,6 +1,9 @@
 {% extends "banda/public/base.html" %}
 {% load static %}
 {% block title %}Privacy Policy · banda — B &amp; A Essentials{% endblock %}
+{% block description %}How B &amp; A Essentials collects, uses, stores and protects your personal data, and the rights you have under Nigerian data protection law.{% endblock %}
+{% block og_text %}<meta property="og:title" content="Privacy Policy · B &amp; A Essentials" />
+  <meta property="og:description" content="How B &amp; A Essentials collects, uses, stores and protects your personal data, and the rights you have under Nigerian data protection law." />{% endblock %}
 {% block styles %}<link rel="stylesheet" href="{% static 'banda/public/legal.css' %}" />{% endblock %}
 {% block body %}
 {% include "banda/public/_privacy_body.html" %}

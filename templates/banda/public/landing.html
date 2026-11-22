@@ -3,16 +3,12 @@
 {% block title %}{{ home.seo_title }}{% endblock %}
 {% block description %}{{ home.seo_description }}{% endblock %}
 {% block robots %}{% if home_preview %}<meta name="robots" content="noindex" />{% endif %}{% endblock %}
-{% block meta %}{% if not home_preview %}
-  <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}/" />
-  <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="banda — B &amp; A Essentials" />
-  <meta property="og:title" content="{{ home.seo_title }}" />
-  <meta property="og:description" content="{{ home.seo_description }}" />
-  <meta property="og:url" content="{{ request.scheme }}://{{ request.get_host }}/" />
-  {% with image=home.share_image %}{% if image %}<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% url 'website-image' image_id=image.pk %}" />
-  <meta property="og:image:alt" content="{{ image.alt_text }}" />{% endif %}{% endwith %}
-{% endif %}{% endblock %}
+{% block meta %}{% if not home_preview %}{{ block.super }}
+  {{ structured_data }}{% endif %}{% endblock %}
+{% block og_text %}<meta property="og:title" content="{{ home.seo_title }}" />
+  <meta property="og:description" content="{{ home.seo_description }}" />{% endblock %}
+{% block og_image %}{% with image=home.share_image %}{% if image %}<meta property="og:image" content="{{ site_url }}{% url 'website-image' image_id=image.pk %}" />
+  <meta property="og:image:alt" content="{{ image.alt_text }}" />{% else %}{{ block.super }}{% endif %}{% endwith %}{% endblock %}
 {% block styles %}<link rel="stylesheet" href="{% static 'banda/public/landing.css' %}" />{% endblock %}
 {% block body %}
 {% if home_preview %}<div class="sticky top-0 z-50 bg-brand-orange px-4 py-2 text-center text-[13px] font-semibold text-white">Preview of home page v{{ home_preview.number }}. Not live. <a class="underline" href="{% url 'staff-website-home-history' %}">Back to versions</a></div>{% endif %}

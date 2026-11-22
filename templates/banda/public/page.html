@@ -3,16 +3,12 @@
 {% block title %}{{ revision.title }} · banda — B &amp; A Essentials{% endblock %}
 {% block description %}{{ revision.meta_description|default:revision.summary|default:revision.title }}{% endblock %}
 {% block robots %}{% if preview or revision.hide_from_search %}<meta name="robots" content="noindex" />{% endif %}{% endblock %}
-{% block meta %}{% if not preview %}
-  <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{% url 'website-page' slug=page.slug %}" />
-  <meta property="og:type" content="article" />
-  <meta property="og:site_name" content="banda — B &amp; A Essentials" />
-  <meta property="og:title" content="{{ revision.title }}" />
-  <meta property="og:description" content="{{ revision.meta_description|default:revision.summary|default:revision.title }}" />
-  {% if revision.share_image_id %}<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% url 'website-image' image_id=revision.share_image_id %}" />
-  <meta property="og:image:alt" content="{{ revision.share_image.alt_text }}" />{% endif %}
-  <meta property="og:url" content="{{ request.scheme }}://{{ request.get_host }}{% url 'website-page' slug=page.slug %}" />
-{% endif %}{% endblock %}
+{% block meta %}{% if not preview %}{{ block.super }}{% endif %}{% endblock %}
+{% block og_type %}article{% endblock %}
+{% block og_text %}<meta property="og:title" content="{{ revision.title }}" />
+  <meta property="og:description" content="{{ revision.meta_description|default:revision.summary|default:revision.title }}" />{% endblock %}
+{% block og_image %}{% if revision.share_image_id %}<meta property="og:image" content="{{ site_url }}{% url 'website-image' image_id=revision.share_image_id %}" />
+  <meta property="og:image:alt" content="{{ revision.share_image.alt_text }}" />{% else %}{{ block.super }}{% endif %}{% endblock %}
 {% block styles %}<link rel="stylesheet" href="{% static 'banda/public/legal.css' %}" />{% endblock %}
 {% block body %}
   <a href="#doc" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-md focus:bg-white focus:px-4 focus:py-2">Skip to content</a>

@@ -1,5 +1,8 @@
 {% extends "banda/public/base.html" %}
-{% load static %}{% block styles %}<link rel="stylesheet" href="{% static 'banda/public/legal.css' %}" />{% endblock %}
+{% load static %}
+{% block og_text %}<meta property="og:title" content="Contact B &amp; A Essentials" />
+  <meta property="og:description" content="Tell B &amp; A Essentials what your business needs. The team reads every message and replies by email." />{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{% static 'banda/public/legal.css' %}" />{% endblock %}
 {% block title %}Contact · banda — B &amp; A Essentials{% endblock %}
 {% block description %}Tell B &amp; A Essentials what your business needs. The team reads every message and replies by email.{% endblock %}
 {% block body %}

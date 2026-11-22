@@ -32,7 +32,17 @@ def landing_context(home, *, preview=None) -> dict:
 
     return {"categories": categories, "site_pages": published_pages(), "pricing_data": pricing_data, "prices": prices,
             "service_counts": service_counts, "service_total": service_total, "guides": guides.industries(),
-            "home": home, "home_preview": preview}
+            "home": home, "home_preview": preview,
+            "structured_data": None if preview else _structured_data(home, categories)}
+
+
+def _structured_data(home, categories):
+    from django.utils.safestring import mark_safe
+
+    from apps.website import seo
+
+    # Safe: seo.ld_json escapes <, > and & inside the JSON.
+    return mark_safe(seo.ld_json(seo.home_structured_data(home, categories)))
 
 
 def _service_counts():

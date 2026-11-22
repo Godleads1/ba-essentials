@@ -1,6 +1,9 @@
 {% extends "banda/public/base.html" %}
 {% load static %}
 {% block title %}Terms of Service · banda — B &amp; A Essentials{% endblock %}
+{% block description %}The terms for using banda, B &amp; A Essentials’ business support service: plans, tasks, payments, renewals, refunds and your responsibilities.{% endblock %}
+{% block og_text %}<meta property="og:title" content="Terms of Service · B &amp; A Essentials" />
+  <meta property="og:description" content="The terms for using banda, B &amp; A Essentials’ business support service: plans, tasks, payments, renewals, refunds and your responsibilities." />{% endblock %}
 {% block styles %}<link rel="stylesheet" href="{% static 'banda/public/legal.css' %}" />{% endblock %}
 {% block body %}
 {% include "banda/public/_terms_body.html" %}

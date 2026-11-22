@@ -229,6 +229,18 @@ LOGIN_LOCK_SECONDS = env_int("LOGIN_LOCK_SECONDS", 900)
 # The base URL is the one shown in your Termii dashboard; WhatsApp needs Termii to
 # switch on its WhatsApp OTP route and a WhatsApp device name.
 SUPPORT_EMAIL = env("SUPPORT_EMAIL", "support@bandaessentials.com")
+
+# Search engines (apps/website/seo.py). APP_BASE_URL above is the public address used in
+# canonical links and the sitemap: set it to the address people should land on,
+# e.g. https://bandaessentials.com (with or without www, but always the same one).
+GOOGLE_SITE_VERIFICATION = env("GOOGLE_SITE_VERIFICATION", "")  # the content="" value from Search Console
+BING_SITE_VERIFICATION = env("BING_SITE_VERIFICATION", "")  # from Bing Webmaster Tools
+# Optional business details for Google (shown only when set): profiles on other sites
+# (comma-separated URLs: LinkedIn, Instagram, X, Facebook), a phone number and the city.
+SEO_SAME_AS = env_list("SEO_SAME_AS")
+BUSINESS_PHONE = env("BUSINESS_PHONE", "")
+BUSINESS_CITY = env("BUSINESS_CITY", "")
+BUSINESS_REGION = env("BUSINESS_REGION", "")
 # The data protection contact (Privacy Policy). Data requests are sent here.
 DPO_EMAIL = env("DPO_EMAIL", "dpo@bandaessentials.com")
 TERMII_API_KEY = env("TERMII_API_KEY", "")

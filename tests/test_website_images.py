@@ -165,7 +165,10 @@ def test_share_image_goes_in_the_link_preview(editor, publisher):
                                           share_image=image)
     services.publish(page, revision, actor=publisher)
     body = Client().get("/offer/").content.decode()
-    assert f'property="og:image" content="http://testserver/site-images/{image.pk}/"' in body
+    from django.conf import settings as conf
+
+    base = conf.APP_BASE_URL.rstrip("/")
+    assert f'property="og:image" content="{base}/site-images/{image.pk}/"' in body
     assert Client().get(f"/site-images/{image.pk}/").status_code == 200  # the preview image is public too
     restored = services.restore_revision(page, revision, actor=editor)
     assert restored.share_image_id == image.pk

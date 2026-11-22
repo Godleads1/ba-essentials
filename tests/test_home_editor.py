@@ -206,7 +206,8 @@ def test_link_preview_image(editor, publisher, settings, tmp_path):
                           alt_text="banda", actor=editor)
     home.publish(home.save_draft(_content(share_image=str(image.pk)), actor=editor), actor=publisher)
     body = _visitor_home()
-    assert f'property="og:image" content="http://testserver/site-images/{image.pk}/"' in body
+    base = settings.APP_BASE_URL.rstrip("/")
+    assert f'property="og:image" content="{base}/site-images/{image.pk}/"' in body
     assert Client().get(f"/site-images/{image.pk}/").status_code == 200  # the home page's image is public
 
 
