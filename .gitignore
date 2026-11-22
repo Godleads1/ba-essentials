@@ -33,3 +33,6 @@ Thumbs.db
 
 # Local logs
 *.log
+
+# Server-only files (docs/HOSTINGER.md)
+deploy/certs/

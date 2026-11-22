@@ -1,206 +1,31 @@
-# Staging deployment (Render, Redis, Resend, ClamAV)
+# Deployment
 
-This runbook describes the staging stack defined in `render.yaml`. It is a
-staging environment, not a production launch: use synthetic data, keep
-payments disabled, and do not treat it as evidence of compliance.
+The site runs on one **Hostinger KVM 2 VPS** (Ubuntu 24.04) with Docker, behind Cloudflare.
+The step-by-step guide is **[HOSTINGER.md](HOSTINGER.md)**. The files it uses are in `deploy/`:
 
-## What the Blueprint creates
+| File | What it is |
+| --- | --- |
+| `deploy/docker-compose.yml` | Caddy, the app (Gunicorn + Django), PostgreSQL 17, Redis and ClamAV |
+| `deploy/Caddyfile` | HTTPS with a Cloudflare Origin Certificate; `www` redirects to the main domain |
+| `deploy/postgres-init/01-banda-roles.sh` | The database accounts: `banda_owner` for migrations, `banda_app` (rows only) for the site |
+| `deploy/env.example` | Every setting the server needs; copied to `deploy/.env`, which is never committed |
+| `deploy/harden.sh` | One-time server set-up: updates, the `deploy` user, Docker, firewall, fail2ban, SSH keys only |
+| `deploy/cloudflare-firewall.sh` | Opens ports 80 and 443 to Cloudflare's address ranges only (weekly refresh) |
+| `deploy/banda.cron` | The scheduled jobs |
+| `deploy/update.sh` | Puts the latest `main` live: backup, build, migrate, restart, health check |
 
-All resources use the Frankfurt region so private networking works.
-
-| Resource | Blueprint type | Purpose |
-| --- | --- | --- |
-| `ba-essentials-staging` | Docker web service | Gunicorn + WhiteNoise |
-| `ba-essentials-staging-db` | PostgreSQL 17 | Application database |
-| `ba-essentials-staging-cache` | Render Key Value | Shared Redis cache for rate limits |
-| `ba-essentials-staging-clamav` | Private image service | clamd on TCP 3310 |
-| `ba-essentials-staging-outbox` | Cron job | Delivers pending email events every 5 minutes |
-| `ba-essentials-staging-files` | 1 GB disk | Private uploads at `/var/data/private` |
-| `ba-essentials-staging-clamav-db` | 1 GB disk | Persists ClamAV signatures across restarts |
-
-The web service, PostgreSQL instance, ClamAV service, and cron job are paid
-resources. Only Key Value is on the free plan. Review the prices shown in the
-Render dashboard before applying the Blueprint; a fully working staging stack
-is not free.
-
-The container builds the Tailwind CSS, installs production Python
-dependencies, collects hashed static files, runs as an unprivileged `app`
-user, and drops privileges after fixing the persistent-disk ownership.
-
-## Prerequisites
-
-1. A Render account with access to the private GitHub repository
-   `Godleads1/ba-essentials`, and the Render GitHub app installed for it.
-2. A payment method on the Render workspace. The Blueprint's paid plans are
-   rejected at validation with `need_payment_info` until billing is set up;
-   there is no free-tier variant that keeps the production fail-closed checks
-   (shared cache, real SMTP, real scanner, private service, cron) intact.
-3. A Resend account and an API key with sending permission.
-4. A verified sending domain in Resend, or, for a first test, Resend's
-   `onboarding@resend.dev` sender (which can only deliver to the account
-   owner's address).
-5. The Render CLI (`winget install --id Render.CLI -e`) for validation and
-   deploy inspection.
-
-## First deployment
-
-1. Push the repository to GitHub. The `render.yaml` Blueprint is read from the
-   branch.
-2. In the Render dashboard choose **New → Blueprint**, select the repository,
-   and apply `render.yaml`.
-3. Render prompts for the three values marked `sync: false`:
-   - `DJANGO_SECRET_KEY`: at least 50 characters. Generate one in a terminal
-     with `openssl rand -base64 48` (or use the dashboard's generate button)
-     and paste it into Render. Do not put it in chat, a ticket, or git.
-   - `EMAIL_HOST_PASSWORD`: the Resend API key.
-   - `DEFAULT_FROM_EMAIL`: a sender on the verified Resend domain, for example
-     `B & A Essentials <staging@your-domain.test>`.
-4. Wait for the ClamAV service to download its signature database on first
-   start. Uploads attempted before clamd is ready are marked failed, not clean.
-5. Confirm the web deploy became live. `preDeployCommand` runs
-   `python manage.py migrate --noinput` before the new instance starts.
-6. In a Render shell on the web service, load the synthetic catalogue and
-   create a break-glass staff account:
-
-   ```bash
-   python manage.py bootstrap_catalogue docs/catalogue.example.json
-   python manage.py create_staff ops@example.test --role admin --admin
-   ```
-
-   The catalogue file is synthetic. Replace it with a founder-approved
-   manifest before using staging for realistic service scenarios.
-
-   Create the three published plans (Starter, Growth, Dedicated) with their
-   list prices, task allowances and legal review allowances:
-
-   ```bash
-   python manage.py seed_plans
-   ```
-
-   For US dollar payments, set `FLUTTERWAVE_SECRET_KEY` and
-   `FLUTTERWAVE_WEBHOOK_HASH` (the "secret hash" you choose in the Flutterwave
-   dashboard under Webhooks), and point the Flutterwave webhook at
-   `https://<host>/webhooks/flutterwave/`. Production refuses to start with
-   payments enabled and either value missing. The yearly discount, extra legal
-   review fees and the rest-of-Africa amount are under Billing settings in
-   Django admin, for super admins only.
-
-   Each category in a manifest can set `minimum_plan_rank` (0 = every client,
-   2 = Growth and above, 3 = Dedicated only) and `uses_legal_allowance`
-   (true for Legal & IP work). The founder-approved split is: Business & Admin
-   and Legal & IP at 0, Operations & Logistics, Creator Essentials and Tax
-   Readiness at 2, Specialized Add-Ons at 3.
-
-`RENDER_EXTERNAL_HOSTNAME` is adopted automatically by
-`config.settings.staging`, so a service-name suffix does not break host or CSRF
-validation. `APP_BASE_URL` in the environment group is only the expected
-hostname used by the production fail-closed checks at import time.
-
-## Verify the deployment
-
-Replace `<host>` with the service hostname printed by Render.
-
-```bash
-curl -fsS "https://<host>/health/"
-# {"status": "ok"}
-
-curl -sSI "https://<host>/" | grep -Ei 'strict-transport|x-content-type|x-frame|referrer-policy'
-# HSTS and the application security headers are present.
-```
-
-Check the shared cache from a Render shell on the web service:
-
-```bash
-python manage.py shell -c "from django.core.cache import cache; cache.set('staging-check','ok',30); print(cache.get('staging-check'))"
-```
-
-Check the SMTP path with a synthetic message (use your own address):
-
-```bash
-python manage.py shell -c "from django.core.mail import send_mail; print(send_mail('Staging check','Synthetic message from staging.',None,['you@example.test']))"
-```
-
-Check the private ClamAV TCP path from a Render shell:
-
-```bash
-printf 'staging scan check\n' > /tmp/clam-check.txt
-printf 'TCPSocket 3310\nTCPAddr %s\n' "$CLAMD_HOST" > /tmp/clamd-check.conf
-clamdscan --stream --config-file=/tmp/clamd-check.conf /tmp/clam-check.txt
-```
-
-Then run one synthetic end-to-end flow: register a test client, read the OTP
-from the delivered email, sign in, submit a request with a synthetic PDF, and
-confirm the staff queue sees it. Do not upload real client documents.
-
-The cron job's output is visible under **Logs** on
-`ba-essentials-staging-outbox`. A successful run prints
-`Delivered N; failed 0.`
-
-## Updating
-
-The web service and cron job deploy when checks pass on `main`. Schema changes
-run through `preDeployCommand`; review each migration and keep a Render
-PostgreSQL snapshot before a destructive change.
-
-## Rollback
-
-1. Roll back to the previous deploy in the Render dashboard (or redeploy the
-   previous commit).
-2. Restore the PostgreSQL instance from its latest snapshot if a migration
-   changed data irreversibly.
-3. Do not rotate `DJANGO_SECRET_KEY` as part of a rollback: existing MFA
-   enrolments are encrypted with a key derived from it.
-
-## Known staging limitations
-
-- **One web instance.** Render persistent disks cannot be mounted by multiple
-  instances or by cron jobs. `scan_files` is therefore not scheduled: a cron
-  container would not see the web service's uploads. Re-scan on the web
-  instance, or add an object-storage adapter before relying on scheduled
-  re-scans.
-- **Payments are disabled.** Paystack checkout initialization is not
-  implemented; enabling payments requires the Paystack secrets and a finance
-  review.
-- **Integrations are in-app only.** Messaging, notifications, support and the
-  text CMS run against the database. Outbound message email, SMS (Termii),
-  Paystack checkout and object storage are not wired yet.
-- **HSTS preload is off** (`security.W021`). It is a long-lived commitment and
-  needs an explicit decision.
-- **Synthetic data only.** Staging is not a production environment and its
-  logs, database, and disk must not contain real client material.
-
-## Local validation performed before deployment
-
-```bash
-python -m pytest
-python manage.py check --deploy --settings=config.settings.staging  # with staging env
-python manage.py collectstatic --noinput --settings=config.settings.build
-render blueprints validate ./render.yaml
-```
-
-The stylesheets are committed prebuilt (`static/banda/`), so the build needs no
+The image is built from the repository's `Dockerfile` (Python 3.13, `--require-hashes`, a
+non-root user). The stylesheets are committed prebuilt (`static/banda/`), so the build needs no
 Node step. After editing a staff template, rebuild `static/banda/staff.css` with
 `npm ci && npm run build` in `tools/banda-css`; CI checks it's current.
 
-Blueprint validation against the workspace (`render blueprints validate`) passed
-YAML, schema, plan, and region checks. The only reported errors were
-`need_payment_info` for the PostgreSQL instance, the web service, the private
-ClamAV service, and the cron job. Those clear once billing is configured; no
-Blueprint change is needed.
-
 ## Visitor address behind a proxy
 
-Rate limits need each visitor's real address. Set exactly one of these on the
-web service, to match what sits in front of it (`apps/core/client_ip.py`):
-
-- `TRUSTED_PROXY_COUNT=1` for one proxy or load balancer that appends to
-  `X-Forwarded-For` (Render, nginx, a Lightsail load balancer). Use 2 if two
-  such proxies are chained.
-- `CLIENT_IP_HEADER=HTTP_CF_CONNECTING_IP` when Cloudflare is in front and the
-  server accepts traffic from Cloudflare only.
-
-With neither, `check --deploy` warns (`banda.W001`) and every visitor would share
-the proxy's address for rate limits.
+Rate limits need each visitor's real address (`apps/core/client_ip.py`). On the Hostinger
+server, `deploy/docker-compose.yml` sets `CLIENT_IP_HEADER=HTTP_CF_CONNECTING_IP`. That is safe
+only because the firewall lets Cloudflare alone reach the server, and Cloudflare overwrites
+that header. Behind a different setup, use `TRUSTED_PROXY_COUNT=1` for one proxy that appends
+to `X-Forwarded-For`. With neither, `check --deploy` warns (`banda.W001`).
 
 ## Private files on Cloudflare R2
 
@@ -208,7 +33,7 @@ the proxy's address for rate limits.
    access **off** and add no custom domain: files are only ever served through the
    app's authorised download page.
 2. Create an R2 API token with **Object Read & Write** on that bucket only.
-3. Set on the web service and the worker:
+3. Set in `deploy/.env`:
    `PRIVATE_STORAGE_BACKEND=r2`, `R2_ENDPOINT_URL=https://<account id>.r2.cloudflarestorage.com`,
    `R2_BUCKET`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`.
 4. Production refuses to start with R2 chosen and any of these missing, and
@@ -218,25 +43,40 @@ The malware scanner gets a temporary copy of each upload, deleted straight after
 
 ## Backups
 
-See [BACKUPS.md](BACKUPS.md): `run_backups` daily, `restore_check` monthly and
-once before launch.
+See [BACKUPS.md](BACKUPS.md). In short: an encrypted database backup and a copy of the
+private files go to a separate R2 bucket every night, are kept for 48 hours, and a restore is
+tested every month.
 
-## Renewals job
+## Scheduled jobs
 
-`python manage.py run_renewals` issues renewal invoices with a reminder 3 days
-before a plan ends (nothing is charged automatically), and moves unpaid plans
-through 5 business days' grace, pause and ending. It is safe to run
-repeatedly and should run at least daily (hourly is fine). It is **not** in the
-Render Blueprint yet, because a new cron service is billed separately; add it
-(same settings as the outbox cron, `schedule: "17 * * * *"`) or a systemd timer
-on Lightsail when renewals go live.
+All in `deploy/banda.cron`, run inside the web container as the `deploy` user. Each is safe to
+run again.
 
-## Retention job
+- `process_outbox`: sends waiting emails. Every minute.
+- `scan_files`: re-scans files the virus scanner couldn't check at upload. Every 15 minutes.
+- `run_renewals`: sends renewal invoices with reminders (3 days before a monthly plan ends,
+  14 before a yearly one; nothing is charged automatically), then handles the 5 business days'
+  grace, the pause and the end of a plan. Hourly.
+- `run_backups` and `restore_check`: daily and monthly; see [BACKUPS.md](BACKUPS.md).
+- `run_retention`: closes accounts whose paid period has ended, and deletes data on the
+  Privacy Policy schedule. That covers the account and business profile 90 days after
+  closing, task documents and support threads 6 years after they close, one-time codes after
+  a day, and audit IP addresses after 90 days. A business under **legal hold** (ticked in
+  admin) is skipped. Daily.
 
-`python manage.py run_retention` closes accounts whose paid period has ended
-and deletes data on the Privacy Policy schedule: the account and business
-profile 90 days after closing, task documents and support threads 6 years after
-they close, and one-time codes after a day. Invoices and the audit trail are
-kept. A business with **legal hold** ticked in admin is skipped. It is safe to
-run repeatedly; schedule it daily (for example `schedule: "41 2 * * *"`). Like
-the renewals job, it isn't in the Render Blueprint yet.
+## Checks before going live
+
+```bash
+docker compose exec web python manage.py check --deploy
+docker compose exec web python manage.py restore_check
+```
+
+Production refuses to start with:
+- an unsafe secret key or wildcard hosts;
+- SQLite, or a local cache;
+- missing HTTPS or HSTS;
+- console email, or no real virus scanner;
+- payments switched on without their keys.
+
+The only expected warning is `security.W021`: HSTS preload is deliberately off, because it's a
+long-lived commitment.

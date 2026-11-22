@@ -299,13 +299,12 @@ Rotation log (date, secret, who): *none yet; the first rotations are due 12 mont
 3. Provide a shared cache (Redis) for rate limiting.
 4. Configure SMTP or a transactional email provider.
 5. Install ClamAV/clamd and set `FILE_SCAN_BACKEND=clamdscan`.
-6. Store secrets in the platform secret manager; never in the repository.
+6. Store secrets in the server's `deploy/.env` (mode 600) and the owner's password manager; never in the repository.
 7. Run `python manage.py check --deploy --settings=config.settings.production`.
 8. Run `python manage.py migrate` with a reviewed migration plan and rollback.
-9. Set up `process_outbox`, `run_renewals`, `run_retention` (daily) and `scan_files` as scheduled jobs. The Render
-   staging Blueprint schedules outbox delivery; `scan_files` needs shared
-   storage before it can run in a separate container (see
-   [DEPLOYMENT.md](DEPLOYMENT.md)).
+9. Install the scheduled jobs (`deploy/banda.cron`): `process_outbox`,
+   `scan_files`, `run_renewals`, `run_backups`, `run_retention` and
+   `restore_check` (see [HOSTINGER.md](HOSTINGER.md)).
 10. Forward audit and application logs to a retention-controlled store.
 11. Restrict Django admin by network policy and strong admin accounts. Set
     `ADMIN_URL` to an address that isn't `/admin/` (for example `ops-desk`);
@@ -397,7 +396,8 @@ migration check, deploy check, and dependency audit.
   (`banda.W004`) without it.
 - A business's own uploads are capped at `ORG_STORAGE_LIMIT_BYTES` (2 GB); staff
   files never count or get refused.
-- The staging database in `render.yaml` takes no connections from the internet.
+- The database takes no connections from the internet: on the Hostinger server
+  it has no open ports at all (`tests/test_deployment.py`).
 - CI runs Semgrep (Django, Python and secrets rules) and fails on ERROR findings;
   a false positive is silenced in place with `# nosemgrep: <rule>` and a reason.
 - Tests: `tests/test_hardening_2.py`.
@@ -437,3 +437,31 @@ migration check, deploy check, and dependency audit.
 - **Key rotation:** the schedule under "Key rotation".
 - Tests: `tests/test_checkout_csp.py`, `tests/test_abuse_limits.py`,
   `tests/test_security_hardening.py`.
+
+## The Hostinger server (22 Nov 2026)
+
+`deploy/` and [HOSTINGER.md](HOSTINGER.md). Security checklist items:
+
+- **24, least-privilege database user:** the app connects as `banda_app`, which
+  can only read and write rows. It can't create, alter, drop or truncate tables,
+  or disable the audit trigger (it doesn't own them). Migrations use
+  `banda_owner`, through `docker compose run --rm migrate` only. Checked on a
+  live stack.
+- **30, database not on the internet:** PostgreSQL, Redis and ClamAV publish no
+  ports. The app listens on 127.0.0.1 only. Caddy is the only service on 80/443,
+  and ufw allows those ports from Cloudflare's ranges only (Docker's published
+  ports would bypass ufw, so Caddy uses the host network instead).
+- **SSH:** keys only, no root sign-in, `AllowUsers deploy`, fail2ban. The
+  settings file is named `01-…` because sshd keeps the first value it reads;
+  checked against a `50-cloud-init.conf` that turns passwords on.
+- **The app container:** non-root (uid 10001), read-only file system, every Linux
+  capability dropped, `no-new-privileges`.
+- **28, disk encryption:** not available on a Hostinger VPS. This is a known
+  risk; HOSTINGER.md lists what limits it.
+- **29, point-in-time recovery:** not set up. Restores go back to the last
+  nightly backup.
+- Two bugs were found by running the stack, and both are fixed:
+  - the image had no `clamdscan` (Debian's `clamav` package doesn't include it),
+    so every scan would have failed. CI now checks the tools are in the image;
+  - the `/health/` HTTPS exemption never matched, because Django compares
+    without the leading slash.

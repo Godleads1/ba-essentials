@@ -1,0 +1,18 @@
+# Scheduled jobs for B & A Essentials. Installed to /etc/cron.d/banda (docs/HOSTINGER.md, step 8).
+# Times are the server's clock (UTC); Lagos is UTC+1.
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+RUN="docker compose --project-directory /opt/banda/deploy exec -T web python manage.py"
+
+# Emails waiting in the outbox (notifications, alerts): every minute.
+* * * * *     deploy  $RUN process_outbox --limit 100 >>/var/log/banda/outbox.log 2>&1
+# Re-scan files the virus scanner couldn't check when they were uploaded.
+*/15 * * * *  deploy  $RUN scan_files >>/var/log/banda/scan.log 2>&1
+# Renewal invoices, reminders, grace periods and pauses: hourly.
+17 * * * *    deploy  $RUN run_renewals >>/var/log/banda/renewals.log 2>&1
+# Encrypted backup to R2: 01:00 UTC (02:00 Lagos).
+0 1 * * *     deploy  $RUN run_backups >>/var/log/banda/backups.log 2>&1
+# Privacy Policy retention: 01:41 UTC daily.
+41 1 * * *    deploy  $RUN run_retention >>/var/log/banda/retention.log 2>&1
+# Prove the newest backup can be restored: the 3rd of each month.
+23 3 3 * *    deploy  $RUN restore_check >>/var/log/banda/restore-check.log 2>&1

@@ -14,7 +14,7 @@ fi
 if [ -n "${PRIVATE_STORAGE_ROOT:-}" ]; then
     mkdir -p "$PRIVATE_STORAGE_ROOT"
     if [ "$(id -u)" = "0" ]; then
-        # Render mounts persistent disks owned by root. The app user needs to
+        # A volume can be mounted owned by root. The app user needs to
         # create and read files below the mount.
         chown app:app "$PRIVATE_STORAGE_ROOT" 2>/dev/null || true
     fi
