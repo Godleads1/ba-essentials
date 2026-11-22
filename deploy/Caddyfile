@@ -1,0 +1,33 @@
+# Caddy sits behind Cloudflare. Cloudflare's SSL mode must be "Full (strict)", and the
+# certificate below is a Cloudflare Origin Certificate (docs/HOSTINGER.md, step 5).
+# The firewall only lets Cloudflare reach ports 80 and 443.
+{
+	admin off
+	servers {
+		protocols h1 h2
+	}
+}
+
+(common) {
+	tls /certs/origin.pem /certs/origin.key
+	header -Server
+}
+
+{$DOMAIN} {
+	import common
+	encode zstd gzip
+	# Uploads are at most 10 MB (FILE_MAX_BYTES); leave room for the form around them.
+	request_body {
+		max_size 15MB
+	}
+	reverse_proxy 127.0.0.1:8000 {
+		transport http {
+			read_timeout 70s
+		}
+	}
+}
+
+www.{$DOMAIN} {
+	import common
+	redir https://{$DOMAIN}{uri} permanent
+}
