@@ -32,6 +32,7 @@ urlpatterns = [
     path("staff/", include("apps.billing.urls_staff")),
     path("staff/", include("apps.catalogue.urls")),
     path("staff/", include("apps.website.urls_staff")),
+    path("staff/", include("apps.accounts.urls_team")),
     # Must come before admin.site.urls so it replaces the built-in admin sign-in.
     path(f"{settings.ADMIN_URL}login/", account_views.admin_login_redirect, name="admin-login-redirect"),
     path(settings.ADMIN_URL, admin.site.urls),
