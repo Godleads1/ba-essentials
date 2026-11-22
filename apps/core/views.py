@@ -15,6 +15,13 @@ from .exceptions import DomainError
 def landing(request):
     if request.user.is_authenticated:
         return redirect("staff-dashboard" if _is_staff(request.user) else "client-overview")
+    from apps.website.home import published_copy
+
+    return render(request, "banda/public/landing.html", landing_context(published_copy()))
+
+
+def landing_context(home, *, preview=None) -> dict:
+    """Everything the home page shows. `home` is the words (apps/website/home.py); `preview` a draft version."""
     from apps.catalogue.models import ServiceCategory
     from apps.website.services import published_pages
 
@@ -23,12 +30,9 @@ def landing(request):
     service_counts, service_total = _service_counts()
     from apps.catalogue import guides
 
-    return render(
-        request,
-        "banda/public/landing.html",
-        {"categories": categories, "site_pages": published_pages(), "pricing_data": pricing_data, "prices": prices,
-         "service_counts": service_counts, "service_total": service_total, "guides": guides.industries()},
-    )
+    return {"categories": categories, "site_pages": published_pages(), "pricing_data": pricing_data, "prices": prices,
+            "service_counts": service_counts, "service_total": service_total, "guides": guides.industries(),
+            "home": home, "home_preview": preview}
 
 
 def _service_counts():

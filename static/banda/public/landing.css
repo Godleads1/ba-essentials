@@ -204,3 +204,6 @@
     .seg-save { margin-left: 4px; border-radius: 999px; background: #FBE3D3; padding: 2px 7px; font-size: 11.5px; font-weight: 700; color: #8F3D12; }
     .seg-btn[aria-pressed="true"] .seg-save { background: #9A4212; color: #fff; }
   
+    /* Links typed into the editable home page text (apps/website/home.py) */
+    #main p a:not([class]) { font-weight: 600; color: #33397F; text-decoration: underline; text-underline-offset: 2px; }
+    #main .bg-cocoa p a:not([class]) { color: #F2A57E; }

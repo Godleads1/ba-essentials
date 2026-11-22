@@ -6,6 +6,12 @@ urlpatterns = [
     path("website/", views.page_list, name="staff-website-pages"),
     path("website/new/", views.page_create, name="staff-website-create"),
     path("website/images/", views.image_library, name="staff-website-images"),
+    path("website/home/", views.home_edit, name="staff-website-home"),
+    path("website/home/versions/", views.home_history, name="staff-website-home-history"),
+    path("website/home/use-original/", views.home_use_original, name="staff-website-home-original"),
+    path("website/home/<uuid:revision_id>/preview/", views.home_preview, name="staff-website-home-preview"),
+    path("website/home/<uuid:revision_id>/publish/", views.home_publish, name="staff-website-home-publish"),
+    path("website/home/<uuid:revision_id>/restore/", views.home_restore, name="staff-website-home-restore"),
     path("website/images/<uuid:image_id>/delete/", views.image_delete, name="staff-website-image-delete"),
     path("website/<uuid:page_id>/", views.page_edit, name="staff-website-edit"),
     path(

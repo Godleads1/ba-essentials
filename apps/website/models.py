@@ -135,3 +135,30 @@ class ContactMessage(TimeStampedModel):
 
     def __str__(self) -> str:
         return f"Enquiry from {self.name}"
+
+
+class HomeRevision(models.Model):
+    """One saved version of the home page words (apps/website/home.py)."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    number = models.PositiveIntegerField(unique=True)
+    content = models.JSONField()
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="+"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-number"]
+
+    def __str__(self) -> str:
+        return f"Home page v{self.number}"
+
+
+class HomePage(TimeStampedModel):
+    """A single row: which version of the home page words is live (none = the original wording)."""
+
+    id = models.PositiveSmallIntegerField(primary_key=True, default=1, editable=False)
+    published_revision = models.ForeignKey(
+        HomeRevision, on_delete=models.PROTECT, null=True, blank=True, related_name="+"
+    )

@@ -1,0 +1,60 @@
+{% extends "banda/staff/base.html" %}
+{% block title %}Home page versions{% endblock %}
+{% block page_title %}Home page versions{% endblock %}
+{% block content %}
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <p class="text-sm text-ink-muted">
+      {% if live_id %}A published version is live.{% else %}The home page shows its original wording.{% endif %}
+      Preview a version before publishing it.
+    </p>
+    <div class="flex gap-2">
+      <a class="btn-ghost btn-sm" href="{% url 'staff-website-pages' %}">&larr; Pages</a>
+      <a class="btn-next btn-sm" href="{% url 'staff-website-home' %}">Edit home page</a>
+    </div>
+  </div>
+
+  <section class="panel">
+    {% if revisions %}
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Version</th><th>Saved</th><th>By</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            {% for r in revisions %}
+              <tr>
+                <td class="font-medium text-ink">v{{ r.number }}</td>
+                <td class="whitespace-nowrap text-ink-muted">{{ r.created_at|date:"j M Y, H:i" }}</td>
+                <td class="text-ink-muted">{{ r.created_by.full_name|default:r.created_by.email|default:"—" }}</td>
+                <td>{% if r.pk == live_id %}<span class="text-sm font-semibold text-brand-navy">Live</span>{% else %}<span class="text-sm text-ink-soft">Draft</span>{% endif %}</td>
+                <td>
+                  <div class="flex flex-wrap justify-end gap-2">
+                    <a class="btn-ghost btn-sm" href="{% url 'staff-website-home-preview' revision_id=r.pk %}" target="_blank" rel="noopener">Preview</a>
+                    <form method="post" action="{% url 'staff-website-home-restore' revision_id=r.pk %}">{% csrf_token %}<button class="btn-ghost btn-sm" type="submit">Copy to new draft</button></form>
+                    {% if can_publish and r.pk != live_id %}
+                      <form method="post" action="{% url 'staff-website-home-publish' revision_id=r.pk %}">{% csrf_token %}<button class="btn-outline btn-sm" type="submit">Publish</button></form>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if page.has_other_pages %}
+        <nav class="flex items-center justify-between border-t border-cream-line px-4 py-3 text-sm" aria-label="Versions pages">
+          {% if page.has_previous %}<a class="btn-ghost btn-sm" href="?page={{ page.previous_page_number }}">&larr; Newer</a>{% else %}<span></span>{% endif %}
+          <span class="text-ink-soft">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+          {% if page.has_next %}<a class="btn-ghost btn-sm" href="?page={{ page.next_page_number }}">Older &rarr;</a>{% else %}<span></span>{% endif %}
+        </nav>
+      {% endif %}
+    {% else %}
+      <p class="px-6 py-16 text-center text-sm text-ink-muted">No versions yet. <a class="font-semibold text-brand-navy" href="{% url 'staff-website-home' %}">Edit the home page</a> to make the first one.</p>
+    {% endif %}
+  </section>
+
+  {% if can_publish and live_id %}
+    <form method="post" action="{% url 'staff-website-home-original' %}" class="text-right">
+      {% csrf_token %}
+      <button class="btn-ghost btn-sm" type="submit">Go back to the original wording</button>
+    </form>
+  {% endif %}
+{% endblock %}
