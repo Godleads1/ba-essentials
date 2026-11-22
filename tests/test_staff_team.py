@@ -16,7 +16,7 @@ from apps.core.models import OutboxEvent
 
 from .conftest import login_client, make_user
 
-NEW_PASSWORD = "Copper-Meadow-Lantern-42"
+NEW_PASSWORD = "Copper-Meadow-Lantern-42"  # gitleaks:allow (a made-up test password)
 
 
 def _admin(email):
