@@ -1,0 +1,3 @@
+{% if status == "published" %}<span class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-pill-greenBg px-2.5 py-1 text-xs font-semibold text-pill-greenTx"><span class="h-1.5 w-1.5 rounded-full bg-current"></span>Published</span>
+{% elif status == "changes" %}<span class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-pill-orangeBg px-2.5 py-1 text-xs font-semibold text-brand-orangeDark"><span class="h-1.5 w-1.5 rounded-full bg-current"></span>Changes to publish</span>
+{% else %}<span class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-cream px-2.5 py-1 text-xs font-semibold text-ink-muted"><span class="h-1.5 w-1.5 rounded-full bg-current"></span>Draft</span>{% endif %}

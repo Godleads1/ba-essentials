@@ -30,6 +30,7 @@
     </div>
 
     <nav class="no-scrollbar min-h-0 flex-1 overflow-y-auto" style="margin-top:clamp(16px,4vh,40px)" aria-label="{% if is_staff_member %}Staff{% else %}Client{% endif %}">
+      {% if nav_items %}
       <div class="side-group">
         <p class="side-label">{% if is_staff_member %}STAFF{% else %}MENU{% endif %}</p>
         <ul>
@@ -38,6 +39,18 @@
           {% endfor %}
         </ul>
       </div>
+      {% endif %}
+      {% if website_nav %}
+        <div class="side-group">
+          <p class="side-label">WEBSITE</p>
+          <ul>
+            {% for item in website_nav %}
+              <li><a href="{{ item.url }}" class="side-link"{% if item.current %} aria-current="page"{% endif %}><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ item.icon }}"></path></svg>{{ item.label }}</a></li>
+            {% endfor %}
+            <li><a href="/" target="_blank" rel="noopener" class="side-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3h7v7M10 14L21 3M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"></path></svg>Live site<span class="sr-only"> (opens in a new tab)</span></a></li>
+          </ul>
+        </div>
+      {% endif %}
     </nav>
 
     <div class="side-help relative mx-3 mt-4 shrink-0 overflow-hidden rounded-[18px] border border-white/15 bg-white/[.07] p-4 text-white">

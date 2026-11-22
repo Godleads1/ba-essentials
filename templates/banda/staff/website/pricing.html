@@ -1,0 +1,31 @@
+{% extends "banda/staff/base.html" %}
+{% block title %}Pricing{% endblock %}
+{% block page_title %}Pricing{% endblock %}
+{% block content %}
+  <div class="panel border-brand-lavender bg-pill-navyBg p-4 text-sm text-brand-navy">
+    <p class="font-semibold">Read-only: these come from the billing plans.</p>
+    <p class="mt-1">The home page and sign-up always show what clients are actually charged. Prices and allowances are changed by an administrator in the admin site, never here.</p>
+  </div>
+
+  <section class="panel">
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Plan</th><th>Nigeria (monthly)</th><th>Outside Nigeria (monthly)</th><th>Tasks a month</th><th>Legal reviews</th></tr></thead>
+        <tbody>
+          {% for row in plans %}
+            <tr>
+              <td class="font-semibold text-ink">{{ row.plan.name }}</td>
+              <td class="whitespace-nowrap">{{ row.ng }}</td>
+              <td class="whitespace-nowrap">{{ row.intl }}</td>
+              <td>{{ row.plan.monthly_task_allowance }}</td>
+              <td>{{ row.plan.legal_review_allowance }} per {% if row.plan.legal_review_period_months == 1 %}month{% else %}{{ row.plan.legal_review_period_months }} months{% endif %}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5" class="py-10 text-center text-sm text-ink-muted">No active plans yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <p class="text-xs text-ink-soft">Yearly plans: {{ discount }}% off.{% if legal_ng %} Extra legal reviews in Nigeria: {{ legal_ng }} each.{% endif %} To change the wording around prices, edit the Pricing section of the <a class="font-semibold text-brand-navy underline" href="{% url 'staff-website-home' %}">home page</a>.</p>
+{% endblock %}
