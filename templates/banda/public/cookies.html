@@ -1,6 +1,9 @@
 {% extends "banda/public/base.html" %}
 {% load static %}
 {% block title %}Cookie Notice · banda — B &amp; A Essentials{% endblock %}
+{% block description %}The cookies banda uses: only those needed to keep you signed in and secure. No advertising or analytics cookies.{% endblock %}
+{% block og_text %}<meta property="og:title" content="Cookie Notice · B &amp; A Essentials" />
+  <meta property="og:description" content="The cookies banda uses: only those needed to keep you signed in and secure. No advertising or analytics cookies." />{% endblock %}
 {% block styles %}<link rel="stylesheet" href="{% static 'banda/public/legal.css' %}" />{% endblock %}
 {% block body %}
 {% include "banda/public/_cookies_body.html" %}
