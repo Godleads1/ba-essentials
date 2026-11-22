@@ -192,23 +192,32 @@ All five services should say `Up`, and `web` should say `(healthy)` after about 
 ClamAV takes a few minutes the first time while it downloads virus signatures; uploads wait
 until it's ready.
 
-Load the plans and services, then create your superuser:
+Load the plans and services:
 
 ```bash
 docker compose exec web python manage.py seed_plans
 docker compose exec web python manage.py bootstrap_catalogue catalogue/service_catalogue_v2.1.json
-docker compose exec web python manage.py createsuperuser
 ```
 
-Create the second Admin, who can approve powerful roles on the Team screen. It asks you
-for their first password: give it to them in person, not by message. They change it after
-their first sign-in, in Profile & security:
+Create the superusers, one command each. Each command asks for that person's first
+password. Give it to them in person, never by message, and they change it after their first
+sign-in in Profile & security. Each of them sets up their own authenticator app.
 
 ```bash
-docker compose exec web python manage.py create_staff THEIR_EMAIL --role admin
+docker compose exec web python manage.py create_staff EMAIL --superuser --name "FULL NAME" --phone PHONE
 ```
 
-Then add everyone else from the **Team** screen in the staff app.
+The superusers who must **never be removed** go in `.env`, as their emails separated by
+commas:
+
+```bash
+nano .env      # PROTECTED_SUPERUSER_EMAILS=first@example.com,second@example.com
+docker compose up -d web
+```
+
+Those accounts can't be deleted, demoted or switched off from the app (Django admin
+included). Only someone with server access can change that list. Everyone else is added from
+the **Team** screen in the staff app.
 
 ## 8. Scheduled jobs
 
