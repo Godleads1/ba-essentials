@@ -27,6 +27,9 @@ class Plan(TimeStampedModel):
     currency = models.CharField(max_length=3, default="NGN")
     # US dollar list price in cents, for businesses outside Africa.
     price_usd_minor = models.BigIntegerField(default=0)
+    # The yearly naira price in kobo, as stated in the Terms (5.1). 0 means twelve months
+    # less the yearly discount. US dollar yearly prices always use the discount.
+    price_year_minor = models.BigIntegerField(default=0)
     is_active = models.BooleanField(default=True)
 
     class Meta:

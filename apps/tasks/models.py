@@ -92,6 +92,9 @@ class Task(TimeStampedModel):
     needs_info_question = models.TextField(blank=True)
     client_information = models.TextField(blank=True)
     revision_allowance_remaining = models.PositiveSmallIntegerField(default=0)
+    # Sent during the grace period after an unpaid plan period: held until the renewal is
+    # paid, then released (Terms 5.6.3). Staff can't move it on while held, only cancel it.
+    held_for_renewal = models.BooleanField(default=False, db_index=True)
     # The country the work is for (where the document will be used, the filing made,
     # the counterparty based). It decides whether the business's plan covers it.
     work_country = models.CharField(max_length=2, blank=True, choices=country_choices)

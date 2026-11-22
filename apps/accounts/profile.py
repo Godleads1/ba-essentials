@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from apps.audit import services as audit_service
 from apps.core.exceptions import PermissionFailure, ValidationFailure
-from apps.core.legal import AGREEMENT_VERSION, PRIVACY_VERSION
+from apps.core.legal import AGREEMENT_VERSION, PRIVACY_VERSION, TERMS_TO_CONFIRM
 
 from .models import ConsentKind, ConsentRecord, User
 
@@ -36,6 +36,35 @@ def record_agreement(user) -> ConsentRecord:
     """At sign-up, once the email code proves the address."""
     return record_consent(user, ConsentKind.AGREEMENT, granted=True,
                           wording=AGREEMENT_WORDING, version=AGREEMENT_VERSION)
+
+
+UPDATED_TERMS_WORDING = "I agree to the updated Terms of Service and the Privacy Policy."
+
+
+def needs_terms_confirmation(user) -> bool:
+    """A client who hasn't agreed to the current Terms yet (Terms 10.1(b)). Staff never need to."""
+    if not getattr(user, "is_authenticated", False) or not getattr(user, "is_client_account", False):
+        return False
+    from django.db.models import Q
+
+    counts = Q()
+    for prefix in TERMS_TO_CONFIRM:
+        counts |= Q(version__startswith=prefix)
+    return not ConsentRecord.objects.filter(counts, user=user, kind=ConsentKind.AGREEMENT, granted=True).exists()
+
+
+def require_terms_confirmed(user) -> None:
+    """Before paying for a new plan period."""
+    if needs_terms_confirmation(user):
+        raise ValidationFailure(
+            "We've updated our Terms of Service. Please read the changes and confirm them before paying "
+            "for a new period."
+        )
+
+
+def confirm_updated_terms(user) -> ConsentRecord:
+    return record_consent(user, ConsentKind.AGREEMENT, granted=True, wording=UPDATED_TERMS_WORDING,
+                          version=AGREEMENT_VERSION, channel="terms-update")
 
 
 def record_authority(user, organization) -> ConsentRecord:

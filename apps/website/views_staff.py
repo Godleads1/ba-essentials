@@ -169,21 +169,22 @@ def pricing_overview(request):
     from apps.core.views import _landing_prices
 
     data, _ = _landing_prices()
-    def money(entry):
+    def money(entry, key="month"):
         if not entry:
             return "—"
         symbol = {"NGN": "₦", "USD": "$"}.get(entry["currency"], entry["currency"] + " ")
-        return f"{symbol}{entry['month'] // 100:,}"
+        return f"{symbol}{entry[key] // 100:,}"
 
     plans = []
     for plan in Plan.objects.filter(is_active=True).order_by("rank", "price_minor"):
         prices = data["plans"].get(plan.slug, {})
         free = plan.price_minor == 0
         plans.append({"plan": plan, "ng": "Free" if free else money(prices.get("ng")),
+                      "ng_year": "Free" if free else money(prices.get("ng"), "year"),
                       "intl": "Free" if free else money(prices.get("intl"))})
     legal = data["legal"].get("ng")
     return render(request, "banda/staff/website/pricing.html", {
-        "plans": plans, "discount": data["discount"],
+        "plans": plans, "discount": data["discount"], "save": data["save"],
         "legal_ng": f"₦{legal['minor'] // 100:,}" if legal else "",
     })
 

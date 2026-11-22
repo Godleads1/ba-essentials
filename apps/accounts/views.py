@@ -811,3 +811,26 @@ def revoke_session(request, session_key: str):
         return redirect("login")
     messages.success(request, "That session was signed out.")
     return redirect("security-home")
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def terms_update(request):
+    """Read what changed in the Terms of Service and confirm it (Terms 10.1(b))."""
+    from apps.core.legal import TERMS_CHANGES, TERMS_EFFECTIVE_DATE
+
+    if not request.user.is_client_account:
+        raise Http404
+    needed = profile.needs_terms_confirmation(request.user)
+    if request.method == "POST":
+        if request.POST.get("agree") != "yes":
+            messages.error(request, "Tick the box to confirm you agree to the updated terms.")
+        else:
+            if needed:
+                profile.confirm_updated_terms(request.user)
+            messages.success(request, "Thank you. You've confirmed the updated Terms of Service.")
+            return redirect("plan-home")
+    return render(request, "banda/app/terms_update.html", {
+        "changes": TERMS_CHANGES, "effective": TERMS_EFFECTIVE_DATE, "needed": needed,
+        "wording": profile.UPDATED_TERMS_WORDING,
+    })

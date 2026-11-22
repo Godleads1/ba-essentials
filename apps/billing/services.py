@@ -14,6 +14,7 @@ from django.db import IntegrityError, transaction
 from django.db.models import Sum
 from django.utils import timezone
 
+from apps.accounts.profile import require_terms_confirmed
 from apps.audit import services as audit_service
 from apps.audit.models import AuditEvent
 from apps.core.dates import local
@@ -367,6 +368,7 @@ def start_plan_checkout(
         raise ValidationFailure("Payments aren't open yet.")
     if membership.role != MembershipRole.OWNER:
         raise PermissionFailure("Only the business owner can choose a plan.")
+    require_terms_confirmed(membership.user)  # Terms 10.1(b)
     _refuse_if_closing(organization)
     plan = Plan.objects.filter(slug=plan_slug, is_active=True).first()
     if plan is None or plan.price_minor <= 0:
@@ -474,6 +476,7 @@ def start_upgrade_checkout(
         raise ValidationFailure("Payments aren't open yet.")
     if membership.role != MembershipRole.OWNER:
         raise PermissionFailure("Only the business owner can change the plan.")
+    require_terms_confirmed(membership.user)  # Terms 10.1(b)
     _refuse_if_closing(organization)
     target = Plan.objects.filter(slug=plan_slug, is_active=True).first()
     if target is None:
@@ -544,6 +547,8 @@ def start_invoice_checkout(*, invoice: Invoice, membership, return_url: str) -> 
         raise PermissionFailure("You can't pay this invoice.")
     if invoice.plan_id is not None and invoice.renews_period_end is None:
         raise ValidationFailure("Plan payments are made from the Plan page.")
+    if invoice.renews_period_end is not None:
+        require_terms_confirmed(membership.user)  # a renewal is a new period: Terms 10.1(b)
     metadata = {"invoice": invoice.number}
     if invoice.task_id:
         metadata["request"] = invoice.task.reference
@@ -946,6 +951,17 @@ def _activate_subscription(invoice: Invoice) -> Subscription:
             "cancel_at_period_end", "cancel_requested_at", "grace_until", "renewal_attempts",
             "last_renewal_attempt_at", "grace_last_day_reminded", "paused_at", "updated_at",
         ])
+    # Requests sent during the grace period start now that the next period is paid (Terms 5.6.3).
+    from apps.tasks.models import Task
+
+    released = list(Task.objects.filter(organization_id=invoice.organization_id, held_for_renewal=True)
+                    .values_list("pk", flat=True))
+    if released:
+        Task.objects.filter(pk__in=released).update(held_for_renewal=False, updated_at=now)
+        for task_id in released:
+            audit_service.record(action="task.released_after_renewal", actor=None,
+                                 organization_id=invoice.organization_id, resource_type="task",
+                                 resource_id=str(task_id), metadata={"invoice": invoice.number})
     # Any other unpaid renewal invoice is now out of date and can't be paid.
     Invoice.objects.filter(
         organization_id=invoice.organization_id, status=InvoiceStatus.ISSUED, renews_period_end__isnull=False

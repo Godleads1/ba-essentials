@@ -39,6 +39,12 @@ from .models import (
 )
 
 
+class HeldForRenewal(InvalidTransition):
+    """The request was sent in the grace period and waits for the renewal payment (Terms 5.6.3)."""
+
+    code = "held_for_renewal"
+
+
 class Action(StrEnum):
     SUBMIT = "submit"
     TRIAGE = "triage"
@@ -241,6 +247,11 @@ def transition(
     state preconditions and audit trail under a system actor.
     """
     rule = RULES.get((task.status, action))
+    if task.held_for_renewal and action not in (Action.CANCEL_CLIENT, Action.CANCEL_STAFF):
+        raise HeldForRenewal(
+            "This request is held until the client pays for their next plan period. "
+            "It starts once they pay (Terms 5.6.3)."
+        )
     if rule is None:
         raise InvalidTransition(
             f"This request cannot be moved from {TaskStatus(task.status).label.lower()} "

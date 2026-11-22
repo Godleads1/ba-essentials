@@ -3,6 +3,12 @@
 {% block title %}{{ task.reference }} · Staff{% endblock %}
 {% block page_title %}{{ task.reference }}{% endblock %}
 {% block content %}
+  {% if task.held_for_renewal %}
+    <div class="mb-4 rounded-xl bg-pill-orangeBg px-4 py-3 text-sm text-brand-orangeDark" role="alert">
+      <p class="font-semibold">Held until the client pays their renewal</p>
+      <p class="mt-1">Sent during the grace period, so it starts once they pay for their next period (Terms 5.6.3). Until then it can't be moved on, only cancelled.</p>
+    </div>
+  {% endif %}
   {% if service_paused %}
     <div class="mb-4 rounded-xl bg-pill-orangeBg px-4 py-3 text-sm text-brand-orangeDark" role="alert">
       <p class="font-semibold">Client&rsquo;s service is paused: renewal unpaid</p>
@@ -14,6 +20,7 @@
       <div>
         <div class="flex flex-wrap items-center gap-2">
           {% include "banda/staff/_status_badge.html" with status=task.status %}
+          {% if task.held_for_renewal %}<span class="rounded-full bg-pill-orangeBg px-2.5 py-0.5 text-xs font-semibold text-brand-orangeDark">Held until renewal paid</span>{% endif %}
           <span class="text-xs font-medium uppercase tracking-wide text-ink-soft">{{ task.organization.name }}</span>
         </div>
         <h2 class="mt-2 text-xl font-semibold text-ink">{{ task.title }}</h2>

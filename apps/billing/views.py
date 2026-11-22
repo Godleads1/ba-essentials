@@ -10,7 +10,7 @@ from django.views.decorators.http import require_GET, require_POST
 
 from apps.billing import plan_rules, pricing, renewals
 from apps.billing import services as billing
-from apps.billing.models import BillingSettings, Invoice, PaymentAttempt, Plan, UsageLedger
+from apps.billing.models import Invoice, PaymentAttempt, Plan, UsageLedger
 from apps.catalogue.models import ServiceCategory
 from apps.core.exceptions import PermissionFailure, ValidationFailure
 from apps.organizations.access import client_required
@@ -83,7 +83,8 @@ def plan_home(request):
             "rate_error": rate_error,
             "region": region,
             "provider_name": "Paystack" if region == "ng" else "Flutterwave",
-            "yearly_discount": BillingSettings.current().yearly_discount_pct,
+            "yearly_saving": pricing.saving_label(
+                [pricing.yearly_saving_pct(m.amount_minor, y.amount_minor) for _, m, y in plans]),
             "extra_legal_fee": legal_fee,
             "extra_legal_currency": legal_currency,
             "can_buy": request.membership.role == "owner",
@@ -174,7 +175,7 @@ def plan_cancel(request):
 def plan_resume(request):
     return _plan_change(
         request, lambda: renewals.undo_cancel(request.organization, request.membership),
-        "Done. We'll remind you 3 days before your plan ends, with a link to pay.",
+        "Done. We'll remind you before your plan ends, with a link to pay.",
     )
 
 
