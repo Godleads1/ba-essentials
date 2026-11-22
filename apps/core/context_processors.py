@@ -18,6 +18,7 @@ STAFF_NAV = (
     ("staff-website-pages", "Website", "M12 3a9 9 0 100 18 9 9 0 000-18zM3 12h18M12 3c2.5 2.6 3.8 5.7 3.8 9S14.5 18.4 12 21c-2.5-2.6-3.8-5.7-3.8-9S9.5 5.6 12 3z"),
     ("staff-leads", "Contact Inbox", "M3 6h18v12H3zM3 8l9 6 9-6"),
     ("staff-audit", "Audit Log", "M4 5h16v14H4zM8 9h8M8 13h5"),
+    ("staff-team", "Team", "M17 20v-2a4 4 0 00-3-3.9M9 11a4 4 0 100-8 4 4 0 000 8zM1 20v-2a4 4 0 014-4h8a4 4 0 014 4v2M17 3.1a4 4 0 010 7.8"),
 )
 
 STAFF_NAV_PERMISSIONS = {
@@ -34,6 +35,7 @@ STAFF_NAV_PERMISSIONS = {
     "staff-website-pages": "website.edit",
     "staff-leads": "leads.view",
     "staff-audit": "audit.view",
+    "staff-team": "staff.manage",
 }
 
 # The Website admin menu: (url name, label, icon path, section). Shown in the Website area,

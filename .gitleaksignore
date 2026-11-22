@@ -1,0 +1,5 @@
+# Findings checked by hand and confirmed not to be secrets. One fingerprint per line
+# (commit:file:rule:line, as gitleaks prints it). Never add a real key here: rotate it instead.
+
+# A made-up password the Team screen tests type into the join page; it never worked anywhere.
+e8ac5ed6127fb41513806d0a2e96b7b87604b73c:tests/test_staff_team.py:generic-api-key:19

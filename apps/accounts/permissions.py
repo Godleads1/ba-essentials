@@ -28,6 +28,8 @@ LEADS_VIEW = "leads.view"
 FEES_PREPARE = "fees.prepare"
 FEES_APPROVE = "fees.approve"
 FEES_SETTLE = "fees.settle"
+# The Team screen: invite staff, change roles, remove access (apps/accounts/team.py).
+STAFF_MANAGE = "staff.manage"
 
 ALL_PERMISSIONS = frozenset(
     {
@@ -53,6 +55,7 @@ ALL_PERMISSIONS = frozenset(
         FEES_PREPARE,
         FEES_APPROVE,
         FEES_SETTLE,
+        STAFF_MANAGE,
     }
 )
 
