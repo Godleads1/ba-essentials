@@ -1,63 +1,100 @@
 {% extends "banda/staff/base.html" %}
-{% load ui %}
-{% block title %}Website pages{% endblock %}
-{% block page_title %}Website pages{% endblock %}
+{% load static %}
+{% block title %}Pages &amp; content{% endblock %}
+{% block page_title %}Pages &amp; content{% endblock %}
+{% block page_actions %}
+  <form method="get" class="flex w-full items-center gap-2 sm:w-auto" role="search">
+    {% if tab != "all" %}<input type="hidden" name="tab" value="{{ tab }}">{% endif %}
+    <label class="sr-only" for="page-search">Search pages</label>
+    <input id="page-search" type="search" name="q" value="{{ query }}" placeholder="Search pages…" class="w-full rounded-lg border border-cream-line bg-white px-3 py-2 text-sm text-ink sm:w-56">
+  </form>
+  <a class="btn-next btn-sm" href="{% url 'staff-website-create' %}">+ Add page</a>
+{% endblock %}
 {% block content %}
-  <div class="flex flex-wrap items-center justify-between gap-3">
-    <p class="text-sm text-ink-muted">Drafts stay private until a publisher releases them. Every saved revision is kept.</p>
-    <div class="flex gap-2">
-      <a class="btn-outline btn-sm" href="{% url 'staff-website-home' %}">Home page</a>
-      <a class="btn-outline btn-sm" href="{% url 'staff-website-images' %}">Images</a>
-      <a class="btn-next btn-sm" href="{% url 'staff-website-create' %}">New page</a>
-    </div>
-  </div>
+  <p class="text-sm text-ink-muted">Create, edit and publish the public website. Drafts stay private until a publisher makes them live, and every saved version is kept.</p>
 
-  <section class="panel">
-    {% if rows %}
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>Address</th><th>Title</th><th>Public</th><th>Menu</th><th>Latest</th><th>Updated</th><th></th></tr></thead>
-          <tbody>
-            {% for row in rows %}
-              <tr>
-                <td class="whitespace-nowrap font-medium text-xs text-ink-muted">/{{ row.page.slug }}/</td>
-                <td>
-                  <a class="font-medium text-ink hover:text-brand-navy" href="{% url 'staff-website-edit' page_id=row.page.pk %}">{{ row.latest.title|default:"Untitled" }}</a>
-                  {% if row.latest.summary %}<p class="max-w-md truncate text-xs text-ink-soft">{{ row.latest.summary }}</p>{% endif %}
-                </td>
-                <td>
-                  {% if row.page.published_revision_id %}
-                    {% include "banda/staff/_status_badge.html" with status="published" %}
-                  {% else %}
-                    {% include "banda/staff/_status_badge.html" with status="draft" %}
-                  {% endif %}
-                </td>
-                <td class="whitespace-nowrap text-xs text-ink-muted">{{ row.page.get_menu_display }}{% if row.page.menu != "none" %} · {{ row.page.menu_order }}{% endif %}</td>
-                <td class="whitespace-nowrap text-ink-muted">
-                  {% if row.latest %}v{{ row.latest.revision_number }}{% else %}—{% endif %}
-                  {% if row.page.published_revision_id == row.latest.pk %}
-                    <span class="text-xs text-brand-navy">live</span>
-                  {% elif row.latest %}
-                    <span class="text-xs text-brand-orangeDark">unpublished</span>
-                  {% endif %}
-                </td>
-                <td class="whitespace-nowrap text-ink-muted">{{ row.page.updated_at|date:"j M Y, H:i" }}</td>
-                <td class="text-right">
-                  <div class="flex flex-wrap justify-end gap-2">
-                    <a class="btn-ghost btn-sm" href="{% url 'staff-website-history' page_id=row.page.pk %}">History</a>
-                    <a class="btn-outline btn-sm" href="{% url 'staff-website-edit' page_id=row.page.pk %}">Edit</a>
-                  </div>
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    {% else %}
-      <div class="px-6 py-16 text-center">
-        <p class="text-sm font-medium text-ink">No pages yet.</p>
-        <p class="mt-1 text-sm text-ink-muted">Create an About or FAQ page to get started. Terms, Privacy and Cookies are built into the site.</p>
-      </div>
-    {% endif %}
-  </section>
+  <div class="grid gap-6 xl:grid-cols-[1fr_300px]">
+    <section class="panel min-w-0">
+      <nav class="flex flex-wrap gap-1 border-b border-cream-line px-4" aria-label="Filter pages">
+        <a href="?tab=all{% if query %}&amp;q={{ query|urlencode }}{% endif %}" class="-mb-px border-b-2 px-3 py-3 text-sm font-semibold {% if tab == 'all' %}border-brand-navy text-brand-navy{% else %}border-transparent text-ink-muted hover:text-ink{% endif %}"{% if tab == "all" %} aria-current="page"{% endif %}>All pages ({{ counts.all }})</a>
+        <a href="?tab=published{% if query %}&amp;q={{ query|urlencode }}{% endif %}" class="-mb-px border-b-2 px-3 py-3 text-sm font-semibold {% if tab == 'published' %}border-brand-navy text-brand-navy{% else %}border-transparent text-ink-muted hover:text-ink{% endif %}"{% if tab == "published" %} aria-current="page"{% endif %}>Published ({{ counts.published }})</a>
+        <a href="?tab=drafts{% if query %}&amp;q={{ query|urlencode }}{% endif %}" class="-mb-px border-b-2 px-3 py-3 text-sm font-semibold {% if tab == 'drafts' %}border-brand-navy text-brand-navy{% else %}border-transparent text-ink-muted hover:text-ink{% endif %}"{% if tab == "drafts" %} aria-current="page"{% endif %}>Drafts &amp; changes ({{ counts.drafts|add:counts.waiting }})</a>
+      </nav>
+
+      {% if rows %}
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Page</th><th>Address</th><th>Last updated</th><th>Status</th><th class="text-right">Actions</th></tr></thead>
+            <tbody>
+              {% for row in rows %}
+                <tr>
+                  <td>
+                    <div class="flex items-center gap-3">
+                      <span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg {% if row.kind == 'home' %}bg-brand-navy text-white{% else %}bg-pill-navyBg text-brand-navy{% endif %}" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">{% if row.kind == "home" %}<path d="M3 12l9-9 9 9M5 10v10h14V10"/>{% else %}<path d="M14 3v5h5M6 3h9l4 4v14H6zM9 13h6M9 17h4"/>{% endif %}</svg>
+                      </span>
+                      <div class="min-w-0">
+                        <a class="font-semibold text-ink hover:text-brand-navy" href="{{ row.edit_url }}">{{ row.title }}</a>
+                        {% if row.subtitle %}<p class="max-w-xs truncate text-xs text-ink-soft">{{ row.subtitle }}</p>{% endif %}
+                      </div>
+                    </div>
+                  </td>
+                  <td class="whitespace-nowrap font-mono text-xs text-ink-muted">{{ row.path }}</td>
+                  <td class="whitespace-nowrap text-xs text-ink-muted">
+                    {% if row.updated_at %}{{ row.updated_at|date:"j M Y, H:i" }}<br><span class="text-ink-soft">{{ row.updated_by.full_name|default:row.updated_by.email|default:"" }}</span>{% else %}Original wording{% endif %}
+                  </td>
+                  <td>{% include "banda/staff/website/_status.html" with status=row.status %}</td>
+                  <td>
+                    <div class="flex justify-end gap-1">
+                      <a class="grid h-9 w-9 place-items-center rounded-lg text-ink-muted hover:bg-cream hover:text-brand-navy" href="{% if row.status == 'draft' %}{{ row.preview_url }}{% else %}{{ row.view_url }}{% endif %}" target="_blank" rel="noopener" title="{% if row.status == 'draft' %}Preview{% else %}View live{% endif %}"><span class="sr-only">{% if row.status == 'draft' %}Preview{% else %}View live{% endif %} {{ row.title }}</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="h-[18px] w-[18px]"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></a>
+                      <a class="grid h-9 w-9 place-items-center rounded-lg text-ink-muted hover:bg-cream hover:text-brand-navy" href="{{ row.edit_url }}" title="Edit"><span class="sr-only">Edit {{ row.title }}</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="h-[18px] w-[18px]"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg></a>
+                      <a class="grid h-9 w-9 place-items-center rounded-lg text-ink-muted hover:bg-cream hover:text-brand-navy" href="{{ row.history_url }}" title="Versions and publishing"><span class="sr-only">Versions and publishing for {{ row.title }}</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="h-[18px] w-[18px]"><path d="M3 12a9 9 0 109-9 9.7 9.7 0 00-6.7 2.7L3 8M3 3v5h5M12 7v5l4 2"/></svg></a>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="px-6 py-16 text-center">
+          {% if query %}
+            <p class="text-sm font-medium text-ink">No pages match “{{ query }}”.</p>
+            <a class="mt-2 inline-block text-sm font-semibold text-brand-navy" href="?tab={{ tab }}">Clear the search</a>
+          {% else %}
+            <p class="text-sm font-medium text-ink">Nothing here yet.</p>
+            <p class="mt-1 text-sm text-ink-muted">Add an About or a services page to get started. Terms, Privacy and Cookies are built into the site.</p>
+          {% endif %}
+        </div>
+      {% endif %}
+    </section>
+
+    <aside class="space-y-4">
+      <section class="panel p-5">
+        <h2 class="text-sm font-semibold text-ink">Overview</h2>
+        <dl class="mt-4 grid grid-cols-2 gap-3">
+          <div class="rounded-xl bg-cream-light p-3"><dt class="text-xs text-ink-muted">Total pages</dt><dd class="mt-1 font-display text-2xl font-semibold text-ink">{{ counts.all }}</dd></div>
+          <div class="rounded-xl bg-cream-light p-3"><dt class="text-xs text-ink-muted">Published</dt><dd class="mt-1 font-display text-2xl font-semibold text-pill-greenTx">{{ counts.published }}</dd></div>
+          <div class="rounded-xl bg-cream-light p-3"><dt class="text-xs text-ink-muted">Drafts</dt><dd class="mt-1 font-display text-2xl font-semibold text-ink">{{ counts.drafts }}</dd></div>
+          <div class="rounded-xl bg-cream-light p-3"><dt class="text-xs text-ink-muted">To publish</dt><dd class="mt-1 font-display text-2xl font-semibold text-brand-orangeDark">{{ counts.waiting|add:counts.drafts }}</dd></div>
+        </dl>
+      </section>
+
+      <section class="panel p-5">
+        <h2 class="text-sm font-semibold text-ink">Quick actions</h2>
+        <ul class="mt-3 space-y-1">
+          <li><a class="flex items-start gap-3 rounded-lg p-2 hover:bg-cream" href="{% url 'staff-website-create' %}"><span class="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-pill-navyBg text-brand-navy" aria-hidden="true">+</span><span><span class="block text-sm font-semibold text-ink">Add a page</span><span class="block text-xs text-ink-muted">About, a service area, a guide</span></span></a></li>
+          <li><a class="flex items-start gap-3 rounded-lg p-2 hover:bg-cream" href="{% url 'staff-website-home' %}"><span class="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-pill-navyBg text-brand-navy" aria-hidden="true">⌂</span><span><span class="block text-sm font-semibold text-ink">Edit the home page</span><span class="block text-xs text-ink-muted">Headline, sections and questions</span></span></a></li>
+          <li><a class="flex items-start gap-3 rounded-lg p-2 hover:bg-cream" href="{% url 'staff-website-images' %}"><span class="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-pill-navyBg text-brand-navy" aria-hidden="true">▣</span><span><span class="block text-sm font-semibold text-ink">Upload an image</span><span class="block text-xs text-ink-muted">{{ image_count }} in the media library</span></span></a></li>
+          <li><a class="flex items-start gap-3 rounded-lg p-2 hover:bg-cream" href="{% url 'staff-website-publish-queue' %}"><span class="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-pill-orangeBg text-brand-orangeDark" aria-hidden="true">✓</span><span><span class="block text-sm font-semibold text-ink">{% if can_publish %}Review and publish{% else %}See what's waiting{% endif %}</span><span class="block text-xs text-ink-muted">{{ counts.waiting|add:counts.drafts }} waiting</span></span></a></li>
+        </ul>
+      </section>
+
+      <section class="panel overflow-hidden">
+        <div class="p-5 pb-3"><h2 class="text-sm font-semibold text-ink">Website preview</h2></div>
+        <a href="/" target="_blank" rel="noopener" class="block px-5"><img src="{% static 'banda/public/og-default.png' %}" alt="" width="1200" height="630" class="w-full rounded-xl border border-cream-line"></a>
+        <div class="p-5 pt-4"><a class="btn-outline btn-sm w-full justify-center" href="/" target="_blank" rel="noopener">Open the live website<span class="sr-only"> (opens in a new tab)</span></a></div>
+      </section>
+    </aside>
+  </div>
 {% endblock %}

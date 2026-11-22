@@ -34,6 +34,47 @@ STAFF_NAV_PERMISSIONS = {
     "staff-audit": "audit.view",
 }
 
+# The Website admin menu: (url name, label, icon path, section). Shown in the Website area,
+# and always for website-only staff. A "#" in the url name adds an anchor.
+WEBSITE_NAV = (
+    ("staff-website-pages", "Pages", "M14 3v5h5M6 3h9l4 4v14H6zM9 13h6M9 17h4", "pages"),
+    ("staff-website-home", "Home page", "M3 12l9-9 9 9M5 10v10h14V10", "home"),
+    ("staff-website-home#faqs", "Questions (FAQs)", "M12 18h.01M9.1 9a3 3 0 015.8 1c0 2-3 2-3 4M12 3a9 9 0 100 18 9 9 0 000-18z", "faqs"),
+    ("staff-website-images", "Media library", "M4 5h16v14H4zM4 15l4-4 4 4 3-3 5 5M15 9h.01", "media"),
+    ("staff-website-seo", "SEO & meta", "M11 4a7 7 0 100 14 7 7 0 000-14zM21 21l-5-5", "seo"),
+    ("staff-website-pricing", "Pricing", "M12 3v18M7 7h7a3 3 0 010 6H7h8a3 3 0 010 6H7", "pricing"),
+    ("staff-website-publish-queue", "Preview & publish", "M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 9a3 3 0 100 6 3 3 0 000-6z", "publish"),
+)
+
+WEBSITE_SECTIONS = {
+    "staff-website-pages": "pages", "staff-website-create": "pages", "staff-website-edit": "pages",
+    "staff-website-preview": "pages", "staff-website-history": "pages", "staff-website-menu": "pages",
+    "staff-website-home": "home", "staff-website-home-history": "home", "staff-website-home-preview": "home",
+    "staff-website-images": "media", "staff-website-seo": "seo", "staff-website-pricing": "pricing",
+    "staff-website-publish-queue": "publish",
+}
+
+
+def _website_nav(request, user, website_only: bool) -> dict:
+    """The Website admin menu, for people who can edit the website."""
+    from django.urls import reverse
+
+    from apps.accounts.permissions import WEBSITE_EDIT, has_perm
+
+    if not has_perm(user, WEBSITE_EDIT):
+        return {}
+    match = getattr(request, "resolver_match", None)
+    section = WEBSITE_SECTIONS.get(match.url_name if match else "")
+    if section is None and not website_only:
+        return {}
+    items = []
+    for name, label, icon, key in WEBSITE_NAV:
+        url_name, _, anchor = name.partition("#")
+        items.append({"url": reverse(url_name) + (f"#{anchor}" if anchor else ""), "label": label, "icon": icon,
+                      "current": key == section})
+    return {"website_nav": items}
+
+
 CLIENT_NAV = (
     ("client-overview", "Dashboard", "M3 12l9-9 9 9M5 10v10h14V10"),
     ("task-submit", "Submit a Task", "M12 5v14M5 12h14"),
@@ -79,12 +120,13 @@ def navigation(request):
         for name, label, icon in STAFF_NAV:
             if name == "staff-my-cases" and staff_role != StaffRole.SPECIALIST:
                 continue
-            if website_only and name in ("staff-dashboard", "staff-queue"):
-                continue  # their task views are always empty; they start on Website
+            if website_only and name in ("staff-dashboard", "staff-queue", "staff-website-pages"):
+                continue  # their task views are always empty, and Website has its own menu below
             required = STAFF_NAV_PERMISSIONS.get(name)
             if required and not has_perm(user, required):
                 continue
             allowed.append((name, label, icon))
+        context.update(_website_nav(request, user, website_only))
         context["staff_nav"] = tuple(allowed)
         context["nav_items"] = context["staff_nav"]
         context["is_staff_member"] = True

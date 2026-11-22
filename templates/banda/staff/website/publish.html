@@ -1,0 +1,33 @@
+{% extends "banda/staff/base.html" %}
+{% block title %}Preview &amp; publish{% endblock %}
+{% block page_title %}Preview &amp; publish{% endblock %}
+{% block content %}
+  <p class="text-sm text-ink-muted">Everything saved but not live yet. Preview each one as visitors will see it{% if can_publish %}, then publish{% else %}; a website publisher makes it live{% endif %}.</p>
+  <section class="panel">
+    {% if rows %}
+      <ul class="divide-y divide-cream-line">
+        {% for row in rows %}
+          <li class="flex flex-wrap items-center gap-4 p-4">
+            <div class="min-w-0 flex-1">
+              <p class="font-semibold text-ink">{{ row.title }} <span class="font-mono text-xs font-normal text-ink-muted">{{ row.path }}</span></p>
+              <p class="mt-1 text-xs text-ink-muted">{% if row.status == "draft" %}New page, never published{% else %}Saved changes waiting to go live{% endif %}{% if row.updated_at %} · {{ row.updated_at|date:"j M Y, H:i" }}{% if row.updated_by %} by {{ row.updated_by.full_name|default:row.updated_by.email }}{% endif %}{% endif %}</p>
+            </div>
+            {% include "banda/staff/website/_status.html" with status=row.status %}
+            <div class="flex gap-2">
+              <a class="btn-ghost btn-sm" href="{{ row.preview_url }}" target="_blank" rel="noopener">Preview</a>
+              {% if can_publish %}
+                {% if row.kind == "home" %}
+                  <form method="post" action="{% url 'staff-website-home-publish' revision_id=row.draft.pk %}">{% csrf_token %}<button class="btn-next btn-sm" type="submit">Publish</button></form>
+                {% else %}
+                  <form method="post" action="{% url 'staff-website-publish' page_id=row.page.pk %}">{% csrf_token %}<input type="hidden" name="revision" value="{{ row.revision.pk }}"><button class="btn-next btn-sm" type="submit">Publish</button></form>
+                {% endif %}
+              {% endif %}
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="px-6 py-16 text-center text-sm text-ink-muted">Nothing waiting. Everything saved is live.</p>
+    {% endif %}
+  </section>
+{% endblock %}

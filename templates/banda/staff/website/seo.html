@@ -1,0 +1,44 @@
+{% extends "banda/staff/base.html" %}
+{% block title %}SEO &amp; meta{% endblock %}
+{% block page_title %}SEO &amp; meta{% endblock %}
+{% block content %}
+  <p class="text-sm text-ink-muted">What Google and link previews see for each page. Fix anything flagged by editing the page; changes count once published.</p>
+
+  <section class="panel p-5">
+    <h2 class="text-sm font-semibold text-ink">Site settings for search engines</h2>
+    <p class="mt-1 text-xs text-ink-muted">Set on the server by whoever runs it (docs/SEO.md). Shown here so you can see what's missing.</p>
+    <ul class="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+      <li class="flex items-start gap-2">{% if site.base_url_ok %}<span class="text-pill-greenTx" aria-hidden="true">✓</span>{% else %}<span class="text-brand-orangeDark" aria-hidden="true">!</span>{% endif %}<span><span class="font-semibold text-ink">Public address:</span> <span class="font-mono text-xs">{{ site.base_url }}</span>{% if not site.base_url_ok %}<br><span class="text-xs text-brand-orangeDark">Set APP_BASE_URL to the real https:// address before launch.</span>{% endif %}</span></li>
+      <li class="flex items-start gap-2">{% if site.google %}<span class="text-pill-greenTx" aria-hidden="true">✓</span>{% else %}<span class="text-brand-orangeDark" aria-hidden="true">!</span>{% endif %}<span><span class="font-semibold text-ink">Google Search Console:</span> {% if site.google %}verification set{% else %}not verified yet{% endif %}</span></li>
+      <li class="flex items-start gap-2">{% if site.bing %}<span class="text-pill-greenTx" aria-hidden="true">✓</span>{% else %}<span class="text-ink-soft" aria-hidden="true">–</span>{% endif %}<span><span class="font-semibold text-ink">Bing Webmaster Tools:</span> {% if site.bing %}verification set{% else %}optional, not set{% endif %}</span></li>
+      <li class="flex items-start gap-2">{% if site.city %}<span class="text-pill-greenTx" aria-hidden="true">✓</span>{% else %}<span class="text-ink-soft" aria-hidden="true">–</span>{% endif %}<span><span class="font-semibold text-ink">Business city and phone for Google:</span> {% if site.city %}{{ site.city }}{% if site.phone %}, {{ site.phone }}{% endif %}{% else %}optional, not set{% endif %}</span></li>
+      <li class="flex items-start gap-2">{% if site.same_as %}<span class="text-pill-greenTx" aria-hidden="true">✓</span>{% else %}<span class="text-ink-soft" aria-hidden="true">–</span>{% endif %}<span><span class="font-semibold text-ink">Social profiles:</span> {% if site.same_as %}{{ site.same_as|length }} linked{% else %}optional, none linked{% endif %}</span></li>
+      <li class="flex items-start gap-2"><span class="text-pill-greenTx" aria-hidden="true">✓</span><span><span class="font-semibold text-ink">Sitemap and robots:</span> <a class="font-semibold text-brand-navy underline" href="/sitemap.xml" target="_blank" rel="noopener">sitemap.xml</a> · <a class="font-semibold text-brand-navy underline" href="/robots.txt" target="_blank" rel="noopener">robots.txt</a></span></li>
+    </ul>
+  </section>
+
+  <section class="panel">
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Page</th><th>Search title and description</th><th>Link preview</th><th>Check</th><th></th></tr></thead>
+        <tbody>
+          {% for row in rows %}
+            <tr>
+              <td class="align-top"><p class="font-semibold text-ink">{{ row.title }}</p><p class="font-mono text-xs text-ink-muted">{{ row.path }}</p>{% if row.hidden %}<p class="mt-1 text-xs font-semibold text-brand-orangeDark">Hidden from search</p>{% endif %}</td>
+              <td class="max-w-md align-top">
+                <p class="text-sm font-medium text-brand-navy">{{ row.seo_title }} <span class="text-xs font-normal text-ink-soft">({{ row.seo_title|length }})</span></p>
+                <p class="mt-1 text-xs text-ink-muted">{{ row.seo_description|default:"—" }} <span class="text-ink-soft">({{ row.seo_description|length }})</span></p>
+              </td>
+              <td class="whitespace-nowrap align-top text-xs text-ink-muted">{% if row.share_image %}Own image{% else %}Default image{% endif %}</td>
+              <td class="align-top">
+                {% if row.problems %}<ul class="space-y-1 text-xs text-brand-orangeDark">{% for p in row.problems %}<li>{{ p }}</li>{% endfor %}</ul>{% else %}<span class="text-xs font-semibold text-pill-greenTx">Looks good</span>{% endif %}
+              </td>
+              <td class="align-top text-right"><a class="btn-outline btn-sm" href="{{ row.edit_url }}">Edit</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <p class="text-xs text-ink-soft">Google shows about 60 characters of a title and 160 of a description. Numbers in brackets are the current length.</p>
+{% endblock %}

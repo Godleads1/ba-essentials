@@ -55,15 +55,147 @@ def _revision(page: Page, revision_id):
         return None
 
 
+def _website_rows() -> list[dict]:
+    """Every page staff manage, the home page first: what the Pages table, SEO and publish screens show."""
+    rows = []
+    state = HomePage.objects.select_related("published_revision").filter(pk=1).first()
+    live = state.published_revision if state else None
+    newest = HomeRevision.objects.select_related("created_by").order_by("-number").first()
+    rows.append({
+        "kind": "home", "title": "Home", "subtitle": "Landing page", "path": "/",
+        "status": "changes" if newest and (live is None or newest.number > live.number) else "published",
+        "updated_at": newest.created_at if newest else None, "updated_by": newest.created_by if newest else None,
+        "view_url": "/", "edit_url": reverse("staff-website-home"),
+        "history_url": reverse("staff-website-home-history"),
+        "preview_url": reverse("staff-website-home-preview", args=[newest.pk]) if newest else "/",
+        "draft": newest if newest and (live is None or newest.number > live.number) else None,
+        "seo": home.Copy(newest.content if newest else None),
+    })
+    pages = list(Page.objects.select_related("published_revision").order_by("slug"))
+    latest: dict = {}
+    for revision in PageRevision.objects.select_related("created_by", "share_image").order_by(
+            "page_id", "-revision_number"):
+        latest.setdefault(revision.page_id, revision)
+    for page in pages:
+        newest_page = latest.get(page.pk)
+        published = page.published_revision_id is not None
+        waiting = newest_page and page.published_revision_id != newest_page.pk
+        rows.append({
+            "kind": "page", "page": page, "revision": newest_page,
+            "title": newest_page.title if newest_page else "Untitled",
+            "subtitle": newest_page.summary if newest_page else "", "path": f"/{page.slug}/",
+            "status": ("changes" if waiting else "published") if published else "draft",
+            "updated_at": newest_page.created_at if newest_page else page.updated_at,
+            "updated_by": newest_page.created_by if newest_page else None,
+            "view_url": f"/{page.slug}/" if published else reverse("staff-website-preview", args=[page.pk]),
+            "edit_url": reverse("staff-website-edit", args=[page.pk]),
+            "history_url": reverse("staff-website-history", args=[page.pk]),
+            "preview_url": reverse("staff-website-preview", args=[page.pk]),
+            "draft": newest_page if waiting else None,
+        })
+    return rows
+
+
 @staff_permission_required(WEBSITE_EDIT)
 @require_GET
 def page_list(request):
-    pages = list(Page.objects.select_related("published_revision").order_by("slug"))
-    latest: dict = {}
-    for revision in PageRevision.objects.order_by("page_id", "-revision_number"):
-        latest.setdefault(revision.page_id, revision)
-    rows = [{"page": page, "latest": latest.get(page.pk)} for page in pages]
-    return render(request, "banda/staff/website/pages.html", {"rows": rows})
+    rows = _website_rows()
+    counts = {"all": len(rows), "published": sum(r["status"] != "draft" for r in rows),
+              "drafts": sum(r["status"] == "draft" for r in rows),
+              "waiting": sum(r["status"] == "changes" for r in rows)}
+    tab = request.GET.get("tab", "all")
+    if tab == "published":
+        rows = [r for r in rows if r["status"] != "draft"]
+    elif tab == "drafts":
+        rows = [r for r in rows if r["status"] in ("draft", "changes")]
+    else:
+        tab = "all"
+    query = " ".join(request.GET.get("q", "").split())[:100]
+    if query:
+        needle = query.lower()
+        rows = [r for r in rows if needle in r["title"].lower() or needle in r["path"].lower()
+                or needle in (r["subtitle"] or "").lower()]
+    return render(request, "banda/staff/website/pages.html", {
+        "rows": rows, "counts": counts, "tab": tab, "query": query,
+        "can_publish": has_perm(request.user, WEBSITE_PUBLISH),
+        "image_count": PageImage.objects.count(),
+    })
+
+
+@staff_permission_required(WEBSITE_EDIT)
+@require_GET
+def seo_overview(request):
+    """Every page's search title, description and settings in one place, with what to fix."""
+    from django.conf import settings
+
+    from . import seo
+
+    rows = []
+    for row in _website_rows():
+        if row["kind"] == "home":
+            copy = row["seo"]
+            title, description = copy.plain("seo_title"), copy.plain("seo_description")
+            hidden, image = False, copy.share_image
+        else:
+            revision = row["revision"]
+            title = f"{revision.title} · banda — B & A Essentials" if revision else ""
+            description = (revision.meta_description or revision.summary or revision.title) if revision else ""
+            hidden = bool(revision and revision.hide_from_search)
+            image = revision.share_image if revision else None
+        problems = []
+        if len(title) > 70:
+            problems.append("Title is long: Google may cut it off.")
+        own = row["kind"] == "home" or bool(row["revision"] and row["revision"].meta_description)
+        if not own:
+            problems.append("No search description: add one of 50–160 characters (the summary is used for now).")
+        elif len(description) < 50:
+            problems.append("Search description is short: aim for 50–160 characters.")
+        rows.append({**row, "seo_title": title, "seo_description": description, "hidden": hidden,
+                     "share_image": image, "problems": problems})
+    site = {
+        "base_url": seo.site_url(),
+        "base_url_ok": seo.site_url().startswith("https://") and "localhost" not in seo.site_url(),
+        "google": bool(settings.GOOGLE_SITE_VERIFICATION), "bing": bool(settings.BING_SITE_VERIFICATION),
+        "city": settings.BUSINESS_CITY, "phone": settings.BUSINESS_PHONE, "same_as": settings.SEO_SAME_AS,
+    }
+    return render(request, "banda/staff/website/seo.html", {"rows": rows, "site": site})
+
+
+@staff_permission_required(WEBSITE_EDIT)
+@require_GET
+def pricing_overview(request):
+    """The plans and prices the website shows. Read-only: they come from billing."""
+    from apps.billing.models import Plan
+    from apps.core.views import _landing_prices
+
+    data, _ = _landing_prices()
+    def money(entry):
+        if not entry:
+            return "—"
+        symbol = {"NGN": "₦", "USD": "$"}.get(entry["currency"], entry["currency"] + " ")
+        return f"{symbol}{entry['month'] // 100:,}"
+
+    plans = []
+    for plan in Plan.objects.filter(is_active=True).order_by("rank", "price_minor"):
+        prices = data["plans"].get(plan.slug, {})
+        free = plan.price_minor == 0
+        plans.append({"plan": plan, "ng": "Free" if free else money(prices.get("ng")),
+                      "intl": "Free" if free else money(prices.get("intl"))})
+    legal = data["legal"].get("ng")
+    return render(request, "banda/staff/website/pricing.html", {
+        "plans": plans, "discount": data["discount"],
+        "legal_ng": f"₦{legal['minor'] // 100:,}" if legal else "",
+    })
+
+
+@staff_permission_required(WEBSITE_EDIT)
+@require_GET
+def publish_queue(request):
+    """Everything saved but not live yet: preview it, then publish."""
+    rows = [r for r in _website_rows() if r["status"] in ("draft", "changes")]
+    return render(request, "banda/staff/website/publish.html", {
+        "rows": rows, "can_publish": has_perm(request.user, WEBSITE_PUBLISH),
+    })
 
 
 @staff_permission_required(WEBSITE_EDIT)

@@ -5,6 +5,9 @@ from . import views_staff as views
 urlpatterns = [
     path("website/", views.page_list, name="staff-website-pages"),
     path("website/new/", views.page_create, name="staff-website-create"),
+    path("website/seo/", views.seo_overview, name="staff-website-seo"),
+    path("website/pricing/", views.pricing_overview, name="staff-website-pricing"),
+    path("website/publish/", views.publish_queue, name="staff-website-publish-queue"),
     path("website/images/", views.image_library, name="staff-website-images"),
     path("website/home/", views.home_edit, name="staff-website-home"),
     path("website/home/versions/", views.home_history, name="staff-website-home-history"),
