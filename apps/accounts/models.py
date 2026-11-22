@@ -295,3 +295,53 @@ class DataRequest(models.Model):
     @property
     def overdue(self) -> bool:
         return self.status == DataRequestStatus.OPEN and timezone.now() > self.reply_by
+
+
+class StaffRequestKind(models.TextChoices):
+    INVITE = "invite", "Invitation"
+    ROLE_CHANGE = "role_change", "Role change"
+    RESTORE = "restore", "Access restored"
+
+
+class StaffRequestStatus(models.TextChoices):
+    AWAITING_APPROVAL = "awaiting_approval", "Waiting for a second Admin"
+    INVITED = "invited", "Invitation sent"
+    DONE = "done", "Done"
+    REJECTED = "rejected", "Turned down"
+    CANCELLED = "cancelled", "Cancelled"
+
+
+class StaffAccessRequest(models.Model):
+    """A change to who is on the staff team, made from the Team screen (apps/accounts/team.py).
+
+    Invitations to, and moves into, a powerful role wait for a second Admin's approval.
+    An invitation link is stored only as a hash and works once.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    kind = models.CharField(max_length=16, choices=StaffRequestKind.choices)
+    status = models.CharField(max_length=24, choices=StaffRequestStatus.choices)
+    email = models.EmailField()
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True,
+                             related_name="staff_requests")
+    role = models.CharField(max_length=32, choices=StaffRole.choices)
+    requested_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
+                                     related_name="staff_requests_made")
+    decided_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name="staff_requests_decided")
+    decided_at = models.DateTimeField(null=True, blank=True)
+    token_hash = models.CharField(max_length=64, null=True, blank=True, unique=True)
+    expires_at = models.DateTimeField()
+    completed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["status", "-created_at"]), models.Index(fields=["email"])]
+
+    def __str__(self) -> str:
+        return f"{self.get_kind_display()} {self.email} as {self.role} [{self.status}]"
+
+    @property
+    def expired(self) -> bool:
+        return self.expires_at <= timezone.now()

@@ -1,0 +1,24 @@
+{% extends "banda/auth/base.html" %}
+{% block title %}Join the staff team{% endblock %}
+{% block form %}
+  {% if invalid %}
+        <h2 class="font-display text-[34px] font-semibold leading-tight tracking-[-0.02em] sm:text-[38px]">This link doesn&rsquo;t work</h2>
+        <p class="sub mt-1.5 text-[16.5px] text-ink-muted">It has expired, was already used, or was cancelled. Ask an Admin to send you a new invitation.</p>
+        <p class="mt-8 text-center text-[14.5px] text-ink-muted"><a href="{% url 'staff-login' %}" class="font-semibold text-brand-navy underline-offset-4 hover:underline">Staff log in</a></p>
+  {% else %}
+        <h2 class="font-display text-[34px] font-semibold leading-tight tracking-[-0.02em] sm:text-[38px]">Join the staff team</h2>
+        <p class="sub mt-1.5 text-[16.5px] text-ink-muted">You&rsquo;ve been invited as <strong class="text-ink">{{ role_label }}</strong> ({{ invitation.email }}). Choose a password. Next you&rsquo;ll sign in and set up a free authenticator app.</p>
+        <form method="post" class="mt-9" novalidate>
+          {% csrf_token %}
+          {% if error %}<div class="mb-4 rounded-xl bg-[#FDECEC] px-4 py-3 text-[14px] text-[#B42318]" role="alert">{{ error }}</div>{% endif %}
+          <label for="id_full_name" class="block text-[14px] font-semibold">Your name</label>
+          <input id="id_full_name" name="full_name" type="text" autocomplete="name" required maxlength="150" value="{{ full_name }}" class="mt-2 w-full rounded-xl border border-cream-line bg-white px-4 py-3.5 text-[15px] text-ink transition focus:border-brand-navy focus:outline-none focus:ring-4 focus:ring-brand-navy/10" />
+          <label for="id_password" class="mt-5 block text-[14px] font-semibold">Password</label>
+          <input id="id_password" name="password" type="password" autocomplete="new-password" required minlength="12" aria-describedby="pwHelp" class="mt-2 w-full rounded-xl border border-cream-line bg-white px-4 py-3.5 text-[15px] text-ink transition focus:border-brand-navy focus:outline-none focus:ring-4 focus:ring-brand-navy/10" />
+          <p id="pwHelp" class="mt-1.5 text-[13px] text-ink-muted">At least 12 characters. Three or four random words work well. Passwords found in data breaches are refused.</p>
+          <label for="id_password_again" class="mt-5 block text-[14px] font-semibold">Password again</label>
+          <input id="id_password_again" name="password_again" type="password" autocomplete="new-password" required class="mt-2 w-full rounded-xl border border-cream-line bg-white px-4 py-3.5 text-[15px] text-ink transition focus:border-brand-navy focus:outline-none focus:ring-4 focus:ring-brand-navy/10" />
+          <button type="submit" class="submit mt-7 flex w-full items-center justify-center rounded-xl bg-brand-cta py-4 text-[15.5px] font-semibold text-white shadow-lg shadow-brand-orange/25 transition hover:bg-brand-ctaDark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">Create my account</button>
+        </form>
+  {% endif %}
+{% endblock %}

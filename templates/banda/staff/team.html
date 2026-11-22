@@ -1,0 +1,120 @@
+{% extends "banda/staff/base.html" %}
+{% block title %}Team{% endblock %}
+{% block page_title %}Team{% endblock %}
+{% block content %}
+  <p class="max-w-3xl text-sm text-ink-muted">Invite staff, change their roles and remove access. <strong class="text-ink">Admin, Finance and Quote approver</strong> are powerful roles: inviting someone into one, or moving someone into one, waits until a second Admin approves. Removing access takes effect at once. Each change asks you to confirm it&rsquo;s you.</p>
+  {% if admin_count < 2 %}
+    <div class="panel border-l-4 border-l-brand-orange p-4 text-sm text-ink">There&rsquo;s only one active Admin, so nobody can approve powerful roles yet. Add a second Admin from the server (<code>create_staff --role admin</code>), then they can approve the rest here.</div>
+  {% endif %}
+
+  {% if for_me %}
+  <section class="panel" id="approvals">
+    <div class="border-b border-cream-line px-5 py-4">
+      <h2 class="text-sm font-semibold text-ink">Waiting for your approval</h2>
+      <p class="mt-1 text-xs text-ink-muted">Only approve what you expected. If you don&rsquo;t recognise a request, turn it down and check the audit log.</p>
+    </div>
+    <ul class="divide-y divide-cream-line">
+      {% for r in for_me %}
+        <li class="flex flex-wrap items-center gap-3 px-5 py-4">
+          <div class="min-w-0 basis-full text-sm sm:basis-0 sm:flex-1">
+            <p class="break-words font-medium text-ink">{% if r.kind == "invite" %}Invite {{ r.email }}{% elif r.kind == "restore" %}Restore access for {{ r.email }}{% else %}Give {{ r.email }} a new role{% endif %} as <strong>{{ r.get_role_display }}</strong></p>
+            <p class="mt-0.5 text-xs text-ink-muted">Asked by {{ r.requested_by.email|default:"an Admin" }} on {{ r.created_at|date:"j M Y, H:i" }} &middot; lapses {{ r.expires_at|date:"j M" }}</p>
+          </div>
+          <form method="post" action="{% url 'staff-team-approve' request_id=r.pk %}">{% csrf_token %}<button type="submit" class="btn-next btn-sm">Approve</button></form>
+          <form method="post" action="{% url 'staff-team-reject' request_id=r.pk %}">{% csrf_token %}<button type="submit" class="btn-outline btn-sm">Turn down</button></form>
+        </li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  {% if mine or invited or other_waiting %}
+  <section class="panel">
+    <div class="border-b border-cream-line px-5 py-4"><h2 class="text-sm font-semibold text-ink">In progress</h2></div>
+    <ul class="divide-y divide-cream-line">
+      {% for r in mine %}
+        <li class="flex flex-wrap items-center gap-3 px-5 py-3.5 text-sm">
+          <div class="min-w-0 basis-full sm:basis-0 sm:flex-1"><span class="font-medium text-ink">{{ r.email }}</span> as {{ r.get_role_display }} <span class="chip-status bg-pill-orangeBg text-brand-orangeDark">Waiting for another Admin</span></div>
+          <form method="post" action="{% url 'staff-team-reject' request_id=r.pk %}">{% csrf_token %}<button type="submit" class="btn-ghost btn-sm">Cancel</button></form>
+        </li>
+      {% endfor %}
+      {% for r in other_waiting %}
+        <li class="px-5 py-3.5 text-sm"><span class="font-medium text-ink">{{ r.email }}</span> as {{ r.get_role_display }} <span class="chip-status bg-pill-orangeBg text-brand-orangeDark">Waiting for another Admin</span> <span class="text-xs text-ink-muted">(it&rsquo;s about you, so you can&rsquo;t approve it)</span></li>
+      {% endfor %}
+      {% for r in invited %}
+        <li class="flex flex-wrap items-center gap-3 px-5 py-3.5 text-sm">
+          <div class="min-w-0 basis-full sm:basis-0 sm:flex-1"><span class="font-medium text-ink">{{ r.email }}</span> as {{ r.get_role_display }} <span class="chip-status bg-pill-navyBg text-brand-navy">Invitation sent</span> <span class="text-xs text-ink-muted">expires {{ r.expires_at|date:"j M" }}</span></div>
+          <form method="post" action="{% url 'staff-team-reject' request_id=r.pk %}">{% csrf_token %}<button type="submit" class="btn-ghost btn-sm">Cancel invitation</button></form>
+        </li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  <section class="panel">
+    <div class="border-b border-cream-line px-5 py-4">
+      <h2 class="text-sm font-semibold text-ink">Invite someone</h2>
+      <p class="mt-1 text-xs text-ink-muted">They get an email link to set their password (it works once, for {{ invite_days }} days), then set up a free authenticator app when they first sign in. Use their work email, not one they use as a client.</p>
+    </div>
+    <form method="post" action="{% url 'staff-team-invite' %}" class="flex flex-wrap items-end gap-3 px-5 py-4">
+      {% csrf_token %}
+      <label class="min-w-0 basis-full text-sm font-medium text-ink sm:basis-0 sm:flex-1">Email
+        <input type="email" name="email" required autocomplete="off" class="mt-1.5 w-full rounded-xl border border-cream-line bg-white px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-navy focus:ring-2 focus:ring-brand-navySoft"></label>
+      <label class="basis-full text-sm font-medium text-ink sm:basis-auto">Role
+        <select name="role" required class="mt-1.5 block w-full max-w-full rounded-xl border border-cream-line bg-white px-3 py-2.5 text-sm shadow-sm">
+          {% for value, label, summary, powerful in roles %}<option value="{{ value }}">{{ label }}{% if powerful %} (needs a second Admin){% endif %}</option>{% endfor %}
+        </select></label>
+      <button type="submit" class="btn-next btn-sm">Send invitation</button>
+    </form>
+  </section>
+
+  <section class="panel">
+    <div class="border-b border-cream-line px-5 py-4"><h2 class="text-sm font-semibold text-ink">Staff ({{ members|length }})</h2></div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Person</th><th>Role</th><th>Access</th><th>Two-factor</th><th>Last sign-in</th><th></th></tr></thead>
+        <tbody>
+          {% for m in members %}
+            <tr>
+              <td><p class="font-medium text-ink">{{ m.full_name|default:m.email }}</p><p class="text-xs text-ink-muted">{{ m.email }}</p></td>
+              <td>
+                {% if m.is_superuser %}<span class="text-ink">{{ m.get_staff_role_display|default:"Superuser" }}</span> <span class="block text-xs text-ink-muted">Superuser: managed on the server</span>
+                {% elif m.pk == request.user.pk %}<span class="text-ink">{{ m.get_staff_role_display }}</span> <span class="block text-xs text-ink-muted">You (another Admin can change this)</span>
+                {% else %}
+                  <form method="post" action="{% url 'staff-team-role' user_id=m.pk %}" class="flex items-center gap-2">{% csrf_token %}
+                    <label class="sr-only" for="role-{{ m.pk }}">Role for {{ m.email }}</label>
+                    <select id="role-{{ m.pk }}" name="role" class="rounded-lg border border-cream-line bg-white px-2 py-1.5 text-sm">
+                      {% for value, label, summary, powerful in roles %}<option value="{{ value }}" {% if value == m.staff_role %}selected{% endif %}>{{ label }}</option>{% endfor %}
+                    </select>
+                    <button type="submit" class="btn-outline btn-sm">Change</button>
+                  </form>
+                {% endif %}
+              </td>
+              <td>{% if m.is_active %}<span class="chip-status bg-pill-greenBg text-pill-greenTx">Active</span>{% else %}<span class="chip-status bg-[#FDECEC] text-[#B42318]">No access</span>{% endif %}</td>
+              <td class="text-ink-muted">{% if m.mfa_enabled %}Set up{% else %}Not yet{% endif %}</td>
+              <td class="whitespace-nowrap text-ink-muted">{{ m.last_login|date:"j M Y"|default:"Never" }}</td>
+              <td class="text-right">
+                {% if not m.is_superuser and m.pk != request.user.pk %}
+                  {% if m.is_active %}
+                    <form method="post" action="{% url 'staff-team-remove' user_id=m.pk %}">{% csrf_token %}<button type="submit" class="btn-danger btn-sm">Remove access</button></form>
+                  {% else %}
+                    <form method="post" action="{% url 'staff-team-restore' user_id=m.pk %}">{% csrf_token %}<button type="submit" class="btn-outline btn-sm">Restore access</button></form>
+                  {% endif %}
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="border-b border-cream-line px-5 py-4"><h2 class="text-sm font-semibold text-ink">What each role can do</h2></div>
+    <dl class="grid gap-x-6 gap-y-3 px-5 py-4 text-sm sm:grid-cols-2">
+      {% for value, label, summary, powerful in roles %}
+        <div><dt class="font-medium text-ink">{{ label }}{% if powerful %} <span class="chip-status bg-pill-orangeBg text-brand-orangeDark">Needs a second Admin</span>{% endif %}</dt><dd class="text-ink-muted">{{ summary }}</dd></div>
+      {% endfor %}
+    </dl>
+  </section>
+{% endblock %}

@@ -438,6 +438,29 @@ migration check, deploy check, and dependency audit.
 - Tests: `tests/test_checkout_csp.py`, `tests/test_abuse_limits.py`,
   `tests/test_security_hardening.py`.
 
+## The staff Team screen (22 Nov 2026)
+
+`/staff/team/` (Admins only, permission `staff.manage`), code in `apps/accounts/team.py`:
+
+- Admins invite staff by email and choose a role. The person gets a one-time link
+  (random, stored only as a hash, expires after 7 days), sets their own password
+  (all password rules, including the breached-password check), then must set up an
+  authenticator app at first sign-in. Accounts made this way never get Django admin.
+- **Admin, Finance and Quote approver** need a second Admin: an invitation into one
+  isn't sent, and a move into one doesn't happen, until a different Admin approves.
+  The other Admins are emailed. Nobody approves their own request or one about
+  themselves. Requests lapse after 7 days.
+- Other roles, and removing access, take effect at once. Removing access signs the
+  person out everywhere; the account is kept for the audit trail.
+- Every change needs a fresh "confirm it's you". Nobody can change their own role or
+  access, superusers can't be changed here (server only), and the last active Admin
+  is kept.
+- Every step is audited (`staff.invite_requested`, `staff.request_approved`,
+  `staff.invitation_sent`, `staff.invitation_accepted`, `staff.change_applied`,
+  `staff.access_removed`), and role changes still raise the `staff.access_changed` alert.
+- The first two Admins come from the server (`createsuperuser` or `create_staff --role admin`).
+- Tests: `tests/test_staff_team.py`.
+
 ## The Hostinger server (22 Nov 2026)
 
 `deploy/` and [HOSTINGER.md](HOSTINGER.md). Security checklist items:
