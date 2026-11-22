@@ -4,7 +4,6 @@ from __future__ import annotations
 from apps.accounts.models import StaffRole
 from apps.audit import services as audit_service
 from apps.audit.activity import business_activity, own_activity
-from apps.audit.models import AuditEvent
 
 from .conftest import login_client, make_user
 
@@ -57,8 +56,12 @@ def test_only_owners_can_open_business_activity(member, staff_client):
 
 def test_admin_audit_log_filters_by_date(db):
     admin = make_user("admin6b@example.test", staff_role=StaffRole.ADMIN, mfa=True)
-    audit_service.record(action="auth.login", actor=admin)
-    AuditEvent.objects.filter(action="auth.login").update(created_at="2026-01-05T10:00Z")
+    from datetime import UTC, datetime
+    from unittest import mock
+
+    # Audit events can't be edited afterwards, so this one is written "on" 5 January.
+    with mock.patch("django.utils.timezone.now", return_value=datetime(2026, 1, 5, 10, tzinfo=UTC)):
+        audit_service.record(action="auth.login", actor=admin)
     c = login_client(admin)
     body = c.get("/staff/audit/?from=2026-01-01&to=2026-01-31&action=auth.login").content.decode()
     assert "auth.login" in body and "5 Jan 2026" in body

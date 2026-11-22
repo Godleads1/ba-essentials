@@ -57,12 +57,13 @@ def test_verification_code_is_single_use(db, mailoutbox):
         services.verify_challenge(user, ChallengePurpose.SIGN_IN, code)
 
 
-def test_verification_attempts_are_capped(db, mailoutbox):
+def test_verification_attempts_are_capped(db, mailoutbox, settings):
+    assert settings.OTP_MAX_ATTEMPTS == 3  # security checklist 15: three tries per code
     user = _register()
     real_code = _code_from_mail(mailoutbox)
     wrong = "000000" if real_code != "000000" else "111111"
 
-    for _ in range(5):
+    for _ in range(settings.OTP_MAX_ATTEMPTS):
         with pytest.raises(ValidationFailure):
             services.verify_challenge(user, ChallengePurpose.SIGN_IN, wrong)
 

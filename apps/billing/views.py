@@ -12,8 +12,38 @@ from apps.billing import plan_rules, pricing, renewals
 from apps.billing import services as billing
 from apps.billing.models import Invoice, PaymentAttempt, Plan, UsageLedger
 from apps.catalogue.models import ServiceCategory
+from apps.core import ratelimit
+from apps.core.client_ip import client_ip
 from apps.core.exceptions import PermissionFailure, ValidationFailure
 from apps.organizations.access import client_required
+
+CHECKOUT_LIMITED = ("You've started a lot of payments in a short time, so we've paused new ones for this hour. "
+                    "If a payment is stuck, email support and we'll help.")
+
+
+def _checkout_limited(request) -> bool:
+    """Card testing: someone tries stolen cards by starting checkout after checkout.
+
+    Limited per account and per connection, before anything is sent to the payment provider.
+    Reaching either limit is audited, and the audit raises a security alert.
+    """
+    ip = client_ip(request) or "-"
+    for scope, key, limit in (
+        ("checkout-user", str(request.user.pk), settings.CHECKOUT_STARTS_PER_ACCOUNT_PER_HOUR),
+        ("checkout-ip", ip, settings.CHECKOUT_STARTS_PER_IP_PER_HOUR),
+    ):
+        if not ratelimit.hit(scope, key, limit=limit, window_seconds=3600):
+            from apps.audit import services as audit_service
+            from apps.audit.models import AuditEvent
+
+            audit_service.record(
+                action="billing.checkout_limited", actor=request.user, organization_id=request.organization.pk,
+                resource_type="organization", resource_id=str(request.organization.pk),
+                result=AuditEvent.Result.DENIED, metadata={"limit": scope, "per_hour": limit},
+            )
+            messages.error(request, CHECKOUT_LIMITED)
+            return True
+    return False
 
 
 def _renewal_price(subscription):
@@ -116,6 +146,8 @@ def plan_home(request):
 @require_POST
 def plan_checkout(request, plan_slug):
     """Start Paystack checkout for a plan. The price comes from the database only."""
+    if _checkout_limited(request):
+        return redirect("plan-home")
     return_url = request.build_absolute_uri(reverse("plan-checkout-return"))
     try:
         checkout_url = billing.start_plan_checkout(
@@ -136,6 +168,8 @@ def plan_checkout(request, plan_slug):
 @require_POST
 def plan_upgrade(request, plan_slug):
     """Move up to a bigger plan. Today's price comes from the server; the plan changes only once Paystack confirms."""
+    if _checkout_limited(request):
+        return redirect("plan-home")
     return_url = request.build_absolute_uri(reverse("plan-checkout-return"))
     try:
         checkout_url = billing.start_upgrade_checkout(
@@ -225,6 +259,8 @@ def invoice_checkout(request, invoice_id):
         reverse("task-detail", kwargs={"task_id": invoice.task_id}) if invoice.task_id
         else reverse("billing-home")
     )
+    if _checkout_limited(request):
+        return redirect(back)
     return_url = request.build_absolute_uri(reverse("plan-checkout-return"))
     try:
         checkout_url = billing.start_invoice_checkout(

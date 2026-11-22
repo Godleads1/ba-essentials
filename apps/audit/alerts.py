@@ -12,7 +12,9 @@ Rules (first security audit, finding F7):
 - 3 refused file downloads by one account within an hour (someone trying other files);
 - a staff role or admin access is granted, changed or removed;
 - a payment notification with the wrong amount, or 5 with a bad signature or unknown reference in an hour;
-- a backup or a restore check fails.
+- a backup or a restore check fails;
+- the site-wide cap on text messages is reached (someone may be running up the SMS bill);
+- one account or connection starts many checkouts (someone may be testing stolen cards).
 """
 from __future__ import annotations
 
@@ -41,6 +43,8 @@ IMMEDIATE = {
     "billing.webhook_amount_mismatch": False,
     "ops.backup_failed": False,
     "ops.restore_check_failed": False,
+    "comms.text_cap_reached": False,
+    "billing.checkout_limited": False,
 }
 
 TITLES = {
@@ -54,6 +58,8 @@ TITLES = {
     "billing.webhook_bad_signature": "Payment notifications with a bad signature",
     "ops.backup_failed": "A backup failed",
     "ops.restore_check_failed": "The restore check failed",
+    "comms.text_cap_reached": "The site-wide limit on text messages was reached",
+    "billing.checkout_limited": "Too many checkouts started by one account or connection",
 }
 
 
@@ -77,6 +83,14 @@ def count(action: str, key: str, details: dict | None = None) -> None:
     """For signals that aren't audit events (for example a webhook with a bad signature)."""
     try:
         _check(action, actor=None, key=key, details=details or {})
+    except Exception:
+        logger.exception("security_alert_failed action=%s", action)
+
+
+def raise_now(action: str, *, key: str, details: dict | None = None, actor=None) -> None:
+    """For an immediate rule raised outside the audit log. Never raises."""
+    try:
+        _check(action, actor=actor, key=key, details=details or {})
     except Exception:
         logger.exception("security_alert_failed action=%s", action)
 

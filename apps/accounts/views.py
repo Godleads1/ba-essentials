@@ -58,6 +58,9 @@ def _after_sign_in(request, user):
 def signup(request):
     if request.user.is_authenticated:
         return redirect("client-overview")
+    if settings.SIGNUPS_PAUSED:  # emergency switch; existing clients still sign in
+        return render(request, "banda/auth/signup.html", {"paused": True, "support_email": settings.SUPPORT_EMAIL},
+                      status=503 if request.method == "POST" else 200)
     channels = codes.channels_offered_at_signup()
     form = SignupForm(request.POST or None, channels=channels)
     if request.method == "POST" and form.is_valid():
@@ -132,9 +135,10 @@ def admin_login_redirect(request):
     Every request, GET or POST, is sent to the app's sign-in instead, and a POST
     is never read. Only an admin path is kept as the destination.
     """
+    admin_root = f"/{settings.ADMIN_URL}"
     next_url = request.GET.get("next", "")
-    if not next_url.startswith("/admin/") or next_url.startswith("//"):
-        next_url = "/admin/"
+    if not next_url.startswith(admin_root) or next_url.startswith("//"):
+        next_url = admin_root
     return redirect(f"{reverse('staff-login')}?{urlencode({'next': next_url})}")
 
 

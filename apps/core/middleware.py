@@ -23,14 +23,13 @@ PUBLIC_PREFIXES = (
     "/verify",
     "/password-reset",
     "/invite/",
-    "/admin/login",
 )
 
 
 def _is_public(path: str) -> bool:
     if path == "/":
         return True
-    return any(path.startswith(prefix) for prefix in PUBLIC_PREFIXES)
+    return path.startswith((*PUBLIC_PREFIXES, f"/{settings.ADMIN_URL}login"))
 
 
 def is_safe_redirect(request, url: str) -> bool:
@@ -61,7 +60,14 @@ class RequestIDMiddleware:
         request_id = inbound if REQUEST_ID_RE.match(inbound) else new_correlation_id()
         request.request_id = request_id
         set_correlation_id(request_id)
-        response = self.get_response(request)
+        from .client_ip import client_ip
+        from .context import reset_client_ip, set_client_ip
+
+        token = set_client_ip(client_ip(request))
+        try:
+            response = self.get_response(request)
+        finally:
+            reset_client_ip(token)
         response["X-Request-ID"] = request_id
         return response
 

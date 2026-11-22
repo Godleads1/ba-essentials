@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from django.conf import settings
+
 STAFF_NAV = (
     ("staff-dashboard", "Dashboard", "M3 12l9-9 9 9M5 10v10h14V10"),
     ("staff-my-cases", "My Cases", "M6 3h12v18l-6-4-6 4z"),
@@ -103,6 +105,7 @@ def navigation(request):
         "counselling": None,
         "account_paused": False,
         "terms_to_confirm": False,
+        "code_minutes": max(1, settings.OTP_TTL_SECONDS // 60),  # how long a one-time code lasts
     }
     if user is None or not user.is_authenticated:
         return context

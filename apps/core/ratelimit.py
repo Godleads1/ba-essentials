@@ -29,6 +29,14 @@ def hit(scope: str, identifier: str, *, limit: int, window_seconds: int) -> bool
     return count <= limit
 
 
+def used(scope: str, identifier: str) -> int:
+    """How many hits the current window has had, without adding one."""
+    try:
+        return int(cache.get(f"rl:{scope}:{fingerprint(identifier)}") or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
 def enforce(scope: str, identifier: str, *, limit: int, window_seconds: int) -> None:
     if not hit(scope, identifier, limit=limit, window_seconds=window_seconds):
         raise RateLimited("Too many attempts. Please wait and try again.")

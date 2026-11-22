@@ -1,16 +1,20 @@
 from __future__ import annotations
 
+import hashlib
 import logging
 import subprocess
 import uuid
+from dataclasses import replace
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
+from django.core.files.base import ContentFile
 from django.db import transaction
 
 from apps.audit import services as audit_service
 from apps.core.exceptions import ValidationFailure
 
+from .images import IMAGE_EXTENSIONS, strip_metadata
 from .models import FilePurpose, PrivateFile, ScanStatus
 from .storage import get_storage
 from .validators import ValidatedUpload, validate_upload
@@ -67,11 +71,20 @@ def _check_storage_cap(organization, user, size: int) -> None:
         )
 
 
+def _without_metadata(uploaded_file, validated: ValidatedUpload):
+    """Photos lose their EXIF data (such as GPS position) before they are stored (apps/files/images.py)."""
+    uploaded_file.seek(0)
+    body = strip_metadata(uploaded_file.read(), validated.extension)
+    return ContentFile(body), replace(validated, size_bytes=len(body), sha256=hashlib.sha256(body).hexdigest())
+
+
 @transaction.atomic
 def store_upload(
     *, organization, user, uploaded_file, purpose: str = FilePurpose.ATTACHMENT
 ) -> PrivateFile:
     validated: ValidatedUpload = validate_upload(uploaded_file)
+    if validated.extension in IMAGE_EXTENSIONS:
+        uploaded_file, validated = _without_metadata(uploaded_file, validated)
     _check_storage_cap(organization, user, validated.size_bytes)
     storage = get_storage()
     key = f"{organization.pk}/{uuid.uuid4().hex}{validated.extension}"

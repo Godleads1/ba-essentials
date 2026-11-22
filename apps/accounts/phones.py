@@ -22,6 +22,24 @@ def normalise(raw: str, region: str = DEFAULT_REGION) -> str:
     return phonenumbers.format_number(number, phonenumbers.PhoneNumberFormat.E164)
 
 
+def region(e164: str) -> str:
+    """The ISO country code of a stored number ("NG"), or "" if it can't be read."""
+    try:
+        return phonenumbers.region_code_for_number(phonenumbers.parse(e164 or "", None)) or ""
+    except phonenumbers.NumberParseException:
+        return ""
+
+
+def text_countries_label() -> str:
+    """The countries codes can go to by text, by name, for messages: "Nigeria"."""
+    from django.conf import settings
+
+    from apps.core.countries import BY_CODE
+
+    names = [BY_CODE.get(code, (code,))[0] for code in getattr(settings, "TEXT_COUNTRIES", ["NG"])]
+    return ", ".join(names) or "no countries"
+
+
 def looks_like_phone(value: str) -> bool:
     value = (value or "").strip()
     return bool(value) and "@" not in value and sum(c.isdigit() for c in value) >= 7

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
 
@@ -32,8 +33,8 @@ urlpatterns = [
     path("staff/", include("apps.catalogue.urls")),
     path("staff/", include("apps.website.urls_staff")),
     # Must come before admin.site.urls so it replaces the built-in admin sign-in.
-    path("admin/login/", account_views.admin_login_redirect, name="admin-login-redirect"),
-    path("admin/", admin.site.urls),
+    path(f"{settings.ADMIN_URL}login/", account_views.admin_login_redirect, name="admin-login-redirect"),
+    path(settings.ADMIN_URL, admin.site.urls),
     path("<slug:slug>/", website_views.page, name="website-page"),
 ]
 

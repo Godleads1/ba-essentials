@@ -6,7 +6,7 @@
 
         <form method="post" class="mt-9" novalidate>
           {% csrf_token %}
-          <p class="text-[15px] text-ink-muted">We&rsquo;ve sent a 6-digit code to <strong class="text-ink">{{ pending.to }}</strong>{% if not pending.signup %} by {{ channel_label }}{% endif %}. It expires in 10 minutes.</p>
+          <p class="text-[15px] text-ink-muted">We&rsquo;ve sent a 6-digit code to <strong class="text-ink">{{ pending.to }}</strong>{% if not pending.signup %} by {{ channel_label }}{% endif %}. It expires in {{ code_minutes }} minutes.</p>
           <label for="code" class="gap mt-5 block text-[14px] font-semibold">Your code</label>
           <input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required aria-describedby="codeError" {% if form.code.errors or form.non_field_errors %}aria-invalid="true"{% endif %} class="mt-2 w-full rounded-xl border border-cream-line bg-white px-4 py-3.5 text-center font-display text-[24px] font-semibold tracking-[.4em] text-ink transition focus:border-brand-navy focus:outline-none focus:ring-4 focus:ring-brand-navy/10 aria-[invalid=true]:border-red-600" />
           <div id="codeError">{{ form.code.errors }}{{ form.non_field_errors }}</div>

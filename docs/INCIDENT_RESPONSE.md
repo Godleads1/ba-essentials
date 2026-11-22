@@ -70,6 +70,11 @@ Write down the time you became aware. **The 72-hour clock starts then.**
      signs everyone out. Never paste the new value into a chat or a file.
    - *Payments look wrong:* set `PAYMENTS_ENABLED=false` and restart, then
      check with Paystack or Flutterwave.
+   - *Text messages are being abused* (a big Termii bill, or the "limit on text
+     messages" alert): set `TEXT_MESSAGES_PAUSED=true` and restart. Codes then
+     go by email.
+   - *Fake sign-ups:* set `SIGNUPS_PAUSED=true` and restart. Existing clients
+     can still sign in.
    - *A business's records must not be deleted* (investigation or dispute):
      tick **Legal hold** on the organisation in admin. The retention job then
      skips it.
@@ -86,7 +91,7 @@ Answer, and record the answers:
 - Whose data, and roughly how many people and records?
 - Was the data actually seen or taken, or only exposed?
 - Do our protections lower the risk? For example, files are private and every
-  download is checked and logged, and sign-in codes expire after 10 minutes.
+  download is checked and logged, and sign-in codes expire after 5 minutes.
 - Is it still happening?
 
 Then decide the risk to the **people** affected (not to the company):

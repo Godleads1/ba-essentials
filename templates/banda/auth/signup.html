@@ -2,6 +2,10 @@
 {% block title %}Sign up{% endblock %}
 {% block fit %}{% endblock %}
 {% block form %}
+        {% if paused %}
+        <h2 class="font-display text-[34px] font-semibold leading-tight tracking-[-0.02em] sm:text-[38px]">New accounts are paused</h2>
+        <p class="sub mt-1.5 text-[16.5px] text-ink-muted">We&rsquo;re not opening new accounts just now. Please try again later, or email <a href="mailto:{{ support_email }}" class="font-semibold text-brand-navy underline underline-offset-2">{{ support_email }}</a> and we&rsquo;ll get back to you.</p>
+        {% else %}
         <h2 class="font-display text-[34px] font-semibold leading-tight tracking-[-0.02em] sm:text-[38px]"> Create your account</h2>
         <p class="sub mt-1.5 text-[16.5px] text-ink-muted">No password to remember. Each time you log in, we send you a 6-digit code.</p>
 
@@ -45,6 +49,7 @@
             Send my code <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-arrow-right h-[18px] w-[18px] transition-transform group-hover:translate-x-0.5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
           </button>
         </form>
+        {% endif %}
 
         <p class="signup mt-8 text-center text-[14.5px] text-ink-muted">Already have an account? <a href="{% url 'login' %}" class="font-semibold text-brand-navy underline-offset-4 hover:underline">Log in</a></p>
 {% endblock %}
