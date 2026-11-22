@@ -86,7 +86,7 @@ PAUSED_ALLOWED = frozenset({
     "security-password", "security-mfa", "security-mfa-off", "security-details", "security-preferences",
     "security-data-download", "security-data-request", "security-close", "security-close-cancel",
     "security-channel", "security-email", "security-phone", "security-phone-remove",
-    "security-sessions-others", "security-session-revoke",
+    "security-sessions-others", "security-session-revoke", "terms-update",
 })
 
 

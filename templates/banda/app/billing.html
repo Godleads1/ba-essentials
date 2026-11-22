@@ -110,7 +110,7 @@
               </div>
               {% if can_buy %}<form method="post" action="{% url 'card-remove' %}" class="mt-2">{% csrf_token %}<button type="submit" class="text-[13px] font-semibold text-brand-navy underline underline-offset-2">Remove saved card</button></form>{% endif %}
             {% else %}
-              <p class="mt-2 text-[13px] text-ink-muted">You pay each invoice on {{ provider_name }}'s secure page. We never charge you automatically: 3 days before your plan ends, we send a link to pay for the next period.</p>
+              <p class="mt-2 text-[13px] text-ink-muted">You pay each invoice on {{ provider_name }}'s secure page. We never charge you automatically: before your plan ends (3 days before for monthly plans, 14 for yearly), we send a link to pay for the next period.</p>
             {% endif %}
             <div class="mt-3 rounded-2xl bg-cream-light p-3.5">
               {% if subscription and subscription.cancel_at_period_end %}

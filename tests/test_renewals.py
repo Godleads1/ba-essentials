@@ -131,16 +131,18 @@ def test_reminder_and_invoice_three_days_before_and_only_once(plans, organizatio
     email = OutboxEvent.objects.get(topic=OutboxEvent.Topic.EMAIL)
     assert owner.email in email.payload["to"]
     body = email.payload["body"]
-    assert "Plans don't renew by themselves" in body and "/app/plan/" in body
+    assert "Plans do not renew by themselves" in body and "/app/plan/" in body  # Terms 5.5.4 wording
+    assert "We never ask for card details, codes or passwords by message." in body
     assert f"{local(renewals.grace_end(sub.period_end)):%-d %b %Y}" in body  # when the pause would start
     assert Notification.objects.filter(user=owner, kind="billing").exists()
 
 
-def test_yearly_plans_are_also_reminded_three_days_before(plans, organization, owner):
-    _subscribe(organization, plans["starter"], ends_in=timedelta(days=4), interval="year")
+def test_yearly_plans_are_reminded_fourteen_days_before(plans, organization, owner):
+    _subscribe(organization, plans["starter"], ends_in=timedelta(days=15), interval="year")
     assert renewals.run()["reminded"] == 0
-    assert renewals.run(timezone.now() + timedelta(days=1, hours=1))["reminded"] == 1
-    assert "another year" in OutboxEvent.objects.get().payload["body"]
+    assert renewals.run(timezone.now() + timedelta(days=1, hours=1))["reminded"] == 1  # 14 days before (Terms 5.5.2)
+    body = OutboxEvent.objects.get().payload["body"]
+    assert "another year" in body and "₦660,000" in body  # the Terms' yearly price
 
 
 def test_nothing_is_ever_charged_even_with_an_old_saved_card(plans, organization, owner, fake_paystack):
@@ -184,7 +186,7 @@ def test_unpaid_end_gives_three_days_then_pauses_then_ends_owing_nothing(plans, 
     assert renewals.run(paused_at)["paused"] == 1
     sub.refresh_from_db()
     assert sub.status == SubscriptionStatus.PAST_DUE and sub.paused_at == paused_at
-    assert "nothing else can be done until you pay" in OutboxEvent.objects.last().payload["body"]
+    assert "you can't send new requests or make other changes until you pay" in OutboxEvent.objects.last().payload["body"]
     with pytest.raises(ValidationFailure, match="paused"):
         make_task(organization, owner)
 
@@ -193,7 +195,8 @@ def test_unpaid_end_gives_three_days_then_pauses_then_ends_owing_nothing(plans, 
     assert sub.status == SubscriptionStatus.CANCELLED
     # Not renewing isn't a debt: the renewal invoice can't be paid any more.
     assert not Invoice.objects.filter(organization=organization, status=InvoiceStatus.ISSUED).exists()
-    assert "Nothing is owed" in OutboxEvent.objects.last().payload["body"]
+    body = OutboxEvent.objects.last().payload["body"]
+    assert "You don't owe the unpaid renewal" in body and "still due" in body  # Terms 5.6.6
 
 
 def test_grace_counts_business_days_only():

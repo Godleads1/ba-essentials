@@ -129,7 +129,6 @@
       };
       const P = {
         PLANS: Object.keys(D.plans),
-        ADMIN: { yearlyDiscountPct: D.discount },
         price: (k, region, billing) => {
           const p = (D.plans[k] || {})[region];
           if (!p) return null;
@@ -146,9 +145,9 @@
         state.region = tz && !tz.startsWith('Africa/') ? 'intl' : 'africa';
       }
       if (state.billing !== 'yearly') state.billing = 'monthly';
-      document.querySelectorAll('[data-save]').forEach(el => { el.textContent = `Save ${P.ADMIN.yearlyDiscountPct}%`; });
       function render() {
         const region = REGION[state.region], yearly = state.billing === 'yearly';
+        document.querySelectorAll('[data-save]').forEach(el => { el.textContent = (D.save || {})[region] || ''; });
         document.querySelectorAll('[data-region]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.region === state.region)));
         document.querySelectorAll('[data-billing]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.billing === state.billing)));
         P.PLANS.forEach(k => {

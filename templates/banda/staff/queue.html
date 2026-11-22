@@ -33,7 +33,7 @@
                   <p class="text-xs text-ink-soft">{{ task.service_version.definition.name }}</p>
                 </td>
                 <td class="text-ink-muted">{{ task.organization.name }}</td>
-                <td>{% include "banda/staff/_status_badge.html" with status=task.status %}</td>
+                <td>{% include "banda/staff/_status_badge.html" with status=task.status %}{% if task.held_for_renewal %}<span class="mt-1 block text-xs font-semibold text-brand-orangeDark">Held until renewal paid</span>{% endif %}</td>
                 <td class="text-ink-muted">{{ task.active_assignment.specialist.full_name|default:"—" }}</td>
                 <td class="whitespace-nowrap text-ink-muted">{{ task.updated_at|date:"j M, H:i" }}</td>
                 <td class="text-right"><a class="btn-outline btn-sm" href="{% url 'staff-task-detail' task_id=task.pk %}">Open</a></td>

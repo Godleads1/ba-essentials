@@ -10,22 +10,23 @@
   <section class="panel">
     <div class="table-wrap">
       <table class="data-table">
-        <thead><tr><th>Plan</th><th>Nigeria (monthly)</th><th>Outside Nigeria (monthly)</th><th>Tasks a month</th><th>Legal reviews</th></tr></thead>
+        <thead><tr><th>Plan</th><th>Nigeria (monthly)</th><th>Nigeria (yearly)</th><th>Outside Nigeria (monthly)</th><th>Tasks a month</th><th>Legal reviews</th></tr></thead>
         <tbody>
           {% for row in plans %}
             <tr>
               <td class="font-semibold text-ink">{{ row.plan.name }}</td>
               <td class="whitespace-nowrap">{{ row.ng }}</td>
+              <td class="whitespace-nowrap">{{ row.ng_year }}</td>
               <td class="whitespace-nowrap">{{ row.intl }}</td>
               <td>{{ row.plan.monthly_task_allowance }}</td>
               <td>{{ row.plan.legal_review_allowance }} per {% if row.plan.legal_review_period_months == 1 %}month{% else %}{{ row.plan.legal_review_period_months }} months{% endif %}</td>
             </tr>
           {% empty %}
-            <tr><td colspan="5" class="py-10 text-center text-sm text-ink-muted">No active plans yet.</td></tr>
+            <tr><td colspan="6" class="py-10 text-center text-sm text-ink-muted">No active plans yet.</td></tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
   </section>
-  <p class="text-xs text-ink-soft">Yearly plans: {{ discount }}% off.{% if legal_ng %} Extra legal reviews in Nigeria: {{ legal_ng }} each.{% endif %} To change the wording around prices, edit the Pricing section of the <a class="font-semibold text-brand-navy underline" href="{% url 'staff-website-home' %}">home page</a>.</p>
+  <p class="text-xs text-ink-soft">Yearly in naira: the prices in the Terms (5.1){% if save.ng %}, {{ save.ng|lower }}{% endif %}. Yearly in US dollars: {{ discount }}% off.{% if legal_ng %} Extra legal reviews in Nigeria: {{ legal_ng }} each.{% endif %} To change the wording around prices, edit the Pricing section of the <a class="font-semibold text-brand-navy underline" href="{% url 'staff-website-home' %}">home page</a>.</p>
 {% endblock %}

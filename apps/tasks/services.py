@@ -108,6 +108,17 @@ def create_request(
         TaskAttachment.objects.create(task=task, file=private_file, added_by=user)
 
     task = transitions.transition(task=task, action=Action.SUBMIT, actor=user)
+
+    from apps.billing.plan_rules import in_grace
+
+    if in_grace(organization):
+        # Terms 5.6.3: held, counted against the next period, started once that period is paid.
+        Task.objects.filter(pk=task.pk).update(held_for_renewal=True)
+        task.held_for_renewal = True
+        audit_service.record(
+            action="task.held_for_renewal", actor=user, organization_id=organization.pk,
+            resource_type="task", resource_id=str(task.pk),
+        )
     return task
 
 

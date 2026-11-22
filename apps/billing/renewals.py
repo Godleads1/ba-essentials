@@ -1,14 +1,16 @@
 """Renewals, reminders, pausing, cancelling and downgrades (Terms 5.5–5.8).
 
 Plans don't renew by themselves. Nothing is charged without the client paying:
-- 3 days before a period ends, we issue the renewal invoice and remind the owners, with a pay link.
+- 3 days before a monthly period ends (14 days before a yearly one), we issue the renewal invoice
+  and remind the owners, with a pay link. The invoice fixes the price until the grace period ends.
 - Paying early carries on from the end of the current period, so no days are lost.
-- If the period ends unpaid, service continues for 5 business days (the grace period), with a
-  reminder at the start and on the last day.
+- If the period ends unpaid, work in progress continues for 5 business days (the grace period),
+  with a reminder on the first and last day. New requests sent then are held until the renewal
+  is paid (Terms 5.6.3; apps.tasks.transitions).
 - After that, the account is paused: it can be viewed and the renewal paid, nothing else
   (see apps.organizations.access). Paying restarts the plan from the day of payment.
-- 30 days after pausing, the plan ends. The unpaid renewal is not a debt: it is voided,
-  and the business can choose a plan again at any time.
+- 30 days after pausing, the plan ends. The unpaid renewal is not a debt: it is voided, held
+  requests are cancelled, and the business can choose a plan again at any time.
 - Cancelling (5.5.3): no more reminders; access runs to the end of the paid period.
 - Downgrades (5.7): take effect at the next renewal.
 
@@ -38,7 +40,8 @@ from .models import (
 
 logger = logging.getLogger("ba.billing")
 
-REMINDER_LEAD = timedelta(days=3)
+REMINDER_LEAD = timedelta(days=3)  # monthly plans (Terms 5.5.2)
+YEARLY_REMINDER_LEAD = timedelta(days=14)  # yearly plans
 GRACE_BUSINESS_DAYS = 5
 END_AFTER_PAUSE = timedelta(days=30)
 
@@ -252,6 +255,28 @@ def _create_renewal_invoice(sub: Subscription) -> Invoice:
     )
 
 
+def _cancel_held_requests(sub: Subscription) -> None:
+    """Requests held in the grace period never started; when the plan ends unpaid they're cancelled
+    and their allowance returned (Terms 5.6.6)."""
+    from apps.billing.services import release_allowance
+    from apps.tasks import transitions
+    from apps.tasks.models import Task
+
+    for task in Task.objects.filter(organization_id=sub.organization_id, held_for_renewal=True):
+        try:
+            task = transitions.transition(task=task, action=transitions.Action.CANCEL_STAFF, actor=None,
+                                          reason="The plan ended unpaid before this request could start.",
+                                          system=True)
+        except Exception:  # one request's problem must not stop the others
+            logger.exception("Couldn't cancel held request %s", task.pk)
+            continue
+        release_allowance(task)
+
+
+def reminder_lead(sub: Subscription) -> timedelta:
+    return YEARLY_REMINDER_LEAD if sub.interval == BillingInterval.YEAR else REMINDER_LEAD
+
+
 def grace_end(period_end):
     """Five business days (Monday to Friday, Lagos time) after the period ends (Terms 5.6.3)."""
     current = period_end
@@ -287,10 +312,12 @@ def _step(sub: Subscription, now, counts: dict) -> None:
             if updated:
                 # Not renewing isn't a debt: the old renewal can't be paid any more.
                 _void_unpaid_renewals(sub)
+                _cancel_held_requests(sub)
                 _audit("billing.plan_ended_unpaid", None, sub)
                 _tell_owners(sub, "Your plan has ended", (
                     "Your renewal wasn't paid within 30 days of your account being paused, so your plan has "
-                    "ended. You can still sign in and see your records and deliverables. Nothing is owed. "
+                    "ended. You can still sign in and see your records and deliverables. You don't owe the "
+                    "unpaid renewal; any accepted quote or third-party fee you owe is still due. "
                     f"To start again, choose a plan: {_plan_link()}"))
                 counts["ended"] += 1
         return
@@ -310,10 +337,10 @@ def _step(sub: Subscription, now, counts: dict) -> None:
     invoice = _renewal_invoice(sub)
     if invoice is not None and invoice.status == InvoiceStatus.PAID:
         return  # renewed; the payment moved the period on
-    if now < sub.period_end - REMINDER_LEAD:
+    if now < sub.period_end - reminder_lead(sub):
         return
 
-    # From 3 days before the end there is always an invoice to pay (a downgrade
+    # From the reminder until the end there is always an invoice to pay (a downgrade
     # voids the old one, so a fresh one is issued at the new price).
     if invoice is None:
         with transaction.atomic():
@@ -322,12 +349,15 @@ def _step(sub: Subscription, now, counts: dict) -> None:
     if now < sub.period_end:
         if sub.reminder_sent_for != sub.period_end:
             pause_on = grace_end(sub.period_end)
+            # The wording of Terms 5.5.4.
             _tell_owners(sub, f"Your plan ends on {local(sub.period_end):%-d %b %Y}", (
                 f"Your B&A Essentials {invoice.plan.name} plan ends on {local(sub.period_end):%-d %b %Y}. "
-                f"Plans don't renew by themselves: pay {_money(invoice.amount_minor, invoice.currency)} "
-                f"to keep it going for another {'year' if sub.interval == BillingInterval.YEAR else 'month'}: "
-                f"{_plan_link()}\n\nIf it isn't paid by {local(pause_on):%-d %b %Y}, your account is paused until you pay. "
-                "If you don't want to continue, you don't need to do anything."))
+                "Plans do not renew by themselves. To keep your plan for another "
+                f"{'year' if sub.interval == BillingInterval.YEAR else 'month'}, pay "
+                f"{_money(invoice.amount_minor, invoice.currency)} here: {_plan_link()}\n\n"
+                f"If it is not paid by {local(pause_on):%-d %b %Y}, your account is paused until you pay. "
+                "If you do not want to continue, you do not need to do anything. "
+                "We never ask for card details, codes or passwords by message."))
             Subscription.objects.filter(pk=sub.pk).update(reminder_sent_for=sub.period_end, updated_at=now)
             sub.reminder_sent_for = sub.period_end
             _audit("billing.renewal_reminded", None, sub, invoice=invoice.number)
@@ -342,8 +372,10 @@ def _step(sub: Subscription, now, counts: dict) -> None:
         _audit("billing.renewal_unpaid", None, sub, invoice=invoice.number, grace_until=grace.isoformat())
         _tell_owners(sub, "Your plan period has ended", (
             f"Your {invoice.plan.name} plan period ended on {local(sub.period_end):%-d %b %Y} and the renewal "
-            f"({_money(invoice.amount_minor, invoice.currency)}) isn't paid yet. Your service continues until "
-            f"{local(grace):%-d %b %Y}; after that your account is paused until you pay: {_plan_link()}"))
+            f"({_money(invoice.amount_minor, invoice.currency)}) isn't paid yet. Work already in progress "
+            f"continues until {local(grace):%-d %b %Y}; after that your account is paused until you pay. "
+            "New requests you send now are held, and start when you pay for your next period. "
+            f"Pay here: {_plan_link()}"))
         counts["grace"] += 1
         return
 
@@ -354,8 +386,9 @@ def _step(sub: Subscription, now, counts: dict) -> None:
         if updated:
             _audit("billing.service_paused", None, sub, invoice=invoice.number)
             _tell_owners(sub, "Your account is paused", (
-                "Your renewal is unpaid, so your account is paused. You can still sign in, see your records "
-                "and download your deliverables, but nothing else can be done until you pay. "
+                "Your renewal is unpaid, so your account is paused. You can still sign in, see your records, "
+                "download your deliverables, update your details and contact support, but you can't send "
+                "new requests or make other changes until you pay. Tasks in progress are paused, not cancelled. "
                 f"Pay to continue: {_plan_link()}"))
             counts["paused"] += 1
         return

@@ -73,10 +73,31 @@ def test_prices_by_region_and_interval(plans):
     # (₦97,500 + ₦100) ÷ ₦1,550 = $62.97 (rounded up to the cent)
     africa = pricing.plan_price(growth, "africa", rate=Decimal(1550))
     assert (africa.amount_minor, africa.currency) == (6_297, "USD")
-    # Yearly, 15% off: whole naira and whole dollars
-    assert pricing.plan_price(growth, "ng", "year").amount_minor == 99_450_000  # ₦994,500
+    # Yearly in naira: the totals in the Terms (5.1), not a formula
+    assert pricing.plan_price(growth, "ng", "year").amount_minor == 105_300_000  # ₦1,053,000
+    assert pricing.plan_price(plans["starter"], "ng", "year").amount_minor == 66_000_000  # ₦660,000
+    assert pricing.plan_price(plans["dedicated"], "ng", "year").amount_minor == 280_800_000  # ₦2,808,000
+    # Rest of Africa: the same yearly naira price (+ 12 months' surcharge) at today's rate:
+    # (₦1,053,000 + 12 × ₦100) ÷ ₦1,550 = $680.13
+    assert pricing.plan_price(growth, "africa", "year", rate=Decimal(1550)).amount_minor == 68_013
+    # Outside Africa, US dollars: 15% off, whole dollars
     assert pricing.plan_price(growth, "intl", "year").amount_minor == 90_800  # $908
     assert pricing.plan_price(plans["starter"], "intl", "year").amount_minor == 56_100  # $561
+
+
+def test_a_plan_without_its_own_yearly_price_uses_the_discount(plans):
+    growth = plans["growth"]
+    growth.price_year_minor = 0
+    growth.save()
+    assert pricing.plan_price(growth, "ng", "year").amount_minor == 99_450_000  # 97,500 × 12 × 0.85
+
+
+def test_saving_labels_follow_the_real_prices():
+    assert pricing.yearly_saving_pct(9_750_000, 105_300_000) == 10
+    assert pricing.yearly_saving_pct(6_500_000, 66_000_000) == 15  # 15.4%
+    assert pricing.saving_label([15, 10, 10]) == "Save up to 15%"
+    assert pricing.saving_label([15, 15]) == "Save 15%"
+    assert pricing.saving_label([0]) == ""
 
 
 def test_super_admin_settings_change_prices(plans):

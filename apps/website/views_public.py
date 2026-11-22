@@ -37,7 +37,10 @@ def page(request, slug):
 @require_GET
 def legal(request, doc):
     """Terms of Service, Privacy Policy and Cookie Notice, as written for the launch."""
-    return render(request, f"banda/public/{doc}.html", {"site_pages": services.published_pages()})
+    from apps.core.legal import TERMS_EFFECTIVE_DATE
+
+    return render(request, f"banda/public/{doc}.html",
+                  {"site_pages": services.published_pages(), "terms_effective": TERMS_EFFECTIVE_DATE})
 
 
 @require_http_methods(["GET", "POST"])

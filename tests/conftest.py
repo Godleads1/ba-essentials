@@ -26,13 +26,23 @@ def make_user(email: str, *, staff_role: str = "", mfa: bool = False, **extra) -
     """Create a verified synthetic user. No real personal data is used."""
     extra.setdefault("full_name", "Synthetic Person")
     extra.setdefault("email_verified_at", timezone.now())
-    return User.objects.create_user(
+    user = User.objects.create_user(
         email=email,
         password=PASSWORD,
         staff_role=staff_role,
         mfa_enabled=mfa,
         **extra,
     )
+    if not staff_role:
+        # Clients agree to the current Terms when they sign up (stored without an activity entry,
+        # so tests about the activity log only see what they do themselves).
+        from apps.accounts.models import ConsentKind, ConsentRecord
+        from apps.accounts.profile import AGREEMENT_WORDING
+        from apps.core.legal import AGREEMENT_VERSION
+
+        ConsentRecord.objects.create(user=user, kind=ConsentKind.AGREEMENT, granted=True,
+                                     wording=AGREEMENT_WORDING, version=AGREEMENT_VERSION)
+    return user
 
 
 @pytest.fixture

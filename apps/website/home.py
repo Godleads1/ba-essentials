@@ -187,8 +187,9 @@ DEFAULT_FAQS = [
                "cost. If we miss a confirmed delivery time by more than 2 business days, we refund that task and give "
                "it back to your allowance. The full rules are in our [Terms of Service](/terms/)."},
     {"question": "Does my plan renew automatically?",
-     "answer": "You don’t need to. Plans never renew by themselves and we never charge your card automatically. Three "
-               "days before your plan ends, we send you a link to pay for the next period. If you don’t pay, your "
+     "answer": "You don’t need to. Plans never renew by themselves and we never charge your card automatically. Before "
+               "your plan ends (3 days before for monthly plans, 14 for yearly), we send you a link to pay for the "
+               "next period. If you don’t pay, your "
                "plan simply ends: after a grace period of 5 business days your account is paused, and you can pay to "
                "continue at any time. Unused tasks aren’t refunded."},
 ]

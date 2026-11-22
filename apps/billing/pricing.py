@@ -4,7 +4,9 @@
 - Rest of Africa: (naira price + surcharge) converted at the day's rate, in US dollars,
   paid with Flutterwave. The rate used is stored on the invoice.
 - Outside Africa: the US dollar list price, paid with Flutterwave.
-- Yearly: twelve months less the super admin's discount.
+- Yearly: the plan's own yearly naira price where it has one (Terms 5.1), converted the same way
+  for the rest of Africa; otherwise, and always in US dollars outside Africa, twelve months less
+  the super admin's discount.
 
 Amounts are minor units: kobo for NGN, cents for USD.
 """
@@ -96,6 +98,12 @@ def plan_price(plan: Plan, region: str, interval: str = BillingInterval.MONTH, *
     currency = currency_for(region)
     if interval != BillingInterval.YEAR:
         return Price(monthly, currency, BillingInterval.MONTH, rate)
+    if plan.price_year_minor > 0 and region == REGION_NIGERIA:
+        return Price(plan.price_year_minor, currency, BillingInterval.YEAR, None)
+    if plan.price_year_minor > 0 and region == REGION_AFRICA:
+        surcharge = BillingSettings.current().africa_surcharge_ngn_minor
+        cents = Decimal(plan.price_year_minor + 12 * surcharge) / rate
+        return Price(int(cents.to_integral_value(rounding=ROUND_CEILING)), currency, BillingInterval.YEAR, rate)
     discount = BillingSettings.current().yearly_discount_pct
     year = Decimal(monthly * 12) * (Decimal(100 - discount) / 100)
     # Whole naira or whole dollars, except converted rest-of-Africa prices, which keep cents.
@@ -109,3 +117,19 @@ def extra_legal_fee(region: str) -> tuple[int, str]:
     if region == REGION_NIGERIA:
         return settings.extra_legal_fee_ngn_minor, "NGN"
     return settings.extra_legal_fee_usd_minor, "USD"
+
+
+def yearly_saving_pct(monthly_minor_amount: int, yearly_minor_amount: int) -> int:
+    """How much paying yearly saves against twelve monthly payments, as a whole percentage."""
+    full = monthly_minor_amount * 12
+    if full <= 0 or yearly_minor_amount >= full:
+        return 0
+    return int((Decimal(full - yearly_minor_amount) * 100 / full).to_integral_value(rounding=ROUND_HALF_UP))
+
+
+def saving_label(savings: list[int]) -> str:
+    """"Save 15%" when every plan saves the same, "Save up to 15%" when they differ, "" if none."""
+    savings = [s for s in savings if s > 0]
+    if not savings:
+        return ""
+    return f"Save {max(savings)}%" if len(set(savings)) == 1 else f"Save up to {max(savings)}%"

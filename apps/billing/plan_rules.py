@@ -59,6 +59,17 @@ def require_category(organization, category) -> None:
     raise ValidationFailure(f"{category.name} is included {where}. Upgrade your plan to request it.")
 
 
+def in_grace(organization, now=None) -> bool:
+    """The plan period has ended unpaid and the 5-business-day grace period is running (Terms 5.6.3)."""
+    from django.utils import timezone
+
+    now = now or timezone.now()
+    return Subscription.objects.filter(
+        organization=organization, status=SubscriptionStatus.ACTIVE,
+        period_end__lt=now, grace_until__gte=now,
+    ).exists()
+
+
 def is_paused(organization) -> bool:
     """Service is paused after an unpaid renewal (Terms 5.6.4)."""
     return Subscription.objects.filter(

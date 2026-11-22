@@ -71,7 +71,7 @@ def _landing_prices():
     def naira(minor: int) -> str:
         return f"₦{minor // 100:,}"
 
-    data = {"plans": {}, "discount": BillingSettings.current().yearly_discount_pct, "legal": {}}
+    data = {"plans": {}, "discount": BillingSettings.current().yearly_discount_pct, "legal": {}, "save": {}}
     shown: dict = {}
     for plan in Plan.objects.filter(is_active=True, price_minor__gt=0):
         entry = {}
@@ -85,6 +85,11 @@ def _landing_prices():
         data["plans"][plan.slug] = entry
         if REGION_NIGERIA in entry:
             shown[plan.slug] = {"ng_month": naira(entry[REGION_NIGERIA]["month"])}
+    for region in (REGION_NIGERIA, REGION_INTERNATIONAL):
+        # "Save 15%" or "Save up to 15%": from the real prices, since plans can save different amounts.
+        data["save"][region] = pricing.saving_label([
+            pricing.yearly_saving_pct(e[region]["month"], e[region]["year"])
+            for e in data["plans"].values() if region in e])
     for region in (REGION_NIGERIA, REGION_INTERNATIONAL):
         minor, currency = pricing.extra_legal_fee(region)
         if minor:

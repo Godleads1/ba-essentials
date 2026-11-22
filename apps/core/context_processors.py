@@ -102,6 +102,7 @@ def navigation(request):
         "nav_items": (),
         "counselling": None,
         "account_paused": False,
+        "terms_to_confirm": False,
     }
     if user is None or not user.is_authenticated:
         return context
@@ -149,6 +150,9 @@ def navigation(request):
         from apps.billing.plan_rules import is_paused
 
         context["account_paused"] = is_paused(selected)
+        from apps.accounts.profile import needs_terms_confirmation
+
+        context["terms_to_confirm"] = needs_terms_confirmation(user)
     context["nav_items"] = context["client_nav"] or tuple(n for n in CLIENT_NAV if n[0] == "security-home")
     # The "Need Counselling?" button: clients only. Nothing records who opens it.
     from apps.communications.models import CounsellingSettings
