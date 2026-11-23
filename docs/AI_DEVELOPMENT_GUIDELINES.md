@@ -15,14 +15,14 @@ recurring review task.
 | Area | v2 | v3 |
 | --- | --- | --- |
 | Project status | "Backend: not built yet" | Backend exists on `main` and was audited (section 1.1) |
-| Hosting | AWS Lightsail, proposed | AWS Lightsail, **confirmed**; the Render setup in the repo is obsolete |
+| Hosting | AWS Lightsail, proposed | **Hostinger KVM 2 VPS** with Docker, behind Cloudflare (chosen 22 Nov 2026, replacing Lightsail); the Render setup is removed |
 | Payments | Paystack | **Paystack** for clients billed in naira and **Flutterwave** for international clients; international pricing to be set later |
 | Client sign-in | Passwords, password reset | **One-time codes** by WhatsApp, SMS or email; no client passwords (section 4.1) |
 | Staff access | General least privilege | Rules for a human-delivered service: staff see only what their job needs, and every look is logged (section 4.3) |
 | Audit log | Security events | **A complete audit trail for every user**, which each user can see for their own account (section 4.9) |
 | Data protection | Not covered | Nigeria Data Protection Act 2023 duties and the Privacy Policy's promises (section 6) |
 | Consent records | Not covered | Terms, renewal, marketing, phone-call and cookie choices are recorded (section 4.10) |
-| Rate-limit cache | Implied Redis | Database cache on a single Lightsail server; Redis only when there's more than one |
+| Rate-limit cache | Implied Redis | Redis in its own container on the server (deploy/docker-compose.yml) |
 | Numbering | Sections 9 and 10 each appeared twice | Renumbered; Supabase and Firebase notes removed |
 
 ---
@@ -40,7 +40,7 @@ Checked against the repository on 13 November 2026.
   PostgreSQL. See the Phase 0 audit for detail.
 - **Payments:** no live integration. Paystack webhooks are verified; checkout,
   subscriptions and Flutterwave are not built.
-- **Hosting:** none yet. Lightsail is the decision.
+- **Hosting:** Hostinger KVM 2 VPS (Ubuntu 24.04, Docker), behind Cloudflare. Setup: `deploy/` and docs/HOSTINGER.md.
 - **Source code:** GitHub, `Godleads1/ba-essentials`.
 - **Priority:** security and performance together.
 
@@ -112,7 +112,7 @@ Public website (static now; Django templates later)
 Cloudflare (DNS, TLS, WAF, DDoS) ── origin open only to Cloudflare
     |
     v
-AWS Lightsail instance: Nginx or Caddy → Gunicorn → Django
+Hostinger VPS (Docker): Caddy → Gunicorn → Django
     |
     +---- Authentication: one-time codes (clients), password + TOTP (staff)
     +---- Authorization, tenant isolation, staff assignment scoping
@@ -120,9 +120,9 @@ AWS Lightsail instance: Nginx or Caddy → Gunicorn → Django
     +---- Client and staff workflows
     +---- Audit log and notifications
     |
-    +---- Lightsail managed PostgreSQL (private networking only)
-    +---- ClamAV daemon (file scanning) on the instance
-    +---- Private file storage: local disk now, Cloudflare R2 later
+    +---- PostgreSQL 17 in a container, no open ports; the app has a row-only account
+    +---- Redis (rate limits) and the ClamAV daemon (file scanning), no open ports
+    +---- Private files and encrypted backups: Cloudflare R2
     +---- Paystack (naira) and Flutterwave (international)
     +---- Termii (SMS and WhatsApp codes and messages, to be confirmed)
     +---- Email provider (to be selected)
@@ -134,10 +134,10 @@ AWS Lightsail instance: Nginx or Caddy → Gunicorn → Django
 | --- | --- | --- |
 | Backend | Django 5.2 LTS, Python 3.13 | In the repo |
 | Frontend | Server-rendered templates, HTMX, Tailwind CSS | In the repo; the new designs exist only as static preview pages |
-| Database | PostgreSQL (Lightsail managed) | Confirm plan, backups, restore test |
-| Hosting | AWS Lightsail | **Confirmed**; replaces Render |
+| Database | PostgreSQL 17 on the server (Docker) | Nightly encrypted backups to R2; monthly restore check |
+| Hosting | Hostinger KVM 2 VPS | **Confirmed** 22 Nov 2026; replaces Lightsail and Render |
 | Edge | Cloudflare | Configure origin protection |
-| Rate-limit cache | Django database cache | Passes the production check; switch to Redis only with more than one server |
+| Rate-limit cache | Redis (container) | In `deploy/docker-compose.yml` |
 | File scanning | ClamAV (`clamd`) | Production refuses to start without it |
 | File storage | Local disk, then Cloudflare R2 | R2 before a second server |
 | Payments | Paystack (NGN), Flutterwave (international) | Test mode first; live only after approval |
@@ -489,24 +489,27 @@ controller "of major importance" under the Act.
   apply section 8.5.
 - **Minimise:** collect only what the service needs.
 
-## 7. Infrastructure and deployment (Lightsail)
+## 7. Infrastructure and deployment (Hostinger)
+
+The setup is in `deploy/` and the step-by-step guide is docs/HOSTINGER.md.
 
 - Separate development, staging and production environments.
-- Production behind HTTPS with Cloudflare DNS, WAF and DDoS protection; the
-  Lightsail firewall allows web traffic only from Cloudflare, and SSH only by
-  key from allowlisted addresses.
-- Run the existing Docker image (Gunicorn) behind Nginx or Caddy, or on a
-  Lightsail container service; never the Django development server.
-- Lightsail managed PostgreSQL on private networking; automatic backups;
-  restore tested.
-- `clamd` on the instance; `process_outbox`, `run_renewals`, `run_retention` and `scan_files` as systemd timers
-  or cron.
-- Database cache for rate limits on one server; Redis only for several.
-- Health checks, process supervision, log forwarding and alerts.
-- Controlled deployments with written rollback steps.
-- Patch the operating system, runtime and dependencies.
-- Remove `render.yaml` and the Render-specific notes once Lightsail staging
-  works, in a reviewed change.
+- Production behind HTTPS with Cloudflare DNS, WAF and DDoS protection. The
+  server firewall (ufw) allows web traffic only from Cloudflare's ranges
+  (refreshed weekly), and SSH only by key, with root sign-in off and fail2ban.
+- The Docker image (Gunicorn) runs behind Caddy, with a Cloudflare Origin
+  Certificate ("Full (strict)"). Never the Django development server.
+- PostgreSQL, Redis and ClamAV run in containers with no open ports. The app
+  uses a database account that can only read and write rows; migrations use
+  the owner account.
+- Nightly encrypted backups to a separate R2 bucket; monthly restore check.
+- `process_outbox`, `scan_files`, `run_renewals`, `run_backups`,
+  `run_retention` and `restore_check` run from cron (`deploy/banda.cron`).
+- Health checks, restart policies and log rotation; uptime monitoring is still
+  to set up.
+- Deployments with `deploy/update.sh` (backup first) and written rollback steps.
+- Automatic security updates for the operating system; Dependabot for
+  dependencies.
 
 ## 8. Expanded security verification
 
@@ -706,8 +709,7 @@ OWASP Top 10 (https://owasp.org/www-project-top-ten/), Django deployment
 checklist (https://docs.djangoproject.com/en/stable/howto/deployment/checklist/),
 Paystack (https://paystack.com/docs/), Flutterwave
 (https://developer.flutterwave.com/), Cloudflare
-(https://developers.cloudflare.com/), AWS Lightsail
-(https://docs.aws.amazon.com/lightsail/), Lighthouse
+(https://developers.cloudflare.com/), Lighthouse
 (https://developer.chrome.com/docs/lighthouse/).
 
 ## 11. Order of work
@@ -727,8 +729,8 @@ Each step is its own reviewed pull request.
 5. Records the legal pages promise (F-07, F-08): consents, data requests,
    account closure, retention job.
 6. Staff access scoping and the per-user audit log (F-04, section 4.9).
-7. Lightsail staging: instance, managed PostgreSQL, Cloudflare, ClamAV,
-   database cache, backups with a restore test.
+7. Hostinger server: Docker, PostgreSQL, Redis, ClamAV, Cloudflare, backups
+   with a restore test (`deploy/`, docs/HOSTINGER.md).
 8. Port the new designs into Django templates, page by page, with permission
    tests.
 9. Cloudflare R2 storage and a hash-locked dependency lockfile (F-09, F-10).
@@ -787,7 +789,7 @@ banda must not take real payments or confidential documents until:
   retained per the Privacy Policy.
 - Consent records, data requests, account closure and the retention job work.
 - Private document storage, scanning and access checks are in place.
-- Production secrets and Lightsail infrastructure are configured and reviewed.
+- Production secrets and the Hostinger server are configured and reviewed.
 - Backups have been restored successfully in a test.
 - An incident and breach-notification runbook exists.
 - Critical security tests pass and monitoring with alerts is live.

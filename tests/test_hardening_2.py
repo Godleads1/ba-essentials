@@ -1,13 +1,9 @@
 """Follow-ups from checking banda against the vibe-coding risk lists (17 Nov 2026)."""
 from __future__ import annotations
 
-from pathlib import Path
-
 import pyotp
 import pytest
-import yaml
 from cryptography.fernet import Fernet
-from django.conf import settings as django_settings
 from django.core.checks import run_checks
 from django.test import override_settings
 
@@ -110,12 +106,5 @@ def test_the_submit_page_shows_the_limit_instead_of_failing(organization, owner,
     assert not PrivateFile.objects.exists()
 
 
-# ---------- staging database closed to the internet ----------
-
-def test_staging_database_is_not_reachable_from_the_internet():
-    blueprint = yaml.safe_load((Path(django_settings.BASE_DIR) / "render.yaml").read_text())
-    for database in blueprint["databases"]:
-        assert database.get("ipAllowList") == [], database["name"]
-    for service in blueprint["services"]:
-        if service["type"] == "keyvalue":
-            assert service.get("ipAllowList") == [], service["name"]
+# ---------- the database is closed to the internet ----------
+# Now checked for the Hostinger setup in tests/test_deployment.py (test_only_caddy_faces_the_internet).

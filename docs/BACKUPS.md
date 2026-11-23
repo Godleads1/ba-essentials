@@ -10,7 +10,7 @@ platform keeps that promise. Code: `apps/core/backups.py`.
 | --- | --- | --- |
 | Database | `pg_dump`, encrypted on the server with `BACKUP_ENCRYPTION_KEY` (AES-256-GCM), uploaded as `db/<time>.dump.enc` | 48 hours (`BACKUP_KEEP_HOURS`) |
 | Private files | Copied to `files/<key>` in the backup bucket | Until a day after the file is deleted, then removed (within two days) |
-| Lightsail managed database | Lightsail's own automatic snapshots | Set the retention in Lightsail to **2 days** to match the policy |
+| Hostinger's own VPS backups | Only if your plan makes them | Turn them off, or the lawyer adds them to the Privacy Policy: they keep data longer than 2 days |
 
 Backups go to a **separate private R2 bucket** (`BACKUP_R2_BUCKET`), never the
 files bucket. Ideally give it its own API token (`BACKUP_R2_ACCESS_KEY_ID`,
@@ -26,7 +26,7 @@ files bucket. Ideally give it its own API token (`BACKUP_R2_ACCESS_KEY_ID`,
 2. Create the R2 bucket `banda-backups` (public access off), and a token for it.
 3. Set `BACKUP_BACKEND=r2`, `BACKUP_R2_BUCKET`, `BACKUP_ENCRYPTION_KEY` (and the
    optional backup token) on the server.
-4. Schedule, as systemd timers or cron:
+4. Schedule them (on the Hostinger server, `deploy/banda.cron` does this):
    - `python manage.py run_backups`: daily (for example 02:00 Lagos time);
    - `python manage.py restore_check`: monthly, with `RESTORE_CHECK_DATABASE_URL`
      set to an empty scratch database (never the live one; the command refuses it).

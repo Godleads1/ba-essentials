@@ -125,10 +125,9 @@ pip-compile --generate-hashes --allow-unsafe --strip-extras --no-emit-index-url 
 
 ## Deployment
 
-A Render Blueprint with PostgreSQL, Render Key Value (Redis), Resend SMTP, and
-a private ClamAV service is documented in
-[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). It is a staging runbook: paid
-resources, synthetic data, and payments disabled.
+The site runs on one Hostinger VPS with Docker (Caddy, the app, PostgreSQL,
+Redis and ClamAV) behind Cloudflare. The files are in `deploy/`, and
+[docs/HOSTINGER.md](docs/HOSTINGER.md) is the step-by-step guide.
 
 ## Security posture
 

@@ -95,7 +95,8 @@ if _reachable_bugs:
 SECURE_SSL_REDIRECT = True
 # Platform health checks reach the container over plain HTTP on the private
 # network. This endpoint returns only a status, never tenant data.
-SECURE_REDIRECT_EXEMPT = [r"^/health/$"]
+# Django matches these against the path without its leading slash.
+SECURE_REDIRECT_EXEMPT = [r"^health/$"]
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SECURE_HSTS_SECONDS = env_int("SECURE_HSTS_SECONDS", 31_536_000)

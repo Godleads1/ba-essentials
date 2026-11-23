@@ -58,35 +58,32 @@ def _import_production(overrides: dict[str, str | None]) -> subprocess.Completed
     )
 
 
-def test_staging_adopts_the_render_hostname():
+def _production_value(name: str) -> str:
     result = subprocess.run(
-        [
-            sys.executable,
-            "-c",
-            ("from config.settings import staging as s; "
-            "print(s.APP_BASE_URL); "
-            "print(','.join(s.ALLOWED_HOSTS)); "
-            "print(','.join(s.CSRF_TRUSTED_ORIGINS)); "
-            "print(','.join(s.SECURE_REDIRECT_EXEMPT))"),
-        ],
-        cwd=BASE_DIR,
-        env=_clean_environment(
-            {"RENDER_EXTERNAL_HOSTNAME": "ba-essentials-staging.onrender.com"}
-        ),
-        capture_output=True,
-        text=True,
-        timeout=60,
-        check=False,
+        [sys.executable, "-c", f"from config.settings import production as s; print(repr(s.{name}))"],
+        cwd=BASE_DIR, env=_clean_environment({}), capture_output=True, text=True, timeout=60, check=False,
     )
-
     assert result.returncode == 0, result.stderr
-    app_base_url, allowed_hosts, trusted_origins, redirect_exempt = (
-        result.stdout.strip().splitlines()
-    )
-    assert app_base_url == "https://ba-essentials-staging.onrender.com"
-    assert "ba-essentials-staging.onrender.com" in allowed_hosts.split(",")
-    assert "https://ba-essentials-staging.onrender.com" in trusted_origins.split(",")
-    assert "^/health/$" in redirect_exempt.split(",")
+    import ast
+
+    return ast.literal_eval(result.stdout.strip())
+
+
+def test_the_health_check_answers_over_plain_http_and_nothing_else_does(db):
+    """The container's health check calls http://127.0.0.1:8000/health/ (deploy/docker-compose.yml).
+    Django matches SECURE_REDIRECT_EXEMPT against the path without its leading slash."""
+    from django.test import Client, override_settings
+
+    exempt = _production_value("SECURE_REDIRECT_EXEMPT")
+    with override_settings(SECURE_SSL_REDIRECT=True, SECURE_REDIRECT_EXEMPT=exempt):
+        from django.middleware.security import SecurityMiddleware
+
+        assert SecurityMiddleware(lambda r: None).redirect_exempt  # read from the overridden settings
+        c = Client()
+        assert c.get("/health/").status_code == 200
+        for path in ("/", "/login/", "/healthz/", "/health/x/", "/app/"):
+            r = c.get(path)
+            assert r.status_code == 301 and r["Location"].startswith("https://"), path
 
 
 def test_safe_production_configuration_imports():

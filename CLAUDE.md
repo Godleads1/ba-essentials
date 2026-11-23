@@ -13,8 +13,8 @@ In short:
 - Report what you changed, what you tested and what you didn't.
 
 Security notes: [docs/SECURITY.md](docs/SECURITY.md). Deployment notes:
-[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) (Render, being replaced by AWS
-Lightsail).
+[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) and the step-by-step server guide
+[docs/HOSTINGER.md](docs/HOSTINGER.md) (Hostinger VPS, Docker, Cloudflare).
 
 <!-- BEGIN AWS Agent Toolkit rules -->
 # AWS Guidance for the new AWS experience
