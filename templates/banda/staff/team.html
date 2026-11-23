@@ -43,7 +43,10 @@
       {% endfor %}
       {% for r in invited %}
         <li class="flex flex-wrap items-center gap-3 px-5 py-3.5 text-sm">
-          <div class="min-w-0 basis-full sm:basis-0 sm:flex-1"><span class="font-medium text-ink">{{ r.email }}</span> as {{ r.get_role_display }} <span class="chip-status bg-pill-navyBg text-brand-navy">Invitation sent</span> <span class="text-xs text-ink-muted">expires {{ r.expires_at|date:"j M" }}</span></div>
+          <div class="min-w-0 basis-full sm:basis-0 sm:flex-1"><span class="font-medium text-ink">{{ r.email }}</span> as {{ r.get_role_display }}
+            {% if r.expires_at > now %}<span class="chip-status bg-pill-navyBg text-brand-navy">Link sent</span> <span class="text-xs text-ink-muted">works until {{ r.expires_at|date:"H:i" }}</span>
+            {% else %}<span class="chip-status bg-pill-orangeBg text-brand-orangeDark">Link expired</span>{% endif %}</div>
+          <form method="post" action="{% url 'staff-team-resend' request_id=r.pk %}">{% csrf_token %}<button type="submit" class="btn-outline btn-sm">Send a new link</button></form>
           <form method="post" action="{% url 'staff-team-reject' request_id=r.pk %}">{% csrf_token %}<button type="submit" class="btn-ghost btn-sm">Cancel invitation</button></form>
         </li>
       {% endfor %}
@@ -54,7 +57,7 @@
   <section class="panel">
     <div class="border-b border-cream-line px-5 py-4">
       <h2 class="text-sm font-semibold text-ink">Invite someone</h2>
-      <p class="mt-1 text-xs text-ink-muted">They get an email link to set their password (it works once, for {{ invite_days }} days), then set up a free authenticator app when they first sign in. Use their work email, not one they use as a client.</p>
+      <p class="mt-1 text-xs text-ink-muted">They get an email link to set their password (it works once, for {{ invite_minutes }} minutes; you can send a new one below if it runs out), then set up a free authenticator app when they first sign in. Use their work email, not one they use as a client.</p>
     </div>
     <form method="post" action="{% url 'staff-team-invite' %}" class="flex flex-wrap items-end gap-3 px-5 py-4">
       {% csrf_token %}
@@ -78,7 +81,7 @@
             <tr>
               <td><p class="font-medium text-ink">{{ m.full_name|default:m.email }}</p><p class="text-xs text-ink-muted">{{ m.email }}</p></td>
               <td>
-                {% if m.is_superuser %}<span class="text-ink">{{ m.get_staff_role_display|default:"Superuser" }}</span> <span class="block text-xs text-ink-muted">Superuser: managed on the server</span>
+                {% if m.is_superuser %}<span class="text-ink">{{ m.get_staff_role_display|default:"Superuser" }}</span> <span class="block text-xs text-ink-muted">{% if m.pk in protected_ids %}Protected superuser: can&rsquo;t be removed{% else %}Superuser: managed on the server{% endif %}</span>
                 {% elif m.pk == request.user.pk %}<span class="text-ink">{{ m.get_staff_role_display }}</span> <span class="block text-xs text-ink-muted">You (another Admin can change this)</span>
                 {% else %}
                   <form method="post" action="{% url 'staff-team-role' user_id=m.pk %}" class="flex items-center gap-2">{% csrf_token %}

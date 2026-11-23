@@ -257,3 +257,64 @@ def test_every_step_is_audited(admin_a, admin_b):
     actions = set(AuditEvent.objects.values_list("action", flat=True))
     assert {"staff.invite_requested", "staff.request_approved", "staff.invitation_sent",
             "staff.invitation_accepted", "staff.access_changed"} <= actions
+
+
+# ---------- invitation links last 30 minutes; Admins can send a new one ----------
+
+def test_an_invitation_link_lasts_thirty_minutes(admin_a):
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    req = team.invite(admin_a, "quick@example.test", StaffRole.SUPPORT)
+    left = req.expires_at - timezone.now()
+    assert timedelta(minutes=29) < left <= timedelta(minutes=30)
+    assert "expires in 30 minutes" in _emails_to("quick@example.test")[0]["body"]
+
+
+def test_an_admin_can_send_a_new_link_after_it_expires(admin_a, admin_b):
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    req = team.invite(admin_a, "late.joiner@example.test", StaffRole.FINANCE)
+    team.approve(admin_b, req.pk)
+    old_link = _join_link("late.joiner@example.test")
+    StaffAccessRequest.objects.filter(pk=req.pk).update(expires_at=timezone.now() - timedelta(minutes=1))
+    page = _confirmed(admin_a).get("/staff/team/").content.decode()
+    assert "Link expired" in page and "Send a new link" in page
+    _confirmed(admin_a).post(f"/staff/team/requests/{req.pk}/resend/")  # no second approval needed
+    links = [re.search(r"(/staff/join/[^/\s]+/)", p["body"]).group(1)
+             for p in _emails_to("late.joiner@example.test") if "invited" in p["subject"]]
+    assert len(links) == 2 and links[-1] != old_link
+    assert Client().get(old_link).status_code == 404  # the old link stops working
+    r = Client().post(links[-1], {"full_name": "L", "password": NEW_PASSWORD, "password_again": NEW_PASSWORD})
+    assert r.status_code == 302 and User.objects.get(email="late.joiner@example.test").staff_role == StaffRole.FINANCE
+    assert AuditEvent.objects.filter(action="staff.invitation_resent", actor=admin_a).exists()
+
+
+def test_a_waiting_powerful_invitation_cannot_be_resent_before_approval(admin_a):
+    req = team.invite(admin_a, "power@example.test", StaffRole.ADMIN)
+    with pytest.raises(ValidationFailure):
+        team.resend_invitation(admin_a, req.pk)
+    assert not _emails_to("power@example.test")
+
+
+def test_an_expired_invitation_can_be_cancelled(admin_a):
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    req = team.invite(admin_a, "gone@example.test", StaffRole.SUPPORT)
+    StaffAccessRequest.objects.filter(pk=req.pk).update(expires_at=timezone.now() - timedelta(hours=1))
+    team.reject(admin_a, req.pk)
+    req.refresh_from_db()
+    assert req.status == StaffRequestStatus.CANCELLED
+    with pytest.raises(ValidationFailure):
+        team.resend_invitation(admin_a, req.pk)
+
+
+def test_only_admins_can_resend(admin_a, ops_user):
+    req = team.invite(admin_a, "x2@example.test", StaffRole.SUPPORT)
+    with pytest.raises(PermissionFailure):
+        team.resend_invitation(ops_user, req.pk)

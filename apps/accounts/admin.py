@@ -84,6 +84,24 @@ class UserAdmin(BaseUserAdmin):
         ),
     )
 
+    # Protected superusers (apps/accounts/protection.py): the fields that keep them in charge
+    # are read-only here, and they can't be deleted, alone or in a bulk delete.
+    def get_readonly_fields(self, request, obj=None):
+        from .protection import KEPT_FIELDS, is_protected
+
+        fields = tuple(super().get_readonly_fields(request, obj))
+        return fields + KEPT_FIELDS if is_protected(obj) else fields
+
+    def has_delete_permission(self, request, obj=None):
+        from .protection import is_protected
+
+        return not is_protected(obj) and super().has_delete_permission(request, obj)
+
+    def delete_queryset(self, request, queryset):
+        from .protection import protected_emails
+
+        super().delete_queryset(request, queryset.exclude(email__in=protected_emails()))
+
 
 @admin.register(UserSession)
 class UserSessionAdmin(admin.ModelAdmin):

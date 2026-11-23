@@ -443,7 +443,9 @@ migration check, deploy check, and dependency audit.
 `/staff/team/` (Admins only, permission `staff.manage`), code in `apps/accounts/team.py`:
 
 - Admins invite staff by email and choose a role. The person gets a one-time link
-  (random, stored only as a hash, expires after 7 days), sets their own password
+  (random, stored only as a hash, expires after **30 minutes**; an Admin can send a
+  new link from the Team screen, which stops the old one, without a new approval),
+  sets their own password
   (all password rules, including the breached-password check), then must set up an
   authenticator app at first sign-in. Accounts made this way never get Django admin.
 - **Admin, Finance and Quote approver** need a second Admin: an invitation into one
@@ -488,3 +490,27 @@ migration check, deploy check, and dependency audit.
     so every scan would have failed. CI now checks the tools are in the image;
   - the `/health/` HTTPS exemption never matched, because Django compares
     without the leading slash.
+
+## Protected superusers (22 Nov 2026)
+
+`apps/accounts/protection.py`. The emails in `PROTECTED_SUPERUSER_EMAILS` are set on the
+server only: the repository is public, and these are real people's details.
+
+- A protected account can't be deleted, and keeps `is_superuser`, `is_staff`, `is_active`, the
+  Admin role and its email. This is enforced by `pre_save` and `pre_delete` signals, which
+  cover Django admin, the shell and cascades. In Django admin those fields are read-only, the
+  delete page is refused, and bulk delete skips the account. The Team screen never changes
+  superusers.
+- The person can still change their password, name and phone, and reset their authenticator.
+- To remove protection (for example, someone leaves), a person with server access edits
+  `PROTECTED_SUPERUSER_EMAILS` and restarts the site.
+- **Trade-off:** a protected account can't be switched off from the app, even if it is taken
+  over. In that case, on the server:
+  - take it off `PROTECTED_SUPERUSER_EMAILS` and restart;
+  - deactivate it in Django admin;
+  - sign everyone out (docs/INCIDENT_RESPONSE.md, section 4).
+  
+  Then reset its password and authenticator before putting it back on the list.
+- `create_staff EMAIL --superuser --name NAME --phone NUMBER` creates a superuser with a
+  contact phone number. Staff never sign in with the phone.
+- Tests: `tests/test_protected_superusers.py`.
