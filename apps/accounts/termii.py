@@ -14,6 +14,7 @@ import urllib.request
 from django.conf import settings
 
 from apps.core import ratelimit
+from apps.core.http import USER_AGENT
 
 logger = logging.getLogger("ba.accounts")
 TIMEOUT_SECONDS = 10
@@ -77,7 +78,7 @@ def _request(payload: dict) -> dict:
         f"{base}/api/sms/send",
         data=json.dumps({**payload, "api_key": settings.TERMII_API_KEY}).encode("utf-8"),
         method="POST",
-        headers={"Content-Type": "application/json", "Accept": "application/json"},
+        headers={"Content-Type": "application/json", "Accept": "application/json", "User-Agent": USER_AGENT},
     )
     try:
         with urllib.request.urlopen(request, timeout=TIMEOUT_SECONDS) as response:  # https only, checked above

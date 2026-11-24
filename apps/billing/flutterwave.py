@@ -18,6 +18,8 @@ from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 
 from django.conf import settings
 
+from apps.core.http import USER_AGENT
+
 logger = logging.getLogger("ba.billing")
 
 API_BASE = "https://api.flutterwave.com/v3"
@@ -47,6 +49,7 @@ def _request(method: str, path: str, payload: dict | None = None) -> dict:
         method=method,
         headers={
             "Authorization": f"Bearer {secret}",
+            "User-Agent": USER_AGENT,
             "Content-Type": "application/json",
             "Accept": "application/json",
         },
