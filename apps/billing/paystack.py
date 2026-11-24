@@ -14,6 +14,8 @@ import urllib.request
 
 from django.conf import settings
 
+from apps.core.http import USER_AGENT
+
 logger = logging.getLogger("ba.billing")
 
 API_BASE = "https://api.paystack.co"
@@ -42,6 +44,7 @@ def _request(method: str, path: str, payload: dict | None = None) -> dict:
         method=method,
         headers={
             "Authorization": f"Bearer {secret}",
+            "User-Agent": USER_AGENT,
             "Content-Type": "application/json",
             "Accept": "application/json",
         },
