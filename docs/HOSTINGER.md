@@ -256,10 +256,15 @@ docker compose exec web python manage.py restore_check
 
 The last line should say `Restore check passed`.
 
-In Cloudflare R2, turn on **Object Lock** for the `banda-backups` bucket with a retention of
-**1 day**. Then nobody, not even someone with the server's keys, can delete a backup in its
-first day. Keep it below 2 days, so the app can still delete backups on the Privacy Policy
-schedule. More: [BACKUPS.md](BACKUPS.md).
+In Cloudflare R2, add an **Object Lock** rule to the `banda-backups` bucket with the
+**prefix `db/`** and a retention of **1 day**. Then nobody, not even someone with the server's
+keys, can delete a database backup in its first day. Keep it below 2 days, so the app can
+still delete backups on the Privacy Policy schedule. More: [BACKUPS.md](BACKUPS.md).
+
+Don't lock the whole bucket. The file mirror under `files/` keeps a small list,
+`files/_missing.json`, that is rewritten on every run, and a lock on it makes every backup
+after the first fail with `ObjectLockedByBucketPolicy`. Mirrored copies of deleted files
+are also removed after 23 hours, which a 1-day lock would block.
 
 ## 10. Check it's safe
 
