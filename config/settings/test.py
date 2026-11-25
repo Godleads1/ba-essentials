@@ -32,6 +32,10 @@ STEP_UP_MAX_AGE = 600
 PAYSTACK_SECRET_KEY = "sk_test_webhook_secret"
 PAYSTACK_WEBHOOK_SECRET = "sk_test_webhook_secret"
 FLUTTERWAVE_SECRET_KEY = "FLWSECK_TEST-synthetic"
+# A test key, so the test checkout host is allowed, as base.py does when the key comes
+# from the environment.
+if "dev-flutterwave" not in CONTENT_SECURITY_POLICY:
+    CONTENT_SECURITY_POLICY += " https://checkout-v2.dev-flutterwave.com"
 FLUTTERWAVE_WEBHOOK_HASH = "synthetic-flutterwave-hash"
 PAYMENTS_ENABLED = True
 

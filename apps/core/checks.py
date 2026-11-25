@@ -74,7 +74,7 @@ def checkout_hosts_allowed_by_csp(app_configs, **kwargs):
     sources = _form_action_sources(settings.CONTENT_SECURITY_POLICY)
     if "*" in sources:
         return []
-    missing = sorted(h for h in paystack.CHECKOUT_HOSTS | flutterwave.CHECKOUT_HOSTS
+    missing = sorted(h for h in paystack.CHECKOUT_HOSTS | flutterwave.allowed_checkout_hosts()
                      if f"https://{h}" not in sources and "https:" not in sources)
     if not missing:
         return []

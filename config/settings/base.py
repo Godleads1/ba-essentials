@@ -172,6 +172,14 @@ SECURE_REFERRER_POLICY = "same-origin"
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin"
 X_FRAME_OPTIONS = "DENY"
 
+# Flutterwave's test checkout lives on its own host. It is allowed only while a test key is
+# configured (the same rule as apps/billing/flutterwave.py allowed_checkout_hosts).
+_FLUTTERWAVE_TEST_FORM_ACTION = (
+    " https://checkout-v2.dev-flutterwave.com"
+    if env("FLUTTERWAVE_SECRET_KEY", "").startswith("FLWSECK_TEST-")
+    else ""
+)
+
 CONTENT_SECURITY_POLICY = env(
     "CONTENT_SECURITY_POLICY",
     "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; "
@@ -180,7 +188,8 @@ CONTENT_SECURITY_POLICY = env(
     # page. Browsers apply form-action to that redirect too, so the checkout hosts must be listed
     # (apps/billing/paystack.py and flutterwave.py CHECKOUT_HOSTS; checked by banda.W005).
     "base-uri 'self'; form-action 'self' https://checkout.paystack.com "
-    "https://checkout.flutterwave.com https://checkout-v3.flutterwave.com",
+    "https://checkout.flutterwave.com https://checkout-v3.flutterwave.com"
+    + _FLUTTERWAVE_TEST_FORM_ACTION,
 )
 
 # --- Email ----------------------------------------------------------------
