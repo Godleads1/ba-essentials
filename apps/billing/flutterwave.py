@@ -26,8 +26,21 @@ API_BASE = "https://api.flutterwave.com/v3"
 TIMEOUT_SECONDS = 15
 # Flutterwave's hosted checkout. Any other address is refused.
 CHECKOUT_HOSTS = frozenset({"checkout.flutterwave.com", "checkout-v3.flutterwave.com"})
+# Test mode's hosted checkout. Accepted only while the secret key is a test key, so a live
+# integration never sends clients to it.
+TEST_CHECKOUT_HOSTS = frozenset({"checkout-v2.dev-flutterwave.com"})
+TEST_KEY_PREFIX = "FLWSECK_TEST-"
 # A naira rate outside this band is treated as a bad answer, not used for pricing.
 RATE_BOUNDS = (Decimal(100), Decimal(20000))
+
+
+def is_test_mode() -> bool:
+    return (settings.FLUTTERWAVE_SECRET_KEY or "").startswith(TEST_KEY_PREFIX)
+
+
+def allowed_checkout_hosts() -> frozenset[str]:
+    """Live checkout hosts, plus test mode's host only while a test key is configured."""
+    return CHECKOUT_HOSTS | TEST_CHECKOUT_HOSTS if is_test_mode() else CHECKOUT_HOSTS
 
 
 class FlutterwaveError(Exception):
@@ -105,7 +118,7 @@ def initialize(
     )
     link = str(result.get("link") or "")
     parsed = urllib.parse.urlparse(link)
-    if parsed.scheme != "https" or parsed.hostname not in CHECKOUT_HOSTS:
+    if parsed.scheme != "https" or parsed.hostname not in allowed_checkout_hosts():
         raise FlutterwaveError("Flutterwave returned an unexpected checkout address.")
     return link
 
