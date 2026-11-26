@@ -335,6 +335,21 @@ the few seconds the app restarts.
 the database, ask your developer before undoing it: restoring from a backup may be needed
 ([BACKUPS.md](BACKUPS.md)).
 
+## Clearing test data before launch
+
+To remove every client business and client account left over from testing (staff accounts,
+plans, the catalogue and website content stay):
+
+```bash
+cd /opt/banda/deploy
+docker compose exec -T web python manage.py run_backups
+docker compose exec -T web python manage.py remove_client_data
+```
+
+The second command only shows what would be removed. If the counts look right, run it again
+with `--confirm delete-all-client-data`. It refuses while live payment keys are set or a
+business is under a legal hold, so it can't be used on real clients after launch.
+
 ## When something goes wrong
 
 | Problem | Try |
