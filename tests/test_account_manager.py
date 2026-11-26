@@ -151,3 +151,13 @@ def test_clients_page_flags_dedicated_without_a_manager(staff_client, organizati
 def test_support_sees_the_list_but_no_controls(organization, support_user):
     page = login_client(support_user).get("/staff/clients/").content.decode()
     assert organization.name in page and "account-manager/" not in page
+
+
+def test_admin_cannot_set_the_manager_directly():
+    # The Django admin would skip the eligibility check and the audit record.
+    from django.contrib import admin
+
+    from apps.organizations.models import Organization
+
+    readonly = admin.site._registry[Organization].readonly_fields
+    assert "account_manager" in readonly and "account_manager_since" in readonly

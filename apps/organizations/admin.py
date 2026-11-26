@@ -12,7 +12,9 @@ class OrganizationAdmin(admin.ModelAdmin):
     search_fields = ("name", "slug")
     # Closure dates are set by the client's request and the retention job, not by hand.
     readonly_fields = ("closure_requested_at", "closure_requested_by", "closes_at", "closed_at",
-                       "closure_stopped_renewal", "profile_deleted_at")
+                       "closure_stopped_renewal", "profile_deleted_at",
+                       # Set only from the staff Clients page, which checks eligibility and audits it.
+                       "account_manager", "account_manager_since")
 
     def save_model(self, request, obj, form, change):
         # The country sets the pricing currency, so a change is always on record.
