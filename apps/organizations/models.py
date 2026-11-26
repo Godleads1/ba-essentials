@@ -41,6 +41,13 @@ class Organization(TimeStampedModel):
     # Set by staff in admin when the law requires records to be kept (a claim or an
     # investigation). The retention job deletes nothing for this business while it's on.
     legal_hold = models.BooleanField(default=False)
+    # The staff member named to the client as their account manager (Dedicated plan
+    # promise). Set by Operations or an Admin from the staff Clients page, and audited.
+    account_manager = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="managed_organizations",
+    )
+    account_manager_since = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["name"]

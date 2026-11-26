@@ -30,6 +30,8 @@ FEES_APPROVE = "fees.approve"
 FEES_SETTLE = "fees.settle"
 # The Team screen: invite staff, change roles, remove access (apps/accounts/team.py).
 STAFF_MANAGE = "staff.manage"
+# Name a client's account manager (apps/organizations/account_manager.py).
+CLIENT_MANAGE = "client.manage"
 
 ALL_PERMISSIONS = frozenset(
     {
@@ -56,6 +58,7 @@ ALL_PERMISSIONS = frozenset(
         FEES_APPROVE,
         FEES_SETTLE,
         STAFF_MANAGE,
+        CLIENT_MANAGE,
     }
 )
 
@@ -70,6 +73,7 @@ ROLE_PERMISSIONS: dict[str, frozenset[str]] = {
             TASK_HOLD,
             TASK_CANCEL,
             CLIENT_VIEW,
+            CLIENT_MANAGE,
             SUPPORT_HANDLE,
             FILES_VIEW_ALL,
             LEADS_VIEW,

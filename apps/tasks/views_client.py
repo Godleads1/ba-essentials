@@ -69,6 +69,8 @@ def _task_for_org(request, task_id):
 def overview(request):
     from django.utils import timezone
 
+    from apps.organizations import account_manager
+
     from . import dashboard
 
     organization = request.organization
@@ -91,6 +93,8 @@ def overview(request):
             "usage": dashboard.plan_usage(organization, subscription),
             "outstanding_count": outstanding.count(),
             "first_outstanding": outstanding.first(),
+            "account_manager": account_manager.manager_for(organization),
+            "manager_promised": bool(subscription and subscription.plan.rank >= account_manager.DEDICATED_RANK),
         },
     )
 
