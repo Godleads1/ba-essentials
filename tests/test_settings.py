@@ -138,3 +138,11 @@ def test_unsafe_production_configuration_refuses_to_start(overrides, expected):
     assert result.returncode != 0
     assert "Refusing to start" in result.stderr
     assert expected in result.stderr
+
+
+@pytest.mark.django_db
+def test_health_answers_head_for_uptime_monitors(client):
+    # UptimeRobot checks with HEAD; a 405 there showed the live site as "Down".
+    assert client.head("/health/").status_code == 200
+    assert client.get("/health/").json() == {"status": "ok"}
+    assert client.post("/health/").status_code == 405
