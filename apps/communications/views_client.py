@@ -221,8 +221,11 @@ def support_new(request):
                 return handle_domain_error(request, exc, redirect_to="support-new")
             messages.success(request, f"Ticket {ticket.reference} opened.")
             return redirect("support-detail", ticket_id=ticket.pk)
+    from apps.organizations.account_manager import manager_for
+
     return render(request, "banda/app/support_new.html", {
         "form": form, "topics": [(k, label, icon) for k, (label, icon) in TOPICS.items()],
+        "account_manager": manager_for(request.organization),
         "topic": request.GET.get("topic", "") if topic else "",
     })
 

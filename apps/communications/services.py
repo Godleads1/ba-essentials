@@ -227,6 +227,11 @@ def create_ticket(
     if not Membership.objects.filter(organization=organization, user=author).exists():
         raise PermissionFailure("You cannot open a ticket for that organization.")
 
+    from apps.organizations.account_manager import manager_for
+    from apps.organizations.models import Organization
+
+    # Read fresh: the manager may have changed since this organization was loaded.
+    manager = manager_for(Organization.objects.select_related("account_manager").get(pk=organization.pk))
     ticket = SupportTicket.objects.create(
         reference=f"SUP-{next_value('support.reference', start=1000)}",
         organization=organization,
@@ -234,6 +239,7 @@ def create_ticket(
         subject=subject,
         priority=priority,
         last_message_at=timezone.now(),
+        assigned_to=manager,
     )
     TicketMessage.objects.create(
         ticket=ticket,
@@ -251,7 +257,7 @@ def create_ticket(
         metadata={"reference": ticket.reference},
     )
     notify(
-        _support_recipients(),
+        ([manager] if manager else []) + _support_recipients(),
         organization_id=organization.pk,
         kind=NotificationKind.SUPPORT,
         title=f"New support ticket {ticket.reference}",

@@ -10,6 +10,7 @@ from apps.accounts.decorators import staff_permission_required, staff_required
 from apps.accounts.models import StaffRole, User
 from apps.accounts.permissions import (
     AUDIT_VIEW,
+    CLIENT_MANAGE,
     CLIENT_VIEW,
     FEES_APPROVE,
     FEES_PREPARE,
@@ -421,15 +422,71 @@ def cancel(request, task_id):
 @staff_permission_required(CLIENT_VIEW)
 @require_GET
 def clients(request):
-    organizations = (
+    from apps.billing.services import in_paid_time
+    from apps.organizations import account_manager
+
+    organizations = list(
         Organization.objects.annotate(
             task_total=Count("tasks", distinct=True),
             open_total=Count("tasks", filter=Q(tasks__status__in=OPEN_STATUSES), distinct=True),
         )
+        .select_related("subscription__plan", "account_manager")
         .order_by("name")[:200]
     )
+    for organization in organizations:
+        subscription = getattr(organization, "subscription", None)
+        organization.current_plan = (
+            subscription.plan if subscription and subscription.status == "active" and in_paid_time(subscription)
+            else None
+        )
+        # The Dedicated plan promises a named account manager: flag any without one.
+        organization.needs_manager = bool(
+            organization.current_plan and organization.current_plan.rank >= account_manager.DEDICATED_RANK
+            and account_manager.manager_for(organization) is None
+        )
     staff_access.log_list(request, "clients", count=len(organizations))
-    return render(request, "banda/staff/clients.html", {"organizations": organizations})
+    return render(request, "banda/staff/clients.html", {
+        "organizations": organizations,
+        "can_manage": has_perm(request.user, CLIENT_MANAGE),
+        "managers": list(account_manager.eligible_managers()) if has_perm(request.user, CLIENT_MANAGE) else [],
+    })
+
+
+@staff_permission_required(CLIENT_MANAGE)
+@require_POST
+def set_account_manager(request, organization_id):
+    from apps.organizations import account_manager
+
+    organization = Organization.objects.filter(pk=organization_id).first()
+    if organization is None:
+        raise Http404("Client not found")
+    raw = (request.POST.get("manager") or "").strip()
+    manager = None
+    if raw:
+        manager = account_manager.eligible_managers().filter(pk=raw).first() if _is_uuid(raw) else None
+        if manager is None:
+            messages.error(request, "Choose an active Operations, Support or Admin team member.")
+            return redirect("staff-clients")
+    try:
+        account_manager.set_account_manager(actor=request.user, organization=organization, manager=manager)
+    except DomainError as exc:
+        messages.error(request, exc.message)
+        return redirect("staff-clients")
+    if manager:
+        messages.success(request, f"{manager.full_name or manager.email} is now the account manager for {organization.name}.")
+    else:
+        messages.success(request, f"{organization.name} no longer has an account manager.")
+    return redirect("staff-clients")
+
+
+def _is_uuid(value: str) -> bool:
+    import uuid
+
+    try:
+        uuid.UUID(value)
+    except ValueError:
+        return False
+    return True
 
 
 @staff_permission_required(TASK_TRIAGE)

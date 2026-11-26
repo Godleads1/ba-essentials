@@ -142,6 +142,11 @@
             </div>
             <p class="relative mt-4 font-display text-[30px] font-semibold leading-none">{{ subscription.plan.name }}</p>
             <p class="relative mt-2 text-[14px] text-white/75">{% if subscription.cancel_at_period_end %}Paid until {{ subscription.period_end|date:"j M Y" }}{% else %}Runs until {{ subscription.period_end|date:"j M Y" }}{% endif %}</p>
+            {% if account_manager %}
+              <p class="relative mt-4 text-[13.5px] text-white/75">Your account manager<span class="block font-display text-[17px] font-semibold text-white">{{ account_manager.full_name|default:"Your B&amp;A account manager" }}</span><a href="{% url 'support-new' %}" class="mt-1 inline-block font-semibold text-white underline underline-offset-2">Send them a message</a></p>
+            {% elif manager_promised %}
+              <p class="relative mt-4 text-[13.5px] text-white/75">We&rsquo;re naming your account manager. You&rsquo;ll see them here soon.</p>
+            {% endif %}
           {% elif account_paused %}
             <div class="relative flex items-center justify-between">
               <h2 id="yp" class="font-display text-[18px] font-semibold">Your plan</h2>

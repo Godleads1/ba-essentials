@@ -12,6 +12,8 @@ urlpatterns = [
     path("my-cases/", views.my_cases, name="staff-my-cases"),
     path("audit/", views.audit_log, name="staff-audit"),
     path("clients/", views.clients, name="staff-clients"),
+    path("clients/<uuid:organization_id>/account-manager/", views.set_account_manager,
+         name="staff-client-account-manager"),
     path("tasks/<uuid:task_id>/", views.task_detail, name="staff-task-detail"),
     path("tasks/<uuid:task_id>/triage/", views.triage, name="staff-task-triage"),
     path(
