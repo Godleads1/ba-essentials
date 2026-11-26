@@ -15,7 +15,8 @@
           <p class="text-[12.5px] text-ink-soft">Monthly summary &middot; {{ plan_name }} plan</p>
           <h1 class="font-display text-[22px] font-semibold leading-tight tracking-[-0.01em] sm:text-[24px]">{{ s.month|date:"F Y" }} summary{% if not s.complete %} <span class="text-[15px] font-medium text-ink-muted">so far</span>{% endif %}</h1>
         </div>
-        <nav class="flex items-center gap-2" aria-label="Choose a month">
+        <nav class="flex flex-wrap items-center gap-2" aria-label="Choose a month">
+          {% if has_reports %}<a href="{% url 'reports-home' %}" class="btn bg-brand-navy px-3.5 py-1.5 text-[13px] text-white hover:bg-[#282D68]">Open Reports</a>{% endif %}
           {% if prev %}<a href="?month={{ prev|date:'Y-m' }}" class="btn border-[1.5px] border-brand-navy px-3.5 py-1.5 text-[13px] text-brand-navy hover:bg-brand-navy hover:text-white" aria-label="{{ prev|date:'F Y' }}">&lsaquo; {{ prev|date:"M" }}</a>{% endif %}
           {% if next %}<a href="?month={{ next|date:'Y-m' }}" class="btn border-[1.5px] border-brand-navy px-3.5 py-1.5 text-[13px] text-brand-navy hover:bg-brand-navy hover:text-white" aria-label="{{ next|date:'F Y' }}">{{ next|date:"M" }} &rsaquo;</a>{% endif %}
         </nav>

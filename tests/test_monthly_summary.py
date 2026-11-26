@@ -62,6 +62,7 @@ def october(make_task, organization, owner):
     late = SupportTicket.objects.create(reference="SUP-2", organization=organization, subject="Late",
                                         reply_due_at=at(8, 14), first_reply_at=at(9, 11))
     SupportTicket.objects.filter(pk__in=[on_time.pk, late.pk]).update(created_at=at(6, 9))
+    organization.refresh_from_db()
     return organization
 
 

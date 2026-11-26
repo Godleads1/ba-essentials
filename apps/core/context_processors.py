@@ -87,6 +87,7 @@ CLIENT_NAV = (
     ("files-home", "Deliverables & Files", "M14 3v5h5M6 3h9l4 4v14H6z"),
     ("messages-home", "Messages", "M21 15a4 4 0 01-4 4H8l-5 3V7a4 4 0 014-4h10a4 4 0 014 4z"),
     ("plan-home", "Plan & Usage", "M4 19h16M7 16V9M12 16V5M17 16v-4"),
+    ("reports-home", "Reports", "M3 3v18h18M7 15l4-4 3 3 5-6"),
     ("billing-home", "Billing & Invoices", "M3 6h18v12H3zM3 10h18"),
     ("team-home", "Organization & Team", "M16 11a4 4 0 10-8 0 4 4 0 008 0zM3 21a9 9 0 0118 0"),
     ("support-home", "Help & Support", "M12 18h.01M9.1 9a3 3 0 015.8 1c0 2-3 2-3 4"),
