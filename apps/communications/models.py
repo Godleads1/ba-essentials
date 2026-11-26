@@ -97,10 +97,16 @@ class SupportTicket(TimeStampedModel):
     )
     last_message_at = models.DateTimeField(default=timezone.now, db_index=True)
     resolved_at = models.DateTimeField(null=True, blank=True)
+    # Reply targets by plan (apps/communications/service_levels.py). The plan rank is
+    # kept from when the ticket opened: 0 none, 1 Starter, 2 Growth, 3 Dedicated.
+    plan_rank = models.PositiveSmallIntegerField(default=0)
+    reply_due_at = models.DateTimeField(null=True, blank=True)
+    first_reply_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["-last_message_at"]
         indexes = [
+            models.Index(fields=["first_reply_at", "reply_due_at"]),
             models.Index(fields=["organization", "status", "-last_message_at"]),
             models.Index(fields=["assigned_to", "status"]),
         ]
@@ -111,6 +117,17 @@ class SupportTicket(TimeStampedModel):
     @property
     def is_open(self) -> bool:
         return self.status in (SupportTicketStatus.OPEN, SupportTicketStatus.PENDING)
+
+    @property
+    def reply_overdue(self) -> bool:
+        return bool(self.reply_due_at and self.first_reply_at is None and timezone.now() > self.reply_due_at
+                    and self.is_open)
+
+    @property
+    def plan_label(self) -> str:
+        from .service_levels import PLAN_LABELS
+
+        return PLAN_LABELS.get(self.plan_rank, "No plan")
 
 
 class TicketMessage(models.Model):

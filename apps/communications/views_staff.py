@@ -3,10 +3,11 @@ from __future__ import annotations
 import uuid
 
 from django.contrib import messages
-from django.db.models import Count, Q
+from django.db.models import Case, Count, F, IntegerField, Q, Value, When
 from django.http import Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from apps.accounts.decorators import staff_permission_required, staff_required
@@ -51,8 +52,20 @@ def support_queue(request):
                 assigned_to__isnull=True,
             ),
         ),
+        overdue=Count("id", filter=Q(
+            status__in=[SupportTicketStatus.OPEN, SupportTicketStatus.PENDING],
+            first_reply_at__isnull=True, reply_due_at__lt=timezone.now(),
+        )),
     )
-    rows = list(tickets.order_by("-last_message_at")[:200])
+    # Waiting for a first reply comes first, earliest due first (higher plans have shorter
+    # targets, so they rise on their own), then the higher plan.
+    awaiting_first_reply = Case(
+        When(first_reply_at__isnull=True, status=SupportTicketStatus.OPEN, then=Value(0)),
+        default=Value(1), output_field=IntegerField(),
+    )
+    rows = list(tickets.order_by(
+        awaiting_first_reply, F("reply_due_at").asc(nulls_last=True), "-plan_rank", "-last_message_at",
+    )[:200])
     staff_access.log_list(request, "support", count=len(rows))
     return render(
         request,

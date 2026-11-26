@@ -232,14 +232,20 @@ def create_ticket(
 
     # Read fresh: the manager may have changed since this organization was loaded.
     manager = manager_for(Organization.objects.select_related("account_manager").get(pk=organization.pk))
+    from .service_levels import plan_rank, reply_due
+
+    now = timezone.now()
+    rank = plan_rank(organization)
     ticket = SupportTicket.objects.create(
         reference=f"SUP-{next_value('support.reference', start=1000)}",
         organization=organization,
         created_by=author,
         subject=subject,
         priority=priority,
-        last_message_at=timezone.now(),
+        last_message_at=now,
         assigned_to=manager,
+        plan_rank=rank,
+        reply_due_at=reply_due(now, rank),
     )
     TicketMessage.objects.create(
         ticket=ticket,
@@ -302,6 +308,10 @@ def post_ticket_message(
     if staff and not internal and ticket.status == SupportTicketStatus.OPEN:
         ticket.status = SupportTicketStatus.PENDING
         update_fields.append("status")
+    if staff and not internal and ticket.first_reply_at is None:
+        # The reply target counts until the client hears from a person, not an internal note.
+        ticket.first_reply_at = message.created_at
+        update_fields.append("first_reply_at")
     if not staff and ticket.status in (
         SupportTicketStatus.PENDING,
         SupportTicketStatus.RESOLVED,

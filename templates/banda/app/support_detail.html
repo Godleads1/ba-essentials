@@ -50,6 +50,7 @@
               <div class="flex justify-between gap-3"><dt class="text-ink-muted">Status</dt><dd><span class="chip-status {{ status.1 }}">{{ status.0 }}</span></dd></div>
               <div class="flex justify-between gap-3"><dt class="text-ink-muted">Urgency</dt><dd class="font-medium">{% if ticket.priority == "high" %}Urgent{% elif ticket.priority == "medium" %}Standard{% else %}Low{% endif %}</dd></div>
               <div class="flex justify-between gap-3"><dt class="text-ink-muted">Opened</dt><dd class="font-medium">{{ ticket.created_at|date:"j M Y, H:i" }}</dd></div>
+              {% if ticket.reply_due_at and not ticket.first_reply_at %}<div class="flex justify-between gap-3"><dt class="text-ink-muted">Reply expected by</dt><dd class="font-medium">{{ ticket.reply_due_at|date:"j M Y, H:i" }}</dd></div>{% endif %}
               <div class="flex justify-between gap-3"><dt class="text-ink-muted">Last update</dt><dd class="font-medium">{{ ticket.last_message_at|date:"j M Y, H:i" }}</dd></div>
               {% if ticket.assigned_to %}<div class="flex justify-between gap-3"><dt class="text-ink-muted">Handled by</dt><dd class="font-medium">B &amp; A support</dd></div>{% endif %}
             </dl>
