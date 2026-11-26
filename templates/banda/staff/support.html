@@ -8,6 +8,7 @@
     <div class="panel p-5"><p class="eyebrow">Resolved</p><p class="mt-1 text-2xl font-semibold text-ink">{{ counts.resolved }}</p></div>
     <div class="panel p-5"><p class="eyebrow">Unassigned</p><p class="mt-1 text-2xl font-semibold text-brand-orangeDark">{{ counts.unassigned }}</p></div>
   </div>
+  <p class="max-w-3xl text-sm text-ink-muted">{% if counts.overdue %}<strong class="text-[#B42318]">{{ counts.overdue }} waiting past the first-reply target.</strong> {% endif %}First-reply targets, in business hours (9am&ndash;5pm WAT, Mon&ndash;Fri): Dedicated 4 hours, Growth 1 day, Starter and no plan 2 days. Tickets waiting for a first reply are listed first, soonest due first.</p>
 
   <form method="get" class="flex flex-wrap items-center gap-2">
     <select name="status" class="rounded-xl border border-cream-line bg-white px-3 py-2.5 text-sm shadow-sm">
@@ -29,13 +30,15 @@
     {% if tickets %}
       <div class="table-wrap">
         <table class="data-table">
-          <thead><tr><th>Reference</th><th>Subject</th><th>Client</th><th>Status</th><th>Priority</th><th>Owner</th><th>Updated</th><th></th></tr></thead>
+          <thead><tr><th>Reference</th><th>Subject</th><th>Client</th><th>Plan</th><th>First reply</th><th>Status</th><th>Priority</th><th>Owner</th><th>Updated</th><th></th></tr></thead>
           <tbody>
             {% for ticket in tickets %}
               <tr>
                 <td class="whitespace-nowrap font-medium text-xs text-ink-muted">{{ ticket.reference }}</td>
                 <td><a class="font-medium text-ink hover:text-brand-navy" href="{% url 'staff-support-detail' ticket_id=ticket.pk %}">{{ ticket.subject }}</a></td>
                 <td class="text-ink-muted">{{ ticket.organization.name }}</td>
+                <td class="whitespace-nowrap text-ink-muted">{{ ticket.plan_label }}</td>
+                <td class="whitespace-nowrap">{% if ticket.first_reply_at %}<span class="text-ink-muted">Replied {{ ticket.first_reply_at|date:"j M, H:i" }}</span>{% elif ticket.reply_overdue %}<span class="chip-status bg-[#FDECEC] text-[#B42318]">Overdue since {{ ticket.reply_due_at|date:"j M, H:i" }}</span>{% elif ticket.reply_due_at %}<span class="text-ink">Due {{ ticket.reply_due_at|date:"j M, H:i" }}</span>{% else %}<span class="text-ink-muted">&mdash;</span>{% endif %}</td>
                 <td>{% include "banda/staff/_status_badge.html" with status=ticket.status %}</td>
                 <td class="capitalize text-ink-muted">{{ ticket.priority }}</td>
                 <td class="text-ink-muted">{% if ticket.assigned_to %}{{ ticket.assigned_to.full_name|default:ticket.assigned_to.email }}{% else %}—{% endif %}</td>

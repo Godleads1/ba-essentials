@@ -6,7 +6,7 @@
         <a href="{% url 'support-home' %}" class="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-cream-light text-ink hover:bg-cream" aria-label="Back to Help &amp; Support">{% icon "arrow-left" "h-5 w-5" %}</a>
         <div class="min-w-0 flex-1">
           <h1 class="font-display text-[22px] font-semibold leading-tight tracking-[-0.01em] sm:text-[24px]">New support request</h1>
-          <p class="mt-0.5 text-[14px] text-ink-muted">For your account, billing, sign-in or anything that isn't about one request.{% if account_manager %} It goes straight to your account manager, {{ account_manager.full_name|default:"your account manager" }}.{% endif %}</p>
+          <p class="mt-0.5 text-[14px] text-ink-muted">For your account, billing, sign-in or anything that isn't about one request.{% if account_manager %} It goes straight to your account manager, {{ account_manager.full_name|default:"your account manager" }}.{% endif %} On your plan, we aim to reply within {{ reply_target }} (9am&ndash;5pm WAT, Monday to Friday).</p>
         </div>
       </section>
 
