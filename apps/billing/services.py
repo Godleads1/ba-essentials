@@ -700,6 +700,23 @@ def process_webhook(
         except error:
             confirmed = {}
 
+    return _store_and_apply(
+        provider=provider,
+        event_id=event_id,
+        event_type=event_type,
+        payload=payload,
+        payload_hash=payload_hash,
+        data=data,
+        confirmed=confirmed,
+        signature_valid=True,
+    )
+
+
+def _store_and_apply(
+    *, provider: str, event_id: str, event_type: str, payload: dict, payload_hash: str,
+    data: dict, confirmed: dict | None, signature_valid: bool,
+) -> tuple[ProviderWebhookEvent, bool]:
+    """Store an event once and apply it. A second copy of the same event changes nothing."""
     with transaction.atomic():
         try:
             with transaction.atomic():
@@ -709,7 +726,7 @@ def process_webhook(
                     event_type=event_type,
                     payload_hash=payload_hash,
                     payload=payload,
-                    signature_valid=True,
+                    signature_valid=signature_valid,
                 )
         except IntegrityError:
             return (
@@ -725,6 +742,65 @@ def process_webhook(
         event.outcome = outcome[:64]
         event.save(update_fields=["processed_at", "outcome"])
     return event, False
+
+
+# The return page reloads every few seconds while it waits; ask the provider at most this often.
+RETURN_CHECK_SECONDS = 5
+
+
+def confirm_on_return(attempt: PaymentAttempt) -> str:
+    """Ask the provider about a payment when the client comes back from its checkout page.
+
+    The browser's own word (the `status=success` in the return address) is never used.
+    The server asks Paystack or Flutterwave directly, with the secret key, exactly as the
+    webhook path does, and applies the payment only if their answer matches our record
+    (`_apply_charge_success`). The client then sees "Payment confirmed" in seconds even
+    when the provider's notice is slow or never comes. The notice, when it arrives, is
+    then a harmless duplicate ("already_applied").
+
+    Returns a short outcome for logging: disabled, settled, throttled, unavailable,
+    not_yet, or the apply outcome (for example "paid").
+    """
+    from django.core.cache import cache
+
+    if not settings.PAYMENTS_ENABLED:
+        return "disabled"
+    if attempt.status not in (PaymentStatus.INITIATED, PaymentStatus.PENDING):
+        return "settled"
+    if attempt.invoice.status != InvoiceStatus.ISSUED:
+        return "settled"
+    if not cache.add(f"billing:return-check:{attempt.pk}", 1, RETURN_CHECK_SECONDS):
+        return "throttled"
+
+    provider = attempt.provider
+    client = flutterwave if provider == "flutterwave" else paystack
+    unavailable = flutterwave.FlutterwaveUnavailable if provider == "flutterwave" else paystack.PaystackUnavailable
+    error = flutterwave.FlutterwaveError if provider == "flutterwave" else paystack.PaystackError
+    try:
+        confirmed = client.verify(attempt.reference)
+    except unavailable:
+        return "unavailable"
+    except error:
+        return "not_yet"  # not found or not finished yet; the page asks again shortly
+    if confirmed.get("status") != "success":
+        return "not_yet"
+
+    payload = {"source": "checkout_return", "reference": attempt.reference}
+    event, duplicate = _store_and_apply(
+        provider=provider,
+        # One per payment. A provider webhook for the same payment has its own id and,
+        # arriving later, finds the payment already applied.
+        event_id=f"return:{attempt.reference}"[:128],
+        event_type="charge.success",
+        payload=payload,
+        payload_hash=hashlib.sha256(json.dumps(payload, sort_keys=True).encode("utf-8")).hexdigest(),
+        # The amount and currency we expect; the provider's answer is what is checked.
+        data={"reference": attempt.reference, "amount": attempt.amount_minor, "currency": attempt.currency},
+        confirmed=confirmed,
+        # Not a signed notice: this came from our own call to the provider's API.
+        signature_valid=False,
+    )
+    return "duplicate" if duplicate else event.outcome
 
 
 def _apply_charge_success(event: ProviderWebhookEvent, data: dict, confirmed: dict | None) -> str:
