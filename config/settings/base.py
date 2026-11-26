@@ -192,6 +192,17 @@ CONTENT_SECURITY_POLICY = env(
     + _FLUTTERWAVE_TEST_FORM_ACTION,
 )
 
+# --- Legal entity ---------------------------------------------------------
+# Who the client contracts with, shown in the Terms (1.1) and Privacy Policy. When the business
+# is incorporated, change these two in .env only, the day the CAC certificate is issued, for
+# example "B&A Essentials Ltd" and "a private company limited by shares, registered in Nigeria
+# under RC 1234567". Never show "Ltd" or an RC number before then.
+LEGAL_ENTITY_NAME = env("LEGAL_ENTITY_NAME", "B&A Essential Services")
+LEGAL_ENTITY_DESCRIPTION = env(
+    "LEGAL_ENTITY_DESCRIPTION",
+    "a business name registered in Nigeria with the Corporate Affairs Commission under number BN 74100773",
+)
+
 # --- Email ----------------------------------------------------------------
 EMAIL_BACKEND = env(
     "EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"

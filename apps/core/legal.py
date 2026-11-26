@@ -3,16 +3,18 @@
 Change these when the published Terms of Service or Privacy Policy change.
 """
 # The effective date shown on the Terms page. Set it to the day this version goes live.
-TERMS_EFFECTIVE_DATE = "22 November 2026"
-TERMS_VERSION = f"Terms 2 ({TERMS_EFFECTIVE_DATE})"
-PRIVACY_VERSION = "Privacy 0.1 (12 Nov 2026)"
+TERMS_EFFECTIVE_DATE = "26 November 2026"
+# 2.1: contact addresses (complaints@ for 5.6.8 and 6.5; refunds@ and counselling in 10.5) and the
+# contracting party's description in 1.1. No change to price, renewal, refunds, liability or data use.
+TERMS_VERSION = f"Terms 2.1 ({TERMS_EFFECTIVE_DATE})"
+PRIVACY_VERSION = "Privacy 0.2 (26 Nov 2026)"
 AGREEMENT_VERSION = f"{TERMS_VERSION}; {PRIVACY_VERSION}"
 
 # Terms 10.1(b): a change to price, renewal, refunds, liability or personal data must be confirmed
 # by the client before they can pay for a new period. An agreement counts if its version starts
 # with one of these. For a later update that doesn't need confirming, add its prefix here too,
 # so people who signed up under it aren't asked again.
-TERMS_TO_CONFIRM = ("Terms 2 (",)
+TERMS_TO_CONFIRM = ("Terms 2 (", "Terms 2.1 (")
 
 # What changed, shown on the confirmation page. Plain words; the Terms themselves are the record.
 TERMS_CHANGES = (
