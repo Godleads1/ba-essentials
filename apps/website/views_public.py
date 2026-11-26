@@ -37,10 +37,16 @@ def page(request, slug):
 @require_GET
 def legal(request, doc):
     """Terms of Service, Privacy Policy and Cookie Notice, as written for the launch."""
+    from django.conf import settings
+
     from apps.core.legal import TERMS_EFFECTIVE_DATE
 
-    return render(request, f"banda/public/{doc}.html",
-                  {"site_pages": services.published_pages(), "terms_effective": TERMS_EFFECTIVE_DATE})
+    return render(request, f"banda/public/{doc}.html", {
+        "site_pages": services.published_pages(),
+        "terms_effective": TERMS_EFFECTIVE_DATE,
+        "legal_entity_name": settings.LEGAL_ENTITY_NAME,
+        "legal_entity_description": settings.LEGAL_ENTITY_DESCRIPTION,
+    })
 
 
 @require_http_methods(["GET", "POST"])
