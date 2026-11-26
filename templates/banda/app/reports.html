@@ -1,0 +1,127 @@
+{% extends "banda/app/base.html" %}
+{% load ui %}
+{% block title %}Reports{% endblock %}
+{% block content %}
+  {% if locked %}
+      <section class="panel flex flex-col items-start gap-3 px-6 py-8">
+        <span class="chip-status bg-pill-orangeBg text-brand-orangeDark">Dedicated plan</span>
+        <h1 class="font-display text-[22px] font-semibold leading-tight tracking-[-0.01em]">Reports come with Dedicated</h1>
+        <p class="text-[14px] text-ink-muted" style="max-width:56ch">See three, six or twelve months of your requests, delivery speed, payments and support at a glance, and download them as a spreadsheet.</p>
+        <a href="{% url 'plan-home' %}" class="btn bg-brand-navy px-5 py-2.5 text-[14px] text-white hover:bg-[#282D68]">See plans</a>
+      </section>
+  {% else %}
+      <section class="panel flex flex-wrap items-center justify-between gap-3 px-5 py-4 sm:px-6">
+        <div class="min-w-0">
+          <p class="text-[12.5px] text-ink-soft">Dedicated plan</p>
+          <h1 class="font-display text-[22px] font-semibold leading-tight tracking-[-0.01em] sm:text-[24px]">Reports</h1>
+        </div>
+        <form method="get" class="flex flex-wrap items-center gap-2">
+          <label for="rngMonths" class="text-[13px] text-ink-muted">Period</label>
+          <select id="rngMonths" name="months" class="rounded-xl border border-cream-line bg-white px-3 py-2 text-[13.5px]">
+            {% for p in periods %}<option value="{{ p }}" {% if p == months %}selected{% endif %}>Last {{ p }} months</option>{% endfor %}
+          </select>
+          <button type="submit" class="btn border-[1.5px] border-brand-navy px-3.5 py-1.5 text-[13px] text-brand-navy hover:bg-brand-navy hover:text-white">Show</button>
+          {% if not r.empty %}<a href="{% url 'reports-csv' %}?months={{ months }}" class="btn bg-brand-navy px-4 py-2 text-[13.5px] text-white hover:bg-[#282D68]">Download CSV</a>{% endif %}
+        </form>
+      </section>
+
+      {% if r.empty %}
+        <section class="panel flex flex-col items-center gap-3 px-6 py-10 text-center">
+          <h2 class="font-display text-[20px] font-semibold">Your reports fill in as you use banda</h2>
+          <p class="text-[14px] text-ink-muted" style="max-width:52ch">Reports cover finished months. After your first month with requests you&rsquo;ll see trends here: requests, delivery speed, payments and support.</p>
+        </section>
+      {% else %}
+        <p class="px-1 text-[13.5px] text-ink-muted">{{ period_label }} &middot; {{ request.organization.name }} &middot; {{ r.totals.delivered }} delivered from {{ r.totals.sent }} sent</p>
+
+        <div class="grid grid-cols-1 gap-3 lg:grid-cols-2">
+          <section class="panel p-5" aria-labelledby="rpReq">
+            <h2 id="rpReq" class="font-display text-[18px] font-semibold">Requests sent and delivered</h2>
+            <p class="mt-0.5 text-[12.5px] text-ink-soft">{{ r.findings.delivered }}</p>
+            {% with c=r.charts.requests %}
+            <svg viewBox="0 0 {{ c.w }} {{ c.h }}" width="100%" role="img" aria-label="Requests sent and delivered each month" class="mt-2">
+              {% for y in c.grid %}<line x1="34" x2="512" y1="{{ y }}" y2="{{ y }}" stroke="#ECE5DA"/>{% endfor %}
+              {% for g in c.groups %}
+                {% for b in g.bars %}<rect x="{{ b.x }}" y="{{ b.y }}" width="{{ b.w }}" height="{{ b.h }}" rx="4" fill="{% if b.series == 0 %}#B8BBE6{% else %}#33397F{% endif %}"><title>{{ g.label }}: {{ b.value }} {% if b.series == 0 %}sent{% else %}delivered{% endif %}</title></rect>{% endfor %}
+                <text x="{{ g.x }}" y="{{ c.label_y }}" text-anchor="middle" font-size="11" fill="#736C66">{{ g.label }}</text>
+              {% endfor %}
+            </svg>
+            {% endwith %}
+            <p class="mt-1 flex gap-4 text-[12px] text-ink-muted"><span><span class="inline-block h-2.5 w-2.5 rounded-full" style="background:#B8BBE6"></span> Sent</span><span><span class="inline-block h-2.5 w-2.5 rounded-full bg-brand-navy"></span> Delivered</span></p>
+            <details class="mt-2 text-[12.5px]"><summary class="cursor-pointer text-ink-soft">Show the numbers</summary>
+              <div class="mt-2 overflow-x-auto"><table class="w-full border-separate border-spacing-0 text-left text-[13px]"><thead><tr class="text-[12px] text-ink-muted"><th scope="col" class="th">Month</th><th scope="col" class="th">Sent</th><th scope="col" class="th">Delivered</th></tr></thead><tbody>
+                {% for row in r.rows %}<tr><td class="td tabular-nums">{{ row.month|date:"M Y" }}</td><td class="td tabular-nums">{{ row.sent }}</td><td class="td tabular-nums">{{ row.delivered }}</td></tr>{% endfor %}
+              </tbody></table></div></details>
+          </section>
+
+          <section class="panel p-5" aria-labelledby="rpTat">
+            <h2 id="rpTat" class="font-display text-[18px] font-semibold">Average turnaround</h2>
+            {% with c=r.charts.turnaround %}
+            {% if c %}
+              <p class="mt-0.5 text-[12.5px] text-ink-soft">{{ r.findings.turnaround }}</p>
+              <svg viewBox="0 0 {{ c.w }} {{ c.h }}" width="100%" role="img" aria-label="Average turnaround in business days each month" class="mt-2">
+                {% for t in c.ticks %}<line x1="34" x2="512" y1="{{ t.y }}" y2="{{ t.y }}" stroke="#ECE5DA"/><text x="28" y="{{ t.y|add:4 }}" text-anchor="end" font-size="11" fill="#736C66">{{ t.value }}d</text>{% endfor %}
+                <polyline points="{{ c.polyline }}" fill="none" stroke="#D9662E" stroke-width="2.5"/>
+                {% for p in c.points %}<circle cx="{{ p.x }}" cy="{{ p.y }}" r="4.5" fill="#D9662E" stroke="#fff" stroke-width="2"><title>{{ p.label }}: {{ p.value }} business days</title></circle>{% endfor %}
+                {% for l in c.labels %}<text x="{{ l.x }}" y="{{ c.label_y }}" text-anchor="middle" font-size="11" fill="#736C66">{{ l.label }}</text>{% endfor %}
+                <text x="{{ c.last.x }}" y="{{ c.last.y|add:-10 }}" text-anchor="end" font-size="11" font-weight="600" fill="#241A15">{{ c.last.value }} days</text>
+              </svg>
+              <details class="mt-2 text-[12.5px]"><summary class="cursor-pointer text-ink-soft">Show the numbers</summary>
+                <div class="mt-2 overflow-x-auto"><table class="w-full border-separate border-spacing-0 text-left text-[13px]"><thead><tr class="text-[12px] text-ink-muted"><th scope="col" class="th">Month</th><th scope="col" class="th">Business days</th></tr></thead><tbody>
+                  {% for row in r.rows %}<tr><td class="td tabular-nums">{{ row.month|date:"M Y" }}</td><td class="td tabular-nums">{{ row.turnaround|default_if_none:"—" }}</td></tr>{% endfor %}
+                </tbody></table></div></details>
+            {% else %}
+              <p class="mt-4 text-[13.5px] text-ink-muted">Shown once something has been delivered.</p>
+            {% endif %}
+            {% endwith %}
+          </section>
+
+          <section class="panel p-5" aria-labelledby="rpSvc">
+            <h2 id="rpSvc" class="font-display text-[18px] font-semibold">Work by service</h2>
+            {% if r.charts.services %}
+              <p class="mt-0.5 text-[12.5px] text-ink-soft">{{ r.findings.services }}</p>
+              <ul class="mt-2">
+                {% for svc in r.charts.services %}
+                  <li class="mt-3">
+                    <div class="flex items-center justify-between gap-3 text-[13px]"><span>{{ svc.name }}</span><span class="text-ink-soft">{{ svc.count }} task{{ svc.count|pluralize }}</span></div>
+                    <div class="mt-1 h-2.5 overflow-hidden rounded-full bg-pill-navyBg" role="img" aria-label="{{ svc.name }}: {{ svc.count }} delivered"><div class="h-2.5 rounded-full bg-brand-navy" style="width:{{ svc.pct }}%"></div></div>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="mt-4 text-[13.5px] text-ink-muted">Shown once something has been delivered.</p>
+            {% endif %}
+          </section>
+
+          <section class="panel p-5" aria-labelledby="rpPay">
+            <h2 id="rpPay" class="font-display text-[18px] font-semibold">Payments</h2>
+            {% if r.charts.paid %}
+              <p class="mt-0.5 text-[12.5px] text-ink-soft">{% for cur, total in r.totals.paid.items %}{% if not forloop.first %} and {% endif %}{{ total|money_minor:cur }}{% endfor %} paid in this period: plan, quoted work and third-party fees.</p>
+              {% with c=r.charts.paid cur=r.charts.paid_currency %}
+              <svg viewBox="0 0 {{ c.w }} {{ c.h }}" width="100%" role="img" aria-label="Amount paid each month in {{ cur }}" class="mt-2">
+                {% for y in c.grid %}<line x1="34" x2="512" y1="{{ y }}" y2="{{ y }}" stroke="#ECE5DA"/>{% endfor %}
+                {% for g in c.groups %}
+                  {% for b in g.bars %}<rect x="{{ b.x }}" y="{{ b.y }}" width="{{ b.w }}" height="{{ b.h }}" rx="4" fill="#D9662E"><title>{{ g.label }}: {{ cur }} {{ b.value|floatformat:"2g" }}</title></rect>{% endfor %}
+                  <text x="{{ g.x }}" y="{{ c.label_y }}" text-anchor="middle" font-size="11" fill="#736C66">{{ g.label }}</text>
+                {% endfor %}
+              </svg>
+              {% endwith %}
+              <details class="mt-2 text-[12.5px]"><summary class="cursor-pointer text-ink-soft">Show the numbers</summary>
+                <div class="mt-2 overflow-x-auto"><table class="w-full border-separate border-spacing-0 text-left text-[13px]"><thead><tr class="text-[12px] text-ink-muted"><th scope="col" class="th">Month</th>{% for cur in r.currencies %}<th scope="col" class="th">Paid ({{ cur }})</th>{% endfor %}</tr></thead><tbody>
+                  {% for row in r.rows %}<tr><td class="td tabular-nums">{{ row.month|date:"M Y" }}</td>{% for cur, amount in row.paid_cells %}<td class="td tabular-nums">{{ amount|money_minor:cur }}</td>{% endfor %}</tr>{% endfor %}
+                </tbody></table></div></details>
+            {% else %}
+              <p class="mt-4 text-[13.5px] text-ink-muted">No payments in this period.</p>
+            {% endif %}
+          </section>
+        </div>
+
+        <section class="panel flex flex-wrap items-center justify-between gap-3 p-5" aria-labelledby="rpSup">
+          <div class="min-w-0">
+            <h2 id="rpSup" class="font-display text-[18px] font-semibold">Support</h2>
+            <p class="mt-1 text-[13.5px] text-ink-muted">{% if r.totals.support_counted %}{{ r.totals.support_counted }} support request{{ r.totals.support_counted|pluralize }} &middot; {{ r.totals.support_percent }}% got a first reply within 4 business hours{% if r.totals.support_late %} &middot; {{ r.totals.support_late }} late{% endif %}.{% else %}No support requests in this period.{% endif %}</p>
+          </div>
+          {% if r.totals.support_counted %}{% if r.totals.support_late %}<span class="chip-status bg-pill-orangeBg text-brand-orangeDark">{{ r.totals.support_late }} late</span>{% else %}<span class="chip-status bg-pill-greenBg text-pill-greenTx">On target</span>{% endif %}{% endif %}
+        </section>
+      {% endif %}
+  {% endif %}
+{% endblock %}
