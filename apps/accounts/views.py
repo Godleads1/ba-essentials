@@ -600,6 +600,7 @@ def security_preferences(request):
         request.user,
         updates_by_email=bool(form.cleaned_data.get("updates_by_email")),
         marketing_by_email=bool(form.cleaned_data.get("marketing_by_email")),
+        summary_by_email=bool(form.cleaned_data.get("summary_by_email")),
         organization=membership.organization if membership else None,
     )
     messages.success(request, "Contact preferences saved.")

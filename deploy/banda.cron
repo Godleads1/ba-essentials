@@ -16,3 +16,5 @@ RUN="docker compose --project-directory /opt/banda/deploy exec -T web python man
 41 1 * * *    deploy  $RUN run_retention >>/var/log/banda/retention.log 2>&1
 # Prove the newest backup can be restored: the 3rd of each month.
 23 3 3 * *    deploy  $RUN restore_check >>/var/log/banda/restore-check.log 2>&1
+# Monthly summary emails (Growth and Dedicated owners): 07:11 UTC (08:11 Lagos) on the 1st.
+11 7 1 * *    deploy  $RUN send_monthly_summaries >>/var/log/banda/summaries.log 2>&1

@@ -51,3 +51,23 @@ def add_business_hours(start: datetime, hours: float) -> datetime:
         remaining -= available
         current = datetime.combine(day + timedelta(days=1), OPEN, tzinfo=current.tzinfo)
     raise ValueError("Couldn't find enough business hours.")
+
+
+def business_hours_between(start: datetime, end: datetime) -> float:
+    """Support hours (9am-5pm, business days) between two aware datetimes; 0 if end is before start."""
+    if end <= start:
+        return 0.0
+    holidays = _holidays()
+    tz = timezone.get_current_timezone()
+    current, end = timezone.localtime(start, tz), timezone.localtime(end, tz)
+    total = timedelta()
+    while current.date() <= end.date():
+        day = current.date()
+        if is_business_day(day, holidays):
+            opens = datetime.combine(day, OPEN, tzinfo=current.tzinfo)
+            closes = datetime.combine(day, CLOSE, tzinfo=current.tzinfo)
+            lo, hi = max(current, opens), min(end, closes)
+            if hi > lo:
+                total += hi - lo
+        current = datetime.combine(day + timedelta(days=1), time(0, 0), tzinfo=current.tzinfo)
+    return total.total_seconds() / 3600

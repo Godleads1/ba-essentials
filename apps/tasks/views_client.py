@@ -95,6 +95,7 @@ def overview(request):
             "first_outstanding": outstanding.first(),
             "account_manager": account_manager.manager_for(organization),
             "manager_promised": bool(subscription and subscription.plan.rank >= account_manager.DEDICATED_RANK),
+            "has_summary": bool(subscription and subscription.plan.rank >= 2),
         },
     )
 

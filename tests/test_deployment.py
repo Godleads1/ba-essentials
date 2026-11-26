@@ -91,7 +91,7 @@ def test_every_scheduled_job_exists():
     cron = (DEPLOY / "banda.cron").read_text(encoding="utf-8")
     jobs = re.findall(r"\$RUN (\w+)", cron)
     assert set(jobs) == {"process_outbox", "scan_files", "run_renewals", "run_backups", "run_retention",
-                         "restore_check"}
+                         "restore_check", "send_monthly_summaries"}
     commands = {p.stem for p in ROOT.glob("apps/*/management/commands/*.py")}
     assert set(jobs) <= commands
     for line in cron.splitlines():

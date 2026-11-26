@@ -105,15 +105,22 @@ def update_details(user: User, *, full_name: str, membership=None, business_name
 
 @transaction.atomic
 def set_contact_preferences(user: User, *, updates_by_email: bool, marketing_by_email: bool,
-                            organization=None) -> None:
+                            organization=None, summary_by_email: bool | None = None) -> None:
     user = User.objects.select_for_update().get(pk=user.pk)
+    if summary_by_email is None:
+        summary_by_email = user.summary_by_email
+    changed = {}
     if updates_by_email != user.updates_by_email:
+        changed["updates_by_email"] = "on" if updates_by_email else "off"
+    if summary_by_email != user.summary_by_email:
+        changed["summary_by_email"] = "on" if summary_by_email else "off"
+    if changed:
         audit_service.record(action="account.preferences_changed", actor=user, organization=organization,
-                             resource_type="user", resource_id=str(user.pk),
-                             metadata={"updates_by_email": "on" if updates_by_email else "off"})
+                             resource_type="user", resource_id=str(user.pk), metadata=changed)
     if marketing_by_email != user.marketing_by_email:
         record_consent(user, ConsentKind.MARKETING, granted=marketing_by_email, wording=MARKETING_WORDING,
                        version=PRIVACY_VERSION, channel="email", organization=organization)
     User.objects.filter(pk=user.pk).update(
-        updates_by_email=updates_by_email, marketing_by_email=marketing_by_email, updated_at=timezone.now()
+        updates_by_email=updates_by_email, marketing_by_email=marketing_by_email,
+        summary_by_email=summary_by_email, updated_at=timezone.now()
     )

@@ -125,6 +125,7 @@
               <li class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-brand-orange"></span>In progress</li>
               <li class="flex items-center gap-1.5"><span class="stripes h-2.5 w-2.5 rounded-full"></span>Left this period</li>
             </ul>
+              {% if has_summary %}<a href="{% url 'monthly-summary' %}" class="mt-3 flex items-center justify-between rounded-xl bg-cream-light px-3 py-2 text-[12.5px] font-medium text-brand-navy hover:bg-cream">Monthly summary<span aria-hidden="true">&rsaquo;</span></a>{% endif %}
             {% if usage.legal_total %}
               <p class="mt-3 flex items-center justify-between rounded-xl bg-cream-light px-3 py-2 text-[12.5px]"><span class="flex items-center gap-1.5 font-medium"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-scale h-3.5 w-3.5 shrink-0 text-brand-navy"><path d="M12 3v18"></path><path d="m19 8 3 8a5 5 0 0 1-6 0zV7"></path><path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1"></path><path d="m5 8 3 8a5 5 0 0 1-6 0zV7"></path><path d="M7 21h10"></path></svg>Legal reviews</span><span class="whitespace-nowrap text-ink-muted">{{ usage.legal_used }} of {{ usage.legal_total }}{% if usage.legal_every > 1 %} every {{ usage.legal_every }} months{% endif %}</span></p>
             {% endif %}

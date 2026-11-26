@@ -87,6 +87,7 @@ class DetailsForm(forms.Form):
 class ContactPreferencesForm(forms.Form):
     updates_by_email = forms.BooleanField(required=False)
     marketing_by_email = forms.BooleanField(required=False)
+    summary_by_email = forms.BooleanField(required=False)
 
 
 class LoginForm(StyledFormMixin, forms.Form):

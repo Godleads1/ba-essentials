@@ -115,7 +115,8 @@ def export_data(user: User) -> dict:
             "full_name": user.full_name, "email": user.email, "email_confirmed_at": _ts(user.email_verified_at),
             "phone": user.phone, "phone_confirmed_at": _ts(user.phone_verified_at),
             "sign_in_codes_by": user.code_channel, "request_updates_by_email": user.updates_by_email,
-            "tips_and_offers_by_email": user.marketing_by_email, "authenticator_app": user.mfa_enabled,
+            "tips_and_offers_by_email": user.marketing_by_email,
+            "monthly_summary_by_email": user.summary_by_email, "authenticator_app": user.mfa_enabled,
             "created_at": _ts(user.created_at),
         },
         "agreements": [
