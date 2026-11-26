@@ -141,7 +141,7 @@ def queue(request):
             assignments__specialist=request.user,
             assignments__status=AssignmentStatus.ACTIVE,
         )
-    rows = list(tasks.distinct()[:200])
+    rows = list(with_plan_priority(tasks.distinct()).order_by("-plan_priority", "-created_at")[:200])
     staff_access.log_list(request, "queue", count=len(rows), searched=bool(query))
     return render(
         request,
@@ -154,6 +154,23 @@ def queue(request):
             "mine": request.GET.get("mine") == "1",
         },
     )
+
+
+def with_plan_priority(tasks):
+    """Annotate each request with its business's current plan rank (Dedicated 3, Growth 2,
+    Starter 1, none 0), so the queue lists higher plans first (Growth and Dedicated promise
+    priority; delivery times themselves don't change by plan)."""
+    from django.db.models import Case, F, IntegerField, Value, When
+    from django.utils import timezone
+
+    now = timezone.now()
+    return tasks.annotate(plan_priority=Case(
+        When(organization__subscription__status="active", organization__subscription__period_start__lte=now,
+             organization__subscription__grace_until__gte=now, then=F("organization__subscription__plan__rank")),
+        When(organization__subscription__status="active", organization__subscription__period_start__lte=now,
+             organization__subscription__period_end__gte=now, then=F("organization__subscription__plan__rank")),
+        default=Value(0), output_field=IntegerField(),
+    ))
 
 
 def _is_paused(organization):

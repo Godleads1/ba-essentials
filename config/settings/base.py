@@ -192,6 +192,11 @@ CONTENT_SECURITY_POLICY = env(
     + _FLUTTERWAVE_TEST_FORM_ACTION,
 )
 
+# --- Support hours ----------------------------------------------------------
+# Nigerian public holidays, as ISO dates separated by commas (e.g. 2026-12-25,2026-12-26).
+# Reply targets don't count these days. Update the list every year: some dates follow the moon.
+SUPPORT_HOLIDAYS = [d for d in env("SUPPORT_HOLIDAYS", "").split(",") if d.strip()]
+
 # --- Legal entity ---------------------------------------------------------
 # Who the client contracts with, shown in the Terms (1.1) and Privacy Policy. When the business
 # is incorporated, change these two in .env only, the day the CAC certificate is issued, for

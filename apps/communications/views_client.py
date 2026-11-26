@@ -223,7 +223,10 @@ def support_new(request):
             return redirect("support-detail", ticket_id=ticket.pk)
     from apps.organizations.account_manager import manager_for
 
+    from .service_levels import plan_rank, target_label
+
     return render(request, "banda/app/support_new.html", {
+        "reply_target": target_label(plan_rank(request.organization)),
         "form": form, "topics": [(k, label, icon) for k, (label, icon) in TOPICS.items()],
         "account_manager": manager_for(request.organization),
         "topic": request.GET.get("topic", "") if topic else "",
