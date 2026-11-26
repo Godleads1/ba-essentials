@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.db import connection
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_safe
 
 from .exceptions import DomainError
 
@@ -103,7 +103,7 @@ def _is_staff(user) -> bool:
     return bool(getattr(user, "staff_role", ""))
 
 
-@require_GET
+@require_safe  # GET and HEAD: uptime monitors often check with HEAD
 def health(request):
     try:
         with connection.cursor() as cursor:
