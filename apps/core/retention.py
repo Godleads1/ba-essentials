@@ -63,7 +63,7 @@ def _anonymise_user(user) -> None:
     user.phone, user.phone_verified_at, user.email_verified_at = "", None, None
     user.is_active = False
     user.mfa_enabled, user.mfa_secret_encrypted, user.mfa_confirmed_at = False, "", None
-    user.updates_by_email = user.marketing_by_email = False
+    user.updates_by_email = user.marketing_by_email = user.summary_by_email = False
     user.set_unusable_password()
     user.credential_version += 1
     user.save()

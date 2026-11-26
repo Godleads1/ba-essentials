@@ -114,7 +114,9 @@ def test_turning_off_email_updates_is_recorded(client, owner):
     client.post("/app/security/preferences/", {})
     owner.refresh_from_db()
     assert not owner.updates_by_email
-    assert AuditEvent.objects.get(action="account.preferences_changed").metadata == {"updates_by_email": "off"}
+    # Every switch was off in the form, so the monthly summary email went off too.
+    assert AuditEvent.objects.get(action="account.preferences_changed").metadata == {
+        "updates_by_email": "off", "summary_by_email": "off"}
 
 
 def test_staff_have_no_client_preferences(staff_client):

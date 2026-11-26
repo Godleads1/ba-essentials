@@ -79,6 +79,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     # notices are always sent; these cover request updates and marketing only.
     updates_by_email = models.BooleanField(default=True)
     marketing_by_email = models.BooleanField(default=False)
+    # The monthly summary email for Growth and Dedicated owners (apps/reports).
+    summary_by_email = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
