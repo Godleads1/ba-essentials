@@ -293,12 +293,29 @@ Authenticator or Microsoft Authenticator.
 
 ## 11. Payments
 
-1. Put the Paystack and Flutterwave **test** keys in `.env`, set `PAYMENTS_ENABLED=true`, and
-   run `docker compose up -d web`.
-2. In both dashboards, set the webhook address to
+1. Put the Paystack and Flutterwave **test** keys in `.env`. Paystack signs its webhooks with
+   the secret key, so `PAYSTACK_WEBHOOK_SECRET` is the same value as `PAYSTACK_SECRET_KEY`.
+   For Flutterwave, make a random `FLUTTERWAVE_WEBHOOK_HASH` on the server
+   (`openssl rand -hex 32`) and paste the same value into Flutterwave's **Secret hash**.
+2. In both dashboards, in **test mode**, set the webhook address to
    `https://yourdomain/webhooks/paystack/` and `https://yourdomain/webhooks/flutterwave/`.
-3. Make a test payment in **Chrome, Safari and Firefox**.
-4. Only then swap in the **live** keys, restart, and make one small real payment yourself.
+   Leave Paystack's callback URL empty (the app sends its own).
+3. In Flutterwave, under **Settings → Webhooks**, tick **Enable v3 webhooks**, **Receive
+   webhook response in JSON format**, **Enable webhook retries** and **Enable resend webhook
+   from the dashboard**. Without v3, Flutterwave sends an older format the app refuses
+   ("Webhook is missing an event identifier").
+4. While testing on the live server, set `PAYMENTS_ENABLED=true` **and** `SIGNUPS_PAUSED=true`
+   (so strangers can't sign up and pay with test cards), then `docker compose up -d web`.
+   The app needs both providers' keys before it will start with payments on.
+5. Make test payments in **Chrome, Safari and Firefox**: a Nigerian business pays in naira
+   through Paystack (test card `4084 0840 8408 4081`, CVV `408`), and a business in another
+   country pays in dollars through Flutterwave (test card `5531 8866 5214 2950`, `09/32`, CVV
+   `564`, PIN `3310`, OTP `12345`). "Payment confirmed" should show within seconds: the app
+   asks the provider directly when the client comes back, and the webhook confirms it again.
+   `docker compose logs web | grep "POST /webhooks"` should show `200` for each provider.
+6. Set `PAYMENTS_ENABLED=false` and `SIGNUPS_PAUSED=false` again until you go live.
+7. Only then swap in the **live** keys (and, in Flutterwave and Paystack, the live webhook
+   settings), restart, and make one small real payment yourself.
 
 ## Putting changes live
 

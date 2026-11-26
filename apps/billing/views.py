@@ -275,7 +275,12 @@ def invoice_checkout(request, invoice_id):
 @client_required
 @require_GET
 def plan_checkout_return(request):
-    """Where Paystack sends the client back. It shows status; it never activates anything."""
+    """Where Paystack or Flutterwave sends the client back after paying.
+
+    Nothing the browser sends back is trusted. While the payment is still pending, the
+    server asks the provider directly (`billing.confirm_on_return`), so a confirmed
+    payment shows in seconds even when the provider's webhook is slow.
+    """
     reference = (
         request.GET.get("reference") or request.GET.get("trxref") or request.GET.get("tx_ref") or ""
     )[:64]
@@ -286,6 +291,10 @@ def plan_checkout_return(request):
     )
     if attempt is None:
         raise Http404("Payment not found.")
+    outcome = billing.confirm_on_return(attempt)
+    if outcome not in ("disabled", "settled", "throttled", "not_yet"):
+        attempt.refresh_from_db()
+        attempt.invoice.refresh_from_db()
     return render(
         request,
         "banda/app/checkout_return.html",
