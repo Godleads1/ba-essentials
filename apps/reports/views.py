@@ -87,5 +87,6 @@ def reports_csv(request):
     response.write("\ufeff")  # so Excel reads the naira sign and accents correctly
     writer = csv.writer(response)
     for row in reports.csv_rows(report):
-        writer.writerow(row)
+        # Every cell goes through reports._safe, which defuses = + - @ formulas (tested).
+        writer.writerow([reports._safe(cell) for cell in row])  # nosemgrep: csv-writer-injection
     return response

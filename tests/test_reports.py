@@ -107,6 +107,14 @@ def test_a_task_title_cannot_become_a_formula(client, make_task, owner, october)
     assert "=cmd" not in text
 
 
+def test_every_csv_cell_is_defused(client, october, monkeypatch):
+    """Whatever a row holds, a cell starting with = + - @ reaches the spreadsheet as text."""
+    _plan(october, "dedicated", 3, 30)
+    monkeypatch.setattr(reports, "csv_rows", lambda report: iter([["=SUM(A1)", "+1", "@x", 3]]))
+    text = client.get("/app/reports/export.csv").content.decode().lstrip("\ufeff")
+    assert next(csv.reader(io.StringIO(text))) == ["'=SUM(A1)", "'+1", "'@x", "3"]
+
+
 def test_another_business_sees_only_its_own(other_client, other_organization, october):
     _plan(october, "dedicated", 3, 30)
     _paid(october, "INV-1", 15_000_000, at(3))

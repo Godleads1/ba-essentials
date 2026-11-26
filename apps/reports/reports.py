@@ -197,7 +197,7 @@ def csv_rows(report: Report):
     services = [name for name, _ in report.by_service]
     yield (["Month", "Requests sent", "Delivered", "Average turnaround (business days)",
             "Support first replies on time", "Support requests counted"]
-           + [f"Paid ({c})" for c in report.currencies] + [f"Delivered: {_safe(s)}" for s in services])
+           + [f"Paid ({c})" for c in report.currencies] + [f"Delivered: {s}" for s in services])
     for r in report.rows:
         yield ([r["month"].strftime("%Y-%m"), r["sent"], r["delivered"],
                 "" if r["turnaround"] is None else r["turnaround"], r["support_on_time"], r["support_counted"]]
